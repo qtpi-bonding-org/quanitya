@@ -1,0 +1,22 @@
+# Notification inbox for ephemeral, privacy-first user notifications
+# This table stores pending notifications that are hard-deleted upon dismissal
+# with zero retention policy for privacy compliance.
+
+### A notification message for a specific user
+class: NotificationInbox
+
+# Database table for storing notifications
+table: notification_inbox
+
+# The fields (and columns) of the notification class
+fields:
+  ### The ID of the user who should receive this notification
+  userId: int
+  ### The title/message content of the notification
+  title: String
+  ### The type of notification (system, report, alert)
+  type: String
+  ### When the notification was created
+  createdAt: DateTime
+  ### Optional JSON payload for navigation or actions
+  actionPayload: String?

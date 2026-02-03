@@ -1,0 +1,5 @@
+class: ArchivalScheduleData
+table: archival_schedule_data
+fields:
+  scheduledAt: DateTime
+  lastRun: DateTime?

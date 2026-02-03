@@ -1,0 +1,30 @@
+# ArchivedMonth: Container for archived data from a specific month
+# Used by archive retrieval API to return historical data
+class: ArchivedMonth
+fields:
+  # User ID who owns this archived data
+  userId: int
+  
+  # Year of the archived month (e.g., 2024)
+  year: int
+  
+  # Month of the archived data (1-12)
+  month: int
+  
+  # Archived encrypted entries for this month
+  entries: List<EncryptedEntry>
+  
+  # Archived encrypted templates for this month
+  templates: List<EncryptedTemplate>
+  
+  # Archived encrypted schedules for this month
+  schedules: List<EncryptedSchedule>
+  
+  # Archived encrypted analysis pipelines for this month
+  analysisPipelines: List<EncryptedAnalysisPipeline>
+  
+  # When this data was archived to R2
+  archivedAt: DateTime
+  
+  # Archive format version for future compatibility
+  version: String

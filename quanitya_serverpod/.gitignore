@@ -1,0 +1,79 @@
+# Dart/Flutter
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+pubspec.lock
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Serverpod generated files
+# **/generated/  # Commented out - generated files should be committed for production builds
+**/migrations/*.sql
+!**/migrations/definition.yaml
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker
+.dockerignore
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Coverage
+coverage/
+lcov.info
+
+# Test results
+test-results.xml
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Backup files
+*.bak
+*.backup
+
+# Node modules (if any web assets)
+node_modules/
+
+# Python cache (for any Python scripts)
+__pycache__/
+*.pyc
+*.pyo
+
+# Local development
+config/passwords.yaml
+config/development.yaml
+config/staging.yaml
+config/production.yaml
+
+# PowerSync specific
+powersync_data/

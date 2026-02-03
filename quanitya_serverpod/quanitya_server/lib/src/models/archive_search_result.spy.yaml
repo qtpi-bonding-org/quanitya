@@ -1,0 +1,15 @@
+# ArchiveSearchResult: Result from searching archived data
+# Lightweight result showing which months have data without downloading content
+class: ArchiveSearchResult
+fields:
+  # Year of the archive
+  year: int
+  
+  # Month (1-12)
+  month: int
+  
+  # R2 storage key
+  archiveKey: String
+  
+  # Whether this month has archived data
+  hasData: bool

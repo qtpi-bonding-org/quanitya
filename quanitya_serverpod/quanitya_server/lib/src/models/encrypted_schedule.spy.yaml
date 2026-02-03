@@ -1,0 +1,22 @@
+# EncryptedSchedule: E2EE encrypted schedule data
+# Client encrypts schedule data before upload, server stores opaque blob
+# PowerSync syncs this to client SQLite for offline access
+class: EncryptedSchedule
+table: encrypted_schedules
+fields:
+  # UUID primary key for PowerSync syncing (generated on client)
+  id: UuidValue, defaultModel=random
+  
+  # Foreign key to account (for sync bucket filtering)
+  # References anon_account table from anonaccred module
+  accountId: int
+  
+  # Client-encrypted schedule data (JSON blob encrypted with data key)
+  encryptedData: String
+  
+  # Last update timestamp for sync conflict resolution
+  updatedAt: DateTime, default=now
+indexes:
+  encrypted_schedule_account_idx:
+    fields: accountId
+    unique: false

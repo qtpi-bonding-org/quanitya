@@ -1,0 +1,22 @@
+name: quanitya_server
+description: Starting point for a Serverpod server.
+# version: 1.0.0
+# homepage: https://www.example.com
+
+environment:
+  sdk: '^3.10.0'
+
+dependencies:
+  serverpod: 3.0.1
+  serverpod_auth_idp_server: 3.0.1
+  # Server-side crypto (no Flutter dependency)
+  jose: ^0.3.5           # JWT with native JWK support
+  pointycastle: ^4.0.0
+  aws_s3_api: ^2.0.0     # For R2 (S3-compatible) storage
+  archive: ^3.6.1        # For gzip compression
+
+dev_dependencies:
+  lints: '>=3.0.0 <7.0.0'
+  serverpod_test: 3.0.1
+  test: ^1.25.5
+

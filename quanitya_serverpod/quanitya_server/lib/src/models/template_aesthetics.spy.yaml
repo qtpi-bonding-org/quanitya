@@ -1,0 +1,43 @@
+# TemplateAesthetics: Non-E2EE template visual settings
+# Stored in plaintext since it's not PII (colors, icons, fonts)
+# PowerSync syncs this to client SQLite for offline access
+class: TemplateAesthetics
+table: template_aesthetics
+fields:
+  # UUID primary key for PowerSync syncing (generated on client)
+  id: UuidValue, defaultModel=random
+  
+  # Foreign key to account (for sync bucket filtering)
+  # References anon_account table from anonaccred module
+  accountId: int
+  
+  # Reference to the template (client-side UUID)
+  templateId: String
+  
+  # Theme name (e.g., "ocean", "forest", "sunset")
+  themeName: String?
+  
+  # Icon identifier
+  icon: String?
+  
+  # Emoji for quick visual identification
+  emoji: String?
+  
+  # JSON-encoded color palette
+  paletteJson: String?
+  
+  # JSON-encoded font configuration
+  fontConfigJson: String?
+  
+  # JSON-encoded color mappings
+  colorMappingsJson: String?
+  
+  # Last update timestamp for sync conflict resolution
+  updatedAt: DateTime, default=now
+indexes:
+  template_aesthetics_account_idx:
+    fields: accountId
+    unique: false
+  template_aesthetics_template_idx:
+    fields: templateId
+    unique: false

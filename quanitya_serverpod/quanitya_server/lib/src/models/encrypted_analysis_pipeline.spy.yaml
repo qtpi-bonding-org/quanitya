@@ -1,0 +1,22 @@
+# EncryptedAnalysisPipeline: E2EE encrypted analysis pipeline data
+# Client encrypts pipeline data before upload, server stores opaque blob
+# PowerSync syncs this to client SQLite for offline access
+class: EncryptedAnalysisPipeline
+table: encrypted_analysis_pipelines
+fields:
+  # UUID primary key for PowerSync syncing (generated on client)
+  id: UuidValue, defaultModel=random
+  
+  # Foreign key to account (for sync bucket filtering)
+  # References anon_account table from anonaccred module
+  accountId: int
+  
+  # Client-encrypted analysis pipeline data (JSON blob encrypted with data key)
+  encryptedData: String
+  
+  # Last update timestamp for sync conflict resolution
+  updatedAt: DateTime, default=now
+indexes:
+  encrypted_analysis_pipeline_account_idx:
+    fields: accountId
+    unique: false

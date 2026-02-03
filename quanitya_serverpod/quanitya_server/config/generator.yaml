@@ -1,0 +1,7 @@
+type: module
+nickname: community
+
+client_package_path: ../quanitya_client
+server_test_tools_path: test/integration/test_tools
+
+modules:

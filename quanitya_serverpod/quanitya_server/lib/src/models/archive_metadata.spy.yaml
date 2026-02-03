@@ -1,0 +1,18 @@
+# ArchiveMetadata: Metadata about available archived data for a user
+# Used to show users what historical data is available without downloading it
+class: ArchiveMetadata
+fields:
+  # User ID
+  userId: int
+  
+  # List of available archived months
+  availableMonths: List<ArchiveMonthInfo>
+  
+  # Total number of archived months
+  totalArchives: int
+  
+  # Oldest available archive date
+  oldestArchive: DateTime?
+  
+  # Newest available archive date
+  newestArchive: DateTime?

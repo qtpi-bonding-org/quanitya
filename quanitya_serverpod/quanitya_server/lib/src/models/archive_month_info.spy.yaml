@@ -1,0 +1,15 @@
+# ArchiveMonthInfo: Information about a specific archived month
+# Lightweight metadata without the actual archived data
+class: ArchiveMonthInfo
+fields:
+  # Year of the archived month
+  year: int
+  
+  # Month (1-12)
+  month: int
+  
+  # R2 storage key for this archive
+  archiveKey: String
+  
+  # When this archive was uploaded to R2
+  uploadedAt: String?

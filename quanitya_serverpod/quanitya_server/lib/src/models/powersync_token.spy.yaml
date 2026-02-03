@@ -1,0 +1,10 @@
+### PowerSync token response model
+### Used by PowerSyncEndpoint.getToken() to return JWT credentials
+class: PowerSyncToken
+fields:
+  ### JWT token for PowerSync authentication
+  token: String
+  ### ISO8601 timestamp when token expires
+  expiresAt: String
+  ### PowerSync service endpoint URL
+  endpoint: String

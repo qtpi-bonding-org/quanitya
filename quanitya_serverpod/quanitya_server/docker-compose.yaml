@@ -1,0 +1,101 @@
+services:
+  # Development services
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: quanitya_postgres_dev
+    command: ["postgres", "-c", "wal_level=logical"]  # Enable logical replication for PowerSync
+    ports:
+      - "8090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: quanitya
+      POSTGRES_PASSWORD: "REDACTED_DEV_PASSWORD"
+    volumes:
+      - quanitya_data:/var/lib/postgresql/data
+    networks:
+      - quanitya_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: quanitya_redis_dev
+    ports:
+      - "8091:6379"
+    command: redis-server --requirepass "REDACTED_REDIS_PASSWORD"
+    networks:
+      - quanitya_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "REDACTED_REDIS_PASSWORD", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PowerSync Service - Synchronization layer for PostgreSQL
+  powersync:
+    image: journeyapps/powersync-service:latest
+    container_name: quanitya_powersync_dev
+    restart: unless-stopped
+    command: ["start", "-r", "unified"]
+    ports:
+      - "8095:8080"  # PowerSync API port
+    volumes:
+      - ./powersync.yaml:/config/config.yaml
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/config.yaml
+      PS_SOURCE_URI: "postgresql://powersync_role:REDACTED_DEV_PASSWORD@postgres:5432/quanitya"
+      PS_STORAGE_URI: "postgresql://powersync_role:REDACTED_DEV_PASSWORD@postgres:5432/quanitya"
+      PS_JWK_N: "placeholder_modulus_value_for_development"
+      PS_JWK_E: "AQAB"
+      PS_JWK_KID: "dev-key-1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - quanitya_network
+
+  # Test services
+  postgres_test:
+    image: pgvector/pgvector:pg16
+    container_name: quanitya_postgres_test
+    command: ["postgres", "-c", "wal_level=logical"]  # Enable logical replication for PowerSync
+    ports:
+      - "9090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: quanitya_test
+      POSTGRES_PASSWORD: "REDACTED_TEST_PASSWORD"
+    volumes:
+      - quanitya_test_data:/var/lib/postgresql/data
+    networks:
+      - quanitya_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis_test:
+    image: redis:7-alpine
+    container_name: quanitya_redis_test
+    ports:
+      - "9091:6379"
+    command: redis-server --requirepass "REDACTED_REDIS_TEST_PASSWORD"
+    networks:
+      - quanitya_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "REDACTED_REDIS_TEST_PASSWORD", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  quanitya_data:
+  quanitya_test_data:
+
+networks:
+  quanitya_network:
+    driver: bridge

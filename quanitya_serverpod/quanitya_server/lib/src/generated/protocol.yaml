@@ -1,0 +1,29 @@
+archive:
+  - getArchivedMonth:
+  - getArchivedDateRange:
+  - getArchiveMetadata:
+  - searchArchivedEntries:
+  - runManualArchival:
+emailIdp:
+  - login:
+  - startRegistration:
+  - verifyRegistrationCode:
+  - finishRegistration:
+  - startPasswordReset:
+  - verifyPasswordResetCode:
+  - finishPasswordReset:
+jwtRefresh:
+  - refreshAccessToken:
+powerSync:
+  - getToken:
+sync:
+  - upsertEncryptedTemplate:
+  - deleteEncryptedTemplate:
+  - upsertEncryptedEntry:
+  - deleteEncryptedEntry:
+  - upsertEncryptedSchedule:
+  - deleteEncryptedSchedule:
+  - upsertTemplateAesthetics:
+  - deleteTemplateAesthetics:
+greeting:
+  - hello:
