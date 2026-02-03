@@ -1,0 +1,141 @@
+import 'package:injectable/injectable.dart';
+
+import '../../../data/interfaces/analysis_pipeline_interface.dart';
+import '../exceptions/analysis_exceptions.dart';
+import '../models/analysis_pipeline.dart';
+import '../models/analysis_enums.dart';
+import '../models/analysis_output.dart';
+import '../enums/analysis_output_mode.dart';
+import '../services/analysis_engine.dart';
+
+/// Service for real-time streaming analytics calculations.
+///
+/// Streams pipeline definitions and log entries from database,
+/// calculates results in real-time, and emits results.
+///
+/// Follows data flow consistency pattern:
+/// - Database as single source of truth
+/// - No stored calculation results
+/// - Always fresh calculations from source data
+@injectable
+class StreamingAnalyticsService {
+  final IAnalysisPipelineRepository _pipelineRepo;
+  final AnalysisEngine _analysisEngine;
+
+  const StreamingAnalyticsService(this._pipelineRepo, this._analysisEngine);
+
+  /// Stream scalar results for a saved pipeline.
+  ///
+  /// Combines pipeline definition stream with template data stream,
+  /// executes pipeline in real-time when either changes,
+  /// and emits only scalar results.
+  Stream<Map<String, double>> streamScalarResults(String pipelineId) {
+    return _pipelineRepo
+        .watchAllPipelines()
+        .map(
+          (pipelines) => pipelines.where((p) => p.id == pipelineId).firstOrNull,
+        )
+        .distinct()
+        .asyncExpand((pipeline) {
+          if (pipeline == null) {
+            return Stream.value(<String, double>{});
+          }
+
+          // Extract templateId from fieldId (format: "templateId:fieldName")
+          final templateId = _extractTemplateId(pipeline.fieldId);
+
+          return _streamTemplateData(templateId)
+              .asyncMap((_) => _executeAndExtractScalars(pipeline))
+              .handleError((error) {
+                throw AnalysisException('streamScalarResults failed: $error');
+              });
+        });
+  }
+
+  /// Stream full results for current pipeline being built.
+  ///
+  /// Used by pipeline builder for live preview functionality.
+  /// Takes current steps and field info, streams template data,
+  /// and calculates results in real-time.
+  Stream<AnalysisOutput> streamResultsForLivePreview({
+    required String snippet,
+    required String fieldId,
+    required AnalysisOutputMode outputMode,
+    required AnalysisSnippetLanguage snippetLanguage,
+    String? templateId,
+  }) {
+    if (snippet.isEmpty) {
+      // Return a dummy empty result
+      return Stream.value(const AnalysisOutput.scalar([]));
+    }
+
+    // Extract templateId from fieldId if not provided
+    final actualTemplateId = templateId ?? _extractTemplateId(fieldId);
+
+    return _streamTemplateData(actualTemplateId)
+        .asyncMap((_) async {
+          try {
+            // Create a temporary pipeline model for execution
+            final pipeline = AnalysisPipelineModel(
+              id: 'temp-${DateTime.now().millisecondsSinceEpoch}',
+              name: 'Live Preview',
+              fieldId: fieldId,
+              outputMode: outputMode,
+              snippetLanguage: snippetLanguage,
+              snippet: snippet,
+              updatedAt: DateTime.now(),
+            );
+
+            return await _analysisEngine.execute(pipeline);
+          } catch (error) {
+            throw AnalysisException(
+              'streamResultsForLivePreview failed: $error',
+            );
+          }
+        })
+        .handleError((error) {
+          throw AnalysisException('Live preview failed: $error');
+        });
+  }
+
+  /// Execute pipeline and extract scalar results.
+  Future<Map<String, double>> _executeAndExtractScalars(
+    AnalysisPipelineModel pipeline,
+  ) async {
+    try {
+      // Execute pipeline using AnalysisEngine
+      final result = await _analysisEngine.execute(pipeline);
+
+      // Extract results into a labeled map for UI consumption
+      return result.when(
+        scalar: (scalars) => {for (final s in scalars) s.label: s.value},
+        vector: (vectors) => {}, // Vectors are charts, not scalar summaries
+        matrix: (matrices) => {}, // Matrices are complex
+      );
+    } catch (error) {
+      throw AnalysisException('Pipeline execution failed: $error');
+    }
+  }
+
+  /// Stream template data changes.
+  ///
+  /// This is a placeholder that streams template data changes.
+  /// In a real implementation, this would watch for log entry changes
+  /// for the specific template.
+  Stream<void> _streamTemplateData(String templateId) {
+    // For now, emit periodically to trigger recalculation
+    // In the future, this could watch actual log entry changes
+    return Stream.periodic(const Duration(seconds: 5));
+  }
+
+  /// Extract templateId from fieldId format "templateId:fieldName"
+  String _extractTemplateId(String fieldId) {
+    final parts = fieldId.split(':');
+    if (parts.length != 2) {
+      throw AnalysisException(
+        'Invalid fieldId format: $fieldId. Expected "templateId:fieldName"',
+      );
+    }
+    return parts[0];
+  }
+}

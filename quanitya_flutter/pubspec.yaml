@@ -1,0 +1,231 @@
+name: quanitya_flutter
+description: A new Flutter project with Serverpod.
+
+# The following line prevents the package from being accidentally published to
+# pub.dev using `pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+version: 1.0.0+1
+
+environment:
+  sdk: '^3.10.0'
+  flutter: '^3.38.5'
+
+dependencies:
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.5
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  quanitya_cloud_client:
+    path: ../quanitya_cloud_client
+  serverpod_auth_idp_flutter: 3.0.1
+  serverpod_flutter: 3.0.1
+  # anonaccred_client:
+  #   path: ../../serverpod_anonaccred/anonaccred_client
+  flutter_color_palette:
+    git: git@github.com:qtpi-bonding-org/flutter_color_palette.git
+  
+  # State Management
+  flutter_bloc: ^8.1.3
+  equatable: ^2.0.5
+  cubit_ui_flow:
+    git: 
+      url: git@github.com:qtpi-bonding-org/flutter_cubit_ui_flow.git
+      ref: 737f24b
+  
+  # Privacy-preserving error reporting
+  flutter_error_privserver:
+    git:
+      url: git@github.com:qtpi-bonding-org/flutter_error_privserver.git
+      ref: 3565d9d47f24bee06bc88314b51a7df04ee3f78e
+  
+  # Code Generation
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+  
+  # Utilities
+  uuid: ^4.2.1
+  
+  # JSON Schema Validation
+  json_schema: ^5.2.2
+  
+  # HTTP client
+  http: ^1.1.0
+  
+  # Environment variables
+  flutter_dotenv: ^5.1.0
+  
+  # Dependency Injection
+  get_it: ^7.6.4
+  injectable: ^2.3.2
+  
+  # Database
+  drift: ^2.14.1
+  sqlite3_flutter_libs: ^0.5.18
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  
+  # Security & Encryption
+  flutter_secure_storage: ^9.0.0
+  webcrypto: ^0.6.0
+  crypto: ^3.0.3  # SHA-1 for Hashcash proof-of-work
+  dart_jwk_duo:
+    git: 
+      url: git@github.com:qtpi-bonding-org/dart_jwk_duo.git
+      ref: 57951f2de99784c3fc4664f7b66bb13ce6e80bc7
+  
+  # Sharing & Export
+  share_plus: ^10.1.4
+  
+  # Navigation
+  go_router: ^17.0.1
+  url_launcher: ^6.2.5
+  
+  # Google Fonts (for AI-generated template fonts)
+  google_fonts: ^6.2.1
+  
+  # Utilities
+  units_converter: ^2.0.1
+  home_widget: ^0.4.1
+  intl: ^0.20.2
+  
+  # PowerSync for offline-first sync
+  powersync: ^1.3.8
+  drift_sqlite_async: ^0.2.6
+  
+  # JSON Dynamic Widget
+  json_dynamic_widget: ^7.0.2
+  
+  # Colorable Widget Annotations
+  flutter_colorable:
+    git:
+      url: git@github.com:qtpi-bonding-org/flutter_colorable.git
+      ref: 6b1367355620a4e3621815f27d4a21a0896d59a0
+  flutter_colorpicker: ^1.1.0
+  flutter_iconpicker: ^3.6.0
+  rrule: ^0.2.17
+  
+  # Local Notifications
+  flutter_local_notifications: ^19.5.0
+  timezone: ^0.10.0
+  
+  # Charts & Visualization
+  graphic: ^2.6.0
+  flutter_native_splash: ^2.4.4
+  local_auth: ^3.0.0
+  health: ^13.2.1
+  
+  # Device Info
+  device_info_plus: ^12.1.0
+  device_marketing_names: ^1.1.6
+  
+  # QR Code
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^6.0.0
+  dartantic_ai: ^1.1.0
+  dartantic_interface: 1.1.0
+  permission_handler: ^12.0.1
+  javascript_flutter: ^1.0.0
+  jinja: ^0.6.0
+
+dev_dependencies:
+  flutter_lints: '>=3.0.0 <7.0.0'
+  flutter_test:
+    sdk: flutter
+  
+  # Code Generation
+  build_runner: ^2.4.7
+  freezed: ^2.4.6
+  json_serializable: ^6.7.1
+  injectable_generator: ^2.4.1
+  drift_dev: ^2.14.1
+  
+  # Property-based testing
+  faker: ^2.1.0
+  
+  # Testing mocks
+  mockito: ^5.4.2
+  
+  # Colorable Widget Generator
+  flutter_colorable_generator:
+    git:
+      url: git@github.com:qtpi-bonding-org/flutter_colorable.git
+      ref: 6b1367355620a4e3621815f27d4a21a0896d59a0
+      path: flutter_colorable_generator
+  
+  # L10n Key Resolver Generator
+  l10n_key_resolver:
+    git:
+      url: git@github.com:qtpi-bonding-org/dart_l10n_key_resolver.git
+      ref: cba64958fe77c9f36a0150c88a8e342aeda052e8
+  bloc_test: ^9.1.7
+  mocktail: ^1.0.4
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+  
+  # Internationalization support
+  generate: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - .env
+    - assets/quanitya.png
+    - assets/scripts/
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware.
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/assets-and-images/#from-packages
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  fonts:
+    - family: Atkinson Hyperlegible Mono
+      fonts:
+        - asset: assets/fonts/AtkinsonHyperlegibleMono-VariableFont_wght.ttf
+        - asset: assets/fonts/AtkinsonHyperlegibleMono-Italic-VariableFont_wght.ttf
+          style: italic
+    - family: Noto Sans Mono
+      fonts:
+        - asset: assets/fonts/NotoSansMono-VariableFont_wdth,wght.ttf
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/custom-fonts/#from-packages
+
+# Native Splash Screen Configuration
+flutter_native_splash:
+  color: "#FFFEF5"  # Zen paper background color
+  image: assets/quanitya.png
+  color_dark: "#1A1A1A"
+  image_dark: assets/quanitya.png
+  android_12:
+    color: "#FFFEF5"
+    image: assets/quanitya.png
+    color_dark: "#1A1A1A"
+    image_dark: assets/quanitya.png

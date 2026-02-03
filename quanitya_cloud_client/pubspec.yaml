@@ -1,0 +1,22 @@
+name: quanitya_cloud_client
+description: Generated client for Quanitya Cloud Server
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: '^3.10.0'
+
+dependencies:
+  serverpod_client: 3.0.1
+  serverpod_auth_idp_client: 3.0.1
+  serverpod_auth_core_client: 3.0.1
+  quanitya_client:
+    path: ../quanitya_serverpod/quanitya_client
+  anonaccred_client:
+    git:
+      url: git@github.com:qtpi-bonding-org/serverpod_anonaccred.git
+      ref: 0562e7aefd851c73ce46277e712cfdee82ef5283
+      path: anonaccred_client
+
+dev_dependencies:
+  lints: '>=3.0.0 <7.0.0'

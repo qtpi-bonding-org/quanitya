@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zen Background Demo</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #FAF7F0;
+      background-image: url('zen_background_tile_240.png');
+      background-repeat: repeat;
+      color: #2B2B2B;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 60px 20px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      color: #006280;
+      font-size: 2.5rem;
+      margin: 0 0 1rem 0;
+    }
+
+    h2 {
+      color: #006280;
+      font-size: 1.5rem;
+      margin: 0 0 1rem 0;
+    }
+
+    p {
+      line-height: 1.6;
+      color: #4D5B60;
+      margin: 0 0 1rem 0;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #006280;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      margin-bottom: 20px;
+    }
+
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <span class="badge">Zen Paper Background</span>
+      <h1>Beautiful & Repeatable</h1>
+      <p>
+        This zen paper background tiles seamlessly for use in landing pages.
+        The subtle dot grid creates a professional, calming aesthetic inspired
+        by traditional Japanese washi paper and lab notebooks.
+      </p>
+      <p>
+        <strong>File:</strong> <code>zen_background_tile_240.png</code><br>
+        <strong>Size:</strong> 240x240px (~1.1KB)<br>
+        <strong>Pattern:</strong> 24px dot spacing, 1.2px dots at 25% opacity
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Usage Example</h2>
+      <p>Add this CSS to your stylesheet:</p>
+      <pre><code>body {
+  background-color: #FAF7F0;
+  background-image: url('zen_background_tile_240.png');
+  background-repeat: repeat;
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h2>Available Sizes</h2>
+      <p>
+        <strong>240x240px</strong> - Standard tile (~1.1KB)<br>
+        <strong>480x480px</strong> - Retina 2x tile (~3.3KB)<br>
+        <strong>1920x1080px</strong> - Full HD background (~17KB)
+      </p>
+    </div>
+  </div>
+</body>
+</html>

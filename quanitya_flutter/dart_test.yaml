@@ -1,0 +1,7 @@
+# Test configuration for Quanitya Flutter
+# See: https://github.com/dart-lang/test/blob/master/pkgs/test/doc/configuration.md
+
+tags:
+  contract:
+    # Lightweight contract tests that verify Serverpod client ↔ Flutter compatibility
+    # Run with: flutter test --tags contract

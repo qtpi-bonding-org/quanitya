@@ -1,0 +1,662 @@
+import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
+
+import '../../../../logic/templates/enums/field_enum.dart';
+import '../../../../logic/templates/enums/field_enum_extensions.dart';
+import '../../../../logic/templates/enums/ui_element_enum.dart';
+import '../../../../logic/templates/models/shared/template_field.dart';
+import '../../../../logic/templates/services/engine/symbolic_combination_generator.dart';
+import '../../../../logic/templates/services/shared/default_value_handler.dart';
+import '../../../../design_system/structures/column.dart';
+import '../../../../design_system/structures/row.dart';
+import '../../../../design_system/primitives/app_sizes.dart';
+import '../../../../design_system/primitives/app_spacings.dart';
+import '../../../../design_system/primitives/quanitya_palette.dart';
+import '../../../../design_system/widgets/quanitya_text_field.dart';
+import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../../support/extensions/context_extensions.dart';
+
+/// Inline field editor for adding or editing template fields.
+/// 
+/// Expands in-place rather than showing a modal dialog.
+/// Fits the manuscript aesthetic - editing feels like writing.
+class InlineFieldEditor extends StatefulWidget {
+  /// Field type (required for new fields)
+  final FieldEnum fieldType;
+  
+  /// Existing field to edit (null for new fields)
+  final TemplateField? existingField;
+  
+  /// Called when user saves the field
+  final Function(TemplateField field) onSave;
+  
+  /// Called when user cancels editing
+  final VoidCallback onCancel;
+
+  const InlineFieldEditor({
+    super.key,
+    required this.fieldType,
+    required this.onSave,
+    required this.onCancel,
+    this.existingField,
+  });
+
+  bool get isEditing => existingField != null;
+
+  @override
+  State<InlineFieldEditor> createState() => _InlineFieldEditorState();
+}
+
+class _InlineFieldEditorState extends State<InlineFieldEditor> {
+  late final TextEditingController _labelController;
+  late final TextEditingController _optionController;
+  late final TextEditingController _defaultValueController;
+  late final DefaultValueHandler _defaultHandler;
+  late final List<UiElementEnum> _validWidgets;
+  late UiElementEnum _selectedWidget;
+  late bool _isList;
+  late List<String> _options;
+  
+  // Default value state (type varies by field)
+  Object? _defaultValue;
+  String? _defaultValueError;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    final generator = GetIt.I<SymbolicCombinationGenerator>();
+    _defaultHandler = GetIt.I<DefaultValueHandler>();
+    _validWidgets = generator.getValidUiElementsForField(widget.fieldType);
+    
+    if (widget.isEditing) {
+      final field = widget.existingField!;
+      _labelController = TextEditingController(text: field.label);
+      _selectedWidget = field.uiElement ?? _validWidgets.first;
+      _isList = field.isList;
+      _options = List.from(field.options ?? []);
+      _defaultValue = field.defaultValue;
+      _defaultValueController = TextEditingController(
+        text: _defaultValueToString(field.defaultValue),
+      );
+    } else {
+      _labelController = TextEditingController();
+      _selectedWidget = _validWidgets.first;
+      _isList = false;
+      _options = [];
+      _defaultValue = null;
+      _defaultValueController = TextEditingController();
+    }
+    
+    _optionController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _labelController.dispose();
+    _optionController.dispose();
+    _defaultValueController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEnumerated = widget.fieldType == FieldEnum.enumerated;
+    final draftColor = context.colors.textSecondary; // Blue-gray "pencil sketch"
+    final supportsDefault = _defaultHandler.supportsManualDefault(widget.fieldType);
+    
+    return Container(
+      padding: AppPadding.allSingle,
+      child: QuanityaColumn(
+        crossAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with field type
+          _buildHeader(context, draftColor),
+          
+          VSpace.x1,
+          
+          // Label input
+          QuanityaTextField(
+            controller: _labelController,
+            labelText: context.l10n.fieldLabelLabel,
+            hintText: context.l10n.fieldLabelHint,
+            autofocus: !widget.isEditing,
+            onChanged: (_) => setState(() {}),
+          ),
+          
+          // Widget type selector (if multiple options)
+          if (_validWidgets.length > 1) ...[
+            VSpace.x1,
+            _buildWidgetSelector(context, draftColor),
+          ],
+          
+          // Options for enumerated fields
+          if (isEnumerated) ...[
+            VSpace.x1,
+            _buildOptionsEditor(context, draftColor),
+          ],
+          
+          // Default value editor (for supported types, not for lists)
+          if (supportsDefault && !_isList) ...[
+            VSpace.x1,
+            _buildDefaultValueEditor(context, draftColor),
+          ],
+          
+          VSpace.x1,
+          
+          // isList toggle
+          _buildListToggle(context, draftColor),
+          
+          VSpace.x2,
+          
+          // Action buttons
+          _buildActions(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, Color draftColor) {
+    return QuanityaRow(
+      alignment: CrossAxisAlignment.center,
+      start: Icon(
+        _getFieldIcon(),
+        size: AppSizes.iconSmall,
+        color: draftColor,
+      ),
+      middle: Text(
+        widget.isEditing 
+            ? 'Edit ${widget.fieldType.displayName}'
+            : 'Add ${widget.fieldType.displayName}',
+        style: context.text.titleSmall?.copyWith(
+          color: draftColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWidgetSelector(BuildContext context, Color draftColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.widgetTypeLabel,
+          style: context.text.labelMedium?.copyWith(
+            color: draftColor,
+          ),
+        ),
+        VSpace.x05,
+        Wrap(
+          spacing: AppSizes.space,
+          runSpacing: AppSizes.space * 0.5,
+          children: _validWidgets.map((w) => _DraftChip(
+            label: _getWidgetDisplayName(context, w),
+            isSelected: _selectedWidget == w,
+            draftColor: draftColor,
+            onTap: () => setState(() => _selectedWidget = w),
+          )).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOptionsEditor(BuildContext context, Color draftColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.fieldOptionsLabel,
+          style: context.text.labelMedium?.copyWith(
+            color: draftColor,
+          ),
+        ),
+        VSpace.x05,
+        
+        // Existing options as chips
+        if (_options.isNotEmpty) ...[
+          Wrap(
+            spacing: AppSizes.space,
+            runSpacing: AppSizes.space * 0.5,
+            children: _options.map((option) => Chip(
+              label: Text(option, style: context.text.bodySmall?.copyWith(
+                color: draftColor,
+              )),
+              deleteIcon: Icon(
+                Icons.close, 
+                size: AppSizes.iconSmall,
+                color: draftColor,
+              ),
+              onDeleted: () => setState(() => _options.remove(option)),
+              backgroundColor: Colors.transparent,
+              side: BorderSide(color: draftColor.withValues(alpha: 0.3)),
+            )).toList(),
+          ),
+          VSpace.x05,
+        ],
+        
+        // Add option input
+        QuanityaRow(
+          spacing: HSpace.x1,
+          start: Expanded(
+            child: QuanityaTextField(
+              controller: _optionController,
+              hintText: context.l10n.addOptionHint,
+              onSubmitted: (_) => _addOption(),
+            ),
+          ),
+          end: QuanityaIconButton(
+            icon: Icons.add_circle_outline,
+            color: _optionController.text.trim().isNotEmpty
+                ? context.colors.interactableColor
+                : draftColor,
+            onPressed: _addOption,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildListToggle(BuildContext context, Color draftColor) {
+    return InkWell(
+      onTap: () => setState(() => _isList = !_isList),
+      borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+      child: Padding(
+        padding: AppPadding.verticalSingle,
+        child: QuanityaRow(
+          alignment: CrossAxisAlignment.center,
+          start: Icon(
+            _isList ? Icons.check_box : Icons.check_box_outline_blank,
+            size: AppSizes.iconSmall,
+            color: _isList 
+                ? context.colors.interactableColor 
+                : draftColor,
+          ),
+          middle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.fieldIsListLabel,
+                style: context.text.bodyMedium?.copyWith(
+                  color: draftColor,
+                ),
+              ),
+              Text(
+                context.l10n.fieldIsListHint,
+                style: context.text.bodySmall?.copyWith(
+                  color: draftColor.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDefaultValueEditor(BuildContext context, Color draftColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.fieldDefaultValueLabel,
+          style: context.text.labelMedium?.copyWith(
+            color: draftColor,
+          ),
+        ),
+        VSpace.x05,
+        _buildDefaultValueInput(context, draftColor),
+        if (_defaultValueError != null) ...[
+          VSpace.x025,
+          Text(
+            _defaultValueError!,
+            style: context.text.bodySmall?.copyWith(
+              color: context.colors.errorColor,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDefaultValueInput(BuildContext context, Color draftColor) {
+    return switch (widget.fieldType) {
+      FieldEnum.integer || FieldEnum.float || FieldEnum.dimension =>
+        _buildNumericDefaultInput(context, draftColor),
+      FieldEnum.text =>
+        _buildTextDefaultInput(context, draftColor),
+      FieldEnum.boolean =>
+        _buildBooleanDefaultInput(context, draftColor),
+      FieldEnum.datetime =>
+        _buildDateTimeDefaultInput(context, draftColor),
+      FieldEnum.enumerated =>
+        _buildEnumeratedDefaultInput(context, draftColor),
+      FieldEnum.reference =>
+        const SizedBox.shrink(), // No default for references
+    };
+  }
+
+  Widget _buildNumericDefaultInput(BuildContext context, Color draftColor) {
+    return QuanityaTextField(
+      controller: _defaultValueController,
+      hintText: context.l10n.fieldDefaultValueHint,
+      keyboardType: widget.fieldType == FieldEnum.integer
+          ? TextInputType.number
+          : const TextInputType.numberWithOptions(decimal: true),
+      onChanged: (value) {
+        setState(() {
+          if (value.isEmpty) {
+            _defaultValue = null;
+            _defaultValueError = null;
+          } else {
+            _defaultValue = _defaultHandler.parseDefault(value, widget.fieldType);
+            if (_defaultValue == null) {
+              _defaultValueError = widget.fieldType == FieldEnum.integer
+                  ? 'Must be a whole number'
+                  : 'Must be a number';
+            } else {
+              _defaultValueError = null;
+            }
+          }
+        });
+      },
+    );
+  }
+
+  Widget _buildTextDefaultInput(BuildContext context, Color draftColor) {
+    return QuanityaTextField(
+      controller: _defaultValueController,
+      hintText: context.l10n.fieldDefaultValueHint,
+      onChanged: (value) {
+        setState(() {
+          _defaultValue = value.isEmpty ? null : value;
+          _defaultValueError = null;
+        });
+      },
+    );
+  }
+
+  Widget _buildBooleanDefaultInput(BuildContext context, Color draftColor) {
+    return Row(
+      children: [
+        _DraftChip(
+          label: context.l10n.booleanTrue,
+          isSelected: _defaultValue == true,
+          draftColor: draftColor,
+          onTap: () => setState(() {
+            _defaultValue = _defaultValue == true ? null : true;
+            _defaultValueError = null;
+          }),
+        ),
+        HSpace.x1,
+        _DraftChip(
+          label: context.l10n.booleanFalse,
+          isSelected: _defaultValue == false,
+          draftColor: draftColor,
+          onTap: () => setState(() {
+            _defaultValue = _defaultValue == false ? null : false;
+            _defaultValueError = null;
+          }),
+        ),
+        HSpace.x2,
+        if (_defaultValue != null)
+          GestureDetector(
+            onTap: () => setState(() => _defaultValue = null),
+            child: Text(
+              context.l10n.actionClear,
+              style: context.text.bodySmall?.copyWith(
+                color: context.colors.interactableColor,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDateTimeDefaultInput(BuildContext context, Color draftColor) {
+    final hasValue = _defaultValue != null;
+    
+    return InkWell(
+      onTap: () async {
+        final now = DateTime.now();
+        final date = await showDatePicker(
+          context: context,
+          initialDate: now,
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2100),
+        );
+        if (date != null && context.mounted) {
+          final time = await showTimePicker(
+            context: context,
+            initialTime: TimeOfDay.now(),
+          );
+          if (time != null) {
+            final dateTime = DateTime(
+              date.year, date.month, date.day,
+              time.hour, time.minute,
+            );
+            setState(() {
+              _defaultValue = dateTime.toIso8601String();
+              _defaultValueController.text = _defaultValueToString(_defaultValue);
+              _defaultValueError = null;
+            });
+          }
+        }
+      },
+      borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+      child: Container(
+        padding: AppPadding.allSingle,
+        decoration: BoxDecoration(
+          border: Border.all(color: draftColor.withValues(alpha: 0.3)),
+          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today, size: AppSizes.iconSmall, color: draftColor),
+            HSpace.x1,
+            Expanded(
+              child: Text(
+                hasValue 
+                    ? _defaultValueToString(_defaultValue)
+                    : context.l10n.fieldDefaultValueHint,
+                style: context.text.bodyMedium?.copyWith(
+                  color: hasValue ? draftColor : draftColor.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+            if (hasValue)
+              GestureDetector(
+                onTap: () => setState(() {
+                  _defaultValue = null;
+                  _defaultValueController.clear();
+                }),
+                child: Icon(Icons.close, size: AppSizes.iconSmall, color: draftColor),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnumeratedDefaultInput(BuildContext context, Color draftColor) {
+    if (_options.isEmpty) {
+      return Text(
+        context.l10n.fieldDefaultValueAddOptionsFirst,
+        style: context.text.bodySmall?.copyWith(
+          color: draftColor.withValues(alpha: 0.7),
+        ),
+      );
+    }
+    
+    return Wrap(
+      spacing: AppSizes.space,
+      runSpacing: AppSizes.space * 0.5,
+      children: _options.map((option) => _DraftChip(
+        label: option,
+        isSelected: _defaultValue == option,
+        draftColor: draftColor,
+        onTap: () => setState(() {
+          _defaultValue = _defaultValue == option ? null : option;
+          _defaultValueError = null;
+        }),
+      )).toList(),
+    );
+  }
+
+  String _defaultValueToString(Object? value) {
+    if (value == null) return '';
+    if (value is String && widget.fieldType == FieldEnum.datetime) {
+      try {
+        final dt = DateTime.parse(value);
+        return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
+               '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      } catch (_) {
+        return value;
+      }
+    }
+    return value.toString();
+  }
+
+  Widget _buildActions(BuildContext context) {
+    final canSave = _canSave;
+    
+    return QuanityaRow(
+      alignment: CrossAxisAlignment.center,
+      start: QuanityaTextButton(
+        text: context.l10n.actionCancel,
+        onPressed: widget.onCancel,
+      ),
+      end: QuanityaTextButton(
+        text: widget.isEditing ? context.l10n.actionSave : context.l10n.actionAdd,
+        onPressed: canSave ? _save : null,
+      ),
+    );
+  }
+
+  void _addOption() {
+    final option = _optionController.text.trim();
+    if (option.isNotEmpty && !_options.contains(option)) {
+      setState(() {
+        _options.add(option);
+        _optionController.clear();
+      });
+    }
+  }
+
+  bool get _canSave {
+    final label = _labelController.text.trim();
+    if (label.isEmpty) return false;
+    
+    // Enumerated fields need at least one option
+    if (widget.fieldType == FieldEnum.enumerated && _options.isEmpty) {
+      return false;
+    }
+    
+    return true;
+  }
+
+  void _save() {
+    if (!_canSave) return;
+    
+    final label = _labelController.text.trim();
+    
+    // Clear default value if switching to list mode
+    final effectiveDefault = _isList ? null : _defaultValue;
+    
+    final field = widget.isEditing
+        ? widget.existingField!.copyWith(
+            label: label,
+            uiElement: _selectedWidget,
+            isList: _isList,
+            options: widget.fieldType == FieldEnum.enumerated ? _options : null,
+            defaultValue: effectiveDefault,
+          )
+        : TemplateField.create(
+            type: widget.fieldType,
+            label: label,
+            uiElement: _selectedWidget,
+            isList: _isList,
+            options: widget.fieldType == FieldEnum.enumerated ? _options : null,
+            defaultValue: effectiveDefault,
+          );
+    
+    widget.onSave(field);
+  }
+
+  IconData _getFieldIcon() {
+    return switch (widget.fieldType) {
+      FieldEnum.integer => Icons.numbers,
+      FieldEnum.float => Icons.numbers,
+      FieldEnum.text => Icons.text_fields,
+      FieldEnum.boolean => Icons.toggle_on,
+      FieldEnum.datetime => Icons.calendar_today,
+      FieldEnum.enumerated => Icons.list,
+      FieldEnum.dimension => Icons.straighten,
+      FieldEnum.reference => Icons.link,
+    };
+  }
+
+  String _getWidgetDisplayName(BuildContext context, UiElementEnum widget) {
+    return switch (widget) {
+      UiElementEnum.slider => context.l10n.widgetSlider,
+      UiElementEnum.stepper => context.l10n.widgetStepper,
+      UiElementEnum.textField => context.l10n.widgetTextField,
+      UiElementEnum.textArea => context.l10n.widgetTextArea,
+      UiElementEnum.dropdown => context.l10n.widgetDropdown,
+      UiElementEnum.radio => context.l10n.widgetRadio,
+      UiElementEnum.chips => context.l10n.widgetChips,
+      UiElementEnum.toggleSwitch => context.l10n.widgetToggleSwitch,
+      UiElementEnum.checkbox => context.l10n.widgetCheckbox,
+      UiElementEnum.datePicker => context.l10n.widgetDatePicker,
+      UiElementEnum.timePicker => context.l10n.widgetTimePicker,
+      UiElementEnum.datetimePicker => context.l10n.widgetDatetimePicker,
+      UiElementEnum.searchField => context.l10n.widgetSearchField,
+    };
+  }
+}
+
+
+/// Simple chip for draft state - all in blue-gray "pencil" color.
+/// Selected state just gets a border, no ink black.
+class _DraftChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final Color draftColor;
+  final VoidCallback onTap;
+
+  const _DraftChip({
+    required this.label,
+    required this.isSelected,
+    required this.draftColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSizes.space * 1.5,
+          vertical: AppSizes.space,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(AppSizes.size20),
+          border: Border.all(
+            color: isSelected ? draftColor : draftColor.withValues(alpha: 0.3),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: context.text.bodyMedium?.copyWith(
+            color: draftColor,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+}

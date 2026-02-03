@@ -1,0 +1,14 @@
+# Dartdoc configuration for Quanitya Flutter
+# Run: dart doc .
+
+dartdoc:
+  # Exclude generated files and test files
+  exclude:
+    - 'lib/**/*.g.dart'
+    - 'lib/**/*.freezed.dart'
+    - 'lib/**/*.injectable.dart'
+    - 'test/**'
+    - 'bin/**'
+
+  # Show source code links
+  showUndocumentedCategories: true

@@ -1,0 +1,110 @@
+/**
+ * MVS Execution Shell for Quanitya Analytics (HARDENED)
+ * 
+ * Security Enhancements:
+ * - Argument shadowing to prevent scope chain attacks
+ * - NaN/Infinity safe JSON serialization
+ * - Epoch time for performance
+ * - Aggregation support (output timestamps)
+ * 
+ * Template Variables (injected by WasmAnalysisService):
+ * - {{ values }}           : List<double> - Numeric field values
+ * - {{ timestamps_epoch }} : List<int> - Milliseconds since epoch
+ * - {{ logic_fragment }}   : String - User's JavaScript code
+ * - {{ output_mode }}      : String - 'scalar' | 'vector' | 'matrix'
+ * 
+ * Location: assets/scripts/mvs_shell.js.j2
+ * Used by: lib/logic/analytics/services/wasm_analysis_service.dart
+ */
+
+// ============================================================================
+// Library Shims
+// ============================================================================
+const ss = simpleStatistics;
+const require = (name) => {
+    if (name === 'simple-statistics' || name === 'ss') return ss;
+    throw new Error('Module ' + name + ' not found');
+};
+
+// ============================================================================
+// Secure Execution Wrapper with Argument Shadowing
+// ============================================================================
+// This function shadows dangerous globals by defining them as arguments.
+// Even if fetch/XMLHttpRequest exist in the global scope (they don't in
+// flutter_js by default), the user code will see 'undefined' instead.
+const runLogic = (
+    // Security: Shadow network APIs with undefined
+    fetch,
+    XMLHttpRequest,
+    WebSocket,
+    importScripts,
+    // Actual data parameter
+    data
+) => {
+    "use strict";
+    // User's JavaScript code is injected here by Jinja2
+    {{ logic_fragment }}
+};
+
+// ============================================================================
+// Data Preparation
+// ============================================================================
+const rawValues = {{ values | to_json }};
+const rawTimestamps = {{ timestamps_epoch | to_json }};
+
+const data = {
+    // Raw numeric values from database field
+    values: rawValues,
+    
+    // Epoch timestamps (integers) for fast date math
+    timestamps: rawTimestamps,
+    
+    // Helper: Convert to Date objects if needed
+    getDates: () => rawTimestamps.map(t => new Date(t)),
+    
+    // Helper: Get data with Date objects for each point
+    col: () => {
+        return rawValues.map((v, i) => ({
+            value: v,
+            timestamp: rawTimestamps[i],
+            date: new Date(rawTimestamps[i])
+        }));
+    }
+};
+
+// ============================================================================
+// Execution & Result Boxing
+// ============================================================================
+try {
+    // Execute user logic with shadowed globals
+    const result = runLogic(
+        undefined,  // fetch
+        undefined,  // XMLHttpRequest
+        undefined,  // WebSocket
+        undefined,  // importScripts
+        data        // Actual data
+    );
+    
+    // Custom JSON replacer to handle special numeric values
+    const replacer = (key, value) => {
+        if (value === Number.POSITIVE_INFINITY) return "Infinity";
+        if (value === Number.NEGATIVE_INFINITY) return "-Infinity";
+        if (Number.isNaN(value)) return "NaN";
+        return value;
+    };
+    
+    // Return success result to Dart host
+    JSON.stringify({
+        status: 'success',
+        result: result
+    }, replacer);
+    
+} catch (e) {
+    // Return error to Dart host
+    JSON.stringify({
+        status: 'error',
+        message: e.message,
+        stack: e.stack
+    });
+}
+
