@@ -170,7 +170,7 @@ class _ScanPairingQrViewState extends State<_ScanPairingQrView>
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  QuanityaTextButton(text: 
+                  QuanityaTextButton(
                     text: context.l10n.enterPairingData,
                     // Use a specific style or color if needed to look good on the dark overlay
                     onPressed: () => _showManualEntryDialog(context),
@@ -230,11 +230,12 @@ class _ScanPairingQrViewState extends State<_ScanPairingQrView>
           ],
         ),
         actions: [
-          btn.QuanityaTextButton(text: 
+          btn.QuanityaTextButton(
+            text: context.l10n.actionCancel,
             onPressed: () => Navigator.pop(dialogContext),
-            label: context.l10n.actionCancel,
           ),
-          btn.QuanityaTextButton(text: 
+          btn.QuanityaTextButton(
+            text: context.l10n.pairingConfirmAdd,
             onPressed: () {
               final text = controller.text.trim();
               if (text.isNotEmpty) {
@@ -242,7 +243,6 @@ class _ScanPairingQrViewState extends State<_ScanPairingQrView>
                 Navigator.pop(dialogContext);
               }
             },
-            child: Text(context.l10n.pairingConfirmAdd),
           ),
         ],
       ),

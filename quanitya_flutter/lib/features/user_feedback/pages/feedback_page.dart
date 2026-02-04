@@ -99,7 +99,6 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
                   QuanityaTextField(
                     controller: _textController,
                     maxLines: 10,
-                    maxLength: 5000,
                     hintText: 'Tell us what you think...',
                   ),
                   
@@ -135,7 +134,7 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
                   VSpace.x4,
                   
                   // Submit button
-                  QuanityaTextButton(text: 
+                  QuanityaTextButton(
                     text: 'Submit Feedback',
                     onPressed: state.status == UiFlowStatus.loading
                         ? null

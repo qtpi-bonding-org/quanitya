@@ -70,8 +70,7 @@ class _ErrorEntryCardState extends State<ErrorEntryCard> {
             ],
           ],
         ),
-      ),
-    );
+      );
   }
 }
 

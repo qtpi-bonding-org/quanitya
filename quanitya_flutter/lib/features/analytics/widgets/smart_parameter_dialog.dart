@@ -82,13 +82,13 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
         ),
       ),
       actions: [
-        QuanityaTextButton(text: 
+        QuanityaTextButton(
+          text: 'Cancel',
           onPressed: () => Navigator.of(context).pop(),
-          label: 'Cancel',
         ),
-        QuanityaTextButton(text: 
+        QuanityaTextButton(
+          text: 'Add Operation',
           onPressed: _canConfirm() ? _confirm : null,
-          label: 'Add Operation',
         ),
       ],
     );

@@ -173,7 +173,7 @@ class _SendAllButton extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: QuanityaTextButton(text: 
+        child: QuanityaTextButton(
           text: 'Send All Reports',
           onPressed: () => context.read<ErrorBoxPageCubit>().sendAllErrors(),
         ),

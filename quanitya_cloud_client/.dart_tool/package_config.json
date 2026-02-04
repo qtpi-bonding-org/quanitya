@@ -69,7 +69,7 @@
     },
     {
       "name": "quanitya_client",
-      "rootUri": "../../quanitya_cloud_server/quanitya_serverpod/quanitya_client",
+      "rootUri": "../../quanitya_serverpod/quanitya_client",
       "packageUri": "lib/",
       "languageVersion": "3.10"
     },

@@ -289,7 +289,7 @@ class _ContinueSection extends StatelessWidget {
           ),
         VSpace.x1,
         // Continue button
-        QuanityaTextButton(text: 
+        QuanityaTextButton(
           text: context.l10n.continueAction,
           onPressed: state.canContinue
               ? () => AppNavigation.toHome(context)

@@ -96,25 +96,25 @@ class _SettingsContent extends StatelessWidget {
         const DeviceListSection(),
         VSpace.x4,
 
-        QuanityaTextButton(text: 
+        QuanityaTextButton(
           text: context.l10n.exportData,
           onPressed: () => context.read<DataExportCubit>().exportData(),
         ),
         VSpace.x3,
 
-        QuanityaTextButton(text: 
+        QuanityaTextButton(
           text: context.l10n.importRecoveryKey,
           onPressed: () => _showImportRecoveryKeyDialog(context),
         ),
         VSpace.x3,
 
-        QuanityaTextButton(text: 
+        QuanityaTextButton(
           text: 'Error Reports',
           onPressed: () => AppNavigation.toErrorBox(context),
         ),
         VSpace.x3,
 
-        QuanityaTextButton(text: 
+        QuanityaTextButton(
           text: 'Send Feedback',
           onPressed: () => AppNavigation.toFeedback(context),
         ),
@@ -175,7 +175,7 @@ class _ApiKeysSection extends StatelessWidget {
             )),
 
             Center(
-              child: QuanityaTextButton(text: 
+              child: QuanityaTextButton(
                 text: context.l10n.addApiKey,
                 onPressed: () => _showApiKeyDialog(context, null),
               ),
@@ -343,7 +343,7 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
             }),
 
             Center(
-              child: QuanityaTextButton(text: 
+              child: QuanityaTextButton(
                 text: context.l10n.addWebhook,
                 onPressed: _templates != null && _templates!.isNotEmpty
                     ? () => _showWebhookDialog(context, null)
@@ -465,7 +465,7 @@ class _WebhookRow extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                QuanityaTextButton(text: 
+                QuanityaTextButton(
                   text: context.l10n.webhookRetry,
                   onPressed: webhook.isEnabled ? onRetry : null,
                 ),

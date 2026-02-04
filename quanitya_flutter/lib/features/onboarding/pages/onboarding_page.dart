@@ -55,12 +55,12 @@ class OnboardingPage extends StatelessWidget {
                 spacing: VSpace.x1,
                 children: [
                   // Get Started - navigates to about page
-                  QuanityaTextButton(text: 
+                  QuanityaTextButton(
                     text: context.l10n.getStarted,
                     onPressed: () => AppNavigation.toAbout(context),
                   ),
                   // Connect Device - for users with existing account
-                  QuanityaTextButton(text: 
+                  QuanityaTextButton(
                     text: context.l10n.connectDevice,
                     onPressed: () => AppNavigation.toConnectDevice(context),
                   ),

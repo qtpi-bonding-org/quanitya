@@ -213,7 +213,7 @@ class _OverlaySection extends StatelessWidget {
             ),
             const Spacer(),
             if (isOverlayActive)
-              QuanityaTextButton(text: 
+              QuanityaTextButton(
                 onPressed: cubit.clearOverlay,
                 text: context.l10n.visualizationClear,
               ),

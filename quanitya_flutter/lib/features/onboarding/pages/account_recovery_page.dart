@@ -338,7 +338,7 @@ class _RecoverButton extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
-      child: QuanityaTextButton(text: 
+      child: QuanityaTextButton(
         text: isLoading ? context.l10n.recovering : context.l10n.recoverAccount,
         onPressed: canRecover
             ? () async {

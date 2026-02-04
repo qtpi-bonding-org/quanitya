@@ -346,14 +346,14 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                       if (_currentIndex == 1) ...[
                         QuanityaIconButton(
                           icon: Icons.assignment_add,
-                          size: AppSizes.iconMedium,
+                          iconSize: AppSizes.iconMedium,
                           color: palette.interactableColor,
                           tooltip: context.l10n.createTemplateTitle,
                           onPressed: () => AppNavigation.toTemplateGenerator(context),
                         ),
                         QuanityaIconButton(
                           icon: Icons.settings,
-                          size: AppSizes.iconMedium,
+                          iconSize: AppSizes.iconMedium,
                           color: palette.interactableColor,
                           tooltip: context.l10n.settingsTitle,
                           onPressed: () => AppNavigation.toSettings(context),
@@ -394,7 +394,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                       
                       return QuanityaIconButton(
                         icon: state.showingHidden ? Icons.lock_open : Icons.lock,
-                        size: AppSizes.iconMedium,
+                        iconSize: AppSizes.iconMedium,
                         color: palette.interactableColor,
                         tooltip: state.showingHidden ? 'Hide private entries' : 'Show private entries',
                         onPressed: () => _timelineCubit?.toggleShowHidden(),

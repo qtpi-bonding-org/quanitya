@@ -73,7 +73,6 @@ class _AiSuggestionsPanelState extends State<AiSuggestionsPanel> {
                   QuanityaIconButton(
                     icon: Icons.auto_awesome,
                     onPressed: () {},
-                    size: 20,
                     color: QuanityaPalette.primary.interactableColor,
                   ),
                 ],
@@ -112,12 +111,11 @@ class _AiSuggestionsPanelState extends State<AiSuggestionsPanel> {
               // Generate & Apply Button
               SizedBox(
                 width: double.infinity,
-                child: QuanityaTextButton(text: 
+                child: QuanityaTextButton(
+                  text: state.isLoading ? 'Generating...' : 'Generate AI Pipeline',
                   onPressed: _canGenerate(state) && !state.isLoading
                       ? () => _generateAndApply(context, state)
                       : null,
-                  label: state.isLoading ? 'Generating...' : 'Generate AI Pipeline',
-                  icon: state.isLoading ? null : Icons.auto_awesome,
                 ),
               ),
             ],

@@ -366,7 +366,7 @@ class _FooterSection extends StatelessWidget {
         spacing: VSpace.x4,
         children: [
           const QuanityaEmptyState(),
-          QuanityaTextButton(text: 
+          QuanityaTextButton(
             text: context.l10n.createAccount,
             onPressed: () => context.read<OnboardingCubit>().createAccount(),
           ),

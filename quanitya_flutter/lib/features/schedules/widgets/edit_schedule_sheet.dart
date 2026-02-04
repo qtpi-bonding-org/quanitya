@@ -163,20 +163,20 @@ class _EditScheduleSheetState extends State<EditScheduleSheet> {
               Row(
                 children: [
                   Expanded(
-                    child: QuanityaTextButton(text: 
+                    child: QuanityaTextButton(
+                      text: context.l10n.actionCancel,
                       onPressed: () => Navigator.pop(context),
-                      label: context.l10n.actionCancel,
                     ),
                   ),
                   HSpace.x2,
                   Expanded(
-                    child: QuanityaTextButton(text: 
+                    child: QuanityaTextButton(
+                      text: context.l10n.actionSave,
                       onPressed: () {
                         final newRrule = _buildUpdatedRrule();
                         final updated = widget.schedule.updateRule(newRrule);
                         Navigator.pop(context, updated);
                       },
-                      label: context.l10n.actionSave,
                     ),
                   ),
                 ],

@@ -124,7 +124,7 @@ class _ShowPairingQrViewState extends State<_ShowPairingQrView> {
           deviceName: state.deviceLabel,
         ),
         VSpace.x4,
-        QuanityaTextButton(text: 
+        QuanityaTextButton(
           text: context.l10n.pairingGenerateQr,
           onPressed:
               state.deviceLabel.isEmpty || state.status == UiFlowStatus.loading
@@ -213,7 +213,7 @@ class _ShowPairingQrViewState extends State<_ShowPairingQrView> {
             ],
           ),
         ],
-        QuanityaTextButton(text: 
+        QuanityaTextButton(
           text: context.l10n.copyPairingData,
           onPressed: () {
             final data = jsonEncode(state.qrData!.toJson());
@@ -224,7 +224,7 @@ class _ShowPairingQrViewState extends State<_ShowPairingQrView> {
           },
         ),
         // Cancel button
-        QuanityaTextButton(text: 
+        QuanityaTextButton(
           text: context.l10n.actionCancel,
           onPressed: () {
             context.read<PairingQrCubit>().cancelPairing();
