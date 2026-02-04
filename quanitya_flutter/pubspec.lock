@@ -1680,7 +1680,7 @@ packages:
   quanitya_client:
     dependency: transitive
     description:
-      path: "../quanitya_cloud_server/quanitya_serverpod/quanitya_client"
+      path: "../quanitya_serverpod/quanitya_client"
       relative: true
     source: path
     version: "0.0.0"
