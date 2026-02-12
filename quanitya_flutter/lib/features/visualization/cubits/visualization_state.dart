@@ -20,5 +20,7 @@ class VisualizationState
     TemplateAggregatedData? data,
     /// Consistency rate (0.0 to 1.0) - percentage of days with entries
     @Default(0.0) double consistencyRate,
+    /// Analysis results: Map<pipelineId, {pipeline, result}>
+    @Default({}) Map<String, dynamic> analysisResults,
   }) = _VisualizationState;
 }

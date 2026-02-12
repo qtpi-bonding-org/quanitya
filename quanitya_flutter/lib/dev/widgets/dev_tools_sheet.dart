@@ -4,12 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' as cubit_ui_flow;
 
 import '../../app_router.dart';
+import '../../data/interfaces/analysis_pipeline_interface.dart';
 import '../../design_system/primitives/app_sizes.dart';
 import '../../design_system/primitives/app_spacings.dart';
 import '../../design_system/primitives/quanitya_palette.dart';
 import '../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../infrastructure/crypto/crypto_key_repository.dart';
+import '../../logic/analytics/enums/analysis_output_mode.dart';
+import '../../logic/analytics/models/analysis_enums.dart';
+import '../../logic/analytics/models/analysis_pipeline.dart';
 import '../../support/extensions/context_extensions.dart';
 import '../../features/app_operating_mode/cubits/app_operating_cubit.dart';
 import '../../infrastructure/auth/auth_service.dart';
@@ -69,6 +73,13 @@ class DevToolsSheet extends StatelessWidget {
             _DevToolRow(
               label: context.l10n.devSeedFakeData,
               child: _DevSeedButton(),
+            ),
+            VSpace.x2,
+
+            // Seed test analysis pipelines
+            _DevToolRow(
+              label: 'Seed Test JS Analysis',
+              child: _DevSeedAnalysisButton(),
             ),
             VSpace.x2,
 
@@ -504,5 +515,139 @@ class _DevRegisterAccountButtonState extends State<_DevRegisterAccountButton> {
         }
       },
     );
+  }
+}
+
+class _DevSeedAnalysisButton extends StatefulWidget {
+  @override
+  State<_DevSeedAnalysisButton> createState() => _DevSeedAnalysisButtonState();
+}
+
+class _DevSeedAnalysisButtonState extends State<_DevSeedAnalysisButton> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return SizedBox(
+        width: AppSizes.iconMedium,
+        height: AppSizes.iconMedium,
+        child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
+      );
+    }
+
+    return QuanityaTextButton(
+      text: 'Seed',
+      onPressed: () async {
+        setState(() => _isLoading = true);
+        try {
+          await _seedTestAnalysisPipelines();
+          
+          if (mounted) {
+            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
+            feedbackService.show(
+              cubit_ui_flow.FeedbackMessage(
+                message: 'Seeded 3 test JS analysis pipelines',
+                type: cubit_ui_flow.MessageType.success,
+              ),
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
+            feedbackService.show(
+              cubit_ui_flow.FeedbackMessage(
+                message: 'Failed to seed analysis: $e',
+                type: cubit_ui_flow.MessageType.error,
+              ),
+            );
+          }
+        } finally {
+          if (mounted) setState(() => _isLoading = false);
+        }
+      },
+    );
+  }
+
+  Future<void> _seedTestAnalysisPipelines() async {
+    final repo = GetIt.instance.get<IAnalysisPipelineRepository>();
+    
+    final now = DateTime.now();
+    
+    // 1. SCALAR: Calculate mean and standard deviation
+    final scalarPipeline = AnalysisPipelineModel(
+      id: 'test-scalar-stats',
+      name: 'Mood Statistics (Scalar)',
+      fieldId: 'test-template:mood_score',
+      outputMode: AnalysisOutputMode.scalar,
+      snippetLanguage: AnalysisSnippetLanguage.js,
+      snippet: '''
+// Calculate multiple statistics
+return [
+  { label: 'Mean', value: ss.mean(data.values), unit: 'points' },
+  { label: 'Std Dev', value: ss.standardDeviation(data.values), unit: 'points' },
+  { label: 'Min', value: ss.min(data.values), unit: 'points' },
+  { label: 'Max', value: ss.max(data.values), unit: 'points' }
+];
+      ''',
+      reasoning: 'Test scalar output with multiple statistics',
+      updatedAt: now,
+    );
+    
+    // 2. VECTOR: Calculate 3-day moving average
+    final vectorPipeline = AnalysisPipelineModel(
+      id: 'test-vector-ma',
+      name: '3-Day Moving Average (Vector)',
+      fieldId: 'test-template:mood_score',
+      outputMode: AnalysisOutputMode.vector,
+      snippetLanguage: AnalysisSnippetLanguage.js,
+      snippet: '''
+// Calculate 3-day moving average
+const windowSize = 3;
+const movingAvg = [];
+
+for (let i = windowSize - 1; i < data.values.length; i++) {
+  const window = data.values.slice(i - windowSize + 1, i + 1);
+  movingAvg.push(ss.mean(window));
+}
+
+return {
+  label: '3-Day MA',
+  values: movingAvg
+};
+      ''',
+      reasoning: 'Test vector output with moving average',
+      updatedAt: now,
+    );
+    
+    // 3. MATRIX: Smooth time series with 3-point averaging
+    final matrixPipeline = AnalysisPipelineModel(
+      id: 'test-matrix-smooth',
+      name: 'Smoothed Time Series (Matrix)',
+      fieldId: 'test-template:mood_score',
+      outputMode: AnalysisOutputMode.matrix,
+      snippetLanguage: AnalysisSnippetLanguage.js,
+      snippet: '''
+// Apply 3-point smoothing
+const smoothed = data.values.map((v, i) => {
+  if (i === 0 || i === data.values.length - 1) {
+    return v; // Keep endpoints unchanged
+  }
+  // Average with neighbors
+  return (data.values[i-1] + v + data.values[i+1]) / 3;
+});
+
+return {
+  values: smoothed
+};
+      ''',
+      reasoning: 'Test matrix output with smoothing',
+      updatedAt: now,
+    );
+    
+    // Save all pipelines
+    await repo.savePipeline(scalarPipeline);
+    await repo.savePipeline(vectorPipeline);
+    await repo.savePipeline(matrixPipeline);
   }
 }

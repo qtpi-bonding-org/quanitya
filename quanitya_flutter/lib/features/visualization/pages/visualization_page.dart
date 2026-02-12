@@ -113,6 +113,13 @@ class _VisualizationContent extends StatelessWidget {
                   loggedDates: data.loggedDates,
                 ),
                 VSpace.x4,
+                // Analysis Results Section
+                if (state.analysisResults.isNotEmpty) ...[
+                  _AnalysisResultsSection(
+                    analysisResults: state.analysisResults,
+                  ),
+                  VSpace.x4,
+                ],
               ],
             ),
           ),
@@ -579,5 +586,314 @@ class _FieldAnalysisOption extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Section displaying WASM analysis results
+class _AnalysisResultsSection extends StatelessWidget {
+  final Map<String, dynamic> analysisResults;
+
+  const _AnalysisResultsSection({required this.analysisResults});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.functions,
+              size: AppSizes.iconMedium,
+              color: palette.textPrimary,
+            ),
+            HSpace.x1,
+            Text(
+              'JS Analysis Results',
+              style: context.text.headlineSmall,
+            ),
+          ],
+        ),
+        VSpace.x1,
+        Text(
+          'WASM-powered JavaScript analysis pipelines',
+          style: context.text.bodyMedium?.copyWith(
+            color: palette.textSecondary,
+          ),
+        ),
+        VSpace.x3,
+        ...analysisResults.entries.map((entry) {
+          final pipelineData = entry.value as Map<String, dynamic>;
+          final pipeline = pipelineData['pipeline'];
+          final result = pipelineData['result'];
+          
+          return _AnalysisResultCard(
+            pipeline: pipeline,
+            result: result,
+          );
+        }),
+      ],
+    );
+  }
+}
+
+/// Individual analysis result card
+class _AnalysisResultCard extends StatelessWidget {
+  final dynamic pipeline;
+  final dynamic result;
+
+  const _AnalysisResultCard({
+    required this.pipeline,
+    required this.result,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    
+    return Container(
+      margin: EdgeInsets.only(bottom: AppSizes.space * 2),
+      padding: AppPadding.allDouble,
+      decoration: BoxDecoration(
+        color: palette.backgroundPrimary.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+        border: Border.all(
+          color: palette.textSecondary.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  pipeline.name,
+                  style: context.text.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: palette.textPrimary,
+                  ),
+                ),
+              ),
+              _OutputModeChip(mode: pipeline.outputMode),
+            ],
+          ),
+          if (pipeline.reasoning != null) ...[
+            VSpace.x05,
+            Text(
+              pipeline.reasoning,
+              style: context.text.bodySmall?.copyWith(
+                color: palette.textSecondary,
+              ),
+            ),
+          ],
+          VSpace.x2,
+          
+          // Result display based on output mode
+          _buildResultDisplay(context, result),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResultDisplay(BuildContext context, dynamic result) {
+    // Use the when method to handle the union type
+    return result.when(
+      scalar: (scalars) => _buildScalarDisplay(context, scalars),
+      vector: (vectors) => _buildVectorDisplay(context, vectors),
+      matrix: (matrices) => _buildMatrixDisplay(context, matrices),
+    );
+  }
+
+  Widget _buildScalarDisplay(BuildContext context, List<dynamic> scalars) {
+    final palette = QuanityaPalette.primary;
+    
+    return Wrap(
+      spacing: AppSizes.space * 2,
+      runSpacing: AppSizes.space,
+      children: scalars.map((scalar) {
+        return Container(
+          padding: AppPadding.allDouble,
+          decoration: BoxDecoration(
+            color: palette.primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                scalar.label,
+                style: context.text.bodySmall?.copyWith(
+                  color: palette.textSecondary,
+                ),
+              ),
+              VSpace.x05,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    scalar.value.toStringAsFixed(2),
+                    style: context.text.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: palette.textPrimary,
+                    ),
+                  ),
+                  if (scalar.unit != null) ...[
+                    HSpace.x05,
+                    Text(
+                      scalar.unit,
+                      style: context.text.bodyMedium?.copyWith(
+                        color: palette.textSecondary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildVectorDisplay(BuildContext context, List<dynamic> vectors) {
+    final palette = QuanityaPalette.primary;
+    
+    if (vectors.isEmpty) {
+      return Text(
+        'No vector data',
+        style: context.text.bodyMedium?.copyWith(color: palette.textSecondary),
+      );
+    }
+    
+    final vector = vectors.first;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          vector.label ?? 'Vector Output',
+          style: context.text.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: palette.textPrimary,
+          ),
+        ),
+        VSpace.x1,
+        Container(
+          padding: AppPadding.allDouble,
+          decoration: BoxDecoration(
+            color: palette.backgroundPrimary,
+            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+          ),
+          child: Text(
+            '${vector.values.length} values: [${vector.values.take(5).map((v) => v.toStringAsFixed(2)).join(", ")}${vector.values.length > 5 ? "..." : ""}]',
+            style: context.text.bodySmall?.copyWith(
+              fontFamily: 'monospace',
+              color: palette.textSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMatrixDisplay(BuildContext context, List<dynamic> matrices) {
+    final palette = QuanityaPalette.primary;
+    
+    if (matrices.isEmpty) {
+      return Text(
+        'No matrix data',
+        style: context.text.bodyMedium?.copyWith(color: palette.textSecondary),
+      );
+    }
+    
+    final matrix = matrices.first;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Matrix Output',
+          style: context.text.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: palette.textPrimary,
+          ),
+        ),
+        VSpace.x1,
+        Container(
+          padding: AppPadding.allDouble,
+          decoration: BoxDecoration(
+            color: palette.backgroundPrimary,
+            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+          ),
+          child: Text(
+            '${matrix.values.length} rows × ${matrix.values.isNotEmpty ? matrix.values.first.length : 0} cols',
+            style: context.text.bodySmall?.copyWith(
+              fontFamily: 'monospace',
+              color: palette.textSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Chip showing the output mode
+class _OutputModeChip extends StatelessWidget {
+  final dynamic mode;
+
+  const _OutputModeChip({required this.mode});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    
+    final (label, icon) = _getModeInfo();
+    
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSizes.space,
+        vertical: AppSizes.space * 0.5,
+      ),
+      decoration: BoxDecoration(
+        color: palette.primaryColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: AppSizes.iconSmall,
+            color: palette.primaryColor,
+          ),
+          HSpace.x05,
+          Text(
+            label,
+            style: context.text.bodySmall?.copyWith(
+              color: palette.primaryColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  (String, IconData) _getModeInfo() {
+    final modeStr = mode.toString().split('.').last;
+    switch (modeStr) {
+      case 'scalar':
+        return ('Scalar', Icons.tag);
+      case 'vector':
+        return ('Vector', Icons.show_chart);
+      case 'matrix':
+        return ('Matrix', Icons.grid_on);
+      default:
+        return (modeStr, Icons.help_outline);
+    }
   }
 }

@@ -31,8 +31,8 @@ dependencies:
     sdk: flutter
   quanitya_cloud_client:
     path: ../quanitya_cloud_client
-  serverpod_auth_idp_flutter: 3.0.1
-  serverpod_flutter: 3.0.1
+  serverpod_auth_idp_flutter: ^3.3.0
+  serverpod_flutter: ^3.3.0
   # anonaccred_client:
   #   path: ../../serverpod_anonaccred/anonaccred_client
   flutter_color_palette:
