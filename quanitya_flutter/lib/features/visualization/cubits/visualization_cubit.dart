@@ -34,30 +34,7 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
         lastOperation: VisualizationOperation.load,
         data: data,
         consistencyRate: consistencyRate.clamp(0.0, 1.0),
-        overlayFields: {},
       );
     }, emitLoading: true);
-  }
-
-  /// Toggle a numeric field for overlay mode.
-  /// 
-  /// ✅ UI-ONLY STATE: This is a temporary visualization preference that doesn't need
-  /// to persist to the database. It's only used for the current visualization session
-  /// and is reset when the user navigates away or reloads the visualization.
-  void toggleOverlayField(String fieldLabel) {
-    final current = Set<String>.from(state.overlayFields);
-    if (current.contains(fieldLabel)) {
-      current.remove(fieldLabel);
-    } else {
-      current.add(fieldLabel);
-    }
-    emit(state.copyWith(overlayFields: current));
-  }
-
-  /// Clear all overlay selections.
-  /// 
-  /// ✅ UI-ONLY STATE: Clears temporary visualization preferences.
-  void clearOverlay() {
-    emit(state.copyWith(overlayFields: {}));
   }
 }

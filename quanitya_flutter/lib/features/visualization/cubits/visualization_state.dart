@@ -20,18 +20,5 @@ class VisualizationState
     TemplateAggregatedData? data,
     /// Consistency rate (0.0 to 1.0) - percentage of days with entries
     @Default(0.0) double consistencyRate,
-    /// Field labels selected for overlay (numeric fields only)
-    @Default({}) Set<String> overlayFields,
   }) = _VisualizationState;
-
-  /// Whether overlay mode is active (2+ numeric fields selected)
-  bool get isOverlayActive => overlayFields.length >= 2;
-
-  /// Get numeric fields that are selected for overlay
-  List<NumericFieldData> get overlayFields_ {
-    if (data == null) return [];
-    return data!.numericFields
-        .where((f) => overlayFields.contains(f.field.label))
-        .toList();
-  }
 }

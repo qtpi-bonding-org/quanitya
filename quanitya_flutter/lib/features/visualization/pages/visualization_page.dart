@@ -10,13 +10,11 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/charts/time_series_chart.dart';
-import '../../../design_system/widgets/charts/multi_series_chart.dart';
 import '../../../design_system/widgets/charts/boolean_heatmap_chart.dart';
 import '../../../design_system/widgets/charts/categorical_scatter_chart.dart';
 import '../../../design_system/widgets/charts/contribution_heatmap.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
-import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../logic/templates/models/shared/tracker_template.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/visualization_cubit.dart';
@@ -100,17 +98,7 @@ class _VisualizationContent extends StatelessWidget {
                   ),
                 ),
                 VSpace.x4,
-                if (data.numericFields.length >= 2) ...[
-                  _OverlaySection(
-                    fields: data.numericFields,
-                    selectedFields: state.overlayFields,
-                    isOverlayActive: state.isOverlayActive,
-                    overlayFields: state.overlayFields_,
-                  ),
-                  VSpace.x4,
-                ],
                 ...data.numericFields
-                    .where((f) => !state.overlayFields.contains(f.field.label))
                     .map((field) => _NumericChartSection(fieldData: field)),
                 ...data.booleanFields.map(
                   (field) => _BooleanChartSection(fieldData: field),
@@ -176,99 +164,6 @@ class _VisualizationContent extends StatelessWidget {
         template: data.template,
         numericFields: data.numericFields,
       ),
-    );
-  }
-}
-
-class _OverlaySection extends StatelessWidget {
-  final List<NumericFieldData> fields;
-  final Set<String> selectedFields;
-  final bool isOverlayActive;
-  final List<NumericFieldData> overlayFields;
-
-  const _OverlaySection({
-    required this.fields,
-    required this.selectedFields,
-    required this.isOverlayActive,
-    required this.overlayFields,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    final chartColors = QuanityaPalette.zenDataPalette;
-    final cubit = context.read<VisualizationCubit>();
-    
-    return QuanityaColumn(
-      crossAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              context.l10n.visualizationCompareFields,
-              style: context.text.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: palette.textPrimary,
-              ),
-            ),
-            const Spacer(),
-            if (isOverlayActive)
-              QuanityaTextButton(
-                onPressed: cubit.clearOverlay,
-                text: context.l10n.visualizationClear,
-              ),
-          ],
-        ),
-        VSpace.x1,
-        Text(
-          context.l10n.visualizationSelectFields,
-          style: context.text.bodySmall?.copyWith(
-            color: palette.textSecondary,
-          ),
-        ),
-        VSpace.x2,
-        Wrap(
-          spacing: AppSizes.space,
-          runSpacing: AppSizes.space,
-          children: fields.asMap().entries.map((entry) {
-            final index = entry.key;
-            final field = entry.value;
-            final isSelected = selectedFields.contains(field.field.label);
-            final color = chartColors[index % chartColors.length];
-            return FilterChip(
-              label: Text(
-                field.field.label,
-                style: TextStyle(color: palette.textPrimary),
-              ),
-              selected: isSelected,
-              onSelected: (_) => cubit.toggleOverlayField(field.field.label),
-              selectedColor: color.withValues(alpha: 0.2),
-              backgroundColor: palette.backgroundPrimary,
-              checkmarkColor: color,
-              side: BorderSide.none,
-              avatar: isSelected
-                  ? null
-                  : Icon(Icons.add, size: AppSizes.iconSmall, color: color),
-            );
-          }).toList(),
-        ),
-        if (isOverlayActive) ...[
-          VSpace.x3,
-          MultiSeriesChart(
-            series: overlayFields.asMap().entries.map((entry) {
-              final index = fields.indexWhere(
-                (f) => f.field.label == entry.value.field.label,
-              );
-              return ChartSeries(
-                label: entry.value.field.label,
-                points: entry.value.points,
-                color: chartColors[index % chartColors.length],
-              );
-            }).toList(),
-            height: AppSizes.space * 31.25,
-          ),
-        ],
-      ],
     );
   }
 }
