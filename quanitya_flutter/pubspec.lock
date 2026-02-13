@@ -29,8 +29,8 @@ packages:
     dependency: transitive
     description:
       path: anonaccred_client
-      ref: "0562e7aefd851c73ce46277e712cfdee82ef5283"
-      resolved-ref: "0562e7aefd851c73ce46277e712cfdee82ef5283"
+      ref: "307bed0101bbf04aa0c4210425b4d94b902a6371"
+      resolved-ref: "307bed0101bbf04aa0c4210425b4d94b902a6371"
       url: "git@github.com:qtpi-bonding-org/serverpod_anonaccred.git"
     source: git
     version: "0.1.0+1"
@@ -428,6 +428,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.2"
+  desktop_webview_window:
+    dependency: transitive
+    description:
+      name: desktop_webview_window
+      sha256: "57cf20d81689d5cbb1adfd0017e96b669398a669d927906073b0e42fc64111c0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.3"
   device_info_plus:
     dependency: "direct main"
     description:
@@ -759,6 +767,22 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_web_auth_2:
+    dependency: transitive
+    description:
+      name: flutter_web_auth_2
+      sha256: "432ff8c7b2834eaeec3378d99e24a0210b9ac2f453b3f7a7d739a5c09069fba3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.1"
+  flutter_web_auth_2_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_web_auth_2_platform_interface
+      sha256: ba0fbba55bffb47242025f96852ad1ffba34bc451568f56ef36e613612baffab
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.0"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -1751,58 +1775,58 @@ packages:
     dependency: transitive
     description:
       name: serverpod_auth_core_client
-      sha256: "3fe58c3083474cb02923aad91d5194337f068f8f57671bf42351b3e10e5fcfb7"
+      sha256: "47e301300cec2534ed9cc86b1f4edc34266d1f8182e1e993d6317e2f9243e710"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.3.0"
   serverpod_auth_core_flutter:
     dependency: transitive
     description:
       name: serverpod_auth_core_flutter
-      sha256: "5dfac046a279522bbf248e97e1213ed570ba57efb3d1a2899e2e315dac90a16d"
+      sha256: "05d41d845b9e9bf1d81cd08c3689f4a25df6db3bd147e857b1b3b14d1db4fba6"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.3.0"
   serverpod_auth_idp_client:
     dependency: transitive
     description:
       name: serverpod_auth_idp_client
-      sha256: "377d949b9725e07a4dcecbd2605dc6b2d77f6bd62cf1b1f3c0e5c82458f3f0fd"
+      sha256: "3e393c19193bc8d0b2f2460d7087e8c9e5945864364b4e5c0ed2425d82bf5c25"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.3.0"
   serverpod_auth_idp_flutter:
     dependency: "direct main"
     description:
       name: serverpod_auth_idp_flutter
-      sha256: "84d7541640ee1a4d7c767368f42404b5489b4bbfbde5b683717890f309b9c765"
+      sha256: e3282dd911e2500a1063c099e53058266e65d27f8a8ec39618c96501d4c00b9c
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.3.0"
   serverpod_client:
     dependency: transitive
     description:
       name: serverpod_client
-      sha256: "95006502299ee4f81bfdaf15c52c21a3f7b1cc96febff0d42fe426208ca0fafc"
+      sha256: "5a46c90ddec70d46d91dd97eb3bdd163b880037b5527073616bade9c5f2323fd"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.3.0"
   serverpod_flutter:
     dependency: "direct main"
     description:
       name: serverpod_flutter
-      sha256: "5737c862e67816bf14feb018e4d63eb3469a431cb5b9d67d520b38b047bb69c3"
+      sha256: "00276cacd52ae00ea4ab30b872eedd8857e13635adcb529b082e016920f67f2f"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.3.0"
   serverpod_serialization:
     dependency: transitive
     description:
       name: serverpod_serialization
-      sha256: "86d2447b8614614c370bc3e718b5c463841f45c4a3eef2df11a7509dc1722e4f"
+      sha256: aaddcc69eb249fc78f9a216c4a612439b32f368f1f359d4b21c308f317e6cbc5
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.3.0"
   settings_yaml:
     dependency: transitive
     description:
@@ -2384,6 +2408,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  window_to_front:
+    dependency: transitive
+    description:
+      name: window_to_front
+      sha256: "7aef379752b7190c10479e12b5fd7c0b9d92adc96817d9e96c59937929512aee"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.3"
   xdg_directories:
     dependency: transitive
     description:

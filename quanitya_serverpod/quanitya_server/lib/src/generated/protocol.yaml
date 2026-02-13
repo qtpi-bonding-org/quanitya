@@ -12,6 +12,7 @@ emailIdp:
   - startPasswordReset:
   - verifyPasswordResetCode:
   - finishPasswordReset:
+  - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
 powerSync:

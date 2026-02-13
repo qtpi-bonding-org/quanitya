@@ -5,8 +5,8 @@ packages:
     dependency: "direct main"
     description:
       path: anonaccred_client
-      ref: "0562e7aefd851c73ce46277e712cfdee82ef5283"
-      resolved-ref: "0562e7aefd851c73ce46277e712cfdee82ef5283"
+      ref: "307bed0101bbf04aa0c4210425b4d94b902a6371"
+      resolved-ref: "307bed0101bbf04aa0c4210425b4d94b902a6371"
       url: "git@github.com:qtpi-bonding-org/serverpod_anonaccred.git"
     source: git
     version: "0.1.0+1"
@@ -101,34 +101,34 @@ packages:
     dependency: "direct main"
     description:
       name: serverpod_auth_core_client
-      sha256: "3fe58c3083474cb02923aad91d5194337f068f8f57671bf42351b3e10e5fcfb7"
+      sha256: "47e301300cec2534ed9cc86b1f4edc34266d1f8182e1e993d6317e2f9243e710"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.3.0"
   serverpod_auth_idp_client:
     dependency: "direct main"
     description:
       name: serverpod_auth_idp_client
-      sha256: "377d949b9725e07a4dcecbd2605dc6b2d77f6bd62cf1b1f3c0e5c82458f3f0fd"
+      sha256: "3e393c19193bc8d0b2f2460d7087e8c9e5945864364b4e5c0ed2425d82bf5c25"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.3.0"
   serverpod_client:
     dependency: "direct main"
     description:
       name: serverpod_client
-      sha256: "95006502299ee4f81bfdaf15c52c21a3f7b1cc96febff0d42fe426208ca0fafc"
+      sha256: "5a46c90ddec70d46d91dd97eb3bdd163b880037b5527073616bade9c5f2323fd"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.3.0"
   serverpod_serialization:
     dependency: transitive
     description:
       name: serverpod_serialization
-      sha256: "86d2447b8614614c370bc3e718b5c463841f45c4a3eef2df11a7509dc1722e4f"
+      sha256: aaddcc69eb249fc78f9a216c4a612439b32f368f1f359d4b21c308f317e6cbc5
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.3.0"
   source_span:
     dependency: transitive
     description:

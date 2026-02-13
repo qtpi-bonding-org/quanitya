@@ -11,10 +11,12 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
-import 'package:quanitya_server/src/generated/archival_schedule_data.dart'
+import 'future_calls_generated_models/monthly_archival_future_call_run_monthly_archival_model.dart'
     as _i2;
-import 'dart:async' as _i3;
-import '../future_calls/monthly_archival_future_call.dart' as _i4;
+import 'future_calls_generated_models/monthly_archival_future_call_initialize_schedule_model.dart'
+    as _i3;
+import 'dart:async' as _i4;
+import '../future_calls/monthly_archival_future_call.dart' as _i5;
 
 /// Invokes a future call.
 typedef _InvokeFutureCall =
@@ -58,7 +60,10 @@ class FutureCalls extends _i1.FutureCallDispatch<_FutureCallRef> {
     String serverId,
   ) {
     var registeredFutureCalls = <String, _i1.FutureCall>{
-      'MonthlyArchivalInvokeFutureCall': MonthlyArchivalInvokeFutureCall(),
+      'MonthlyArchivalRunMonthlyArchivalFutureCall':
+          MonthlyArchivalRunMonthlyArchivalFutureCall(),
+      'MonthlyArchivalInitializeScheduleFutureCall':
+          MonthlyArchivalInitializeScheduleFutureCall(),
     };
     _futureCallManager = futureCallManager;
     _serverId = serverId;
@@ -124,24 +129,63 @@ class _MonthlyArchivalFutureCallDispatcher {
 
   final _InvokeFutureCall _invokeFutureCall;
 
-  Future<void> invoke(_i2.ArchivalScheduleData? object) {
+  Future<void> runMonthlyArchival(int iteration) {
+    var object = _i2.MonthlyArchivalFutureCallRunMonthlyArchivalModel(
+      iteration: iteration,
+    );
     return _invokeFutureCall(
-      'MonthlyArchivalInvokeFutureCall',
+      'MonthlyArchivalRunMonthlyArchivalFutureCall',
+      object,
+    );
+  }
+
+  Future<void> initializeSchedule(int iteration) {
+    var object = _i3.MonthlyArchivalFutureCallInitializeScheduleModel(
+      iteration: iteration,
+    );
+    return _invokeFutureCall(
+      'MonthlyArchivalInitializeScheduleFutureCall',
       object,
     );
   }
 }
 
-class MonthlyArchivalInvokeFutureCall
-    extends _i1.FutureCall<_i2.ArchivalScheduleData> {
+/// Public method that schedules the next run and executes the task
+///
+/// This method will be available in generated code after running `serverpod generate`
+class MonthlyArchivalRunMonthlyArchivalFutureCall
+    extends
+        _i1.FutureCall<_i2.MonthlyArchivalFutureCallRunMonthlyArchivalModel> {
   @override
-  _i3.Future<void> invoke(
+  _i4.Future<void> invoke(
     _i1.Session session,
-    _i2.ArchivalScheduleData? object,
+    _i2.MonthlyArchivalFutureCallRunMonthlyArchivalModel? object,
   ) async {
-    await _i4.MonthlyArchivalFutureCall().invoke(
-      session,
-      object,
-    );
+    if (object != null) {
+      await _i5.MonthlyArchivalFutureCall().runMonthlyArchival(
+        session,
+        object.iteration,
+      );
+    }
+  }
+}
+
+/// Initialize the monthly archival schedule
+///
+/// Call this once during server startup to begin the recurring schedule
+class MonthlyArchivalInitializeScheduleFutureCall
+    extends
+        _i1.FutureCall<_i3.MonthlyArchivalFutureCallInitializeScheduleModel> {
+  @override
+  _i4.Future<void> invoke(
+    _i1.Session session,
+    _i3.MonthlyArchivalFutureCallInitializeScheduleModel? object,
+  ) async {
+    if (object != null) {
+      await _i5.MonthlyArchivalFutureCall().initializeSchedule(
+        session,
+        object.iteration,
+      );
+    }
   }
 }

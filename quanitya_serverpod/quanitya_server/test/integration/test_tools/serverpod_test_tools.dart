@@ -26,9 +26,11 @@ import 'package:quanitya_server/src/generated/encrypted_entry.dart' as _i10;
 import 'package:quanitya_server/src/generated/encrypted_schedule.dart' as _i11;
 import 'package:quanitya_server/src/generated/template_aesthetics.dart' as _i12;
 import 'package:quanitya_server/src/generated/greeting.dart' as _i13;
-import 'package:quanitya_server/src/generated/archival_schedule_data.dart'
+import 'package:quanitya_server/src/generated/future_calls_generated_models/monthly_archival_future_call_run_monthly_archival_model.dart'
     as _i14;
 import 'package:quanitya_server/src/generated/future_calls.dart' as _i15;
+import 'package:quanitya_server/src/generated/future_calls_generated_models/monthly_archival_future_call_initialize_schedule_model.dart'
+    as _i16;
 import 'package:quanitya_server/src/generated/protocol.dart';
 import 'package:quanitya_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -615,6 +617,34 @@ class _EmailIdpEndpoint {
       }
     });
   }
+
+  _i3.Future<bool> hasAccount(_i1.TestSessionBuilder sessionBuilder) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'emailIdp',
+            method: 'hasAccount',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'emailIdp',
+          methodName: 'hasAccount',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 }
 
 class _JwtRefreshEndpoint {
@@ -1032,14 +1062,36 @@ class _GreetingEndpoint {
 }
 
 class _MonthlyArchivalFutureCall {
-  Future<void> invoke(
+  Future<void> runMonthlyArchival(
     _i1.TestSessionBuilder sessionBuilder,
-    _i14.ArchivalScheduleData? object,
+    int iteration,
   ) async {
+    var object = _i14.MonthlyArchivalFutureCallRunMonthlyArchivalModel(
+      iteration: iteration,
+    );
     var _localUniqueSession = (sessionBuilder as _i1.InternalTestSessionBuilder)
         .internalBuild();
     try {
-      await _i15.MonthlyArchivalInvokeFutureCall().invoke(
+      await _i15.MonthlyArchivalRunMonthlyArchivalFutureCall().invoke(
+        _localUniqueSession,
+        object,
+      );
+    } finally {
+      await _localUniqueSession.close();
+    }
+  }
+
+  Future<void> initializeSchedule(
+    _i1.TestSessionBuilder sessionBuilder,
+    int iteration,
+  ) async {
+    var object = _i16.MonthlyArchivalFutureCallInitializeScheduleModel(
+      iteration: iteration,
+    );
+    var _localUniqueSession = (sessionBuilder as _i1.InternalTestSessionBuilder)
+        .internalBuild();
+    try {
+      await _i15.MonthlyArchivalInitializeScheduleFutureCall().invoke(
         _localUniqueSession,
         object,
       );

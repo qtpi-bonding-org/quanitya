@@ -40,7 +40,7 @@
     },
     {
       "name": "serverpod_auth_core_client",
-      "version": "3.0.1",
+      "version": "3.3.0",
       "dependencies": [
         "clock",
         "serverpod_client"
@@ -48,7 +48,7 @@
     },
     {
       "name": "serverpod_auth_idp_client",
-      "version": "3.0.1",
+      "version": "3.3.0",
       "dependencies": [
         "serverpod_auth_core_client",
         "serverpod_client"
@@ -56,7 +56,7 @@
     },
     {
       "name": "serverpod_client",
-      "version": "3.0.1",
+      "version": "3.3.0",
       "dependencies": [
         "collection",
         "http",
@@ -98,7 +98,7 @@
     },
     {
       "name": "serverpod_serialization",
-      "version": "3.0.1",
+      "version": "3.3.0",
       "dependencies": [
         "uuid",
         "yaml"

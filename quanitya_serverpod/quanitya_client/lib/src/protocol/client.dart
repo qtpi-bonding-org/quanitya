@@ -292,6 +292,13 @@ class EndpointEmailIdp extends _i6.EndpointEmailIdpBase {
       'newPassword': newPassword,
     },
   );
+
+  @override
+  _i2.Future<bool> hasAccount() => caller.callServerEndpoint<bool>(
+    'quanitya.emailIdp',
+    'hasAccount',
+    {},
+  );
 }
 
 /// By extending [RefreshJwtTokensEndpoint], the JWT token refresh endpoint

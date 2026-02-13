@@ -83,7 +83,7 @@ Future<void> _registerBackgroundTasks(Serverpod pod) async {
   // This will schedule the first execution and then it will self-reschedule
   final session = await pod.createSession(enableLogging: false);
   try {
-    await MonthlyArchivalFutureCall.initializeSchedule(session);
+    await MonthlyArchivalFutureCall().initializeSchedule(session, 0);
     session.log('Monthly archival schedule initialized');
   } catch (e) {
     session.log('Failed to initialize monthly archival schedule: $e', level: LogLevel.error);

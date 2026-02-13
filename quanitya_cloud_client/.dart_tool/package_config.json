@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "anonaccred_client",
-      "rootUri": "file:///Users/aicoder/.pub-cache/git/serverpod_anonaccred-0562e7aefd851c73ce46277e712cfdee82ef5283/anonaccred_client",
+      "rootUri": "file:///Users/aicoder/.pub-cache/git/serverpod_anonaccred-307bed0101bbf04aa0c4210425b4d94b902a6371/anonaccred_client",
       "packageUri": "lib/",
       "languageVersion": "3.8"
     },
@@ -75,25 +75,25 @@
     },
     {
       "name": "serverpod_auth_core_client",
-      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_auth_core_client-3.0.1",
+      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_auth_core_client-3.3.0",
       "packageUri": "lib/",
       "languageVersion": "3.8"
     },
     {
       "name": "serverpod_auth_idp_client",
-      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_auth_idp_client-3.0.1",
+      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_auth_idp_client-3.3.0",
       "packageUri": "lib/",
       "languageVersion": "3.8"
     },
     {
       "name": "serverpod_client",
-      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_client-3.0.1",
+      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_client-3.3.0",
       "packageUri": "lib/",
       "languageVersion": "3.8"
     },
     {
       "name": "serverpod_serialization",
-      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_serialization-3.0.1",
+      "rootUri": "file:///Users/aicoder/.pub-cache/hosted/pub.dev/serverpod_serialization-3.3.0",
       "packageUri": "lib/",
       "languageVersion": "3.8"
     },
