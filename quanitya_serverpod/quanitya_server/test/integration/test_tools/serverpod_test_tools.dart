@@ -8,7 +8,6 @@
 // ignore_for_file: type_literal_in_constant_pattern
 // ignore_for_file: use_super_parameters
 // ignore_for_file: invalid_use_of_internal_member
-
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
@@ -27,6 +26,9 @@ import 'package:quanitya_server/src/generated/encrypted_entry.dart' as _i10;
 import 'package:quanitya_server/src/generated/encrypted_schedule.dart' as _i11;
 import 'package:quanitya_server/src/generated/template_aesthetics.dart' as _i12;
 import 'package:quanitya_server/src/generated/greeting.dart' as _i13;
+import 'package:quanitya_server/src/generated/archival_schedule_data.dart'
+    as _i14;
+import 'package:quanitya_server/src/generated/future_calls.dart' as _i15;
 import 'package:quanitya_server/src/generated/protocol.dart';
 import 'package:quanitya_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -134,6 +136,8 @@ void withServerpod(
 }
 
 class TestEndpoints {
+  late final futureCalls = _FutureCalls();
+
   late final _ArchiveEndpoint archive;
 
   late final _EmailIdpEndpoint emailIdp;
@@ -179,6 +183,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
   }
+}
+
+class _FutureCalls {
+  late final monthlyArchival = _MonthlyArchivalFutureCall();
 }
 
 class _ArchiveEndpoint {
@@ -1020,5 +1028,23 @@ class _GreetingEndpoint {
         await _localUniqueSession.close();
       }
     });
+  }
+}
+
+class _MonthlyArchivalFutureCall {
+  Future<void> invoke(
+    _i1.TestSessionBuilder sessionBuilder,
+    _i14.ArchivalScheduleData? object,
+  ) async {
+    var _localUniqueSession = (sessionBuilder as _i1.InternalTestSessionBuilder)
+        .internalBuild();
+    try {
+      await _i15.MonthlyArchivalInvokeFutureCall().invoke(
+        _localUniqueSession,
+        object,
+      );
+    } finally {
+      await _localUniqueSession.close();
+    }
   }
 }

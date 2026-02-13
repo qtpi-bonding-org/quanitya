@@ -18,7 +18,7 @@ abstract class EncryptedAnalysisPipeline implements _i1.SerializableModel {
     required this.accountId,
     required this.encryptedData,
     DateTime? updatedAt,
-  }) : id = id ?? _i1.Uuid().v4obj(),
+  }) : id = id ?? const _i1.Uuid().v4obj(),
        updatedAt = updatedAt ?? DateTime.now();
 
   factory EncryptedAnalysisPipeline({
@@ -32,12 +32,14 @@ abstract class EncryptedAnalysisPipeline implements _i1.SerializableModel {
     Map<String, dynamic> jsonSerialization,
   ) {
     return EncryptedAnalysisPipeline(
-      id: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       accountId: jsonSerialization['accountId'] as int,
       encryptedData: jsonSerialization['encryptedData'] as String,
-      updatedAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['updatedAt'],
-      ),
+      updatedAt: jsonSerialization['updatedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
     );
   }
 

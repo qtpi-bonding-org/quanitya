@@ -24,7 +24,7 @@ abstract class TemplateAesthetics implements _i1.SerializableModel {
     this.fontConfigJson,
     this.colorMappingsJson,
     DateTime? updatedAt,
-  }) : id = id ?? _i1.Uuid().v4obj(),
+  }) : id = id ?? const _i1.Uuid().v4obj(),
        updatedAt = updatedAt ?? DateTime.now();
 
   factory TemplateAesthetics({
@@ -42,7 +42,9 @@ abstract class TemplateAesthetics implements _i1.SerializableModel {
 
   factory TemplateAesthetics.fromJson(Map<String, dynamic> jsonSerialization) {
     return TemplateAesthetics(
-      id: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
+      id: jsonSerialization['id'] == null
+          ? null
+          : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       accountId: jsonSerialization['accountId'] as int,
       templateId: jsonSerialization['templateId'] as String,
       themeName: jsonSerialization['themeName'] as String?,
@@ -51,9 +53,9 @@ abstract class TemplateAesthetics implements _i1.SerializableModel {
       paletteJson: jsonSerialization['paletteJson'] as String?,
       fontConfigJson: jsonSerialization['fontConfigJson'] as String?,
       colorMappingsJson: jsonSerialization['colorMappingsJson'] as String?,
-      updatedAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['updatedAt'],
-      ),
+      updatedAt: jsonSerialization['updatedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
     );
   }
 
