@@ -547,9 +547,18 @@ class AuthService {
   Future<AuthenticationResult> authenticateDevice() {
     return tryMethod(
       () async {
-        // 1. Get challenge from server
+        // Get device public key
+        final devicePublicKeyHex = await _keyRepository
+            .getDeviceSigningPublicKeyHex();
+        if (devicePublicKeyHex == null) {
+          throw const DeviceAuthenticationException(
+            'Device public key not found',
+          );
+        }
+
+        // 1. Get challenge from server (pass device public key)
         final challenge = await _client.modules.anonaccred.device
-            .generateAuthChallenge();
+            .generateAuthChallenge(devicePublicKeyHex);
 
         // 2. Sign challenge with ECDSA P-256 via DataEncryptionService
         final signature = await _encryption.signWithDeviceKey(challenge);
