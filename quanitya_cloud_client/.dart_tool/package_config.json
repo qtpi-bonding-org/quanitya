@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "anonaccred_client",
-      "rootUri": "file:///Users/aicoder/.pub-cache/git/serverpod_anonaccred-307bed0101bbf04aa0c4210425b4d94b902a6371/anonaccred_client",
+      "rootUri": "file:///Users/aicoder/.pub-cache/git/serverpod_anonaccred-6cc2cc7515958e44a7d6cdec3c703de50127c2e4/anonaccred_client",
       "packageUri": "lib/",
       "languageVersion": "3.8"
     },

@@ -29,8 +29,8 @@ packages:
     dependency: transitive
     description:
       path: anonaccred_client
-      ref: "6cff491"
-      resolved-ref: "6cff491e5c276de504ea9e5bd78963b26814781e"
+      ref: "6cc2cc7"
+      resolved-ref: "6cc2cc7515958e44a7d6cdec3c703de50127c2e4"
       url: "git@github.com:qtpi-bonding-org/serverpod_anonaccred.git"
     source: git
     version: "0.1.0+1"

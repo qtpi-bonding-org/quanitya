@@ -409,12 +409,12 @@ abstract class EndpointPublicSubmission extends _i1.EndpointRef {
   );
 }
 
-/// Cloud Analysis Endpoint with full AnonAccred integration
+/// Cloud Analysis Endpoint - MVP Disabled
 ///
-/// This endpoint provides pay-per-use statistical analysis features
-/// using X402 micropayments and Ed25519 authentication.
+/// This endpoint provides pay-per-use statistical analysis features.
+/// DISABLED for MVP launch - will be added post-launch.
 ///
-/// Features:
+/// Features (when enabled):
 /// - Ed25519 public key authentication via X-QUANITYA-DEVICE-PUBKEY header
 /// - X402 HTTP micropayments via X-PAYMENT header
 /// - Pay-per-use analysis with different pricing tiers
@@ -426,21 +426,9 @@ class EndpointCloudAnalysis extends _i1.EndpointRef {
   @override
   String get name => 'cloudAnalysis';
 
-  /// Request statistical analysis with consumable credit checking
+  /// Request statistical analysis
   ///
-  /// First checks if user has sufficient analysis credits, then uses X402 payment
-  /// integration for the actual payment flow. Consumes credits after successful analysis.
-  ///
-  /// Authentication: Requires Ed25519 public key via X-QUANITYA-DEVICE-PUBKEY header
-  /// Payment: X402 HTTP micropayments via X-PAYMENT header
-  /// Credits: Consumes analysis credits based on analysis type
-  ///
-  /// Parameters:
-  /// - [analysisType]: Type of analysis (basic_stats, correlation, regression, ml_prediction)
-  /// - [data]: Analysis data as JSON
-  /// - [headers]: HTTP headers (optional, extracted from request if not provided)
-  ///
-  /// Returns: Either X402PaymentResponse (HTTP 402) or analysis results
+  /// MVP: This feature is disabled. Returns 503 error.
   _i2.Future<Map<String, dynamic>> requestAnalysis(
     String analysisType,
     Map<String, dynamic> data, {
@@ -455,10 +443,7 @@ class EndpointCloudAnalysis extends _i1.EndpointRef {
     },
   );
 
-  /// Get current AnonAccred configuration and authentication status
-  ///
-  /// Returns the current header configuration, authentication status, and device info.
-  /// Useful for verifying the integration is working correctly.
+  /// Get AnonAccred configuration status
   _i2.Future<Map<String, dynamic>> getAnonAccredConfig() =>
       caller.callServerEndpoint<Map<String, dynamic>>(
         'cloudAnalysis',
