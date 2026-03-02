@@ -487,9 +487,9 @@ class EndpointConsumable extends _i1.EndpointRef {
 
   /// Get all consumable balances for the authenticated user
   ///
-  /// Returns map of consumable types to current balances
-  _i2.Future<Map<String, double>> getBalances() =>
-      caller.callServerEndpoint<Map<String, double>>(
+  /// Returns map of consumable types (int) to current balances
+  _i2.Future<Map<int, double>> getBalances() =>
+      caller.callServerEndpoint<Map<int, double>>(
         'consumable',
         'getBalances',
         {},
@@ -514,10 +514,10 @@ class EndpointConsumable extends _i1.EndpointRef {
 
   /// Get balance for a specific consumable type
   ///
-  /// [consumableType] - Type of consumable to check
+  /// [consumableType] - Type of consumable to check (int)
   ///
   /// Returns current balance or 0.0 if none exists
-  _i2.Future<double> getBalance(String consumableType) =>
+  _i2.Future<double> getBalance(int consumableType) =>
       caller.callServerEndpoint<double>(
         'consumable',
         'getBalance',
@@ -526,12 +526,12 @@ class EndpointConsumable extends _i1.EndpointRef {
 
   /// Check if user has sufficient credits for an operation
   ///
-  /// [consumableType] - Type of consumable to check
+  /// [consumableType] - Type of consumable to check (int)
   /// [requiredAmount] - Amount required for the operation
   ///
   /// Returns true if user has sufficient balance
   _i2.Future<bool> hasSufficientCredits(
-    String consumableType,
+    int consumableType,
     double requiredAmount,
   ) => caller.callServerEndpoint<bool>(
     'consumable',
@@ -582,7 +582,7 @@ class EndpointConsumable extends _i1.EndpointRef {
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
   /// [accountId] - Target account ID
-  /// [consumableType] - Type of consumable to add
+  /// [consumableType] - Type of consumable to add (int)
   /// [amount] - Amount to add (must be positive)
   ///
   /// Returns success message
@@ -590,7 +590,7 @@ class EndpointConsumable extends _i1.EndpointRef {
     String adminPublicKeyHex,
     String adminSignature,
     int accountId,
-    String consumableType,
+    int consumableType,
     double amount,
   ) => caller.callServerEndpoint<String>(
     'consumable',
@@ -614,7 +614,7 @@ class EndpointConsumable extends _i1.EndpointRef {
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
   /// [accountId] - Target account ID
-  /// [consumableType] - Type of consumable to consume
+  /// [consumableType] - Type of consumable to consume (int)
   /// [amount] - Amount to consume (must be positive)
   ///
   /// Returns success message
@@ -622,7 +622,7 @@ class EndpointConsumable extends _i1.EndpointRef {
     String adminPublicKeyHex,
     String adminSignature,
     int accountId,
-    String consumableType,
+    int consumableType,
     double amount,
   ) => caller.callServerEndpoint<String>(
     'consumable',
@@ -638,9 +638,9 @@ class EndpointConsumable extends _i1.EndpointRef {
 
   /// Get list of valid consumable types
   ///
-  /// Returns array of supported consumable type strings
-  _i2.Future<List<String>> getValidConsumableTypes() =>
-      caller.callServerEndpoint<List<String>>(
+  /// Returns array of supported consumable type IDs (int)
+  _i2.Future<List<int>> getValidConsumableTypes() =>
+      caller.callServerEndpoint<List<int>>(
         'consumable',
         'getValidConsumableTypes',
         {},
