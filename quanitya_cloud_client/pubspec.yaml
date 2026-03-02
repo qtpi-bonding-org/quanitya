@@ -15,7 +15,7 @@ dependencies:
   anonaccred_client:
     git:
       url: git@github.com:qtpi-bonding-org/serverpod_anonaccred.git
-      ref: 6cc2cc7
+      ref: 8dfd87a
       path: anonaccred_client
 
 dev_dependencies:
