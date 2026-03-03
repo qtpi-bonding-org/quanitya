@@ -352,6 +352,13 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                           onPressed: () => AppNavigation.toTemplateGenerator(context),
                         ),
                         QuanityaIconButton(
+                          icon: Icons.notifications_outlined,
+                          iconSize: AppSizes.iconMedium,
+                          color: palette.interactableColor,
+                          tooltip: 'Notifications',
+                          onPressed: () => AppNavigation.toNotificationInbox(context),
+                        ),
+                        QuanityaIconButton(
                           icon: Icons.settings,
                           iconSize: AppSizes.iconMedium,
                           color: palette.interactableColor,

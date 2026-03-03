@@ -27,6 +27,7 @@ import 'features/onboarding/pages/about_page.dart';
 import 'features/onboarding/pages/recovery_key_backup_page.dart';
 import 'features/onboarding/pages/account_recovery_page.dart';
 import 'features/onboarding/cubits/onboarding_cubit.dart';
+import 'features/purchase/pages/purchase_page.dart';
 import 'features/visualization/pages/visualization_page.dart';
 import 'features/device_pairing/pages/show_pairing_qr_page.dart';
 import 'features/device_pairing/pages/scan_pairing_qr_page.dart';
@@ -246,6 +247,11 @@ class AppRouter {
             builder: (context, state) => const NotificationInboxPage(),
           ),
           GoRoute(
+            path: AppRoutes.purchase,
+            name: RouteNames.purchase,
+            builder: (context, state) => const PurchasePage(),
+          ),
+          GoRoute(
             path: AppRoutes.entryDetail,
             name: RouteNames.entryDetail,
             builder: (context, state) {
@@ -321,6 +327,7 @@ class AppRoutes {
   static const String notificationInbox = '/notification-inbox';
   static const String connectDevice = '/connect-device';
   static const String pipelineBuilder = '/pipeline-builder';
+  static const String purchase = '/purchase';
 }
 
 class RouteNames {
@@ -347,6 +354,7 @@ class RouteNames {
   static const String notificationInbox = 'notificationInbox';
   static const String connectDevice = 'connectDevice';
   static const String pipelineBuilder = 'pipelineBuilder';
+  static const String purchase = 'purchase';
 }
 
 class AppNavigation {
@@ -395,6 +403,10 @@ class AppNavigation {
 
   static void toNotificationInbox(BuildContext context) {
     context.pushNamed(RouteNames.notificationInbox);
+  }
+
+  static void toPurchase(BuildContext context) {
+    context.pushNamed(RouteNames.purchase);
   }
 
   static void toFeedback(BuildContext context) {

@@ -109,6 +109,12 @@ class _SettingsContent extends StatelessWidget {
         VSpace.x3,
 
         QuanityaTextButton(
+          text: 'Purchase Sync Days',
+          onPressed: () => AppNavigation.toPurchase(context),
+        ),
+        VSpace.x3,
+
+        QuanityaTextButton(
           text: 'Error Reports',
           onPressed: () => AppNavigation.toErrorBox(context),
         ),
