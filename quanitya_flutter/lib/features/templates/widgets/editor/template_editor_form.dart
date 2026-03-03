@@ -19,6 +19,8 @@ import '../../../../infrastructure/webhooks/api_key_repository.dart';
 import '../../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../../design_system/widgets/ai/ai_prompt_widget.dart';
 import '../../../../design_system/widgets/quanitya_text_form_field.dart';
+import '../../../app_operating_mode/cubits/app_operating_cubit.dart';
+import '../../../app_operating_mode/models/app_operating_mode.dart';
 import 'field_editor_list.dart';
 import 'template_basic_info_editor.dart';
 import 'schedule_section.dart';
@@ -260,7 +262,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
       final config = LlmConfig.openRouter(
         apiKey: keyValue,
         model: 'openai/gpt-4o-mini',
-        useCloudProxy: false, // Local first
+        useCloudProxy: context.read<AppOperatingCubit>().state.mode == AppOperatingMode.cloud,
       );
       
       await generatorCubit.generate(prompt, config);
