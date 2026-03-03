@@ -11,6 +11,8 @@ import '../cubits/detail/template_detail_state.dart';
 import '../widgets/detail/recent_entries_section.dart';
 import '../widgets/detail/schedule_status_section.dart';
 import '../widgets/detail/template_info_section.dart';
+import '../../../logic/schedules/models/schedule.dart';
+import '../../schedules/widgets/edit_schedule_sheet.dart';
 import '../../../../design_system/structures/column.dart';
 import '../../../../design_system/structures/row.dart';
 
@@ -100,11 +102,32 @@ class TemplateDetailView extends StatelessWidget {
 
                             ScheduleStatusSection(
                                 schedules: state.schedules,
-                                onAdd: () {
-                                    // Todo: Navigate to schedule editor
+                                onAdd: () async {
+                                    final templateId = state.template!.template.id;
+                                    final templateName = state.template!.template.name;
+                                    final defaultSchedule = ScheduleModel.daily(
+                                        templateId: templateId,
+                                        hour: 9,
+                                    );
+                                    final result = await EditScheduleSheet.show(
+                                        context,
+                                        schedule: defaultSchedule,
+                                        templateName: templateName,
+                                    );
+                                    if (result != null && context.mounted) {
+                                        context.read<TemplateDetailCubit>().saveSchedule(result);
+                                    }
                                 },
-                                onManage: () {
-                                    // Todo: Navigate to schedule list
+                                onScheduleTap: (schedule) async {
+                                    final templateName = state.template!.template.name;
+                                    final result = await EditScheduleSheet.show(
+                                        context,
+                                        schedule: schedule,
+                                        templateName: templateName,
+                                    );
+                                    if (result != null && context.mounted) {
+                                        context.read<TemplateDetailCubit>().saveSchedule(result);
+                                    }
                                 },
                             ),
                         ],

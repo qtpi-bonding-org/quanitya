@@ -5,6 +5,7 @@ import '../../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../data/interfaces/log_entry_interface.dart';
 import '../../../../data/repositories/schedule_repository.dart';
+import '../../../../logic/schedules/models/schedule.dart';
 import 'template_detail_state.dart';
 
 @injectable
@@ -51,6 +52,14 @@ class TemplateDetailCubit extends QuanityaCubit<TemplateDetailState> {
          lastOperation: TemplateDetailOperation.load,
        );
     }, emitLoading: true);
+  }
+
+  Future<void> saveSchedule(ScheduleModel schedule) async {
+    await _scheduleRepo.save(schedule);
+  }
+
+  Future<void> deleteSchedule(String scheduleId) async {
+    await _scheduleRepo.delete(scheduleId);
   }
 
   @override

@@ -11,12 +11,14 @@ class ScheduleStatusSection extends StatelessWidget {
   final List<ScheduleModel> schedules;
   final VoidCallback? onAdd;
   final VoidCallback? onManage;
+  final ValueChanged<ScheduleModel>? onScheduleTap;
 
   const ScheduleStatusSection({
     super.key,
     required this.schedules,
     this.onAdd,
     this.onManage,
+    this.onScheduleTap,
   });
 
   @override
@@ -27,8 +29,8 @@ class ScheduleStatusSection extends StatelessWidget {
         QuanityaRow(
           alignment: CrossAxisAlignment.center,
           start: Text(context.l10n.scheduleTitle, style: context.text.titleSmall), // 14px header
-          // Only show Manage if there are schedules
-          end: schedules.isNotEmpty
+          // Only show Manage if there are schedules and callback is provided
+          end: schedules.isNotEmpty && onManage != null
               ? TextButton(
                   onPressed: onManage,
                   child: Text(context.l10n.manage),
@@ -42,7 +44,10 @@ class ScheduleStatusSection extends StatelessWidget {
             child: Text(context.l10n.addSchedule),
           )
         else
-          ...schedules.map((schedule) => _ScheduleItem(schedule: schedule)),
+          ...schedules.map((schedule) => _ScheduleItem(
+            schedule: schedule,
+            onTap: onScheduleTap != null ? () => onScheduleTap!(schedule) : null,
+          )),
       ],
     );
   }
@@ -50,12 +55,16 @@ class ScheduleStatusSection extends StatelessWidget {
 
 class _ScheduleItem extends StatelessWidget {
   final ScheduleModel schedule;
-  const _ScheduleItem({required this.schedule});
+  final VoidCallback? onTap;
+  const _ScheduleItem({required this.schedule, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     // Basic representation - No Cards, just Group (Padding) + Row
-    return QuanityaGroup(
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: QuanityaGroup(
       child: QuanityaRow(
         start: Icon(Icons.schedule, size: AppSizes.size20, color: context.colors.primaryColor),
         middle: Text("Rule: ${schedule.recurrenceRule}", style: context.text.bodyLarge), // 16px
@@ -66,6 +75,7 @@ class _ScheduleItem extends StatelessWidget {
             ),
         ),
       ),
+    ),
     );
   }
 }
