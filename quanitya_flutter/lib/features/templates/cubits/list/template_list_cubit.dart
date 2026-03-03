@@ -94,6 +94,7 @@ class TemplateListCubit extends QuanityaCubit<TemplateListState> {
   Future<void> archive(String templateId) async {
     await tryOperation(() async {
       await _repository.archive(templateId);
+      analytics?.trackTemplateDeleted();
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: TemplateListOperation.archive,

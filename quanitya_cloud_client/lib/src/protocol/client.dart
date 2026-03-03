@@ -161,6 +161,45 @@ class EndpointAdminKeyManagement extends _i1.EndpointRef {
   );
 }
 
+/// Analytics Event Endpoint for privacy-first usage analytics.
+///
+/// Accepts lightweight, PII-free event names (e.g. "template_created")
+/// and stores them in Postgres for aggregate usage insights.
+///
+/// No authentication required — events contain no user content,
+/// just action counters. No proof-of-work overhead since the
+/// payload is fixed-vocabulary event names, not free-form text.
+/// {@category Endpoint}
+class EndpointAnalyticsEvent extends _i1.EndpointRef {
+  EndpointAnalyticsEvent(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'analyticsEvent';
+
+  /// Submit a single analytics event.
+  ///
+  /// Parameters:
+  /// - [eventName]: Action that occurred (e.g. "template_created")
+  /// - [clientTimestamp]: When the event occurred on the client
+  /// - [platform]: Client platform (iOS, Android, macOS, etc.)
+  /// - [props]: Optional JSON-encoded properties
+  _i2.Future<void> submitEvent({
+    required String eventName,
+    required DateTime clientTimestamp,
+    String? platform,
+    String? props,
+  }) => caller.callServerEndpoint<void>(
+    'analyticsEvent',
+    'submitEvent',
+    {
+      'eventName': eventName,
+      'clientTimestamp': clientTimestamp,
+      'platform': platform,
+      'props': props,
+    },
+  );
+}
+
 /// Base class for all admin management endpoints.
 ///
 /// Provides standardized ECDSA signature authentication for:
@@ -1847,6 +1886,7 @@ class Client extends _i1.ServerpodClientShared {
        ) {
     cloudHealth = EndpointCloudHealth(this);
     adminKeyManagement = EndpointAdminKeyManagement(this);
+    analyticsEvent = EndpointAnalyticsEvent(this);
     cloudAnalysis = EndpointCloudAnalysis(this);
     cloudLlm = EndpointCloudLlm(this);
     consumable = EndpointConsumable(this);
@@ -1862,6 +1902,8 @@ class Client extends _i1.ServerpodClientShared {
   late final EndpointCloudHealth cloudHealth;
 
   late final EndpointAdminKeyManagement adminKeyManagement;
+
+  late final EndpointAnalyticsEvent analyticsEvent;
 
   late final EndpointCloudAnalysis cloudAnalysis;
 
@@ -1887,6 +1929,7 @@ class Client extends _i1.ServerpodClientShared {
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
     'cloudHealth': cloudHealth,
     'adminKeyManagement': adminKeyManagement,
+    'analyticsEvent': analyticsEvent,
     'cloudAnalysis': cloudAnalysis,
     'cloudLlm': cloudLlm,
     'consumable': consumable,

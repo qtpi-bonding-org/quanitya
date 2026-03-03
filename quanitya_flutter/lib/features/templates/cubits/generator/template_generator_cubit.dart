@@ -40,6 +40,7 @@ class TemplateGeneratorCubit extends QuanityaCubit<TemplateGeneratorState> {
       }
 
       await _repository.save(state.preview!);
+      analytics?.trackTemplateCreated();
 
       return state.copyWith(
         status: UiFlowStatus.success,

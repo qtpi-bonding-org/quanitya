@@ -112,6 +112,7 @@ class DynamicTemplateCubit extends QuanityaCubit<DynamicTemplateState> {
 
       // Save via service (triggers webhooks)
       await _logEntryService.saveLogEntry(logEntry);
+      analytics?.trackEntryLogged();
 
       return state.copyWith(
         status: UiFlowStatus.success,

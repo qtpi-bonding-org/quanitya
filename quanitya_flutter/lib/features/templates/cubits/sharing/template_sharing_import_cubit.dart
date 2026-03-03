@@ -33,6 +33,7 @@ class TemplateSharingImportCubit
 
     await tryOperation(() async {
       final imported = await _importService.importFromUrl(url);
+      analytics?.trackTemplateImported();
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: TemplateSharingImportOperation.confirmImport,

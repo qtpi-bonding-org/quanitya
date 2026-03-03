@@ -1,5 +1,8 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import 'package:get_it/get_it.dart';
+
+import '../../logic/analytics/analytics_service.dart';
 
 /// Base Cubit class for Quanitya that extends cubit_ui_flow's TryOperationCubit.
 /// 
@@ -37,4 +40,10 @@ abstract class QuanityaCubit<S extends IUiFlowState> extends TryOperationCubit<S
   void emitSuccess() {
     emit(createSuccessState());
   }
+
+  /// Analytics service — null-safe, no-ops if not registered.
+  AnalyticsService? get analytics =>
+      GetIt.instance.isRegistered<AnalyticsService>()
+          ? GetIt.instance<AnalyticsService>()
+          : null;
 }

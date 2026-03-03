@@ -26,6 +26,7 @@ class HealthSyncCubit extends QuanityaCubit<HealthSyncState> {
   Future<void> sync(List<HealthDataType> types, {DateTime? since}) async {
     await tryOperation(() async {
       final count = await _syncService.sync(types, since: since);
+      analytics?.trackHealthSynced();
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: HealthSyncOperation.sync,

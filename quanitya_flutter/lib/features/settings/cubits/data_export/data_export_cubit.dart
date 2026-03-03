@@ -16,6 +16,7 @@ class DataExportCubit extends QuanityaCubit<DataExportState> {
       final result = await _exportRepo.exportAllData();
 
       if (result == DataExportResult.success) {
+        analytics?.trackDataExported();
         return state.copyWith(
           status: UiFlowStatus.success,
           lastOperation: DataExportOperation.export,

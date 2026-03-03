@@ -63,6 +63,7 @@ class TemplateSharingExportCubit
 
       switch (result.status) {
         case ShareResultStatus.success:
+          analytics?.trackTemplateExported();
           return state.copyWith(
             status: UiFlowStatus.success,
             lastOperation: TemplateSharingExportOperation.export,

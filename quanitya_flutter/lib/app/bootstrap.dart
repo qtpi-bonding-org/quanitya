@@ -7,6 +7,7 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 
 import '../app_router.dart';
+import '../logic/analytics/analytics_service.dart';
 import '../data/repositories/error_box_repository.dart';
 import '../data/repositories/e2ee_puller.dart';
 import '../data/sync/powersync_service.dart';
@@ -179,6 +180,11 @@ Future<void> bootstrap() async {
     debugPrint('Bootstrap: Initializing router...');
     await AppRouter.initialize();
     debugPrint('Bootstrap: Router initialized');
+
+    // 11. Track app opened
+    if (getIt.isRegistered<AnalyticsService>()) {
+      getIt<AnalyticsService>().trackAppOpened();
+    }
 
     debugPrint('Bootstrap: Complete');
   } catch (e, stack) {

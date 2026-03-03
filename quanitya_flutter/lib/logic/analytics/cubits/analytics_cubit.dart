@@ -66,7 +66,8 @@ class AnalyticsCubit extends QuanityaCubit<AnalyticsState> {
       final result = await _engine.executePipeline(pipeline);
       final updatedResults = Map<String, MvsUnion>.from(state.results);
       updatedResults[pipeline.id] = result;
-      
+      analytics?.trackAnalysisRun();
+
       return state.copyWith(
         status: UiFlowStatus.success,
         results: updatedResults,

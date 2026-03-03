@@ -56,6 +56,7 @@ class TemplateDetailCubit extends QuanityaCubit<TemplateDetailState> {
 
   Future<void> saveSchedule(ScheduleModel schedule) async {
     await _scheduleRepo.save(schedule);
+    analytics?.trackScheduleCreated();
   }
 
   Future<void> deleteSchedule(String scheduleId) async {

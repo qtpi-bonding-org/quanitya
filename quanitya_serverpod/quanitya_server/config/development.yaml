@@ -27,7 +27,9 @@ webServer:
   publicPort: 8082
   publicScheme: http
 
-# This is the database setup for your server.
+# Database configuration for community server (APP data only)
+# User data: templates, log entries, schedules, sync.
+# No ops data here — analytics, errors, feedback live in the cloud server.
 database:
   host: localhost
   port: 5432

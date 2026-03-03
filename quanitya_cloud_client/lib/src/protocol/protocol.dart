@@ -12,23 +12,25 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'admin_signing_key.dart' as _i2;
-import 'cloud_llm_structured_request.dart' as _i3;
-import 'consumption_schedule_data.dart' as _i4;
-import 'error_report.dart' as _i5;
-import 'error_report_challenge.dart' as _i6;
-import 'feedback_report.dart' as _i7;
-import 'notification.dart' as _i8;
-import 'notification_receipt.dart' as _i9;
-import 'rate_limit_counter.dart' as _i10;
+import 'analytics_event.dart' as _i3;
+import 'cloud_llm_structured_request.dart' as _i4;
+import 'consumption_schedule_data.dart' as _i5;
+import 'error_report.dart' as _i6;
+import 'error_report_challenge.dart' as _i7;
+import 'feedback_report.dart' as _i8;
+import 'notification.dart' as _i9;
+import 'notification_receipt.dart' as _i10;
+import 'rate_limit_counter.dart' as _i11;
 import 'package:quanitya_cloud_client/src/protocol/admin_signing_key.dart'
-    as _i11;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i12;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i13;
-import 'package:quanitya_client/quanitya_client.dart' as _i14;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i15;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i14;
+import 'package:quanitya_client/quanitya_client.dart' as _i15;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i16;
 export 'admin_signing_key.dart';
+export 'analytics_event.dart';
 export 'cloud_llm_structured_request.dart';
 export 'consumption_schedule_data.dart';
 export 'error_report.dart';
@@ -76,66 +78,72 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i2.AdminSigningKey) {
       return _i2.AdminSigningKey.fromJson(data) as T;
     }
-    if (t == _i3.CloudLlmStructuredRequest) {
-      return _i3.CloudLlmStructuredRequest.fromJson(data) as T;
+    if (t == _i3.AnalyticsEvent) {
+      return _i3.AnalyticsEvent.fromJson(data) as T;
     }
-    if (t == _i4.ConsumptionScheduleData) {
-      return _i4.ConsumptionScheduleData.fromJson(data) as T;
+    if (t == _i4.CloudLlmStructuredRequest) {
+      return _i4.CloudLlmStructuredRequest.fromJson(data) as T;
     }
-    if (t == _i5.ErrorReport) {
-      return _i5.ErrorReport.fromJson(data) as T;
+    if (t == _i5.ConsumptionScheduleData) {
+      return _i5.ConsumptionScheduleData.fromJson(data) as T;
     }
-    if (t == _i6.ErrorReportChallenge) {
-      return _i6.ErrorReportChallenge.fromJson(data) as T;
+    if (t == _i6.ErrorReport) {
+      return _i6.ErrorReport.fromJson(data) as T;
     }
-    if (t == _i7.FeedbackReport) {
-      return _i7.FeedbackReport.fromJson(data) as T;
+    if (t == _i7.ErrorReportChallenge) {
+      return _i7.ErrorReportChallenge.fromJson(data) as T;
     }
-    if (t == _i8.Notification) {
-      return _i8.Notification.fromJson(data) as T;
+    if (t == _i8.FeedbackReport) {
+      return _i8.FeedbackReport.fromJson(data) as T;
     }
-    if (t == _i9.NotificationReceipt) {
-      return _i9.NotificationReceipt.fromJson(data) as T;
+    if (t == _i9.Notification) {
+      return _i9.Notification.fromJson(data) as T;
     }
-    if (t == _i10.RateLimitCounter) {
-      return _i10.RateLimitCounter.fromJson(data) as T;
+    if (t == _i10.NotificationReceipt) {
+      return _i10.NotificationReceipt.fromJson(data) as T;
+    }
+    if (t == _i11.RateLimitCounter) {
+      return _i11.RateLimitCounter.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AdminSigningKey?>()) {
       return (data != null ? _i2.AdminSigningKey.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i3.CloudLlmStructuredRequest?>()) {
+    if (t == _i1.getType<_i3.AnalyticsEvent?>()) {
+      return (data != null ? _i3.AnalyticsEvent.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i4.CloudLlmStructuredRequest?>()) {
       return (data != null
-              ? _i3.CloudLlmStructuredRequest.fromJson(data)
+              ? _i4.CloudLlmStructuredRequest.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i4.ConsumptionScheduleData?>()) {
-      return (data != null ? _i4.ConsumptionScheduleData.fromJson(data) : null)
+    if (t == _i1.getType<_i5.ConsumptionScheduleData?>()) {
+      return (data != null ? _i5.ConsumptionScheduleData.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i5.ErrorReport?>()) {
-      return (data != null ? _i5.ErrorReport.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i6.ErrorReport?>()) {
+      return (data != null ? _i6.ErrorReport.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i6.ErrorReportChallenge?>()) {
-      return (data != null ? _i6.ErrorReportChallenge.fromJson(data) : null)
+    if (t == _i1.getType<_i7.ErrorReportChallenge?>()) {
+      return (data != null ? _i7.ErrorReportChallenge.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i7.FeedbackReport?>()) {
-      return (data != null ? _i7.FeedbackReport.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i8.FeedbackReport?>()) {
+      return (data != null ? _i8.FeedbackReport.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i8.Notification?>()) {
-      return (data != null ? _i8.Notification.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i9.Notification?>()) {
+      return (data != null ? _i9.Notification.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i9.NotificationReceipt?>()) {
-      return (data != null ? _i9.NotificationReceipt.fromJson(data) : null)
+    if (t == _i1.getType<_i10.NotificationReceipt?>()) {
+      return (data != null ? _i10.NotificationReceipt.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i10.RateLimitCounter?>()) {
-      return (data != null ? _i10.RateLimitCounter.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i11.RateLimitCounter?>()) {
+      return (data != null ? _i11.RateLimitCounter.fromJson(data) : null) as T;
     }
-    if (t == List<_i11.AdminSigningKey>) {
+    if (t == List<_i12.AdminSigningKey>) {
       return (data as List)
-              .map((e) => deserialize<_i11.AdminSigningKey>(e))
+              .map((e) => deserialize<_i12.AdminSigningKey>(e))
               .toList()
           as T;
     }
@@ -181,9 +189,6 @@ class Protocol extends _i1.SerializationManager {
           as T;
     }
     try {
-      return _i12.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
-    try {
       return _i13.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
@@ -192,20 +197,24 @@ class Protocol extends _i1.SerializationManager {
     try {
       return _i15.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i16.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
       _i2.AdminSigningKey => 'AdminSigningKey',
-      _i3.CloudLlmStructuredRequest => 'CloudLlmStructuredRequest',
-      _i4.ConsumptionScheduleData => 'ConsumptionScheduleData',
-      _i5.ErrorReport => 'ErrorReport',
-      _i6.ErrorReportChallenge => 'ErrorReportChallenge',
-      _i7.FeedbackReport => 'FeedbackReport',
-      _i8.Notification => 'Notification',
-      _i9.NotificationReceipt => 'NotificationReceipt',
-      _i10.RateLimitCounter => 'RateLimitCounter',
+      _i3.AnalyticsEvent => 'AnalyticsEvent',
+      _i4.CloudLlmStructuredRequest => 'CloudLlmStructuredRequest',
+      _i5.ConsumptionScheduleData => 'ConsumptionScheduleData',
+      _i6.ErrorReport => 'ErrorReport',
+      _i7.ErrorReportChallenge => 'ErrorReportChallenge',
+      _i8.FeedbackReport => 'FeedbackReport',
+      _i9.Notification => 'Notification',
+      _i10.NotificationReceipt => 'NotificationReceipt',
+      _i11.RateLimitCounter => 'RateLimitCounter',
       _ => null,
     };
   }
@@ -225,36 +234,38 @@ class Protocol extends _i1.SerializationManager {
     switch (data) {
       case _i2.AdminSigningKey():
         return 'AdminSigningKey';
-      case _i3.CloudLlmStructuredRequest():
+      case _i3.AnalyticsEvent():
+        return 'AnalyticsEvent';
+      case _i4.CloudLlmStructuredRequest():
         return 'CloudLlmStructuredRequest';
-      case _i4.ConsumptionScheduleData():
+      case _i5.ConsumptionScheduleData():
         return 'ConsumptionScheduleData';
-      case _i5.ErrorReport():
+      case _i6.ErrorReport():
         return 'ErrorReport';
-      case _i6.ErrorReportChallenge():
+      case _i7.ErrorReportChallenge():
         return 'ErrorReportChallenge';
-      case _i7.FeedbackReport():
+      case _i8.FeedbackReport():
         return 'FeedbackReport';
-      case _i8.Notification():
+      case _i9.Notification():
         return 'Notification';
-      case _i9.NotificationReceipt():
+      case _i10.NotificationReceipt():
         return 'NotificationReceipt';
-      case _i10.RateLimitCounter():
+      case _i11.RateLimitCounter():
         return 'RateLimitCounter';
-    }
-    className = _i12.Protocol().getClassNameForObject(data);
-    if (className != null) {
-      return 'serverpod_auth_idp.$className';
     }
     className = _i13.Protocol().getClassNameForObject(data);
     if (className != null) {
-      return 'serverpod_auth_core.$className';
+      return 'serverpod_auth_idp.$className';
     }
     className = _i14.Protocol().getClassNameForObject(data);
     if (className != null) {
-      return 'quanitya.$className';
+      return 'serverpod_auth_core.$className';
     }
     className = _i15.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return 'quanitya.$className';
+    }
+    className = _i16.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'anonaccred.$className';
     }
@@ -270,45 +281,48 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'AdminSigningKey') {
       return deserialize<_i2.AdminSigningKey>(data['data']);
     }
+    if (dataClassName == 'AnalyticsEvent') {
+      return deserialize<_i3.AnalyticsEvent>(data['data']);
+    }
     if (dataClassName == 'CloudLlmStructuredRequest') {
-      return deserialize<_i3.CloudLlmStructuredRequest>(data['data']);
+      return deserialize<_i4.CloudLlmStructuredRequest>(data['data']);
     }
     if (dataClassName == 'ConsumptionScheduleData') {
-      return deserialize<_i4.ConsumptionScheduleData>(data['data']);
+      return deserialize<_i5.ConsumptionScheduleData>(data['data']);
     }
     if (dataClassName == 'ErrorReport') {
-      return deserialize<_i5.ErrorReport>(data['data']);
+      return deserialize<_i6.ErrorReport>(data['data']);
     }
     if (dataClassName == 'ErrorReportChallenge') {
-      return deserialize<_i6.ErrorReportChallenge>(data['data']);
+      return deserialize<_i7.ErrorReportChallenge>(data['data']);
     }
     if (dataClassName == 'FeedbackReport') {
-      return deserialize<_i7.FeedbackReport>(data['data']);
+      return deserialize<_i8.FeedbackReport>(data['data']);
     }
     if (dataClassName == 'Notification') {
-      return deserialize<_i8.Notification>(data['data']);
+      return deserialize<_i9.Notification>(data['data']);
     }
     if (dataClassName == 'NotificationReceipt') {
-      return deserialize<_i9.NotificationReceipt>(data['data']);
+      return deserialize<_i10.NotificationReceipt>(data['data']);
     }
     if (dataClassName == 'RateLimitCounter') {
-      return deserialize<_i10.RateLimitCounter>(data['data']);
+      return deserialize<_i11.RateLimitCounter>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i12.Protocol().deserializeByClassName(data);
+      return _i13.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i13.Protocol().deserializeByClassName(data);
+      return _i14.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('quanitya.')) {
       data['className'] = dataClassName.substring(9);
-      return _i14.Protocol().deserializeByClassName(data);
+      return _i15.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('anonaccred.')) {
       data['className'] = dataClassName.substring(11);
-      return _i15.Protocol().deserializeByClassName(data);
+      return _i16.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -323,9 +337,6 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i12.Protocol().mapRecordToJson(record);
-    } catch (_) {}
-    try {
       return _i13.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
@@ -333,6 +344,9 @@ class Protocol extends _i1.SerializationManager {
     } catch (_) {}
     try {
       return _i15.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _i16.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }
