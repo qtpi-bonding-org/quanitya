@@ -27,6 +27,9 @@ import 'features/onboarding/pages/about_page.dart';
 import 'features/onboarding/pages/recovery_key_backup_page.dart';
 import 'features/onboarding/pages/account_recovery_page.dart';
 import 'features/onboarding/cubits/onboarding_cubit.dart';
+import 'features/templates/pages/template_list_page.dart';
+import 'features/templates/pages/template_import_page.dart';
+import 'features/health/pages/health_sync_page.dart';
 import 'features/purchase/pages/purchase_page.dart';
 import 'features/visualization/pages/visualization_page.dart';
 import 'features/device_pairing/pages/show_pairing_qr_page.dart';
@@ -252,6 +255,21 @@ class AppRouter {
             builder: (context, state) => const PurchasePage(),
           ),
           GoRoute(
+            path: AppRoutes.templateList,
+            name: RouteNames.templateList,
+            builder: (context, state) => const TemplateListPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.templateImport,
+            name: RouteNames.templateImport,
+            builder: (context, state) => const TemplateImportPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.healthSync,
+            name: RouteNames.healthSync,
+            builder: (context, state) => const HealthSyncPage(),
+          ),
+          GoRoute(
             path: AppRoutes.entryDetail,
             name: RouteNames.entryDetail,
             builder: (context, state) {
@@ -328,6 +346,9 @@ class AppRoutes {
   static const String connectDevice = '/connect-device';
   static const String pipelineBuilder = '/pipeline-builder';
   static const String purchase = '/purchase';
+  static const String templateList = '/templates';
+  static const String templateImport = '/template-import';
+  static const String healthSync = '/health-sync';
 }
 
 class RouteNames {
@@ -355,6 +376,9 @@ class RouteNames {
   static const String connectDevice = 'connectDevice';
   static const String pipelineBuilder = 'pipelineBuilder';
   static const String purchase = 'purchase';
+  static const String templateList = 'templateList';
+  static const String templateImport = 'templateImport';
+  static const String healthSync = 'healthSync';
 }
 
 class AppNavigation {
@@ -455,6 +479,18 @@ class AppNavigation {
 
   static void toRecoveryKeyBackup(BuildContext context, OnboardingCubit cubit) {
     context.pushNamed(RouteNames.recoveryKeyBackup, extra: cubit);
+  }
+
+  static void toTemplateList(BuildContext context) {
+    context.pushNamed(RouteNames.templateList);
+  }
+
+  static void toTemplateImport(BuildContext context) {
+    context.pushNamed(RouteNames.templateImport);
+  }
+
+  static void toHealthSync(BuildContext context) {
+    context.pushNamed(RouteNames.healthSync);
   }
 
   static void toAnalysisBuilder(BuildContext context, {String? fieldId, String? templateId}) {

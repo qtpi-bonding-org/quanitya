@@ -12,6 +12,7 @@ import '../repositories/app_operating_repository.dart';
 import '../../../data/db/app_database.dart'; // For AppOperatingSetting
 import '../exceptions/app_operating_exceptions.dart';
 import '../../../data/sync/powersync_service.dart';
+import '../../../infrastructure/purchase/i_entitlement_service.dart';
 import 'app_operating_state.dart';
 
 @injectable
@@ -232,9 +233,17 @@ class AppOperatingCubit extends QuanityaCubit<AppOperatingState> {
     emit(state.copyWith(status: UiFlowStatus.loading));
     _isUpdatingFromSelf = true;
     try {
-      // TODO: Add payment verification here
-      // For now, just test connection
-      
+      // Verify entitlement (sync days) before allowing cloud mode
+      if (GetIt.instance.isRegistered<IEntitlementService>()) {
+        final hasSyncAccess =
+            await GetIt.instance<IEntitlementService>().hasSyncAccess();
+        if (!hasSyncAccess) {
+          throw const AppOperatingException(
+            'Cloud access requires sync days. Purchase sync time to continue.',
+          );
+        }
+      }
+
       final isReachable = await _networkService.testConnection(state.baseUrl);
       await _repository.updateMode(AppOperatingMode.cloud);
       

@@ -1,0 +1,26 @@
+import 'i_purchase_provider.dart';
+import 'purchase_models.dart';
+
+/// Orchestrator interface for the purchase system.
+///
+/// Coordinates between providers, handles validation, and refreshes entitlements.
+/// Future providers (Monero, X402) register here without changing existing code.
+abstract class IPurchaseService {
+  /// Register a purchase provider for its rail type.
+  void registerProvider(IPurchaseProvider provider);
+
+  /// Get available products, optionally filtered by rail.
+  Future<List<PurchaseProduct>> getProducts({PurchaseRail? rail});
+
+  /// Get the default provider for the current platform.
+  Future<IPurchaseProvider?> getDefaultProvider();
+
+  /// Execute a full purchase flow: initiate → validate → fulfill.
+  Future<PurchaseValidationResult> purchase(PurchaseRequest request);
+
+  /// Recover and validate any pending purchases across all providers.
+  Future<void> recoverPendingPurchases();
+
+  /// Clean up all providers.
+  Future<void> dispose();
+}

@@ -1,0 +1,191 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+import 'package:quanitya_flutter/infrastructure/purchase/i_entitlement_service.dart';
+import 'package:quanitya_flutter/infrastructure/purchase/i_purchase_provider.dart';
+import 'package:quanitya_flutter/infrastructure/purchase/purchase_exception.dart';
+import 'package:quanitya_flutter/infrastructure/purchase/purchase_models.dart';
+import 'package:quanitya_flutter/infrastructure/purchase/purchase_service.dart';
+import 'package:anonaccred_client/anonaccred_client.dart'
+    show AccountEntitlement;
+
+class MockEntitlementService extends Mock implements IEntitlementService {}
+
+class MockPurchaseProvider extends Mock implements IPurchaseProvider {}
+
+class FakeAccountEntitlement extends Fake implements AccountEntitlement {}
+
+void main() {
+  late PurchaseService purchaseService;
+  late MockEntitlementService mockEntitlementService;
+  late MockPurchaseProvider mockProvider;
+
+  setUpAll(() {
+    registerFallbackValue(
+      const PurchaseRequest(
+        productId: '',
+        rail: PurchaseRail.appleIap,
+        accountId: 0,
+      ),
+    );
+    registerFallbackValue(
+      const PurchaseResult(
+        status: PurchaseStatus.success,
+        rail: PurchaseRail.appleIap,
+        productId: '',
+      ),
+    );
+  });
+
+  setUp(() {
+    mockEntitlementService = MockEntitlementService();
+    mockProvider = MockPurchaseProvider();
+    purchaseService = PurchaseService(mockEntitlementService);
+  });
+
+  group('PurchaseService', () {
+    test('registerProvider adds provider and getProducts returns its products',
+        () async {
+      when(() => mockProvider.rail).thenReturn(PurchaseRail.appleIap);
+      when(() => mockProvider.getAvailableProducts()).thenAnswer(
+        (_) async => [
+          const PurchaseProduct(
+            productId: 'sync_days_30',
+            title: '30 Sync Days',
+            description: '30 days of cloud sync',
+            priceUsd: 2.99,
+            rail: PurchaseRail.appleIap,
+          ),
+        ],
+      );
+
+      purchaseService.registerProvider(mockProvider);
+      final products = await purchaseService.getProducts();
+
+      expect(products, hasLength(1));
+      expect(products.first.productId, 'sync_days_30');
+      expect(products.first.priceUsd, 2.99);
+    });
+
+    test('getProducts with rail filter returns only matching products',
+        () async {
+      when(() => mockProvider.rail).thenReturn(PurchaseRail.appleIap);
+      when(() => mockProvider.getAvailableProducts()).thenAnswer(
+        (_) async => [
+          const PurchaseProduct(
+            productId: 'sync_days_30',
+            title: '30 Sync Days',
+            description: '30 days',
+            priceUsd: 2.99,
+            rail: PurchaseRail.appleIap,
+          ),
+        ],
+      );
+
+      purchaseService.registerProvider(mockProvider);
+
+      // Matching rail returns products
+      final apple = await purchaseService.getProducts(rail: PurchaseRail.appleIap);
+      expect(apple, hasLength(1));
+
+      // Non-matching rail returns empty
+      final google =
+          await purchaseService.getProducts(rail: PurchaseRail.googleIap);
+      expect(google, isEmpty);
+    });
+
+    test('purchase happy path: initiate → validate → refresh entitlements',
+        () async {
+      when(() => mockProvider.rail).thenReturn(PurchaseRail.appleIap);
+      when(() => mockProvider.initiatePurchase(any())).thenAnswer(
+        (_) async => const PurchaseResult(
+          status: PurchaseStatus.success,
+          rail: PurchaseRail.appleIap,
+          productId: 'sync_days_30',
+          transactionId: 'txn_123',
+        ),
+      );
+      when(() => mockProvider.validateWithServer(any())).thenAnswer(
+        (_) async => const PurchaseValidationResult(
+          success: true,
+          tag: 'sync_days',
+          amount: 30,
+        ),
+      );
+      when(() => mockEntitlementService.getEntitlements())
+          .thenAnswer((_) async => <AccountEntitlement>[]);
+
+      purchaseService.registerProvider(mockProvider);
+
+      final result = await purchaseService.purchase(
+        const PurchaseRequest(
+          productId: 'sync_days_30',
+          rail: PurchaseRail.appleIap,
+          accountId: 1,
+        ),
+      );
+
+      expect(result.success, isTrue);
+      expect(result.tag, 'sync_days');
+      expect(result.amount, 30);
+
+      // Verify entitlements were refreshed
+      verify(() => mockEntitlementService.getEntitlements()).called(1);
+    });
+
+    test('purchase returns failure when store purchase is cancelled', () async {
+      when(() => mockProvider.rail).thenReturn(PurchaseRail.appleIap);
+      when(() => mockProvider.initiatePurchase(any())).thenAnswer(
+        (_) async => const PurchaseResult(
+          status: PurchaseStatus.cancelled,
+          rail: PurchaseRail.appleIap,
+          productId: 'sync_days_30',
+        ),
+      );
+
+      purchaseService.registerProvider(mockProvider);
+
+      final result = await purchaseService.purchase(
+        const PurchaseRequest(
+          productId: 'sync_days_30',
+          rail: PurchaseRail.appleIap,
+          accountId: 1,
+        ),
+      );
+
+      expect(result.success, isFalse);
+      // Should not call validateWithServer when purchase was cancelled
+      verifyNever(() => mockProvider.validateWithServer(any()));
+    });
+
+    test('purchase throws PurchaseException for unregistered rail', () async {
+      expect(
+        () => purchaseService.purchase(
+          const PurchaseRequest(
+            productId: 'sync_days_30',
+            rail: PurchaseRail.monero,
+            accountId: 1,
+          ),
+        ),
+        throwsA(isA<PurchaseException>()),
+      );
+    });
+
+    test('getDefaultProvider returns first available provider', () async {
+      when(() => mockProvider.rail).thenReturn(PurchaseRail.appleIap);
+      when(() => mockProvider.isAvailable()).thenAnswer((_) async => true);
+
+      purchaseService.registerProvider(mockProvider);
+      final provider = await purchaseService.getDefaultProvider();
+
+      expect(provider, isNotNull);
+      expect(provider!.rail, PurchaseRail.appleIap);
+    });
+
+    test('getDefaultProvider returns null when no providers available',
+        () async {
+      final provider = await purchaseService.getDefaultProvider();
+      expect(provider, isNull);
+    });
+  });
+}

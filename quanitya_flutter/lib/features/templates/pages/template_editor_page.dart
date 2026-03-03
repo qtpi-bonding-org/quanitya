@@ -8,6 +8,9 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
 import '../cubits/detail/template_detail_cubit.dart';
 import '../cubits/detail/template_detail_state.dart';
+import '../cubits/sharing/template_sharing_export_cubit.dart';
+import '../../../../logic/templates/models/shared/shareable_template.dart';
+import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../widgets/detail/recent_entries_section.dart';
 import '../widgets/detail/schedule_status_section.dart';
 import '../widgets/detail/template_info_section.dart';
@@ -52,9 +55,18 @@ class TemplateDetailView extends StatelessWidget {
             BlocBuilder<TemplateDetailCubit, TemplateDetailState>(
               builder: (context, state) {
                 if (state.template == null) return const SizedBox.shrink();
-                return QuanityaIconButton(
-                  icon: Icons.edit,
-                  onPressed: () => AppNavigation.toTemplateGenerator(context, state.template),
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    QuanityaIconButton(
+                      icon: Icons.share,
+                      onPressed: () => _shareTemplate(context, state.template!),
+                    ),
+                    QuanityaIconButton(
+                      icon: Icons.edit,
+                      onPressed: () => AppNavigation.toTemplateGenerator(context, state.template),
+                    ),
+                  ],
                 );
               },
             ),
@@ -136,6 +148,14 @@ class TemplateDetailView extends StatelessWidget {
             },
         ),
       ),
+    );
+  }
+
+  void _shareTemplate(BuildContext context, TemplateWithAesthetics template) {
+    final exportCubit = GetIt.instance<TemplateSharingExportCubit>();
+    exportCubit.exportTemplate(
+      templateWithAesthetics: template,
+      author: AuthorCredit.create(name: 'Quanitya User'),
     );
   }
 }
