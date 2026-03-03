@@ -51,5 +51,9 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSHealthShareUsageDescription</key>
+		<string>Quanitya reads health data to auto-log your trackers.</string>
+		<key>NSHealthUpdateUsageDescription</key>
+		<string>Quanitya can write health data from your trackers.</string>
 	</dict>
 </plist>

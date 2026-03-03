@@ -12,6 +12,8 @@ import '../data/repositories/e2ee_puller.dart';
 import '../data/sync/powersync_service.dart';
 import '../infrastructure/auth/auth_service.dart';
 import '../infrastructure/config/dev_config.dart';
+import '../infrastructure/purchase/i_purchase_provider.dart';
+import '../infrastructure/purchase/i_purchase_service.dart';
 import '../infrastructure/error_reporting/error_reporter_service.dart';
 import '../infrastructure/error_reporting/quanitya_error_toast_builder.dart';
 import '../infrastructure/error_reporting/quanitya_error_box_page_builder.dart';
@@ -94,6 +96,22 @@ Future<void> bootstrap() async {
       final authService = getIt<AuthService>();
       await authService.initialize();
       debugPrint('Bootstrap: AuthService initialized');
+    }
+
+    // 5.5. Initialize PurchaseService and recover pending purchases
+    if (getIt.isRegistered<IPurchaseService>() &&
+        getIt.isRegistered<IPurchaseProvider>()) {
+      debugPrint('Bootstrap: Initializing PurchaseService...');
+      final purchaseService = getIt<IPurchaseService>();
+      final provider = getIt<IPurchaseProvider>();
+      if (await provider.isAvailable()) {
+        await provider.initialize();
+        purchaseService.registerProvider(provider);
+        await purchaseService.recoverPendingPurchases();
+        debugPrint('Bootstrap: PurchaseService initialized');
+      } else {
+        debugPrint('Bootstrap: IAP provider not available on this platform');
+      }
     }
 
     // 6. Connect PowerSync for cloud sync (only if not in local mode AND user is authenticated)
