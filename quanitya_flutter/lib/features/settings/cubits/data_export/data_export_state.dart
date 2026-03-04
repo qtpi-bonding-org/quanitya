@@ -3,9 +3,10 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 part 'data_export_state.freezed.dart';
 
-/// Operations for data export
+/// Operations for data export/import
 enum DataExportOperation {
   export,
+  importData,
 }
 
 @freezed

@@ -37,6 +37,7 @@ class AnalyticsService {
 
   // ── Data ──
   void trackDataExported() => _track('data_exported');
+  void trackDataImported() => _track('data_imported');
 
   // ── App lifecycle ──
   void trackAppOpened() => _track('app_opened');

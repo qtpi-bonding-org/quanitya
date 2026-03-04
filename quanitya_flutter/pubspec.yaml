@@ -89,6 +89,7 @@ dependencies:
   
   # Sharing & Export
   share_plus: ^10.1.4
+  file_picker: ^8.1.7
   
   # Navigation
   go_router: ^17.0.1

@@ -30,6 +30,7 @@ import '../widgets/import_recovery_key_dialog.dart';
 import '../widgets/device_list_section.dart';
 import '../widgets/webhook_dialog.dart';
 import '../widgets/api_key_dialog.dart';
+import '../widgets/table_selection_dialog.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -98,7 +99,13 @@ class _SettingsContent extends StatelessWidget {
 
         QuanityaTextButton(
           text: context.l10n.exportData,
-          onPressed: () => context.read<DataExportCubit>().exportData(),
+          onPressed: () => _startExport(context),
+        ),
+        VSpace.x3,
+
+        QuanityaTextButton(
+          text: context.l10n.importData,
+          onPressed: () => _startImport(context),
         ),
         VSpace.x3,
 
@@ -133,6 +140,68 @@ class _SettingsContent extends StatelessWidget {
         VSpace.x2,
       ],
     );
+  }
+
+  Future<void> _startExport(BuildContext context) async {
+    final cubit = context.read<DataExportCubit>();
+    final tableNames = cubit.getExportableTableNames();
+
+    final selected = await TableSelectionDialog.show(
+      context,
+      tableNames: tableNames,
+      title: context.l10n.selectTablesTitle,
+      confirmButtonText: context.l10n.selectTablesExportButton,
+    );
+
+    if (selected == null || !context.mounted) return;
+    cubit.exportData(selected);
+  }
+
+  Future<void> _startImport(BuildContext context) async {
+    final cubit = context.read<DataExportCubit>();
+
+    // 1. Pick file and get available table names.
+    final availableTables = await cubit.pickImportFile();
+    if (availableTables == null || !context.mounted) return;
+
+    // 2. Let user select which tables to import.
+    final selected = await TableSelectionDialog.show(
+      context,
+      tableNames: availableTables,
+      title: context.l10n.selectTablesTitle,
+      confirmButtonText: context.l10n.selectTablesImportButton,
+    );
+    if (selected == null || !context.mounted) return;
+
+    // 3. Confirm destructive operation.
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(
+          context.l10n.importDataConfirmTitle,
+          style: context.text.titleLarge,
+        ),
+        content: Text(
+          context.l10n.importDataConfirmMessage,
+          style: context.text.bodyMedium,
+        ),
+        actions: [
+          QuanityaTextButton(
+            text: context.l10n.cancel,
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          QuanityaTextButton(
+            text: context.l10n.importDataConfirmButton,
+            isDestructive: true,
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    // 4. Execute import.
+    cubit.importData(selected);
   }
 
   void _showImportRecoveryKeyDialog(BuildContext context) {
