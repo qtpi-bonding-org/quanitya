@@ -3,6 +3,7 @@ import '../../features/app_operating_mode/models/app_operating_mode.dart';
 import '../../logic/analytics/enums/analysis_output_mode.dart';
 import '../../logic/analytics/models/analysis_enums.dart';
 
+export 'analytics_inbox_entries.dart';
 export 'error_box_entries.dart';
 export 'notifications.dart';
 
@@ -339,6 +340,10 @@ class AppOperatingSettings extends Table {
   /// Last time connection was tested (null if never tested)
   DateTimeColumn get lastConnectionTest =>
       dateTime().named('last_connection_test').nullable()();
+
+  /// Whether analytics events are auto-sent on app startup (default: off)
+  BoolColumn get analyticsAutoSend =>
+      boolean().named('analytics_auto_send').withDefault(const Constant(false))();
 
   /// Timestamp of record creation
   DateTimeColumn get createdAt =>

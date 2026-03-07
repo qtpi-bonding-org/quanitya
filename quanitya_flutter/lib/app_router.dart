@@ -10,6 +10,7 @@ import 'features/templates/pages/template_preview_page.dart';
 import 'features/analytics/pages/analysis_builder_page.dart';
 import 'features/settings/pages/settings_page.dart';
 import 'features/settings/pages/app_info_page.dart';
+import 'features/analytics_inbox/pages/analytics_inbox_page.dart';
 import 'features/error_reporting/pages/error_box_page.dart';
 import 'features/user_feedback/pages/feedback_page.dart';
 import 'features/notifications/pages/notification_inbox_page.dart';
@@ -240,6 +241,11 @@ class AppRouter {
             builder: (context, state) => const ErrorBoxPage(),
           ),
           GoRoute(
+            path: AppRoutes.analyticsInbox,
+            name: RouteNames.analyticsInbox,
+            builder: (context, state) => const AnalyticsInboxPage(),
+          ),
+          GoRoute(
             path: AppRoutes.feedback,
             name: RouteNames.feedback,
             builder: (context, state) => const FeedbackPage(),
@@ -341,6 +347,7 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String appInfo = '/app-info';
   static const String errorBox = '/error-box';
+  static const String analyticsInbox = '/analytics-inbox';
   static const String feedback = '/feedback';
   static const String notificationInbox = '/notification-inbox';
   static const String connectDevice = '/connect-device';
@@ -371,6 +378,7 @@ class RouteNames {
   static const String settings = 'settings';
   static const String appInfo = 'appInfo';
   static const String errorBox = 'errorBox';
+  static const String analyticsInbox = 'analyticsInbox';
   static const String feedback = 'feedback';
   static const String notificationInbox = 'notificationInbox';
   static const String connectDevice = 'connectDevice';
@@ -423,6 +431,10 @@ class AppNavigation {
 
   static void toErrorBox(BuildContext context) {
     context.pushNamed(RouteNames.errorBox);
+  }
+
+  static void toAnalyticsInbox(BuildContext context) {
+    context.pushNamed(RouteNames.analyticsInbox);
   }
 
   static void toNotificationInbox(BuildContext context) {

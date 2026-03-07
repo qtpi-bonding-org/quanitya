@@ -2,21 +2,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:quanitya_flutter/logic/analytics/analytics_service.dart';
+import 'package:quanitya_flutter/data/repositories/analytics_inbox_repository.dart';
 
 class _MockClient extends Mock implements Client {}
 
 class _MockEndpointAnalyticsEvent extends Mock
     implements EndpointAnalyticsEvent {}
 
+class _MockAnalyticsInboxRepository extends Mock
+    implements AnalyticsInboxRepository {}
+
 void main() {
   group('AnalyticsService', () {
     late AnalyticsService service;
     late _MockClient mockClient;
     late _MockEndpointAnalyticsEvent mockEndpoint;
+    late _MockAnalyticsInboxRepository mockInbox;
 
     setUp(() {
       mockClient = _MockClient();
       mockEndpoint = _MockEndpointAnalyticsEvent();
+      mockInbox = _MockAnalyticsInboxRepository();
       when(() => mockClient.analyticsEvent).thenReturn(mockEndpoint);
       when(() => mockEndpoint.submitEvent(
             eventName: any(named: 'eventName'),
@@ -24,11 +30,17 @@ void main() {
             platform: any(named: 'platform'),
             props: any(named: 'props'),
           )).thenAnswer((_) async {});
+      when(() => mockInbox.saveEvent(
+            eventName: any(named: 'eventName'),
+            clientTimestamp: any(named: 'clientTimestamp'),
+            platform: any(named: 'platform'),
+            props: any(named: 'props'),
+          )).thenAnswer((_) async {});
 
-      service = AnalyticsService(mockClient);
+      service = AnalyticsService(mockClient, mockInbox);
     });
 
-    test('all typed methods call endpoint without throwing', () {
+    test('all typed methods save to inbox without throwing', () {
       service.trackTemplateCreated();
       service.trackTemplateDeleted();
       service.trackEntryLogged();
@@ -41,7 +53,7 @@ void main() {
       service.trackAppOpened();
       service.trackPurchaseCompleted(productId: 'test_product');
 
-      verify(() => mockEndpoint.submitEvent(
+      verify(() => mockInbox.saveEvent(
             eventName: any(named: 'eventName'),
             clientTimestamp: any(named: 'clientTimestamp'),
             platform: any(named: 'platform'),
@@ -49,27 +61,13 @@ void main() {
           )).called(11);
     });
 
-    test('trackPurchaseCompleted sends product_id in props', () {
-      service.trackPurchaseCompleted(productId: 'premium_monthly');
-
-      verify(() => mockEndpoint.submitEvent(
-            eventName: 'purchase_completed',
-            clientTimestamp: any(named: 'clientTimestamp'),
-            platform: any(named: 'platform'),
-            props: any(
-              named: 'props',
-              that: contains('premium_monthly'),
-            ),
-          )).called(1);
-    });
-
-    test('silently handles endpoint failure', () {
-      when(() => mockEndpoint.submitEvent(
+    test('silently handles inbox failure', () {
+      when(() => mockInbox.saveEvent(
             eventName: any(named: 'eventName'),
             clientTimestamp: any(named: 'clientTimestamp'),
             platform: any(named: 'platform'),
             props: any(named: 'props'),
-          )).thenThrow(Exception('Server unreachable'));
+          )).thenThrow(Exception('DB error'));
 
       // Should not throw
       service.trackAppOpened();

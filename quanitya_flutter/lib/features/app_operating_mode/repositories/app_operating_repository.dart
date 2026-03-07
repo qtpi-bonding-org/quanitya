@@ -83,6 +83,31 @@ class AppOperatingRepository {
     }, AppOperatingException.new, 'updateConnectionStatus');
   }
   
+  /// Get whether analytics auto-send is enabled
+  Future<bool> getAnalyticsAutoSend() {
+    return tryMethod(() async {
+      await _ensureInitialized();
+      final settings = await _db.select(_db.appOperatingSettings).getSingle();
+      return settings.analyticsAutoSend;
+    }, AppOperatingException.new, 'getAnalyticsAutoSend');
+  }
+
+  /// Update analytics auto-send preference
+  Future<void> updateAnalyticsAutoSend(bool enabled) {
+    return tryMethod(() async {
+      final updated = await _db.update(_db.appOperatingSettings).write(
+        AppOperatingSettingsCompanion(
+          analyticsAutoSend: Value(enabled),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+
+      if (updated == 0) {
+        throw const AppOperatingException('Failed to update analytics auto-send');
+      }
+    }, AppOperatingException.new, 'updateAnalyticsAutoSend');
+  }
+
   /// Ensure database has initial settings (local mode)
   /// Called on every app startup - idempotent
   Future<void> _ensureInitialized() async {

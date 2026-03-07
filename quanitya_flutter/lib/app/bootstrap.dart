@@ -9,6 +9,7 @@ import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import '../app_router.dart';
 import '../logic/analytics/analytics_service.dart';
 import '../data/repositories/error_box_repository.dart';
+import '../features/app_operating_mode/repositories/app_operating_repository.dart';
 import '../data/repositories/e2ee_puller.dart';
 import '../data/sync/powersync_service.dart';
 import '../infrastructure/auth/auth_service.dart';
@@ -186,6 +187,12 @@ Future<void> bootstrap() async {
       getIt<AnalyticsService>().trackAppOpened();
     }
 
+    // 12. Auto-send analytics if enabled (non-blocking)
+    if (getIt.isRegistered<AnalyticsService>() &&
+        getIt.isRegistered<AppOperatingRepository>()) {
+      _autoSendAnalytics();
+    }
+
     debugPrint('Bootstrap: Complete');
   } catch (e, stack) {
     debugPrint('Bootstrap: FAILED - $e');
@@ -221,6 +228,25 @@ Future<void> _initializeAppOperatingMode() async {
       'Bootstrap: App Operating Mode loaded - current mode: ${appOperatingCubit.state.mode.name}',
     );
   }
+}
+
+/// Auto-send analytics events if the user has opted in.
+/// Runs in the background — never blocks startup.
+void _autoSendAnalytics() {
+  Future(() async {
+    try {
+      final settingsRepo = getIt<AppOperatingRepository>();
+      final autoSend = await settingsRepo.getAnalyticsAutoSend();
+      if (!autoSend) return;
+
+      debugPrint('Bootstrap: Auto-sending analytics events...');
+      final analyticsService = getIt<AnalyticsService>();
+      final sent = await analyticsService.sendAllUnsent();
+      debugPrint('Bootstrap: Auto-sent $sent analytics events');
+    } catch (e) {
+      debugPrint('Bootstrap: Analytics auto-send failed (non-critical): $e');
+    }
+  });
 }
 
 /// Configure ErrorPrivserver for privacy-preserving error reporting.

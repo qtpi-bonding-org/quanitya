@@ -32,6 +32,7 @@ part 'app_database.g.dart';
     AppOperatingSettings,
     ErrorBoxEntries,
     Notifications,
+    AnalyticsInboxEntries,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -43,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -59,6 +60,12 @@ class AppDatabase extends _$AppDatabase {
         if (from < 3) {
           // Add notifications table for server-to-client notifications
           await m.createTable(notifications);
+        }
+        if (from < 4) {
+          // Add analytics inbox table for local-first analytics
+          await m.createTable(analyticsInboxEntries);
+          // Add analytics_auto_send column to app_operating_settings
+          await m.addColumn(appOperatingSettings, appOperatingSettings.analyticsAutoSend);
         }
       },
     );

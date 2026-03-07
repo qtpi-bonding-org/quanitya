@@ -128,6 +128,12 @@ class _SettingsContent extends StatelessWidget {
         VSpace.x3,
 
         QuanityaTextButton(
+          text: 'Analytics Inbox',
+          onPressed: () => AppNavigation.toAnalyticsInbox(context),
+        ),
+        VSpace.x3,
+
+        QuanityaTextButton(
           text: 'Send Feedback',
           onPressed: () => AppNavigation.toFeedback(context),
         ),
