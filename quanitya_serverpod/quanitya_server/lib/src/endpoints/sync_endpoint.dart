@@ -1,5 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
+import '../exceptions/storage_quota_exception.dart';
 import '../services/storage_quota_service.dart';
 
 /// Sync endpoint for PowerSync data operations
@@ -43,7 +44,7 @@ class SyncEndpoint extends Endpoint {
       if (!await StorageQuotaService.canWrite(
         session, accountId, encryptedData.length,
       )) {
-        throw Exception('Storage quota exceeded');
+        throw StorageQuotaExceededException(accountId: accountId);
       }
       final template = EncryptedTemplate(
         id: uuidId,
@@ -107,7 +108,7 @@ class SyncEndpoint extends Endpoint {
       if (!await StorageQuotaService.canWrite(
         session, accountId, encryptedData.length,
       )) {
-        throw Exception('Storage quota exceeded');
+        throw StorageQuotaExceededException(accountId: accountId);
       }
       final entry = EncryptedEntry(
         id: uuidId,
@@ -171,7 +172,7 @@ class SyncEndpoint extends Endpoint {
       if (!await StorageQuotaService.canWrite(
         session, accountId, encryptedData.length,
       )) {
-        throw Exception('Storage quota exceeded');
+        throw StorageQuotaExceededException(accountId: accountId);
       }
       final schedule = EncryptedSchedule(
         id: uuidId,
@@ -306,7 +307,7 @@ class SyncEndpoint extends Endpoint {
       if (!await StorageQuotaService.canWrite(
         session, accountId, encryptedData.length,
       )) {
-        throw Exception('Storage quota exceeded');
+        throw StorageQuotaExceededException(accountId: accountId);
       }
       final pipeline = EncryptedAnalysisPipeline(
         id: uuidId,
