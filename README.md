@@ -2,20 +2,75 @@
 
 [![License: BSL 1.1](https://img.shields.io/badge/License-BSL_1.1-blue.svg)](LICENSE)
 
-Privacy-first personal tracking app with end-to-end encryption, AI-generated templates, and offline-first sync.
+**Quanitya** is an End-to-End Encrypted (E2EE) *qua*ntitative and *qua*litative self-tracking app, built with Flutter, powered by Serverpod, and featuring offline-first synchronization via PowerSync.
 
-## What is Quanitya?
+The name is a portmanteau blending **Qua-** (Quantitative/Qualitative tracking) and **Anitya** (Sanskrit for Impermanence).
 
-Quanitya lets you track anything — habits, health metrics, moods, workouts, or custom data — using AI-generated form templates. All personal data is end-to-end encrypted on your device before syncing. The server never sees plaintext PII.
+## Pronunciation
 
-### Key Features
+> **"Kwah-NIT-yuh"** — IPA: /kwɑˈnɪtjə/
 
-- **E2EE by default** — All user data is encrypted on-device before sync. The server stores only ciphertext.
-- **AI template generation** — Describe what you want to track and an LLM generates a structured form template with themed styling.
-- **Offline-first** — Full functionality without internet. Sync happens in the background via PowerSync.
-- **Privacy-preserving analytics** — Usage events are stored locally in an inbox. Users control when (or if) they are sent.
-- **Cross-platform** — Flutter app for iOS, Android, and web.
-- **BYOK** — Bring your own API key for AI features (OpenRouter, Gemini).
+---
+
+## The Philosophy: Data as Analytical Mindfulness
+
+The application is founded on the idea that objective data and subjective insight are two sides of the same coin, providing an analytical path to mindfulness.
+
+**Data as an Analytical Path to Mindfulness** — For those struggling with low interoception — the ability to *feel* internal states — traditional mindfulness practices can be frustrating. Quanitya acts as an external mirror, providing a measurable anchor for internal observation. By tracking anything and everything — from emotion and thought to weight and sleep — you build a comprehensive, externalized map of your internal world. The app provides **neutral and useful insights**, not judgmental commands.
+
+**Observing Impermanence (Anitya)** — Every historical log, chart, and journal entry serves as a constant, gentle reminder that things are transient. Your happiness is transient, your sadness is transient, and every metric is temporary. By observing the constant flow of data, you are encouraged to stay present, be grateful for positive states while they last, and use historical data to cultivate insight.
+
+---
+
+## Features
+
+### Privacy & Security
+- **End-to-End Encryption** — AES-256-GCM for data, RSA-OAEP for keys, ECDSA P-256 for authentication
+- **Zero-Knowledge Architecture** — Server never sees plaintext data or private keys
+- **Anonymous Authentication** — ECDSA P-256 public key auth with challenge-response
+- **Device Management** — Register, list, and revoke devices with audit trail
+- **Account Recovery** — Ultimate key backup system for account restoration
+- **Biometric & PIN Protection** — Local authentication for app access
+
+### Data Tracking & Templates
+- **Custom Templates** — Create tracking templates with 7 field types:
+  - Integer, Float, Dimension (SI units), Boolean, Enumerated, Text, DateTime, Reference
+- **AI Template Generation** — Describe what you want to track and an LLM generates a structured form template with themed styling
+- **BYOK** — Bring your own API key for AI features (OpenRouter, Gemini)
+- **Instant Logging** — Quick entry from template cards
+- **Bulk Operations** — Hide, archive, and manage multiple templates
+
+### Visualization & Analytics
+- **5 Chart Types**: Time Series, Boolean Heatmap, Categorical Scatter, Multi-Series Overlay, Contribution Heatmap
+- **Statistical Analysis** — 40+ calculation operations (descriptive stats, frequency analysis, temporal analysis, categorical analysis)
+- **JavaScript Analysis Pipeline** — Custom analysis logic using JavaScript with WASM execution in a sandboxed runtime
+- **AI-Powered Suggestions** — Generate analysis scripts from natural language intent
+- **Pipeline Builder** — Visual interface for creating, testing, and saving analysis workflows
+
+### Sync & Offline Support
+- **Offline-first** — Full functionality without internet via local SQLite
+- **PowerSync Integration** — Background sync with PostgreSQL
+- **Cross-Device Sync** — Encrypted data synchronization across devices
+- **Privacy-Preserving Analytics** — Usage events are stored locally in an inbox. Users control when (or if) they are sent.
+
+### Scheduling & Automation
+- **RRULE Schedules** — Recurring reminders with RFC 5545 compliance
+- **Flexible Patterns** — Daily, weekly, monthly, custom intervals
+- **Local Notifications** — Reminder notifications for scheduled tracking
+
+### User Experience
+- **Dark/Light Themes** — Adaptive UI with system theme support
+- **Zen Design System** — Clean, minimalist interface
+- **Cross-Platform** — iOS, Android, and Web via Flutter
+- **Accessibility** — Screen reader support and keyboard navigation
+- **Localization** — Multi-language support
+
+### Data Management
+- **Import/Export** — Full JSON data export for backup and migration
+- **Data Validation** — Type-safe field validation with error handling
+- **Search & Filter** — Find templates and entries quickly
+
+---
 
 ## Project Structure
 
@@ -94,8 +149,6 @@ Quanitya uses a dual-table architecture for privacy:
 - **Encrypted shadow tables** store E2EE ciphertext that syncs to the server
 - Writes are transactional — both tables update atomically via Dual DAOs
 
-See [quanitya_flutter/doc/ARCHITECTURE.md](quanitya_flutter/doc/ARCHITECTURE.md) for detailed diagrams.
-
 ### Tech Stack
 
 | Layer | Technology |
@@ -105,7 +158,7 @@ See [quanitya_flutter/doc/ARCHITECTURE.md](quanitya_flutter/doc/ARCHITECTURE.md)
 | Local DB | Drift (SQLite) |
 | Sync | PowerSync |
 | Backend | Serverpod |
-| Server DB | PostgreSQL (pgvector) |
+| Server DB | PostgreSQL |
 | Cache | Redis |
 | AI | OpenRouter, Gemini (BYOK) |
 
@@ -140,3 +193,15 @@ See `quanitya_flutter/.kiro/steering/` for:
 - `cubit_ui_flow_pattern.md` — Automatic UI feedback system
 - `pii-less.md` — E2EE architecture details
 - `ui_design_guide.md` — Design system tokens and patterns
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code standards, and the PR process.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for our vulnerability reporting policy.
+
+## License
+
+This project is licensed under the [Business Source License 1.1](LICENSE) with a 5-year conversion to Apache 2.0. See the LICENSE file for details.
