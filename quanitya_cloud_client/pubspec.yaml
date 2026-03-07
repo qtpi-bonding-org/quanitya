@@ -1,5 +1,7 @@
 name: quanitya_cloud_client
-description: Generated client for Quanitya Cloud Server
+description: >-
+  Generated client for the Quanitya cloud server (analytics, error reporting,
+  feedback). Auto-generated — do not edit manually.
 version: 1.0.0
 publish_to: none
 

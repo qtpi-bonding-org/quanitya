@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: quanitya
-      POSTGRES_PASSWORD: "REDACTED_DEV_PASSWORD"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-changeme}"
     volumes:
       - quanitya_data:/var/lib/postgresql/data
     networks:
@@ -25,11 +25,11 @@ services:
     container_name: quanitya_redis_dev
     ports:
       - "8091:6379"
-    command: redis-server --requirepass "REDACTED_REDIS_PASSWORD"
+    command: redis-server --requirepass "${REDIS_PASSWORD:-changeme}"
     networks:
       - quanitya_network
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "REDACTED_REDIS_PASSWORD", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -46,11 +46,11 @@ services:
       - ./powersync.yaml:/config/config.yaml
     environment:
       POWERSYNC_CONFIG_PATH: /config/config.yaml
-      PS_SOURCE_URI: "postgresql://powersync_role:REDACTED_DEV_PASSWORD@postgres:5432/quanitya"
-      PS_STORAGE_URI: "postgresql://powersync_role:REDACTED_DEV_PASSWORD@postgres:5432/quanitya"
-      PS_JWK_N: "placeholder_modulus_value_for_development"
-      PS_JWK_E: "AQAB"
-      PS_JWK_KID: "dev-key-1"
+      PS_SOURCE_URI: "postgresql://powersync_role:${POSTGRES_PASSWORD:-changeme}@postgres:5432/quanitya"
+      PS_STORAGE_URI: "postgresql://powersync_role:${POSTGRES_PASSWORD:-changeme}@postgres:5432/quanitya"
+      PS_JWK_N: "${PS_JWK_N:-placeholder_modulus_value_for_development}"
+      PS_JWK_E: "${PS_JWK_E:-AQAB}"
+      PS_JWK_KID: "${PS_JWK_KID:-dev-key-1}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,7 +67,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: quanitya_test
-      POSTGRES_PASSWORD: "REDACTED_TEST_PASSWORD"
+      POSTGRES_PASSWORD: "${POSTGRES_TEST_PASSWORD:-changeme}"
     volumes:
       - quanitya_test_data:/var/lib/postgresql/data
     networks:
@@ -83,11 +83,11 @@ services:
     container_name: quanitya_redis_test
     ports:
       - "9091:6379"
-    command: redis-server --requirepass "REDACTED_REDIS_TEST_PASSWORD"
+    command: redis-server --requirepass "${REDIS_TEST_PASSWORD:-changeme}"
     networks:
       - quanitya_network
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "REDACTED_REDIS_TEST_PASSWORD", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_TEST_PASSWORD:-changeme}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5

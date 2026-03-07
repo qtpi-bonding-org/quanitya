@@ -1,5 +1,7 @@
 name: quanitya_client
-description: Starting point for a Serverpod client.
+description: >-
+  Generated Serverpod client for the Quanitya community server.
+  Auto-generated — do not edit manually.
 
 environment:
   sdk: '^3.10.0'

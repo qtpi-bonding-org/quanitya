@@ -70,7 +70,10 @@ build.yaml
 
 *.env
 *.env*
+!.env.example
 independent_repos/*
 updated-md/*
 md/*
 *.txt
+*.tmp
+venv/

@@ -1,7 +1,9 @@
 name: quanitya_server
-description: Starting point for a Serverpod server.
-# version: 1.0.0
-# homepage: https://www.example.com
+description: >-
+  Quanitya community Serverpod backend — handles sync, storage quotas,
+  E2EE data, and PowerSync integration.
+version: 1.0.0
+homepage: https://github.com/qtpi-bonding-org/quanitya
 
 environment:
   sdk: '^3.10.0'

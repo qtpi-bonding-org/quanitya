@@ -10,7 +10,7 @@ CREATE ROLE powersync_role WITH
   REPLICATION 
   BYPASSRLS 
   LOGIN 
-  PASSWORD 'REDACTED_DEV_PASSWORD';
+  PASSWORD :'powersync_password';  -- Pass via: psql -v powersync_password='your_password'
 
 --
 -- PowerSync Setup: Grant SELECT permissions
