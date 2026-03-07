@@ -620,6 +620,60 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['id'],
                   ),
         ),
+        'upsertEncryptedAnalysisPipeline': _i1.MethodConnector(
+          name: 'upsertEncryptedAnalysisPipeline',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'encryptedData': _i1.ParameterDescription(
+              name: 'encryptedData',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['sync'] as _i6.SyncEndpoint)
+                  .upsertEncryptedAnalysisPipeline(
+                    session,
+                    params['id'],
+                    params['encryptedData'],
+                  ),
+        ),
+        'deleteEncryptedAnalysisPipeline': _i1.MethodConnector(
+          name: 'deleteEncryptedAnalysisPipeline',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['sync'] as _i6.SyncEndpoint)
+                  .deleteEncryptedAnalysisPipeline(
+                    session,
+                    params['id'],
+                  ),
+        ),
+        'getStorageUsage': _i1.MethodConnector(
+          name: 'getStorageUsage',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['sync'] as _i6.SyncEndpoint)
+                  .getStorageUsage(session),
+        ),
       },
     );
     connectors['greeting'] = _i1.EndpointConnector(

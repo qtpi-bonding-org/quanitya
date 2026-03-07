@@ -26,5 +26,8 @@ sync:
   - deleteEncryptedSchedule:
   - upsertTemplateAesthetics:
   - deleteTemplateAesthetics:
+  - upsertEncryptedAnalysisPipeline:
+  - deleteEncryptedAnalysisPipeline:
+  - getStorageUsage:
 greeting:
   - hello:
