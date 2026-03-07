@@ -3,6 +3,10 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart' as iap;
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
@@ -133,6 +137,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
             description: detail.description,
             priceUsd: detail.rawPrice,
             rail: rail,
+            productType: _detectProductType(detail),
             localizedPrice: detail.price,
             currencyCode: detail.currencyCode,
           );
@@ -161,9 +166,19 @@ class InAppPurchaseProvider implements IPurchaseProvider {
           productDetails: productDetails,
         );
 
-        final started = await _iapInstance.buyConsumable(
-          purchaseParam: purchaseParam,
-        );
+        final isSubscription =
+            _detectProductType(productDetails) == StoreProductType.subscription;
+
+        final bool started;
+        if (isSubscription) {
+          started = await _iapInstance.buyNonConsumable(
+            purchaseParam: purchaseParam,
+          );
+        } else {
+          started = await _iapInstance.buyConsumable(
+            purchaseParam: purchaseParam,
+          );
+        }
 
         if (!started) {
           _pendingCompleters.remove(request.productId);
@@ -271,6 +286,41 @@ class InAppPurchaseProvider implements IPurchaseProvider {
     _pendingCompleters.clear();
     _rawPurchaseDetails.clear();
     _cachedProductIds = null;
+  }
+
+  /// Detect product type from platform-specific store metadata.
+  ///
+  /// Cross-platform `ProductDetails` does not expose product type,
+  /// so we cast to iOS/Android subclasses.
+  /// iOS has two subclasses: `AppStoreProduct2Details` (StoreKit 2, has type)
+  /// and `AppStoreProductDetails` (StoreKit 1, no type field).
+  StoreProductType _detectProductType(iap.ProductDetails detail) {
+    try {
+      if (Platform.isIOS || Platform.isMacOS) {
+        if (detail is AppStoreProduct2Details) {
+          return switch (detail.sk2Product.type) {
+            SK2ProductType.autoRenewable ||
+            SK2ProductType.nonRenewable =>
+              StoreProductType.subscription,
+            SK2ProductType.consumable ||
+            SK2ProductType.nonConsumable =>
+              StoreProductType.consumable,
+          };
+        }
+        // SK1 (AppStoreProductDetails) doesn't expose product type
+        return StoreProductType.unknown;
+      } else if (Platform.isAndroid) {
+        if (detail is GooglePlayProductDetails) {
+          return switch (detail.productDetails.productType) {
+            ProductType.subs => StoreProductType.subscription,
+            ProductType.inapp => StoreProductType.consumable,
+          };
+        }
+      }
+    } catch (e) {
+      debugPrint('InAppPurchaseProvider: Failed to detect product type: $e');
+    }
+    return StoreProductType.unknown;
   }
 
   void _handlePurchaseUpdates(List<iap.PurchaseDetails> purchaseDetailsList) {

@@ -12,6 +12,9 @@ enum PurchaseUiMode { storeManaged, appManaged }
 /// Status of a purchase attempt.
 enum PurchaseStatus { success, pending, cancelled, failed, alreadyOwned }
 
+/// Product type as reported by the store.
+enum StoreProductType { consumable, subscription, unknown }
+
 /// A product available for purchase.
 @freezed
 class PurchaseProduct with _$PurchaseProduct {
@@ -21,6 +24,7 @@ class PurchaseProduct with _$PurchaseProduct {
     required String description,
     required double priceUsd,
     required PurchaseRail rail,
+    @Default(StoreProductType.unknown) StoreProductType productType,
     String? localizedPrice,
     String? currencyCode,
   }) = _PurchaseProduct;

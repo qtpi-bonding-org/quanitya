@@ -15,6 +15,9 @@ class ProductCard extends StatelessWidget {
   final VoidCallback onBuy;
   final bool isLoading;
 
+  bool get _isSubscription =>
+      product.productType == StoreProductType.subscription;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -52,7 +55,7 @@ class ProductCard extends StatelessWidget {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Buy'),
+                      : Text(_isSubscription ? 'Subscribe' : 'Buy'),
                 ),
               ],
             ),
