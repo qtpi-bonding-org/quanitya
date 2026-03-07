@@ -16,7 +16,7 @@ dependencies:
     path: ../quanitya_serverpod/quanitya_client
   anonaccred_client:
     git:
-      url: git@github.com:qtpi-bonding-org/serverpod_anonaccred.git
+      url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
       ref: a88c30c
       path: anonaccred_client
 

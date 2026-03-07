@@ -37,20 +37,20 @@ dependencies:
   # anonaccred_client:
   #   path: ../../serverpod_anonaccred/anonaccred_client
   flutter_color_palette:
-    git: git@github.com:qtpi-bonding-org/flutter_color_palette.git
+    git: https://github.com/qtpi-bonding-org/flutter_color_palette.git
   
   # State Management
   flutter_bloc: ^8.1.3
   equatable: ^2.0.5
   cubit_ui_flow:
     git: 
-      url: git@github.com:qtpi-bonding-org/flutter_cubit_ui_flow.git
+      url: https://github.com/qtpi-bonding-org/flutter_cubit_ui_flow.git
       ref: 737f24b
   
   # Privacy-preserving error reporting
   flutter_error_privserver:
     git:
-      url: git@github.com:qtpi-bonding-org/flutter_error_privserver.git
+      url: https://github.com/qtpi-bonding-org/flutter_error_privserver.git
       ref: 3565d9d47f24bee06bc88314b51a7df04ee3f78e
   
   # Code Generation
@@ -85,7 +85,7 @@ dependencies:
   crypto: ^3.0.3  # SHA-1 for Hashcash proof-of-work
   dart_jwk_duo:
     git: 
-      url: git@github.com:qtpi-bonding-org/dart_jwk_duo.git
+      url: https://github.com/qtpi-bonding-org/dart_jwk_duo.git
       ref: 57951f2de99784c3fc4664f7b66bb13ce6e80bc7
   
   # Sharing & Export
@@ -114,7 +114,7 @@ dependencies:
   # Colorable Widget Annotations
   flutter_colorable:
     git:
-      url: git@github.com:qtpi-bonding-org/flutter_colorable.git
+      url: https://github.com/qtpi-bonding-org/flutter_colorable.git
       ref: 6b1367355620a4e3621815f27d4a21a0896d59a0
   flutter_colorpicker: ^1.1.0
   flutter_iconpicker: ^3.6.0
@@ -169,14 +169,14 @@ dev_dependencies:
   # Colorable Widget Generator
   flutter_colorable_generator:
     git:
-      url: git@github.com:qtpi-bonding-org/flutter_colorable.git
+      url: https://github.com/qtpi-bonding-org/flutter_colorable.git
       ref: 6b1367355620a4e3621815f27d4a21a0896d59a0
       path: flutter_colorable_generator
   
   # L10n Key Resolver Generator
   l10n_key_resolver:
     git:
-      url: git@github.com:qtpi-bonding-org/dart_l10n_key_resolver.git
+      url: https://github.com/qtpi-bonding-org/dart_l10n_key_resolver.git
       ref: cba64958fe77c9f36a0150c88a8e342aeda052e8
   bloc_test: ^9.1.7
   mocktail: ^1.0.4
