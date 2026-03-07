@@ -40,17 +40,17 @@ void main() {
             .thenAnswer(
           (_) async => [
             const PurchaseProduct(
-              productId: 'sync_days_30',
-              title: '30 Sync Days',
-              description: '30 days of cloud sync',
-              priceUsd: 2.99,
+              productId: 'sync_1gb_month',
+              title: 'Monthly Sync (1 GB)',
+              description: '1 month of cloud sync (1 GB)',
+              priceUsd: 3.99,
               rail: PurchaseRail.appleIap,
             ),
             const PurchaseProduct(
-              productId: 'sync_days_90',
-              title: '90 Sync Days',
-              description: '90 days of cloud sync',
-              priceUsd: 6.99,
+              productId: 'sync_1gb_year',
+              title: 'Yearly Sync (1 GB)',
+              description: '1 year of cloud sync (1 GB)',
+              priceUsd: 39.99,
               rail: PurchaseRail.appleIap,
             ),
           ],
@@ -68,7 +68,7 @@ void main() {
               s.status == UiFlowStatus.success &&
               s.lastOperation == PurchaseOperation.loadProducts &&
               s.products.length == 2,
-          'success state with 2 products',
+          'success state with products',
         ),
       ],
     );
@@ -87,7 +87,7 @@ void main() {
       },
       act: (cubit) => cubit.purchase(
         const PurchaseRequest(
-          productId: 'sync_days_30',
+          productId: 'sync_1gb_month',
           rail: PurchaseRail.appleIap,
           accountId: 1,
         ),
@@ -117,7 +117,7 @@ void main() {
       },
       act: (cubit) => cubit.purchase(
         const PurchaseRequest(
-          productId: 'sync_days_30',
+          productId: 'sync_1gb_month',
           rail: PurchaseRail.appleIap,
           accountId: 1,
         ),

@@ -9,17 +9,10 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import '../../core/try_operation.dart';
 import '../../crypto/crypto_key_repository.dart';
 import '../../crypto/data_encryption_service.dart';
+import '../../crypto/utils/hashcash.dart';
 import '../i_purchase_provider.dart';
 import '../purchase_exception.dart';
 import '../purchase_models.dart';
-
-/// Product IDs matching App Store Connect / Google Play Console configuration
-/// and server's APPLE_PRODUCT_MAPPINGS / GOOGLE_PRODUCT_MAPPINGS env vars.
-const Set<String> _productIds = {
-  'sync_days_30',
-  'sync_days_90',
-  'sync_days_365',
-};
 
 @LazySingleton(as: IPurchaseProvider)
 class InAppPurchaseProvider implements IPurchaseProvider {
@@ -31,6 +24,9 @@ class InAppPurchaseProvider implements IPurchaseProvider {
 
   final iap.InAppPurchase _iapInstance = iap.InAppPurchase.instance;
   StreamSubscription<List<iap.PurchaseDetails>>? _purchaseSubscription;
+
+  /// Cached product IDs fetched from server. Null until first fetch.
+  Set<String>? _cachedProductIds;
 
   /// Pending purchase completers keyed by product ID.
   final Map<String, Completer<PurchaseResult>> _pendingCompleters = {};
@@ -74,11 +70,55 @@ class InAppPurchaseProvider implements IPurchaseProvider {
     );
   }
 
+  /// Fetch active product IDs from the server, or return cached values.
+  ///
+  /// Uses the HashCash-protected productCatalog endpoint (no IP tracking).
+  /// Maps the client-side [rail] to the server's PaymentRail name
+  /// and queries the rail_product table for active entries.
+  Future<Set<String>> _getProductIds() async {
+    if (_cachedProductIds != null) return _cachedProductIds!;
+
+    final railName = switch (rail) {
+      PurchaseRail.appleIap => 'apple_iap',
+      PurchaseRail.googleIap => 'google_iap',
+      _ => 'apple_iap',
+    };
+
+    // 1. Get challenge from server
+    final challengeResponse = await _client.productCatalog.getChallenge();
+    final challenge = challengeResponse['challenge'] as String;
+    final difficulty = challengeResponse['difficulty'] as int;
+
+    // 2. Mine proof-of-work
+    final proofOfWork = await Hashcash.mint(challenge, difficulty: difficulty);
+
+    // 3. Sign payload with device key
+    final publicKeyHex =
+        await _keyRepository.getDeviceSigningPublicKeyHex();
+    if (publicKeyHex == null) {
+      throw const PurchaseException('Device key not found');
+    }
+    final payload = '$challenge:$railName';
+    final signature = await _encryption.signWithDeviceKey(payload);
+
+    // 4. Call protected endpoint
+    final ids = await _client.productCatalog.getActiveStoreProductIds(
+      challenge,
+      proofOfWork,
+      publicKeyHex,
+      signature,
+      railName,
+    );
+    _cachedProductIds = ids.toSet();
+    return _cachedProductIds!;
+  }
+
   @override
   Future<List<PurchaseProduct>> getAvailableProducts() {
     return tryMethod(
       () async {
-        final response = await _iapInstance.queryProductDetails(_productIds);
+        final productIds = await _getProductIds();
+        final response = await _iapInstance.queryProductDetails(productIds);
 
         if (response.notFoundIDs.isNotEmpty) {
           debugPrint(
@@ -230,6 +270,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
     _purchaseSubscription = null;
     _pendingCompleters.clear();
     _rawPurchaseDetails.clear();
+    _cachedProductIds = null;
   }
 
   void _handlePurchaseUpdates(List<iap.PurchaseDetails> purchaseDetailsList) {

@@ -6,46 +6,46 @@ void main() {
   group('PurchaseProduct', () {
     test('creates with required fields', () {
       const product = PurchaseProduct(
-        productId: 'sync_days_30',
-        title: '30 Sync Days',
-        description: '30 days of cloud sync',
-        priceUsd: 2.99,
+        productId: 'sync_1gb_month',
+        title: 'Monthly Sync (1 GB)',
+        description: '1 month of cloud sync (1 GB)',
+        priceUsd: 3.99,
         rail: PurchaseRail.appleIap,
       );
 
-      expect(product.productId, 'sync_days_30');
-      expect(product.priceUsd, 2.99);
+      expect(product.productId, 'sync_1gb_month');
+      expect(product.priceUsd, 3.99);
       expect(product.localizedPrice, isNull);
       expect(product.currencyCode, isNull);
     });
 
     test('copyWith preserves unchanged fields', () {
       const product = PurchaseProduct(
-        productId: 'sync_days_30',
-        title: '30 Sync Days',
-        description: '30 days',
-        priceUsd: 2.99,
+        productId: 'sync_1gb_month',
+        title: 'Monthly Sync (1 GB)',
+        description: '1 month of sync',
+        priceUsd: 3.99,
         rail: PurchaseRail.appleIap,
       );
 
-      final updated = product.copyWith(localizedPrice: '\$2.99');
-      expect(updated.productId, 'sync_days_30');
-      expect(updated.localizedPrice, '\$2.99');
+      final updated = product.copyWith(localizedPrice: '\$3.99');
+      expect(updated.productId, 'sync_1gb_month');
+      expect(updated.localizedPrice, '\$3.99');
     });
 
     test('equality works correctly', () {
       const a = PurchaseProduct(
-        productId: 'sync_days_30',
-        title: '30 Sync Days',
-        description: '30 days',
-        priceUsd: 2.99,
+        productId: 'sync_1gb_month',
+        title: 'Monthly Sync (1 GB)',
+        description: '1 month of sync',
+        priceUsd: 3.99,
         rail: PurchaseRail.appleIap,
       );
       const b = PurchaseProduct(
-        productId: 'sync_days_30',
-        title: '30 Sync Days',
-        description: '30 days',
-        priceUsd: 2.99,
+        productId: 'sync_1gb_month',
+        title: 'Monthly Sync (1 GB)',
+        description: '1 month of sync',
+        priceUsd: 3.99,
         rail: PurchaseRail.appleIap,
       );
 

@@ -50,10 +50,10 @@ void main() {
       when(() => mockProvider.getAvailableProducts()).thenAnswer(
         (_) async => [
           const PurchaseProduct(
-            productId: 'sync_days_30',
-            title: '30 Sync Days',
-            description: '30 days of cloud sync',
-            priceUsd: 2.99,
+            productId: 'sync_1gb_month',
+            title: 'Monthly Sync (1 GB)',
+            description: '1 month of cloud sync (1 GB)',
+            priceUsd: 3.99,
             rail: PurchaseRail.appleIap,
           ),
         ],
@@ -63,8 +63,8 @@ void main() {
       final products = await purchaseService.getProducts();
 
       expect(products, hasLength(1));
-      expect(products.first.productId, 'sync_days_30');
-      expect(products.first.priceUsd, 2.99);
+      expect(products.first.productId, 'sync_1gb_month');
+      expect(products.first.priceUsd, 3.99);
     });
 
     test('getProducts with rail filter returns only matching products',
@@ -73,10 +73,10 @@ void main() {
       when(() => mockProvider.getAvailableProducts()).thenAnswer(
         (_) async => [
           const PurchaseProduct(
-            productId: 'sync_days_30',
-            title: '30 Sync Days',
-            description: '30 days',
-            priceUsd: 2.99,
+            productId: 'sync_1gb_month',
+            title: 'Monthly Sync (1 GB)',
+            description: '1 month of sync',
+            priceUsd: 3.99,
             rail: PurchaseRail.appleIap,
           ),
         ],
@@ -101,7 +101,7 @@ void main() {
         (_) async => const PurchaseResult(
           status: PurchaseStatus.success,
           rail: PurchaseRail.appleIap,
-          productId: 'sync_days_30',
+          productId: 'sync_1gb_month',
           transactionId: 'txn_123',
         ),
       );
@@ -119,7 +119,7 @@ void main() {
 
       final result = await purchaseService.purchase(
         const PurchaseRequest(
-          productId: 'sync_days_30',
+          productId: 'sync_1gb_month',
           rail: PurchaseRail.appleIap,
           accountId: 1,
         ),
@@ -139,7 +139,7 @@ void main() {
         (_) async => const PurchaseResult(
           status: PurchaseStatus.cancelled,
           rail: PurchaseRail.appleIap,
-          productId: 'sync_days_30',
+          productId: 'sync_1gb_month',
         ),
       );
 
@@ -147,7 +147,7 @@ void main() {
 
       final result = await purchaseService.purchase(
         const PurchaseRequest(
-          productId: 'sync_days_30',
+          productId: 'sync_1gb_month',
           rail: PurchaseRail.appleIap,
           accountId: 1,
         ),
@@ -162,7 +162,7 @@ void main() {
       expect(
         () => purchaseService.purchase(
           const PurchaseRequest(
-            productId: 'sync_days_30',
+            productId: 'sync_1gb_month',
             rail: PurchaseRail.monero,
             accountId: 1,
           ),

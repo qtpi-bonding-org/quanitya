@@ -542,7 +542,7 @@ class EndpointConsumable extends _i1.EndpointRef {
   /// - syncDaysRemaining: days of sync left
   /// - integrationDaysRemaining: days of integrations left
   /// - analysisCredits: analysis credits available
-  /// - llmTokens: LLM tokens available
+  /// - llmCalls: LLM call credits available
   /// - balances: raw balance map
   _i2.Future<Map<String, dynamic>> getFeatureAccess() =>
       caller.callServerEndpoint<Map<String, dynamic>>(
@@ -1753,6 +1753,142 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   );
 }
 
+/// Product catalog endpoint — returns active store product IDs.
+///
+/// Protected by HashCash proof-of-work + ECDSA signature (inherited from
+/// PublicSubmissionEndpoint). No IP addresses are stored or used.
+///
+/// The actual product data lives in AnonAccred's rail_product table.
+/// This endpoint wraps the query with Quanitya's PoW protection.
+/// {@category Endpoint}
+class EndpointProductCatalog extends EndpointPublicSubmission {
+  EndpointProductCatalog(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'productCatalog';
+
+  /// Get active store product IDs for a given payment rail.
+  ///
+  /// Requires HashCash proof-of-work and ECDSA signature.
+  ///
+  /// Parameters:
+  /// - [challenge]: Challenge string from getChallenge()
+  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature of "challenge:railName"
+  /// - [railName]: Payment rail name (e.g. 'apple_iap', 'google_iap')
+  ///
+  /// Returns: List of active store product ID strings.
+  _i2.Future<List<String>> getActiveStoreProductIds(
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String railName,
+  ) => caller.callServerEndpoint<List<String>>(
+    'productCatalog',
+    'getActiveStoreProductIds',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'railName': railName,
+    },
+  );
+
+  /// Get challenge for proof-of-work.
+  ///
+  /// This method is inherited by all public endpoints and provides
+  /// a consistent way to generate challenges.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  ///
+  /// Returns a map with:
+  /// - challenge: Random challenge string (32 hex chars)
+  /// - difficulty: Number of leading zero bits required (20)
+  /// - expiresAt: Unix timestamp when challenge expires
+  ///
+  /// Example:
+  /// ```dart
+  /// final challenge = await getChallenge(session);
+  /// // Returns: {
+  /// //   'challenge': 'abc123...',
+  /// //   'difficulty': 20,
+  /// //   'expiresAt': 1234567890
+  /// // }
+  /// ```
+  @override
+  _i2.Future<Map<String, dynamic>> getChallenge() =>
+      caller.callServerEndpoint<Map<String, dynamic>>(
+        'productCatalog',
+        'getChallenge',
+        {},
+      );
+
+  /// Verify submission (PoW + signature + rate limit).
+  ///
+  /// This method performs all verification steps:
+  /// 1. Verifies proof-of-work solution
+  /// 2. Verifies ECDSA signature
+  /// 3. Checks and enforces rate limits
+  ///
+  /// Throws an exception if any verification step fails.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [challenge]: Challenge string from getChallenge()
+  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature (128 hex chars)
+  /// - [payload]: Original payload that was signed
+  ///
+  /// Throws:
+  /// - Exception if proof-of-work is invalid
+  /// - Exception if signature is invalid
+  /// - RateLimitExceededException if rate limit exceeded
+  ///
+  /// Example:
+  /// ```dart
+  /// try {
+  ///   await verifySubmission(
+  ///     session,
+  ///     challenge,
+  ///     proofOfWork,
+  ///     publicKeyHex,
+  ///     signature,
+  ///     payload,
+  ///   );
+  ///   // Verification successful, process submission
+  /// } catch (e) {
+  ///   // Handle verification failure
+  ///   return ResponseBuilder.error(
+  ///     code: ResponseBuilder.errorAuthFailed,
+  ///     message: e.toString(),
+  ///   );
+  /// }
+  /// ```
+  @override
+  _i2.Future<void> verifySubmission(
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) => caller.callServerEndpoint<void>(
+    'productCatalog',
+    'verifySubmission',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'payload': payload,
+    },
+  );
+}
+
 /// Sync access endpoint for PowerSync integration
 ///
 /// Provides API access for PowerSync JWT generation and sync access management
@@ -1895,6 +2031,7 @@ class Client extends _i1.ServerpodClientShared {
     feedbackAdmin = EndpointFeedbackAdmin(this);
     feedback = EndpointFeedback(this);
     notificationAdmin = EndpointNotificationAdmin(this);
+    productCatalog = EndpointProductCatalog(this);
     syncAccess = EndpointSyncAccess(this);
     modules = Modules(this);
   }
@@ -1921,6 +2058,8 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointNotificationAdmin notificationAdmin;
 
+  late final EndpointProductCatalog productCatalog;
+
   late final EndpointSyncAccess syncAccess;
 
   late final Modules modules;
@@ -1938,6 +2077,7 @@ class Client extends _i1.ServerpodClientShared {
     'feedbackAdmin': feedbackAdmin,
     'feedback': feedback,
     'notificationAdmin': notificationAdmin,
+    'productCatalog': productCatalog,
     'syncAccess': syncAccess,
   };
 
