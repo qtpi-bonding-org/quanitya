@@ -315,6 +315,7 @@ class JsonToModelParser {
       case FieldEnum.datetime:
       case FieldEnum.dimension:
       case FieldEnum.reference:
+      case FieldEnum.location:
         // No additional validators needed
         break;
     }

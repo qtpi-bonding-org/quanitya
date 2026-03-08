@@ -28,6 +28,7 @@ class FieldChartMapper {
       FieldEnum.text => ChartType.none,
       FieldEnum.datetime => ChartType.none,
       FieldEnum.reference => ChartType.none,
+      FieldEnum.location => ChartType.none,
     };
   }
 

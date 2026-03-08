@@ -48,6 +48,7 @@ class DefaultValueHandler {
       FieldEnum.enumerated => null, // First option handled at resolve time
       FieldEnum.dimension => 0.0,
       FieldEnum.reference => null,
+      FieldEnum.location => null,
     };
   }
 
@@ -109,6 +110,7 @@ class DefaultValueHandler {
       FieldEnum.enumerated => value is String ? null : 'Must be text',
       FieldEnum.dimension => value is num ? null : 'Must be a number',
       FieldEnum.reference => 'References cannot have defaults',
+      FieldEnum.location => 'Locations cannot have defaults',
     };
   }
 
@@ -131,6 +133,7 @@ class DefaultValueHandler {
       FieldEnum.enumerated => '$raw',
       FieldEnum.dimension => _parseDouble(raw),
       FieldEnum.reference => null,
+      FieldEnum.location => null,
     };
   }
 

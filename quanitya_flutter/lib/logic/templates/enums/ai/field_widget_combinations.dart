@@ -59,6 +59,11 @@ class FieldWidgetCombinations {
       UiElementEnum.dropdown,
       UiElementEnum.searchField,
     ],
+
+    // Location fields use the location picker
+    FieldEnum.location: [
+      UiElementEnum.locationPicker,
+    ],
   };
 
   /// Gets valid UI elements for a specific field type

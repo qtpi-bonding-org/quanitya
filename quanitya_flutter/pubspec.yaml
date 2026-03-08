@@ -51,7 +51,7 @@ dependencies:
   flutter_error_privserver:
     git:
       url: https://github.com/qtpi-bonding-org/flutter_error_privserver.git
-      ref: 3565d9d47f24bee06bc88314b51a7df04ee3f78e
+      ref: 40786c2
   
   # Code Generation
   freezed_annotation: ^2.4.1
@@ -145,6 +145,7 @@ dependencies:
   dartantic_ai: ^1.1.0
   dartantic_interface: 1.1.0
   permission_handler: ^12.0.1
+  geolocator: ^14.0.0
   javascript_flutter: ^1.0.0
   jinja: ^0.6.0
 

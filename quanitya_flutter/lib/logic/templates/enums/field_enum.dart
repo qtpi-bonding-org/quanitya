@@ -25,4 +25,7 @@ enum FieldEnum {
   
   /// Reference to another tracker template entry
   reference,
+
+  /// GPS location (latitude/longitude captured on tap)
+  location,
 }

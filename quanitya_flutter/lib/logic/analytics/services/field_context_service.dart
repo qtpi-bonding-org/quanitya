@@ -162,6 +162,12 @@ class FieldContextService {
         'insights': ['connections', 'references', 'relationships'],
         'examples': ['linked entries', 'references', 'connections'],
       },
+      FieldEnum.location => {
+        'dataType': 'geospatial',
+        'operations': ['distance', 'clustering', 'frequency'],
+        'insights': ['places visited', 'movement patterns', 'distances'],
+        'examples': ['check-ins', 'workout locations', 'travel logs'],
+      },
     };
   }
 }

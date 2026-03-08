@@ -41,4 +41,7 @@ enum UiElementEnum {
   
   /// Search field with autocomplete functionality
   searchField,
+
+  /// Location capture button (grabs current GPS coordinates on tap)
+  locationPicker,
 }

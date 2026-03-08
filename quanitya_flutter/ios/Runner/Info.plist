@@ -55,5 +55,7 @@
 		<string>Quanitya reads health data to auto-log your trackers.</string>
 		<key>NSHealthUpdateUsageDescription</key>
 		<string>Quanitya can write health data from your trackers.</string>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Quanitya records your location when you tap the location button.</string>
 	</dict>
 </plist>

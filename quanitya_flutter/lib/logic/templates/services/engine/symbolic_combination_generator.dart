@@ -138,6 +138,10 @@ class SymbolicCombinationGenerator {
         return _isSelectionCompatibleUi(uiElement) ||
             _isTextCompatibleUi(uiElement) ||
             _isSearchCompatibleUi(uiElement);
+
+      case FieldEnum.location:
+        // Location fields only work with the location picker
+        return uiElement == UiElementEnum.locationPicker;
     }
   }
 

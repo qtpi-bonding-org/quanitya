@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_color_palette/flutter_color_palette.dart';
+import '../../../../infrastructure/location/location_service.dart';
 
 import '../../enums/field_enum.dart';
 import '../../enums/ui_element_enum.dart';
@@ -222,6 +223,7 @@ class DynamicFieldBuilder {
       FieldEnum.enumerated => field.options?.firstOrNull,
       FieldEnum.dimension => 0.0,
       FieldEnum.reference => null,
+      FieldEnum.location => null,
     };
   }
 
@@ -267,6 +269,8 @@ class DynamicFieldBuilder {
         _buildDatePicker(field, value, onChanged, palette, widgetColors, textStyle),
       UiElementEnum.searchField =>
         _buildTextField(field, value, onChanged, palette, widgetColors, textStyle),
+      UiElementEnum.locationPicker =>
+        _buildLocationPicker(field, value, onChanged, palette, widgetColors, textStyle),
     };
   }
 
@@ -445,6 +449,64 @@ class DynamicFieldBuilder {
       borderColor:
           colors?['borderColor'] ?? palette.getColor('neutral2') ?? Colors.grey,
       fillColor: colors?['fillColor'] ?? Colors.white,
+    );
+  }
+
+  static Widget _buildLocationPicker(
+    TemplateField field,
+    dynamic value,
+    ValueChanged<dynamic> onChanged,
+    IColorPalette palette,
+    Map<String, Color>? colors,
+    TextStyle? textStyle,
+  ) {
+    final locationMap = value is Map<String, dynamic> ? value : null;
+    final hasLocation = locationMap != null &&
+        locationMap.containsKey('latitude') &&
+        locationMap.containsKey('longitude');
+
+    final accentColor = colors?['activeColor'] ??
+        palette.getColor('color1') ??
+        QuanityaPalette.primary.interactableColor;
+    final secondaryColor = colors?['borderColor'] ??
+        palette.getColor('neutral1') ??
+        QuanityaPalette.primary.textSecondary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (hasLocation)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              '${locationMap!['latitude'].toStringAsFixed(5)}, '
+              '${locationMap['longitude'].toStringAsFixed(5)}',
+              style: textStyle?.copyWith(color: secondaryColor) ??
+                  TextStyle(color: secondaryColor, fontSize: 13),
+            ),
+          ),
+        TextButton.icon(
+          icon: Icon(
+            hasLocation ? Icons.my_location : Icons.location_on_outlined,
+            color: accentColor,
+          ),
+          label: Text(
+            hasLocation ? 'Update Location' : 'Capture Location',
+            style: textStyle?.copyWith(color: accentColor) ??
+                TextStyle(color: accentColor),
+          ),
+          onPressed: () async {
+            try {
+              final location = await LocationService.captureCurrentPosition();
+              onChanged(location);
+            } catch (e) {
+              // Permission denied or location unavailable — don't crash
+              debugPrint('Location capture failed: $e');
+            }
+          },
+        ),
+      ],
     );
   }
 

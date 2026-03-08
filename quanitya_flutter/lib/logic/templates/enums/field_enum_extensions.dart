@@ -21,6 +21,8 @@ extension FieldEnumDisplayName on FieldEnum {
         return 'Dimension';
       case FieldEnum.reference:
         return 'Reference';
+      case FieldEnum.location:
+        return 'Location';
     }
   }
 }
