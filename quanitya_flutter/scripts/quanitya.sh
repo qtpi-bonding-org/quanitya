@@ -429,10 +429,10 @@ cmd_run() {
         ios)
             log_info "Starting on iOS simulator/device..."
             if [[ "$WIPE" == true ]]; then
-                log_warning "Wiping iOS app data and resetting keychain for com.example.quanityaFlutter..."
+                log_warning "Wiping iOS app data and resetting keychain for com.quanitya.quanitya..."
                 local target_device="${DEVICE_ID:-booted}"
                 # Wipe app sandbox (database, documents)
-                xcrun simctl uninstall "$target_device" com.example.quanityaFlutter || log_warning "Failed to uninstall (maybe app not installed?)"
+                xcrun simctl uninstall "$target_device" com.quanitya.quanitya || log_warning "Failed to uninstall (maybe app not installed?)"
                 # Nuke keychain (where Encryption Keys are stored)
                 xcrun simctl keychain "$target_device" reset
                 log_info "iOS factory reset complete."
@@ -443,9 +443,9 @@ cmd_run() {
         android)
             log_info "Starting on Android emulator/device..."
             if [[ "$WIPE" == true ]]; then
-                log_warning "Wiping Android app data for com.example.quanityaFlutter..."
+                log_warning "Wiping Android app data for com.quanitya.quanitya..."
                 local target_device="${DEVICE_ID:-android}"
-                adb -s "$target_device" shell pm clear com.example.quanityaFlutter || log_warning "Failed to clear (maybe app not installed?)"
+                adb -s "$target_device" shell pm clear com.quanitya.quanitya || log_warning "Failed to clear (maybe app not installed?)"
             fi
             flutter run -d "${DEVICE_ID:-android}" "${dart_defines[@]}"
             ;;

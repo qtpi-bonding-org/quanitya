@@ -1,4 +1,4 @@
-package com.example.quanitya_flutter
+package com.quanitya.quanitya
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
