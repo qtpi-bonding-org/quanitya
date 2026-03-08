@@ -6,6 +6,7 @@ import '../../enums/field_enum.dart';
 import '../../enums/ui_element_enum.dart';
 import '../../models/shared/field_validator.dart';
 import '../../models/shared/template_field.dart';
+import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
@@ -480,12 +481,11 @@ class DynamicFieldBuilder {
       children: [
         if (hasLocation)
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: AppPadding.verticalSingle,
             child: Text(
-              '${locationMap!['latitude'].toStringAsFixed(5)}, '
+              '${locationMap['latitude'].toStringAsFixed(5)}, '
               '${locationMap['longitude'].toStringAsFixed(5)}',
-              style: textStyle?.copyWith(color: secondaryColor) ??
-                  TextStyle(color: secondaryColor, fontSize: 13),
+              style: textStyle?.copyWith(color: secondaryColor),
             ),
           ),
         TextButton.icon(
@@ -495,8 +495,7 @@ class DynamicFieldBuilder {
           ),
           label: Text(
             hasLocation ? 'Update Location' : 'Capture Location',
-            style: textStyle?.copyWith(color: accentColor) ??
-                TextStyle(color: accentColor),
+            style: textStyle?.copyWith(color: accentColor),
           ),
           onPressed: () async {
             try {
@@ -666,33 +665,29 @@ class _TimerWidgetState extends State<_TimerWidget> {
         Text(
           _format(display),
           style: widget.textStyle?.copyWith(
-                fontSize: 28,
+                fontSize: AppSizes.fontLarge,
                 fontFeatures: [const FontFeature.tabularFigures()],
               ) ??
               TextStyle(
-                fontSize: 28,
+                fontSize: AppSizes.fontLarge,
                 color: widget.secondaryColor,
                 fontFeatures: [const FontFeature.tabularFigures()],
               ),
         ),
-        const SizedBox(width: 12),
-        IconButton(
-          icon: Icon(
-            _running ? Icons.stop_circle_outlined : Icons.play_circle_outline,
-            size: 36,
-            color: widget.accentColor,
-          ),
+        HSpace.x1,
+        QuanityaIconButton(
+          icon: _running ? Icons.stop_circle_outlined : Icons.play_circle_outline,
           onPressed: _toggle,
+          iconSize: AppSizes.iconLarge,
+          color: widget.accentColor,
           tooltip: _running ? 'Stop' : 'Start',
         ),
         if (!_running && display > 0)
-          IconButton(
-            icon: Icon(
-              Icons.replay,
-              size: 24,
-              color: widget.secondaryColor,
-            ),
+          QuanityaIconButton(
+            icon: Icons.replay,
             onPressed: _reset,
+            iconSize: AppSizes.iconMedium,
+            color: widget.secondaryColor,
             tooltip: 'Reset',
           ),
       ],
