@@ -8,18 +8,20 @@ import '../ui_element_enum.dart';
 class FieldWidgetCombinations {
   /// Map of field types to their valid UI element combinations
   static const Map<FieldEnum, List<UiElementEnum>> combinations = {
-    // Integer fields can use sliders, text fields, or steppers
+    // Integer fields can use sliders, text fields, steppers, or timer
     FieldEnum.integer: [
       UiElementEnum.slider,
       UiElementEnum.textField,
       UiElementEnum.stepper,
+      UiElementEnum.timer,
     ],
 
-    // Float fields can use sliders, text fields, or steppers
+    // Float fields can use sliders, text fields, steppers, or timer
     FieldEnum.float: [
       UiElementEnum.slider,
       UiElementEnum.textField,
       UiElementEnum.stepper,
+      UiElementEnum.timer,
     ],
 
     // Text fields can use single-line or multi-line text inputs

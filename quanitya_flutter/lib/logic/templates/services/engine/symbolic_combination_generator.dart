@@ -106,9 +106,10 @@ class SymbolicCombinationGenerator {
     switch (fieldType) {
       case FieldEnum.integer:
       case FieldEnum.float:
-        // Numeric fields work with numeric UI elements and text fields
+        // Numeric fields work with numeric UI elements, text fields, and timer
         return _isNumericCompatibleUi(uiElement) ||
-            _isTextCompatibleUi(uiElement);
+            _isTextCompatibleUi(uiElement) ||
+            uiElement == UiElementEnum.timer;
 
       case FieldEnum.text:
         // Text fields work with text UI elements and search fields

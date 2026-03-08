@@ -271,6 +271,8 @@ class DynamicFieldBuilder {
         _buildTextField(field, value, onChanged, palette, widgetColors, textStyle),
       UiElementEnum.locationPicker =>
         _buildLocationPicker(field, value, onChanged, palette, widgetColors, textStyle),
+      UiElementEnum.timer =>
+        _buildTimer(field, value, onChanged, palette, widgetColors, textStyle),
     };
   }
 
@@ -510,6 +512,30 @@ class DynamicFieldBuilder {
     );
   }
 
+  static Widget _buildTimer(
+    TemplateField field,
+    dynamic value,
+    ValueChanged<dynamic> onChanged,
+    IColorPalette palette,
+    Map<String, Color>? colors,
+    TextStyle? textStyle,
+  ) {
+    final elapsedSeconds = (value as num?)?.toInt() ?? 0;
+    final isInteger = field.type == FieldEnum.integer;
+
+    return _TimerWidget(
+      elapsedSeconds: elapsedSeconds,
+      onChanged: (seconds) => onChanged(isInteger ? seconds : seconds.toDouble()),
+      accentColor: colors?['activeColor'] ??
+          palette.getColor('color1') ??
+          QuanityaPalette.primary.interactableColor,
+      secondaryColor: colors?['borderColor'] ??
+          palette.getColor('neutral1') ??
+          QuanityaPalette.primary.textSecondary,
+      textStyle: textStyle,
+    );
+  }
+
   /// Extract numeric constraints from field validators
   static ({double min, double max}) _getNumericConstraints(TemplateField field) {
     double min = 0;
@@ -528,5 +554,148 @@ class DynamicFieldBuilder {
     }
 
     return (min: min, max: max);
+  }
+}
+
+/// Start/stop timer widget that records elapsed duration in seconds.
+class _TimerWidget extends StatefulWidget {
+  final int elapsedSeconds;
+  final ValueChanged<int> onChanged;
+  final Color accentColor;
+  final Color secondaryColor;
+  final TextStyle? textStyle;
+
+  const _TimerWidget({
+    required this.elapsedSeconds,
+    required this.onChanged,
+    required this.accentColor,
+    required this.secondaryColor,
+    this.textStyle,
+  });
+
+  @override
+  State<_TimerWidget> createState() => _TimerWidgetState();
+}
+
+class _TimerWidgetState extends State<_TimerWidget> {
+  late int _seconds;
+  DateTime? _startedAt;
+  bool _running = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _seconds = widget.elapsedSeconds;
+  }
+
+  void _toggle() {
+    setState(() {
+      if (_running) {
+        // Stop
+        _running = false;
+        if (_startedAt != null) {
+          _seconds += DateTime.now().difference(_startedAt!).inSeconds;
+          _startedAt = null;
+        }
+        widget.onChanged(_seconds);
+      } else {
+        // Start
+        _running = true;
+        _startedAt = DateTime.now();
+        _tick();
+      }
+    });
+  }
+
+  void _tick() {
+    if (!_running || !mounted) return;
+    Future.delayed(const Duration(seconds: 1), () {
+      if (_running && mounted) {
+        setState(() {});
+        _tick();
+      }
+    });
+  }
+
+  void _reset() {
+    setState(() {
+      _running = false;
+      _startedAt = null;
+      _seconds = 0;
+    });
+    widget.onChanged(0);
+  }
+
+  int get _displaySeconds {
+    if (_running && _startedAt != null) {
+      return _seconds + DateTime.now().difference(_startedAt!).inSeconds;
+    }
+    return _seconds;
+  }
+
+  String _format(int totalSeconds) {
+    final h = totalSeconds ~/ 3600;
+    final m = (totalSeconds % 3600) ~/ 60;
+    final s = totalSeconds % 60;
+    if (h > 0) {
+      return '${h.toString().padLeft(2, '0')}:'
+          '${m.toString().padLeft(2, '0')}:'
+          '${s.toString().padLeft(2, '0')}';
+    }
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  void dispose() {
+    // Save final value if still running when widget disposes
+    if (_running && _startedAt != null) {
+      final finalSeconds = _seconds +
+          DateTime.now().difference(_startedAt!).inSeconds;
+      widget.onChanged(finalSeconds);
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final display = _displaySeconds;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          _format(display),
+          style: widget.textStyle?.copyWith(
+                fontSize: 28,
+                fontFeatures: [const FontFeature.tabularFigures()],
+              ) ??
+              TextStyle(
+                fontSize: 28,
+                color: widget.secondaryColor,
+                fontFeatures: [const FontFeature.tabularFigures()],
+              ),
+        ),
+        const SizedBox(width: 12),
+        IconButton(
+          icon: Icon(
+            _running ? Icons.stop_circle_outlined : Icons.play_circle_outline,
+            size: 36,
+            color: widget.accentColor,
+          ),
+          onPressed: _toggle,
+          tooltip: _running ? 'Stop' : 'Start',
+        ),
+        if (!_running && display > 0)
+          IconButton(
+            icon: Icon(
+              Icons.replay,
+              size: 24,
+              color: widget.secondaryColor,
+            ),
+            onPressed: _reset,
+            tooltip: 'Reset',
+          ),
+      ],
+    );
   }
 }

@@ -44,4 +44,7 @@ enum UiElementEnum {
 
   /// Location capture button (grabs current GPS coordinates on tap)
   locationPicker,
+
+  /// Start/stop timer that records elapsed duration in seconds
+  timer,
 }
