@@ -491,7 +491,10 @@ class EndpointCloudAnalysis extends _i1.EndpointRef {
       );
 }
 
-/// Cloud LLM Endpoint for proxied access to OpenRouter
+/// Cloud LLM Endpoint for proxied access to OpenRouter.
+///
+/// Model selection is server-controlled to prevent cost abuse.
+/// Uses OpenRouter's `models` array for automatic failover.
 /// {@category Endpoint}
 class EndpointCloudLlm extends _i1.EndpointRef {
   EndpointCloudLlm(_i1.EndpointCaller caller) : super(caller);
@@ -499,7 +502,7 @@ class EndpointCloudLlm extends _i1.EndpointRef {
   @override
   String get name => 'cloudLlm';
 
-  /// Generate structured output from LLM using server's API key
+  /// Generate structured output from LLM using server's API key.
   ///
   /// This endpoint acts as a proxy for paid users to access OpenRouter
   /// without needing their own API key (BYOK).

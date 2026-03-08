@@ -1,5 +1,5 @@
-import '../../llm/services/llm_service.dart';
 import '../../llm/models/llm_types.dart';
+import '../../llm/services/llm_service.dart';
 
 /// Abstract orchestrator class that manages the entire AI structured output pipeline.
 ///
@@ -40,12 +40,17 @@ abstract class AiStructuredOutputOrchestrator<TInput, TOutput> {
       systemPrompt: systemPrompt,
       userPrompt: userPrompt,
       jsonSchema: schema,
+      callType: callType,
     ));
     
     // 4. Parse JSON response to domain models
     return parseResponse(response.data, input);
   }
   
+  /// The call type for server-side model routing (cloud proxy).
+  /// Subclasses must specify whether this is a template or analysis call.
+  LlmCallType get callType;
+
   /// Generate the JSON schema that constrains the LLM's structured output.
   ///
   /// This schema defines the exact structure the LLM must follow when generating

@@ -53,6 +53,9 @@ class LlmConfig with _$LlmConfig {
   }
 }
 
+/// Call type for server-side model routing (cloud proxy only)
+enum LlmCallType { templateGeneration, analysisSuggestion }
+
 /// Request with system/user prompts and strict JSON schema
 @freezed
 class LlmRequest with _$LlmRequest {
@@ -61,6 +64,7 @@ class LlmRequest with _$LlmRequest {
     required String userPrompt,
     required Map<String, dynamic> jsonSchema,
     @Default('structured_response') String schemaName,
+    LlmCallType? callType,
   }) = _LlmRequest;
 
   factory LlmRequest.fromJson(Map<String, dynamic> json) => _$LlmRequestFromJson(json);

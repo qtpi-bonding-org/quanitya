@@ -38,6 +38,7 @@ class LlmService {
             systemPrompt: request.systemPrompt,
             userPrompt: request.userPrompt,
             jsonSchema: jsonEncode(request.jsonSchema),
+            callType: _toCloudCallType(request.callType),
             model: config.model,
           );
 
@@ -182,13 +183,17 @@ class LlmService {
     }
   }
 
-  /// Create Cloud LLM Provider (Proxy)
-  /// 
-  /// This creates a special separate path for cloud proxy requests.
-  /// Ideally, we route this at the service level, not provider level.
-  /// But kept here for consistency.
   void _validateSchema(Map<String, dynamic> schema) {
     // Strict checks can be added here if needed, but Dartantic handles validation
+  }
+
+  /// Map Flutter call type to Serverpod protocol enum
+  static CloudLlmCallType _toCloudCallType(LlmCallType? callType) {
+    return switch (callType) {
+      LlmCallType.templateGeneration => CloudLlmCallType.templateGeneration,
+      LlmCallType.analysisSuggestion => CloudLlmCallType.analysisSuggestion,
+      null => CloudLlmCallType.templateGeneration, // default fallback
+    };
   }
 }
 

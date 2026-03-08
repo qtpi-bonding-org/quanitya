@@ -30,6 +30,9 @@ class AiTemplateOrchestrator extends AiStructuredOutputOrchestrator<TemplateInpu
   );
   
   @override
+  LlmCallType get callType => LlmCallType.templateGeneration;
+
+  @override
   Map<String, dynamic> generateSchema(TemplateInput input) {
     return _schemaGenerator.generateSchema();
   }

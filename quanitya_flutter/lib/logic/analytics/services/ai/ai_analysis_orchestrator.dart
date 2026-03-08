@@ -37,6 +37,9 @@ class AiAnalysisOrchestrator
   AiAnalysisOrchestrator(super.llmService) : _llmService = llmService;
 
   @override
+  LlmCallType get callType => LlmCallType.analysisSuggestion;
+
+  @override
   Map<String, dynamic> generateSchema(AnalysisInput input) {
     throw UnimplementedError('Use generateSuggestion() instead');
   }
@@ -88,6 +91,7 @@ class AiAnalysisOrchestrator
           systemPrompt: systemPrompt,
           userPrompt: intent,
           jsonSchema: promptConfig['json_schema'],
+          callType: callType,
         ),
       );
 

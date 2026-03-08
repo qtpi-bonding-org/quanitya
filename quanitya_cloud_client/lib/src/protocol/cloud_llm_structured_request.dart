@@ -11,12 +11,14 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
+import 'cloud_llm_call_type.dart' as _i2;
 
 abstract class CloudLlmStructuredRequest implements _i1.SerializableModel {
   CloudLlmStructuredRequest._({
     required this.systemPrompt,
     required this.userPrompt,
     required this.jsonSchema,
+    required this.callType,
     this.model,
   });
 
@@ -24,6 +26,7 @@ abstract class CloudLlmStructuredRequest implements _i1.SerializableModel {
     required String systemPrompt,
     required String userPrompt,
     required String jsonSchema,
+    required _i2.CloudLlmCallType callType,
     String? model,
   }) = _CloudLlmStructuredRequestImpl;
 
@@ -34,6 +37,9 @@ abstract class CloudLlmStructuredRequest implements _i1.SerializableModel {
       systemPrompt: jsonSerialization['systemPrompt'] as String,
       userPrompt: jsonSerialization['userPrompt'] as String,
       jsonSchema: jsonSerialization['jsonSchema'] as String,
+      callType: _i2.CloudLlmCallType.fromJson(
+        (jsonSerialization['callType'] as String),
+      ),
       model: jsonSerialization['model'] as String?,
     );
   }
@@ -44,6 +50,8 @@ abstract class CloudLlmStructuredRequest implements _i1.SerializableModel {
 
   String jsonSchema;
 
+  _i2.CloudLlmCallType callType;
+
   String? model;
 
   /// Returns a shallow copy of this [CloudLlmStructuredRequest]
@@ -53,6 +61,7 @@ abstract class CloudLlmStructuredRequest implements _i1.SerializableModel {
     String? systemPrompt,
     String? userPrompt,
     String? jsonSchema,
+    _i2.CloudLlmCallType? callType,
     String? model,
   });
   @override
@@ -62,6 +71,7 @@ abstract class CloudLlmStructuredRequest implements _i1.SerializableModel {
       'systemPrompt': systemPrompt,
       'userPrompt': userPrompt,
       'jsonSchema': jsonSchema,
+      'callType': callType.toJson(),
       if (model != null) 'model': model,
     };
   }
@@ -79,11 +89,13 @@ class _CloudLlmStructuredRequestImpl extends CloudLlmStructuredRequest {
     required String systemPrompt,
     required String userPrompt,
     required String jsonSchema,
+    required _i2.CloudLlmCallType callType,
     String? model,
   }) : super._(
          systemPrompt: systemPrompt,
          userPrompt: userPrompt,
          jsonSchema: jsonSchema,
+         callType: callType,
          model: model,
        );
 
@@ -95,12 +107,14 @@ class _CloudLlmStructuredRequestImpl extends CloudLlmStructuredRequest {
     String? systemPrompt,
     String? userPrompt,
     String? jsonSchema,
+    _i2.CloudLlmCallType? callType,
     Object? model = _Undefined,
   }) {
     return CloudLlmStructuredRequest(
       systemPrompt: systemPrompt ?? this.systemPrompt,
       userPrompt: userPrompt ?? this.userPrompt,
       jsonSchema: jsonSchema ?? this.jsonSchema,
+      callType: callType ?? this.callType,
       model: model is String? ? model : this.model,
     );
   }
