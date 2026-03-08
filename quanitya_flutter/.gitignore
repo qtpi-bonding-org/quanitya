@@ -74,6 +74,5 @@ build.yaml
 independent_repos/*
 updated-md/*
 md/*
-*.txt
 *.tmp
 venv/
