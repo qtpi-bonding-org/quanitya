@@ -7,7 +7,7 @@ import '../models/matrix_vector_scalar/analysis_data_type.dart';
 import '../enums/time_resolution.dart';
 import '../enums/analysis_output_mode.dart';
 
-part 'mvs_pipeline_builder_state.freezed.dart';
+part 'analysis_builder_state.freezed.dart';
 
 enum PipelineBuilderOperation {
   addStep,
@@ -43,10 +43,10 @@ class PipelineBranch with _$PipelineBranch {
 }
 
 @freezed
-class MvsPipelineBuilderState
-    with _$MvsPipelineBuilderState
+class AnalysisBuilderState
+    with _$AnalysisBuilderState
     implements IUiFlowState {
-  const factory MvsPipelineBuilderState({
+  const factory AnalysisBuilderState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,
     PipelineBuilderOperation? lastOperation,
@@ -90,9 +90,9 @@ class MvsPipelineBuilderState
 
     // AI field selection
     String? selectedFieldForAi,
-  }) = _MvsPipelineBuilderState;
+  }) = _AnalysisBuilderState;
 
-  const MvsPipelineBuilderState._();
+  const AnalysisBuilderState._();
 
   // IUiFlowState implementation
   @override

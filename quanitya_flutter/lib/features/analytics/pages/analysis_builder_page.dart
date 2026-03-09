@@ -8,9 +8,9 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/widgets/quanitya/general/zen_paper_background.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
-import '../../../logic/analytics/cubits/mvs_pipeline_builder_cubit.dart';
-import '../../../logic/analytics/cubits/mvs_pipeline_builder_state.dart';
-import '../../../logic/analytics/cubits/mvs_pipeline_builder_message_mapper.dart';
+import '../../../logic/analytics/cubits/analysis_builder_cubit.dart';
+import '../../../logic/analytics/cubits/analysis_builder_state.dart';
+import '../../../logic/analytics/cubits/analysis_builder_message_mapper.dart';
 import '../../../logic/analytics/enums/time_resolution.dart';
 import '../widgets/live_results_panel.dart';
 
@@ -30,19 +30,19 @@ class AnalysisBuilderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<MvsPipelineBuilderCubit>()
+      create: (context) => getIt<AnalysisBuilderCubit>()
         ..initializeForField(fieldId, timeResolution, templateId: templateId),
       child:
-          UiFlowStateListener<MvsPipelineBuilderCubit, MvsPipelineBuilderState>(
-            mapper: BaseStateMessageMapper<MvsPipelineBuilderState>(
+          UiFlowStateListener<AnalysisBuilderCubit, AnalysisBuilderState>(
+            mapper: BaseStateMessageMapper<AnalysisBuilderState>(
               exceptionMapper: getIt<IExceptionKeyMapper>(),
-              domainMapper: getIt<MvsPipelineBuilderMessageMapper>(),
+              domainMapper: getIt<AnalysisBuilderMessageMapper>(),
             ),
             uiService: getIt<IUiFlowService>(),
             child:
-                BlocBuilder<MvsPipelineBuilderCubit, MvsPipelineBuilderState>(
+                BlocBuilder<AnalysisBuilderCubit, AnalysisBuilderState>(
                   builder: (context, state) {
-                    final cubit = context.read<MvsPipelineBuilderCubit>();
+                    final cubit = context.read<AnalysisBuilderCubit>();
 
                     return Scaffold(
                       appBar: AppBar(
@@ -104,7 +104,7 @@ class AnalysisBuilderPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCodeViewer(MvsPipelineBuilderState state) {
+  Widget _buildCodeViewer(AnalysisBuilderState state) {
     return ZenPaperBackground(
       baseColor: QuanityaPalette.primary.backgroundPrimary,
       child: Column(

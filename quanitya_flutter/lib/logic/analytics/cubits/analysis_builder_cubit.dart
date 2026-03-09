@@ -18,23 +18,23 @@ import '../services/field_context_service.dart';
 import '../services/ai/ai_analysis_orchestrator.dart';
 import '../services/streaming_analytics_service.dart';
 import '../models/analysis_output.dart';
-import 'mvs_pipeline_builder_state.dart';
+import 'analysis_builder_state.dart';
 
 @injectable
-class MvsPipelineBuilderCubit extends QuanityaCubit<MvsPipelineBuilderState> {
+class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
   final IAnalysisPipelineRepository _repository;
   final TemplateWithAestheticsRepository _templateRepository;
   final AiAnalysisOrchestrator _aiOrchestrator;
   final FieldContextService _fieldContextService;
   final StreamingAnalyticsService _streamingService;
 
-  MvsPipelineBuilderCubit(
+  AnalysisBuilderCubit(
     this._repository,
     this._templateRepository,
     this._aiOrchestrator,
     this._fieldContextService,
     this._streamingService,
-  ) : super(const MvsPipelineBuilderState());
+  ) : super(const AnalysisBuilderState());
 
   StreamSubscription<AnalysisOutput>? _liveResultsSubscription;
 

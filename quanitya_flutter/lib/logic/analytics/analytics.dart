@@ -17,7 +17,7 @@
 /// - `FieldContextService`: Field metadata for AI context
 ///
 /// ### Cubits
-/// - `MvsPipelineBuilderCubit`: Pipeline builder state management
+/// - `AnalysisBuilderCubit`: Pipeline builder state management
 library;
 
 export 'models/analysis_pipeline.dart';
