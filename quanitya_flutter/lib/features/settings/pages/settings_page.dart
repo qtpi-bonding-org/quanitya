@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' as cloud;
 
 import '../../../../app_router.dart';
 import '../../../../support/extensions/context_extensions.dart';
@@ -13,8 +15,10 @@ import '../../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
+import '../../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../../infrastructure/webhooks/models/webhook_model.dart';
+import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../app_operating_mode/cubits/app_operating_cubit.dart';
 import '../cubits/data_export/data_export_cubit.dart';
 import '../cubits/data_export/data_export_state.dart';
@@ -143,6 +147,9 @@ class _SettingsContent extends StatelessWidget {
         VSpace.x4,
 
         const _WebhooksSection(),
+        VSpace.x4,
+
+        const _DeleteAccountButton(),
         VSpace.x2,
       ],
     );
@@ -248,7 +255,7 @@ class _ApiKeysSection extends StatelessWidget {
             VSpace.x3,
 
             ...state.apiKeys.map((apiKey) => Padding(
-              padding: EdgeInsets.only(bottom: AppSizes.space * 2),
+              padding: AppPadding.verticalSingle,
               child: _ApiKeyRow(
                 apiKey: apiKey,
                 onTap: () => _showApiKeyDialog(context, apiKey),
@@ -412,7 +419,7 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
                   .name ?? 'Unknown';
               
               return Padding(
-                padding: EdgeInsets.only(bottom: AppSizes.space * 2),
+                padding: AppPadding.verticalSingle,
                 child: _WebhookRow(
                   webhook: webhook,
                   templateName: templateName,
@@ -554,6 +561,75 @@ class _WebhookRow extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DeleteAccountButton extends StatefulWidget {
+  const _DeleteAccountButton();
+
+  @override
+  State<_DeleteAccountButton> createState() => _DeleteAccountButtonState();
+}
+
+class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Center(
+      child: QuanityaTextButton(
+        text: context.l10n.deleteAccountTitle,
+        isDestructive: true,
+        onPressed: () => _confirmDelete(context),
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final goRouter = GoRouter.of(context);
+
+    showDialog(
+      context: context,
+      builder: (_) => QuanityaConfirmationDialog(
+        title: context.l10n.deleteAccountTitle,
+        message: context.l10n.deleteAccountMessage,
+        confirmText: context.l10n.deleteAccountConfirm,
+        isDestructive: true,
+        onConfirm: () async {
+          if (!mounted) return;
+          setState(() => _isLoading = true);
+
+          try {
+            // Delete server-side data if client is available
+            if (GetIt.instance.isRegistered<cloud.Client>()) {
+              try {
+                final client = GetIt.instance<cloud.Client>();
+                await client.accountDeletion.deleteAccount();
+              } catch (_) {
+                // Server deletion may fail if offline or local-only mode.
+                // Still proceed with local wipe so the user can reset.
+              }
+            }
+
+            // Wipe local keys (this also clears secure storage)
+            final keyRepo = GetIt.instance<ICryptoKeyRepository>();
+            await keyRepo.clearKeys();
+
+            AppRouter.resetKeyCheck();
+
+            if (mounted) {
+              goRouter.goNamed(RouteNames.onboarding);
+            }
+          } finally {
+            if (mounted) setState(() => _isLoading = false);
+          }
+        },
       ),
     );
   }

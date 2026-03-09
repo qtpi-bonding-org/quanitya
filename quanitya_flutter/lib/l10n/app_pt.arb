@@ -572,5 +572,23 @@
   "tooltipAnalyzeData": "Analisar Dados",
   "tooltipStop": "Parar",
   "tooltipStart": "Iniciar",
-  "tooltipReset": "Reiniciar"
+  "tooltipReset": "Reiniciar",
+  "restorePurchases": "Restaurar Compras",
+  "restorePurchasesSuccess": "Compras restauradas",
+  "deleteAccountTitle": "Excluir Conta",
+  "deleteAccountMessage": "Isso excluirá permanentemente sua conta e todos os dados do servidor. Seus dados locais também serão apagados. Esta ação não pode ser desfeita.",
+  "deleteAccountConfirm": "Excluir Conta",
+  "deleteAccountSuccess": "Conta excluída",
+  "purchaseSubscribe": "Assinar",
+  "purchaseBuy": "Comprar",
+  "syncActive": "Sincronização Ativa",
+  "syncInactive": "Sem Acesso à Sincronização",
+  "entitlementLabel": "Direito #{id}",
+  "@entitlementLabel": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -9,7 +9,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Quanitya Flutter</string>
+		<string>Quanitya</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -57,5 +57,7 @@
 		<string>Quanitya can write health data from your trackers.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>Quanitya records your location when you tap the location button.</string>
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
 	</dict>
 </plist>

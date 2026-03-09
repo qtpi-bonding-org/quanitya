@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:anonaccred_client/anonaccred_client.dart'
     show AccountEntitlement;
 
+import '../../../design_system/primitives/app_spacings.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../support/extensions/context_extensions.dart';
+
 /// Displays the user's entitlement balances (sync days, credits, etc.)
 class BalanceDisplay extends StatelessWidget {
   const BalanceDisplay({
@@ -15,12 +19,10 @@ class BalanceDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: AppPadding.listItem,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppPadding.allDouble,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -29,32 +31,34 @@ class BalanceDisplay extends StatelessWidget {
                 Icon(
                   hasSyncAccess ? Icons.cloud_done : Icons.cloud_off,
                   color: hasSyncAccess
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.error,
+                      ? context.colors.successColor
+                      : context.colors.errorColor,
                 ),
-                const SizedBox(width: 8),
+                HSpace.x1,
                 Text(
-                  hasSyncAccess ? 'Cloud Sync Active' : 'No Sync Access',
-                  style: theme.textTheme.titleMedium,
+                  hasSyncAccess
+                      ? context.l10n.syncActive
+                      : context.l10n.syncInactive,
+                  style: context.text.titleMedium,
                 ),
               ],
             ),
             if (entitlements.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              VSpace.x2,
               const Divider(),
-              const SizedBox(height: 8),
+              VSpace.x1,
               ...entitlements.map((e) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    padding: AppPadding.verticalSingle,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Entitlement #${e.entitlementId}',
-                          style: theme.textTheme.bodyMedium,
+                          context.l10n.entitlementLabel(e.entitlementId),
+                          style: context.text.bodyMedium,
                         ),
                         Text(
                           e.balance.toStringAsFixed(1),
-                          style: theme.textTheme.bodyMedium?.copyWith(
+                          style: context.text.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),

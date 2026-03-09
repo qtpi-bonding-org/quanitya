@@ -34,18 +34,18 @@ class AppInfoPage extends StatelessWidget {
             _InfoLinkItem(
               icon: Icons.privacy_tip_outlined,
               title: context.l10n.privacyPolicy,
-              onTap: () => _launchUrl('https://quanitya.app/privacy'),
+              onTap: () => _launchUrl('https://quanitya.com/#privacy'),
             ),
             _InfoLinkItem(
               icon: Icons.description_outlined,
               title: context.l10n.termsOfService,
-              onTap: () => _launchUrl('https://quanitya.app/terms'),
+              onTap: () => _launchUrl('https://quanitya.com/#terms'),
             ),
             _InfoLinkItem(
               icon: Icons.code,
               title: context.l10n.sourceCode,
               subtitle: context.l10n.sourceCodeSubtitle,
-              onTap: () => _launchUrl('https://github.com/qtpi-bonding/quanitya'),
+              onTap: () => _launchUrl('https://codeberg.org/qtpi-bonding-org/quanitya'),
             ),
           ],
         ),

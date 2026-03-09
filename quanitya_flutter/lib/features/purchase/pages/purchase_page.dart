@@ -3,11 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
+import '../../../design_system/primitives/app_spacings.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
 import '../cubits/purchase_cubit.dart';
 import '../cubits/purchase_state.dart';
 import '../cubits/entitlement_cubit.dart';
 import '../cubits/entitlement_state.dart';
+import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../widgets/product_card.dart';
 import '../widgets/balance_display.dart';
@@ -48,6 +51,7 @@ class _PurchaseView extends StatelessWidget {
           context.read<EntitlementCubit>().checkSyncAccess();
         },
         child: ListView(
+          padding: AppPadding.verticalSingle,
           children: [
             // Entitlement balance section
             BlocBuilder<EntitlementCubit, EntitlementState>(
@@ -59,26 +63,26 @@ class _PurchaseView extends StatelessWidget {
               },
             ),
 
-            const SizedBox(height: 16),
+            VSpace.x2,
 
             // Products section
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: AppPadding.pageHorizontal,
               child: Text(
                 context.l10n.purchaseAvailableProducts,
                 style: context.text.titleLarge,
               ),
             ),
-            const SizedBox(height: 8),
+            VSpace.x1,
 
             BlocBuilder<PurchaseCubit, PurchaseState>(
               builder: (context, state) {
                 if (state.status == UiFlowStatus.loading &&
                     state.lastOperation == PurchaseOperation.loadProducts) {
-                  return const Center(
+                  return Center(
                     child: Padding(
-                      padding: EdgeInsets.all(32),
-                      child: CircularProgressIndicator(),
+                      padding: AppPadding.allTriple,
+                      child: const CircularProgressIndicator(),
                     ),
                   );
                 }
@@ -86,7 +90,7 @@ class _PurchaseView extends StatelessWidget {
                 if (state.products.isEmpty) {
                   return Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(32),
+                      padding: AppPadding.allTriple,
                       child: Text(context.l10n.purchaseNoProducts),
                     ),
                   );
@@ -108,6 +112,17 @@ class _PurchaseView extends StatelessWidget {
               },
             ),
 
+            VSpace.x2,
+
+            // Restore purchases
+            Center(
+              child: QuanityaTextButton(
+                text: context.l10n.restorePurchases,
+                onPressed: () =>
+                    context.read<PurchaseCubit>().recoverPurchases(),
+              ),
+            ),
+
             // Validation result feedback
             BlocBuilder<PurchaseCubit, PurchaseState>(
               builder: (context, state) {
@@ -115,21 +130,21 @@ class _PurchaseView extends StatelessWidget {
                 if (validation == null) return const SizedBox.shrink();
 
                 return Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: AppPadding.allDouble,
                   child: Card(
                     color: validation.success
-                        ? Colors.green.shade50
-                        : Colors.red.shade50,
+                        ? context.colors.successColor.withValues(alpha: 0.1)
+                        : context.colors.errorColor.withValues(alpha: 0.1),
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: AppPadding.allDouble,
                       child: Text(
                         validation.success
                             ? context.l10n.purchaseSuccessful
                             : validation.errorMessage ?? context.l10n.purchaseFailed,
-                        style: TextStyle(
+                        style: context.text.bodyMedium?.copyWith(
                           color: validation.success
-                              ? Colors.green.shade900
-                              : Colors.red.shade900,
+                              ? context.colors.successColor
+                              : context.colors.errorColor,
                         ),
                       ),
                     ),

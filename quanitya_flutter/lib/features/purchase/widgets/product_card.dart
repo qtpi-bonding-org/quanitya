@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../design_system/primitives/app_sizes.dart';
+import '../../../design_system/primitives/app_spacings.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
+import '../../../support/extensions/context_extensions.dart';
 
 /// Displays a single purchasable product with title, description, price, and buy button.
 class ProductCard extends StatelessWidget {
@@ -20,42 +24,42 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: AppPadding.listItem,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppPadding.allDouble,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(product.title, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 4),
+            Text(product.title, style: context.text.titleMedium),
+            VSpace.x05,
             Text(
               product.description,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.textSecondary,
               ),
             ),
-            const SizedBox(height: 12),
+            VSpace.x2,
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   product.localizedPrice ?? '\$${product.priceUsd.toStringAsFixed(2)}',
-                  style: theme.textTheme.titleLarge?.copyWith(
+                  style: context.text.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 FilledButton(
                   onPressed: isLoading ? null : onBuy,
                   child: isLoading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                      ? SizedBox(
+                          width: AppSizes.iconSmall,
+                          height: AppSizes.iconSmall,
+                          child: const CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : Text(_isSubscription ? 'Subscribe' : 'Buy'),
+                      : Text(_isSubscription
+                          ? context.l10n.purchaseSubscribe
+                          : context.l10n.purchaseBuy),
                 ),
               ],
             ),

@@ -572,5 +572,23 @@
   "tooltipAnalyzeData": "Analyze Data",
   "tooltipStop": "Stop",
   "tooltipStart": "Start",
-  "tooltipReset": "Reset"
+  "tooltipReset": "Reset",
+  "restorePurchases": "Restore Purchases",
+  "restorePurchasesSuccess": "Purchases restored",
+  "deleteAccountTitle": "Delete Account",
+  "deleteAccountMessage": "This will permanently delete your account and all data from the server. Your local data will also be wiped. This cannot be undone.",
+  "deleteAccountConfirm": "Delete Account",
+  "deleteAccountSuccess": "Account deleted",
+  "purchaseSubscribe": "Subscribe",
+  "purchaseBuy": "Buy",
+  "syncActive": "Cloud Sync Active",
+  "syncInactive": "No Sync Access",
+  "entitlementLabel": "Entitlement #{id}",
+  "@entitlementLabel": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  }
 }

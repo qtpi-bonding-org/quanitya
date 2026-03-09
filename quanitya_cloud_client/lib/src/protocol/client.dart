@@ -42,6 +42,34 @@ class EndpointCloudHealth extends _i1.EndpointRef {
   );
 }
 
+/// Account deletion endpoint for user-initiated account removal.
+///
+/// Immediately and permanently deletes all account data when requested
+/// by the authenticated user. This satisfies Apple App Store requirement
+/// for account deletion functionality.
+/// {@category Endpoint}
+class EndpointAccountDeletion extends _i1.EndpointRef {
+  EndpointAccountDeletion(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'accountDeletion';
+
+  /// Delete the authenticated user's account and all associated data.
+  ///
+  /// Permanently removes:
+  /// - All encrypted data (entries, templates, schedules, pipelines)
+  /// - Template aesthetics and storage usage records
+  /// - Notification receipts and notifications
+  /// - The account itself (CASCADE handles devices, entitlements, credentials)
+  ///
+  /// Returns true on success.
+  _i2.Future<bool> deleteAccount() => caller.callServerEndpoint<bool>(
+    'accountDeletion',
+    'deleteAccount',
+    {},
+  );
+}
+
 /// Endpoint for managing admin signing keys
 ///
 /// Provides CRUD operations for admin and support ECDSA signing keys.
@@ -2028,6 +2056,7 @@ class Client extends _i1.ServerpodClientShared {
              disconnectStreamsOnLostInternetConnection,
        ) {
     cloudHealth = EndpointCloudHealth(this);
+    accountDeletion = EndpointAccountDeletion(this);
     adminKeyManagement = EndpointAdminKeyManagement(this);
     analyticsEvent = EndpointAnalyticsEvent(this);
     cloudAnalysis = EndpointCloudAnalysis(this);
@@ -2044,6 +2073,8 @@ class Client extends _i1.ServerpodClientShared {
   }
 
   late final EndpointCloudHealth cloudHealth;
+
+  late final EndpointAccountDeletion accountDeletion;
 
   late final EndpointAdminKeyManagement adminKeyManagement;
 
@@ -2074,6 +2105,7 @@ class Client extends _i1.ServerpodClientShared {
   @override
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
     'cloudHealth': cloudHealth,
+    'accountDeletion': accountDeletion,
     'adminKeyManagement': adminKeyManagement,
     'analyticsEvent': analyticsEvent,
     'cloudAnalysis': cloudAnalysis,

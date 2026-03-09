@@ -572,5 +572,23 @@
   "tooltipAnalyzeData": "Analyser les données",
   "tooltipStop": "Arrêter",
   "tooltipStart": "Démarrer",
-  "tooltipReset": "Réinitialiser"
+  "tooltipReset": "Réinitialiser",
+  "restorePurchases": "Restaurer les achats",
+  "restorePurchasesSuccess": "Achats restaurés",
+  "deleteAccountTitle": "Supprimer le compte",
+  "deleteAccountMessage": "Cela supprimera définitivement votre compte et toutes les données du serveur. Vos données locales seront aussi effacées. Cette action est irréversible.",
+  "deleteAccountConfirm": "Supprimer le compte",
+  "deleteAccountSuccess": "Compte supprimé",
+  "purchaseSubscribe": "S'abonner",
+  "purchaseBuy": "Acheter",
+  "syncActive": "Synchronisation Active",
+  "syncInactive": "Pas d'accès à la synchronisation",
+  "entitlementLabel": "Droit #{id}",
+  "@entitlementLabel": {
+    "placeholders": {
+      "id": {
+        "type": "int"
+      }
+    }
+  }
 }
