@@ -16,5 +16,3 @@ export 'time_series_matrix.dart';
 
 // Analysis system
 export 'mvs_union.dart';
-export 'operation_definition.dart';
-export 'operation_registry.dart';
