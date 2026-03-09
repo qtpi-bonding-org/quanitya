@@ -97,6 +97,20 @@ class WidgetColorRoles {
       ColorRole.border,
       ColorRole.text,
     ],
+
+    // Location picker needs primary (pin/marker), background (map), and text
+    UiElementEnum.locationPicker: [
+      ColorRole.primary,
+      ColorRole.background,
+      ColorRole.text,
+    ],
+
+    // Timer needs primary (active), secondary (inactive), and text
+    UiElementEnum.timer: [
+      ColorRole.primary,
+      ColorRole.secondary,
+      ColorRole.text,
+    ],
   };
 
   /// Gets required color roles for a specific UI element

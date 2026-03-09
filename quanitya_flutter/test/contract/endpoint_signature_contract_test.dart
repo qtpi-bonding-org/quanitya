@@ -14,7 +14,7 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:anonaccred_client/anonaccred_client.dart';
+import 'package:anonaccount_client/anonaccount_client.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 /// These tests verify the contract by ensuring the code COMPILES.
@@ -93,13 +93,13 @@ void main() {
     // These tests verify the module path structure exists
     // They use late initialization to avoid actually creating a client
     
-    test('anonaccred module path compiles', () {
+    test('anonaccount module path compiles', () {
       // This test verifies the module structure at compile time
       // If the path changes, this won't compile
       void verifyPath(Client client) {
         // These lines verify the path exists - compile error if changed
-        final _ = client.modules.anonaccred.account;
-        final __ = client.modules.anonaccred.device;
+        final _ = client.modules.anonaccount.account;
+        final __ = client.modules.anonaccount.device;
       }
 
       expect(verifyPath, isA<void Function(Client)>());

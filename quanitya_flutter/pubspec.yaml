@@ -32,10 +32,18 @@ dependencies:
     sdk: flutter
   quanitya_cloud_client:
     path: ../quanitya_cloud_client
-  serverpod_auth_idp_flutter: ^3.3.0
-  serverpod_flutter: ^3.3.0
-  # anonaccred_client:
-  #   path: ../../serverpod_anonaccred/anonaccred_client
+  serverpod_auth_idp_flutter: ^3.4.1
+  serverpod_flutter: ^3.4.1
+  anonaccount_client:
+    git:
+      url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
+      ref: 5f364aee45cb6a39e7f07b7aaf8187a5164d3f88
+      path: anonaccount_client
+  anonaccred_client:
+    git:
+      url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
+      ref: 5f364aee45cb6a39e7f07b7aaf8187a5164d3f88
+      path: anonaccred_client
   flutter_color_palette:
     git: https://github.com/qtpi-bonding-org/flutter_color_palette.git
   

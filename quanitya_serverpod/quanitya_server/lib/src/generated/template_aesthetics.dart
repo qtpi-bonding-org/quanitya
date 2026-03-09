@@ -424,6 +424,8 @@ class TemplateAestheticsRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<TemplateAestheticsTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<TemplateAesthetics>(
       where: where?.call(TemplateAesthetics.t),
@@ -433,6 +435,8 @@ class TemplateAestheticsRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -461,6 +465,8 @@ class TemplateAestheticsRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<TemplateAestheticsTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<TemplateAesthetics>(
       where: where?.call(TemplateAesthetics.t),
@@ -469,6 +475,8 @@ class TemplateAestheticsRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -477,10 +485,14 @@ class TemplateAestheticsRepository {
     _i1.Session session,
     _i1.UuidValue id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<TemplateAesthetics>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -490,14 +502,20 @@ class TemplateAestheticsRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<TemplateAesthetics>> insert(
     _i1.Session session,
     List<TemplateAesthetics> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<TemplateAesthetics>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -640,6 +658,22 @@ class TemplateAestheticsRepository {
     return session.db.count<TemplateAesthetics>(
       where: where?.call(TemplateAesthetics.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [TemplateAesthetics] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.Session session, {
+    required _i1.WhereExpressionBuilder<TemplateAestheticsTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<TemplateAesthetics>(
+      where: where(TemplateAesthetics.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

@@ -12,7 +12,7 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:anonaccred_client/anonaccred_client.dart';
+import 'package:anonaccount_client/anonaccount_client.dart';
 
 void main() {
   group('Model Contracts - Shape Verification', () {

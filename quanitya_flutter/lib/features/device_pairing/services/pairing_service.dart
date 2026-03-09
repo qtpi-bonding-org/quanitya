@@ -193,7 +193,7 @@ class PairingService implements IPairingService {
     debugPrint('PairingService: Monitoring registration for $signingKeyHex');
 
     try {
-      final stream = _client.modules.anonaccred.device.monitorRegistration(
+      final stream = _client.modules.anonaccount.device.monitorRegistration(
         signingKeyHex,
       );
 
@@ -291,7 +291,7 @@ class PairingService implements IPairingService {
         debugPrint(
           'PairingService:   Step 3: Calling server.registerDeviceForAccount...',
         );
-        await _client.modules.anonaccred.device.registerDeviceForAccount(
+        await _client.modules.anonaccount.device.registerDeviceForAccount(
           signingKeyHex,
           encryptedDataKey,
           label,

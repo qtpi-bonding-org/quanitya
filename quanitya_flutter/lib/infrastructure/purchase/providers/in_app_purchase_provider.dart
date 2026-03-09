@@ -209,10 +209,10 @@ class InAppPurchaseProvider implements IPurchaseProvider {
           throw const PurchaseException('Device key not found');
         }
 
-        final challenge = await _client.modules.anonaccred.device
+        final challenge = await _client.modules.anonaccount.device
             .generateAuthChallenge(publicKeyHex);
         final signature = await _encryption.signWithDeviceKey(challenge);
-        final authResult = await _client.modules.anonaccred.device
+        final authResult = await _client.modules.anonaccount.device
             .authenticateDevice(challenge, signature);
 
         if (!authResult.success || authResult.accountId == null) {

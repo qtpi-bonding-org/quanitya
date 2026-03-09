@@ -333,6 +333,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         _buildEnumeratedDefaultInput(context, draftColor),
       FieldEnum.reference =>
         const SizedBox.shrink(), // No default for references
+      FieldEnum.location =>
+        const SizedBox.shrink(), // No default for locations
     };
   }
 
@@ -593,6 +595,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       FieldEnum.enumerated => Icons.list,
       FieldEnum.dimension => Icons.straighten,
       FieldEnum.reference => Icons.link,
+      FieldEnum.location => Icons.location_on,
     };
   }
 
@@ -611,6 +614,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       UiElementEnum.timePicker => context.l10n.widgetTimePicker,
       UiElementEnum.datetimePicker => context.l10n.widgetDatetimePicker,
       UiElementEnum.searchField => context.l10n.widgetSearchField,
+      UiElementEnum.locationPicker => context.l10n.widgetLocationPicker,
+      UiElementEnum.timer => context.l10n.widgetTimer,
     };
   }
 }

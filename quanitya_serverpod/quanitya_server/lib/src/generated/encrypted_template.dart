@@ -273,6 +273,8 @@ class EncryptedTemplateRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<EncryptedTemplateTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<EncryptedTemplate>(
       where: where?.call(EncryptedTemplate.t),
@@ -282,6 +284,8 @@ class EncryptedTemplateRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -310,6 +314,8 @@ class EncryptedTemplateRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<EncryptedTemplateTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<EncryptedTemplate>(
       where: where?.call(EncryptedTemplate.t),
@@ -318,6 +324,8 @@ class EncryptedTemplateRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -326,10 +334,14 @@ class EncryptedTemplateRepository {
     _i1.Session session,
     _i1.UuidValue id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<EncryptedTemplate>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -339,14 +351,20 @@ class EncryptedTemplateRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<EncryptedTemplate>> insert(
     _i1.Session session,
     List<EncryptedTemplate> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<EncryptedTemplate>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -489,6 +507,22 @@ class EncryptedTemplateRepository {
     return session.db.count<EncryptedTemplate>(
       where: where?.call(EncryptedTemplate.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [EncryptedTemplate] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.Session session, {
+    required _i1.WhereExpressionBuilder<EncryptedTemplateTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<EncryptedTemplate>(
+      where: where(EncryptedTemplate.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

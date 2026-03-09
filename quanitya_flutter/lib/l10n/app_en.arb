@@ -292,6 +292,8 @@
   "widgetTimePicker": "Time Picker",
   "widgetDatetimePicker": "Date & Time Picker",
   "widgetSearchField": "Search Field",
+  "widgetLocationPicker": "Location Picker",
+  "widgetTimer": "Timer",
   "chooseFieldTypeTitle": "Choose Field Type",
   "fieldTypeIntegerDesc": "Whole numbers (1, 2, 3)",
   "fieldTypeFloatDesc": "Decimal numbers (1.5, 2.7)",

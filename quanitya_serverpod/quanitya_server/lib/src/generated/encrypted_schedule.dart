@@ -273,6 +273,8 @@ class EncryptedScheduleRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<EncryptedScheduleTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<EncryptedSchedule>(
       where: where?.call(EncryptedSchedule.t),
@@ -282,6 +284,8 @@ class EncryptedScheduleRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -310,6 +314,8 @@ class EncryptedScheduleRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<EncryptedScheduleTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<EncryptedSchedule>(
       where: where?.call(EncryptedSchedule.t),
@@ -318,6 +324,8 @@ class EncryptedScheduleRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -326,10 +334,14 @@ class EncryptedScheduleRepository {
     _i1.Session session,
     _i1.UuidValue id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<EncryptedSchedule>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -339,14 +351,20 @@ class EncryptedScheduleRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<EncryptedSchedule>> insert(
     _i1.Session session,
     List<EncryptedSchedule> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<EncryptedSchedule>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -489,6 +507,22 @@ class EncryptedScheduleRepository {
     return session.db.count<EncryptedSchedule>(
       where: where?.call(EncryptedSchedule.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [EncryptedSchedule] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.Session session, {
+    required _i1.WhereExpressionBuilder<EncryptedScheduleTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<EncryptedSchedule>(
+      where: where(EncryptedSchedule.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

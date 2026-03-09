@@ -38,6 +38,12 @@ class UiValidatorCoupling {
 
     // Search field doesn't need validators
     UiElementEnum.searchField: [],
+
+    // Location picker doesn't need validators
+    UiElementEnum.locationPicker: [],
+
+    // Timer doesn't need validators
+    UiElementEnum.timer: [],
   };
 
   /// Map defining which validators are allowed (but not required) for each UI element.
@@ -85,6 +91,12 @@ class UiValidatorCoupling {
 
     // Search field can have text and optional validators
     UiElementEnum.searchField: [ValidatorType.text, ValidatorType.optional],
+
+    // Location picker can only have optional validators
+    UiElementEnum.locationPicker: [ValidatorType.optional],
+
+    // Timer can only have optional validators
+    UiElementEnum.timer: [ValidatorType.optional],
   };
 
   /// Checks if a UI element and validator type combination is valid.

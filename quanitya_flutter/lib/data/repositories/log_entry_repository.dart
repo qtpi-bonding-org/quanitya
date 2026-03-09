@@ -331,6 +331,8 @@ class LogEntryRepository implements ILogEntryRepository {
       FieldEnum.dimension => value is num ? null : '$label must be a number',
       FieldEnum.reference =>
         value is String ? null : '$label must be a reference ID',
+      FieldEnum.location =>
+        value is Map ? null : '$label must be a location map',
     };
   }
 

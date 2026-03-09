@@ -109,6 +109,7 @@ Map<String, dynamic> createValidField(FieldEnum fieldType, UiElementEnum uiEleme
       
     case FieldEnum.boolean:
     case FieldEnum.datetime:
+    case FieldEnum.location:
       // No additional properties required
       break;
   }

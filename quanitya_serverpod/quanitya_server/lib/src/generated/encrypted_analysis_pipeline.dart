@@ -275,6 +275,8 @@ class EncryptedAnalysisPipelineRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<EncryptedAnalysisPipelineTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<EncryptedAnalysisPipeline>(
       where: where?.call(EncryptedAnalysisPipeline.t),
@@ -284,6 +286,8 @@ class EncryptedAnalysisPipelineRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -312,6 +316,8 @@ class EncryptedAnalysisPipelineRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<EncryptedAnalysisPipelineTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<EncryptedAnalysisPipeline>(
       where: where?.call(EncryptedAnalysisPipeline.t),
@@ -320,6 +326,8 @@ class EncryptedAnalysisPipelineRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -328,10 +336,14 @@ class EncryptedAnalysisPipelineRepository {
     _i1.Session session,
     _i1.UuidValue id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<EncryptedAnalysisPipeline>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -341,14 +353,20 @@ class EncryptedAnalysisPipelineRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<EncryptedAnalysisPipeline>> insert(
     _i1.Session session,
     List<EncryptedAnalysisPipeline> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<EncryptedAnalysisPipeline>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -491,6 +509,22 @@ class EncryptedAnalysisPipelineRepository {
     return session.db.count<EncryptedAnalysisPipeline>(
       where: where?.call(EncryptedAnalysisPipeline.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [EncryptedAnalysisPipeline] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.Session session, {
+    required _i1.WhereExpressionBuilder<EncryptedAnalysisPipelineTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<EncryptedAnalysisPipeline>(
+      where: where(EncryptedAnalysisPipeline.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

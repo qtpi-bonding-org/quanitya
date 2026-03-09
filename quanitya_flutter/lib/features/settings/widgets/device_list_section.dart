@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:anonaccred_client/anonaccred_client.dart' show AccountDevice;
+import 'package:anonaccount_client/anonaccount_client.dart' show AccountDevice;
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';

@@ -32,7 +32,7 @@ abstract class ArchiveSearchResult implements _i1.SerializableModel {
       year: jsonSerialization['year'] as int,
       month: jsonSerialization['month'] as int,
       archiveKey: jsonSerialization['archiveKey'] as String,
-      hasData: jsonSerialization['hasData'] as bool,
+      hasData: _i1.BoolJsonExtension.fromJson(jsonSerialization['hasData']),
     );
   }
 

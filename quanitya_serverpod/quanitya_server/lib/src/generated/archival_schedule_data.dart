@@ -251,6 +251,8 @@ class ArchivalScheduleDataRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<ArchivalScheduleDataTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<ArchivalScheduleData>(
       where: where?.call(ArchivalScheduleData.t),
@@ -260,6 +262,8 @@ class ArchivalScheduleDataRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -288,6 +292,8 @@ class ArchivalScheduleDataRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<ArchivalScheduleDataTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<ArchivalScheduleData>(
       where: where?.call(ArchivalScheduleData.t),
@@ -296,6 +302,8 @@ class ArchivalScheduleDataRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -304,10 +312,14 @@ class ArchivalScheduleDataRepository {
     _i1.Session session,
     int id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<ArchivalScheduleData>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -317,14 +329,20 @@ class ArchivalScheduleDataRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<ArchivalScheduleData>> insert(
     _i1.Session session,
     List<ArchivalScheduleData> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<ArchivalScheduleData>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -467,6 +485,22 @@ class ArchivalScheduleDataRepository {
     return session.db.count<ArchivalScheduleData>(
       where: where?.call(ArchivalScheduleData.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [ArchivalScheduleData] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.Session session, {
+    required _i1.WhereExpressionBuilder<ArchivalScheduleDataTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<ArchivalScheduleData>(
+      where: where(ArchivalScheduleData.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }

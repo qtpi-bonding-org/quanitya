@@ -22,8 +22,9 @@ import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i7;
 import 'package:quanitya_client/quanitya_client.dart' as _i8;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i9;
-import 'protocol.dart' as _i10;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i9;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i10;
+import 'protocol.dart' as _i11;
 
 /// A simple cloud-specific endpoint to verify the cloud server is working.
 /// {@category Endpoint}
@@ -482,11 +483,11 @@ class EndpointCloudAnalysis extends _i1.EndpointRef {
     },
   );
 
-  /// Get AnonAccred configuration status
-  _i2.Future<Map<String, dynamic>> getAnonAccredConfig() =>
+  /// Get AnonAccount configuration status
+  _i2.Future<Map<String, dynamic>> getAnonAccountConfig() =>
       caller.callServerEndpoint<Map<String, dynamic>>(
         'cloudAnalysis',
-        'getAnonAccredConfig',
+        'getAnonAccountConfig',
         {},
       );
 }
@@ -1982,7 +1983,8 @@ class Modules {
     serverpod_auth_idp = _i6.Caller(client);
     serverpod_auth_core = _i7.Caller(client);
     community = _i8.Caller(client);
-    anonaccred = _i9.Caller(client);
+    anonaccount = _i9.Caller(client);
+    anonaccred = _i10.Caller(client);
   }
 
   late final _i6.Caller serverpod_auth_idp;
@@ -1991,7 +1993,9 @@ class Modules {
 
   late final _i8.Caller community;
 
-  late final _i9.Caller anonaccred;
+  late final _i9.Caller anonaccount;
+
+  late final _i10.Caller anonaccred;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -2014,7 +2018,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i10.Protocol(),
+         _i11.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -2089,6 +2093,7 @@ class Client extends _i1.ServerpodClientShared {
     'serverpod_auth_idp': modules.serverpod_auth_idp,
     'serverpod_auth_core': modules.serverpod_auth_core,
     'community': modules.community,
+    'anonaccount': modules.anonaccount,
     'anonaccred': modules.anonaccred,
   };
 }

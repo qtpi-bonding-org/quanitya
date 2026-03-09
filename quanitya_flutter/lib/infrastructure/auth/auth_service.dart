@@ -6,7 +6,7 @@ import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:serverpod_client/serverpod_client.dart'
     show ClientAuthKeyProvider;
-import 'package:anonaccred_client/anonaccred_client.dart'
+import 'package:anonaccount_client/anonaccount_client.dart'
     show AuthenticationResult, AccountDevice;
 
 import '../core/try_operation.dart';
@@ -374,7 +374,7 @@ class AuthService {
           '🔐 AuthService: Account registration params - devicePublicKeyHex: ${payload.devicePublicKeyHex.length} chars, recoveryBlob: ${payload.recoveryBlob.length} chars, ultimatePublicKeyHex: ${payload.ultimatePublicKeyHex.length} chars',
         );
         try {
-          final account = await _client.modules.anonaccred.account.createAccount(
+          final account = await _client.modules.anonaccount.account.createAccount(
             payload.devicePublicKeyHex, // publicMasterKey
             payload.recoveryBlob, // encryptedDataKey (for recovery)
             payload
@@ -399,7 +399,7 @@ class AuthService {
           debugPrint(
             '🔐 AuthService: Device registration params - accountId: $accountId, devicePublicKeyHex: ${payload.devicePublicKeyHex.length} chars, deviceBlob: ${payload.deviceBlob.length} chars, label: "$deviceLabel"',
           );
-          await _client.modules.anonaccred.device.registerDevice(
+          await _client.modules.anonaccount.device.registerDevice(
             accountId,
             payload.devicePublicKeyHex, // deviceSigningPublicKeyHex
             payload.deviceBlob, // encryptedDataKey (for this device)
@@ -461,7 +461,7 @@ class AuthService {
             .exportPublicKeyHex();
 
         // 3. Look up account on server
-        final account = await _client.modules.anonaccred.account
+        final account = await _client.modules.anonaccount.account
             .getAccountForRecovery(ultimatePublicKeyHex);
 
         if (account == null) {
@@ -510,7 +510,7 @@ class AuthService {
           throw const AccountRecoveryException('Account missing ID');
         }
 
-        await _client.modules.anonaccred.device.registerDevice(
+        await _client.modules.anonaccount.device.registerDevice(
           accountId,
           devicePublicKeyHex,
           deviceBlob,
@@ -557,14 +557,14 @@ class AuthService {
         }
 
         // 1. Get challenge from server (pass device public key)
-        final challenge = await _client.modules.anonaccred.device
+        final challenge = await _client.modules.anonaccount.device
             .generateAuthChallenge(devicePublicKeyHex);
 
         // 2. Sign challenge with ECDSA P-256 via DataEncryptionService
         final signature = await _encryption.signWithDeviceKey(challenge);
 
         // 3. Verify with server
-        final result = await _client.modules.anonaccred.device
+        final result = await _client.modules.anonaccount.device
             .authenticateDevice(challenge, signature);
 
         if (!result.success) {
@@ -586,7 +586,7 @@ class AuthService {
   Future<List<AccountDevice>> listDevices() {
     return tryMethod(
       () async {
-        return await _client.modules.anonaccred.device.listDevices();
+        return await _client.modules.anonaccount.device.listDevices();
       },
       AuthException.new,
       'listDevices',
@@ -599,7 +599,7 @@ class AuthService {
   Future<void> revokeDevice(int deviceId) {
     return tryMethod(
       () async {
-        await _client.modules.anonaccred.device.revokeDevice(deviceId);
+        await _client.modules.anonaccount.device.revokeDevice(deviceId);
       },
       AuthException.new,
       'revokeDevice',

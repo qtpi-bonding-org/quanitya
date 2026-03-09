@@ -141,6 +141,7 @@ class TemplateListCubit extends QuanityaCubit<TemplateListState> {
         field.options?.isNotEmpty == true ? field.options!.first : null,
       FieldEnum.dimension => 0.0,
       FieldEnum.reference => null,
+      FieldEnum.location => null,
     };
   }
 

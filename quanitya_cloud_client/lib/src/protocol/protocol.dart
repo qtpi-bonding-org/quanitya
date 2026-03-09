@@ -29,7 +29,8 @@ import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i15;
 import 'package:quanitya_client/quanitya_client.dart' as _i16;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i17;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i17;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i18;
 export 'admin_signing_key.dart';
 export 'analytics_event.dart';
 export 'cloud_llm_call_type.dart';
@@ -211,6 +212,9 @@ class Protocol extends _i1.SerializationManager {
     try {
       return _i17.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i18.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
 
@@ -281,6 +285,10 @@ class Protocol extends _i1.SerializationManager {
     }
     className = _i17.Protocol().getClassNameForObject(data);
     if (className != null) {
+      return 'anonaccount.$className';
+    }
+    className = _i18.Protocol().getClassNameForObject(data);
+    if (className != null) {
       return 'anonaccred.$className';
     }
     return null;
@@ -337,9 +345,13 @@ class Protocol extends _i1.SerializationManager {
       data['className'] = dataClassName.substring(9);
       return _i16.Protocol().deserializeByClassName(data);
     }
+    if (dataClassName.startsWith('anonaccount.')) {
+      data['className'] = dataClassName.substring(12);
+      return _i17.Protocol().deserializeByClassName(data);
+    }
     if (dataClassName.startsWith('anonaccred.')) {
       data['className'] = dataClassName.substring(11);
-      return _i17.Protocol().deserializeByClassName(data);
+      return _i18.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -364,6 +376,9 @@ class Protocol extends _i1.SerializationManager {
     } catch (_) {}
     try {
       return _i17.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _i18.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

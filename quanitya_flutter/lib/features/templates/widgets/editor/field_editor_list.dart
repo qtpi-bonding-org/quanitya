@@ -224,6 +224,7 @@ class _FieldEditorListState extends State<FieldEditorList> {
       FieldEnum.enumerated => Icons.list,
       FieldEnum.dimension => Icons.straighten,
       FieldEnum.reference => Icons.link,
+      FieldEnum.location => Icons.location_on,
     };
   }
 
@@ -242,6 +243,8 @@ class _FieldEditorListState extends State<FieldEditorList> {
       UiElementEnum.timePicker => context.l10n.widgetTimePicker,
       UiElementEnum.datetimePicker => context.l10n.widgetDatetimePicker,
       UiElementEnum.searchField => context.l10n.widgetSearchField,
+      UiElementEnum.locationPicker => context.l10n.widgetLocationPicker,
+      UiElementEnum.timer => context.l10n.widgetTimer,
     };
   }
 

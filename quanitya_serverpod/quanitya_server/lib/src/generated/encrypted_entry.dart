@@ -272,6 +272,8 @@ class EncryptedEntryRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<EncryptedEntryTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.find<EncryptedEntry>(
       where: where?.call(EncryptedEntry.t),
@@ -281,6 +283,8 @@ class EncryptedEntryRepository {
       limit: limit,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -309,6 +313,8 @@ class EncryptedEntryRepository {
     bool orderDescending = false,
     _i1.OrderByListBuilder<EncryptedEntryTable>? orderByList,
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findFirstRow<EncryptedEntry>(
       where: where?.call(EncryptedEntry.t),
@@ -317,6 +323,8 @@ class EncryptedEntryRepository {
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -325,10 +333,14 @@ class EncryptedEntryRepository {
     _i1.Session session,
     _i1.UuidValue id, {
     _i1.Transaction? transaction,
+    _i1.LockMode? lockMode,
+    _i1.LockBehavior? lockBehavior,
   }) async {
     return session.db.findById<EncryptedEntry>(
       id,
       transaction: transaction,
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
     );
   }
 
@@ -338,14 +350,20 @@ class EncryptedEntryRepository {
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
+  ///
+  /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
+  /// rows are silently skipped, and only the successfully inserted rows are
+  /// returned.
   Future<List<EncryptedEntry>> insert(
     _i1.Session session,
     List<EncryptedEntry> rows, {
     _i1.Transaction? transaction,
+    bool ignoreConflicts = false,
   }) async {
     return session.db.insert<EncryptedEntry>(
       rows,
       transaction: transaction,
+      ignoreConflicts: ignoreConflicts,
     );
   }
 
@@ -486,6 +504,22 @@ class EncryptedEntryRepository {
     return session.db.count<EncryptedEntry>(
       where: where?.call(EncryptedEntry.t),
       limit: limit,
+      transaction: transaction,
+    );
+  }
+
+  /// Acquires row-level locks on [EncryptedEntry] rows matching the [where] expression.
+  Future<void> lockRows(
+    _i1.Session session, {
+    required _i1.WhereExpressionBuilder<EncryptedEntryTable> where,
+    required _i1.LockMode lockMode,
+    required _i1.Transaction transaction,
+    _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
+  }) async {
+    return session.db.lockRows<EncryptedEntry>(
+      where: where(EncryptedEntry.t),
+      lockMode: lockMode,
+      lockBehavior: lockBehavior,
       transaction: transaction,
     );
   }
