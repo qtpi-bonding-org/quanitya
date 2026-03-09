@@ -1,5 +1,6 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import 'data_export_state.dart';
 
@@ -9,8 +10,8 @@ class DataExportMessageMapper implements IStateMessageMapper<DataExportState> {
   MessageKey? map(DataExportState state) {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
-        DataExportOperation.export => MessageKey.success('settings.export.success'),
-        DataExportOperation.importData => MessageKey.success('settings.import.success'),
+        DataExportOperation.export => MessageKey.success(L10nKeys.settingsExportSuccess),
+        DataExportOperation.importData => MessageKey.success(L10nKeys.settingsImportSuccess),
       };
     }
     return null;

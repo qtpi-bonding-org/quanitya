@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import '../../data/repositories/log_entry_repository.dart';
 import '../../data/repositories/template_with_aesthetics_repository.dart';
@@ -20,71 +21,71 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
     return switch (exception) {
       // Network-related exceptions
       NetworkException() => MessageKey.networkError,
-      TimeoutException() => const MessageKey.error('error.timeout'),
-      
+      TimeoutException() => const MessageKey.error(L10nKeys.errorTimeout),
+
       // Authentication exceptions - check cause for more specific errors
       AuthException e => _mapAuthException(e),
-      UnauthorizedException() => const MessageKey.error('error.auth.unauthorized'),
-      
+      UnauthorizedException() => const MessageKey.error(L10nKeys.errorAuthUnauthorized),
+
       // Validation exceptions
       ValidationException e => MessageKey.error(
           'validation.${e.field}',
           {'field': e.field, 'value': e.value},
         ),
-      
+
       // Repository-specific exceptions
       LogEntryValidationException e => MessageKey.error(
-          'error.log_entry.validation',
+          L10nKeys.errorLogEntryValidation,
           {'errors': e.errors.join(', ')},
         ),
       TemplateNotFoundException e => MessageKey.error(
-          'error.template.not_found',
+          L10nKeys.errorTemplateNotFound,
           {'templateId': e.templateId},
         ),
       SchemaChangeException e => MessageKey.error(
-          'error.template.schema_change',
+          L10nKeys.errorTemplateSchemaChange,
           {'message': e.message},
         ),
-      
+
       // Storage/Database exceptions
-      StorageException() => const MessageKey.error('error.storage.failed'),
-      DatabaseException() => const MessageKey.error('error.database.failed'),
-      
+      StorageException() => const MessageKey.error(L10nKeys.errorStorageFailed),
+      DatabaseException() => const MessageKey.error(L10nKeys.errorDatabaseFailed),
+
       // PowerSync exceptions
-      PowerSyncException() => const MessageKey.error('error.sync.failed'),
-      
+      PowerSyncException() => const MessageKey.error(L10nKeys.errorSyncFailed),
+
       // Serverpod exceptions
       ServerpodException e => MessageKey.error(
           'error.server.${e.errorCode}',
           {'code': e.errorCode},
         ),
-      
+
       // Encryption exceptions
-      EncryptionException() => const MessageKey.error('error.encryption.failed'),
-      KeyManagementException() => const MessageKey.error('error.keys.failed'),
+      EncryptionException() => const MessageKey.error(L10nKeys.errorEncryptionFailed),
+      KeyManagementException() => const MessageKey.error(L10nKeys.errorKeysFailed),
       KeyGenerationException e => e.message.contains('already exist')
-          ? const MessageKey.error('error.keys.already.exist')
-          : const MessageKey.error('error.keys.failed'),
-      
+          ? const MessageKey.error(L10nKeys.errorKeysAlreadyExist)
+          : const MessageKey.error(L10nKeys.errorKeysFailed),
+
       // Pairing exceptions
       PairingException e => e.message.contains('already set up')
-          ? const MessageKey.error('error.pairing.device.already.setup')
-          : const MessageKey.error('error.pairing.failed'),
-      
+          ? const MessageKey.error(L10nKeys.errorPairingDeviceAlreadySetup)
+          : const MessageKey.error(L10nKeys.errorPairingFailed),
+
       // Public submission exceptions (most specific first)
-      ChallengeRequestException() => const MessageKey.error('error.challenge.request.failed'),
-      ProofOfWorkException() => const MessageKey.error('error.proof.of.work.failed'),
-      SignatureException() => const MessageKey.error('error.signature.failed'),
-      RateLimitExceededException() => const MessageKey.error('error.rate.limit.exceeded'),
-      PublicSubmissionException() => const MessageKey.error('error.public.submission.failed'),
-      
+      ChallengeRequestException() => const MessageKey.error(L10nKeys.errorChallengeRequestFailed),
+      ProofOfWorkException() => const MessageKey.error(L10nKeys.errorProofOfWorkFailed),
+      SignatureException() => const MessageKey.error(L10nKeys.errorSignatureFailed),
+      RateLimitExceededException() => const MessageKey.error(L10nKeys.errorRateLimitExceeded),
+      PublicSubmissionException() => const MessageKey.error(L10nKeys.errorPublicSubmissionFailed),
+
       // Feedback exceptions
       FeedbackException e => _mapFeedbackException(e),
-      
+
       // Generic exceptions
-      FormatException() => const MessageKey.error('error.format.invalid'),
-      ArgumentError() => const MessageKey.error('error.argument.invalid'),
-      StateError() => const MessageKey.error('error.state.invalid'),
+      FormatException() => const MessageKey.error(L10nKeys.errorFormatInvalid),
+      ArgumentError() => const MessageKey.error(L10nKeys.errorArgumentInvalid),
+      StateError() => const MessageKey.error(L10nKeys.errorStateInvalid),
       
       // Fallback to null for unknown exceptions (will use generic error)
       _ => null,
@@ -98,9 +99,9 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
     // Check if cause is a KeyGenerationException with "already exist" message
     if (cause is KeyGenerationException) {
       if (cause.message.contains('already exist')) {
-        return const MessageKey.error('error.keys.already.exist');
+        return const MessageKey.error(L10nKeys.errorKeysAlreadyExist);
       }
-      return const MessageKey.error('error.keys.failed');
+      return const MessageKey.error(L10nKeys.errorKeysFailed);
     }
     
     // Check for connection/network errors (ServerpodClientException with SocketException)
@@ -110,25 +111,25 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
         causeString.contains('SocketException') ||
         messageString.contains('Connection refused') ||
         messageString.contains('SocketException')) {
-      return const MessageKey.error('error.offline');
+      return const MessageKey.error(L10nKeys.errorOffline);
     }
-    
+
     // Default auth error
-    return const MessageKey.error('error.auth.failed');
+    return const MessageKey.error(L10nKeys.errorAuthFailed);
   }
 
   /// Maps FeedbackException to specific error messages
   MessageKey _mapFeedbackException(FeedbackException e) {
     if (e.message.contains('at least 10 characters')) {
-      return const MessageKey.error('error.feedback.too.short');
+      return const MessageKey.error(L10nKeys.errorFeedbackTooShort);
     }
     if (e.message.contains('less than 5000 characters')) {
-      return const MessageKey.error('error.feedback.too.long');
+      return const MessageKey.error(L10nKeys.errorFeedbackTooLong);
     }
     if (e.message.contains('Invalid feedback type')) {
-      return const MessageKey.error('error.feedback.invalid.type');
+      return const MessageKey.error(L10nKeys.errorFeedbackInvalidType);
     }
-    return const MessageKey.error('error.public.submission.failed');
+    return const MessageKey.error(L10nKeys.errorPublicSubmissionFailed);
   }
 }
 

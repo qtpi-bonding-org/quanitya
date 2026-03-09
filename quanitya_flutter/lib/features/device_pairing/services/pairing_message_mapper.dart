@@ -1,5 +1,6 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
 import '../cubits/pairing_qr_state.dart';
@@ -11,8 +12,8 @@ class _PairingQrDomainMapper implements IStateMessageMapper<PairingQrState> {
   MessageKey? map(PairingQrState state) {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
-        PairingQrOperation.generateQr => MessageKey.success('pairing.qr.generated'),
-        PairingQrOperation.pollSuccess => MessageKey.success('pairing.completed'),
+        PairingQrOperation.generateQr => MessageKey.success(L10nKeys.pairingQrGenerated),
+        PairingQrOperation.pollSuccess => MessageKey.success(L10nKeys.pairingCompleted),
       };
     }
     return null;
@@ -37,7 +38,7 @@ class _PairingScanDomainMapper implements IStateMessageMapper<PairingScanState> 
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         PairingScanOperation.scanQr => null, // No toast for scan, show confirmation instead
-        PairingScanOperation.registerDevice => MessageKey.success('pairing.device.added'),
+        PairingScanOperation.registerDevice => MessageKey.success(L10nKeys.pairingDeviceAdded),
       };
     }
     return null;

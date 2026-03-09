@@ -1,5 +1,6 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import '../../exceptions/accessibility_exception.dart';
 import '../../exceptions/template_generation_exception.dart';
@@ -38,7 +39,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
   MessageKey _mapGenerationException(TemplateGenerationException exception) {
     return switch (exception.stage) {
       GenerationStage.validation => MessageKey.error(
-        'template.generation.validation_failed',
+        L10nKeys.templateGenerationValidationFailed,
         {
           'reason': exception.message,
           'suggestions': _getValidationSuggestions(exception),
@@ -46,7 +47,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       GenerationStage.aiGeneration => MessageKey.error(
-        'template.generation.ai_service_failed',
+        L10nKeys.templateGenerationAiServiceFailed,
         {
           'reason': exception.message,
           'isRetryable': true,
@@ -54,7 +55,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       GenerationStage.schemaValidation => MessageKey.error(
-        'template.generation.schema_validation_failed',
+        L10nKeys.templateGenerationSchemaValidationFailed,
         {
           'reason': exception.message,
           'suggestions': [
@@ -65,7 +66,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       GenerationStage.optimization => MessageKey.error(
-        'template.generation.performance_failed',
+        L10nKeys.templateGenerationPerformanceFailed,
         {
           'reason': exception.message,
           'suggestions': [
@@ -77,7 +78,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       GenerationStage.postProcessing => MessageKey.error(
-        'template.generation.processing_failed',
+        L10nKeys.templateGenerationProcessingFailed,
         {
           'reason': exception.message,
           'isRetryable': true,
@@ -86,7 +87,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
 
       // Integration pipeline specific stages
       GenerationStage.combinationGeneration => MessageKey.error(
-        'template.integration.combination_generation_failed',
+        L10nKeys.templateIntegrationCombinationGenerationFailed,
         {
           'reason': exception.message,
           'suggestions': [
@@ -98,7 +99,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       GenerationStage.schemaConversion => MessageKey.error(
-        'template.integration.schema_conversion_failed',
+        L10nKeys.templateIntegrationSchemaConversionFailed,
         {
           'reason': exception.message,
           'suggestions': [
@@ -110,7 +111,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       GenerationStage.pipelineOrchestration => MessageKey.error(
-        'template.integration.pipeline_orchestration_failed',
+        L10nKeys.templateIntegrationPipelineOrchestrationFailed,
         {
           'reason': exception.message,
           'suggestions': [
@@ -122,7 +123,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       GenerationStage.widgetGeneration => MessageKey.error(
-        'template.integration.widget_generation_failed',
+        L10nKeys.templateIntegrationWidgetGenerationFailed,
         {
           'reason': exception.message,
           'suggestions': [
@@ -138,21 +139,21 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
   /// Maps template parsing exceptions to message keys
   MessageKey _mapParsingException(TemplateParsingException exception) {
     if (exception.message.contains('Missing required field')) {
-      return MessageKey.error('template.parsing.missing_field', {
+      return MessageKey.error(L10nKeys.templateParsingMissingField, {
         'field': _extractFieldName(exception.message),
         'jsonPath': exception.jsonPath,
       });
     }
 
     if (exception.message.contains('Invalid value')) {
-      return MessageKey.error('template.parsing.invalid_value', {
+      return MessageKey.error(L10nKeys.templateParsingInvalidValue, {
         'field': _extractFieldName(exception.message),
         'jsonPath': exception.jsonPath,
       });
     }
 
     if (exception.message.contains('Invalid field-widget combination')) {
-      return MessageKey.error('template.parsing.invalid_combination', {
+      return MessageKey.error(L10nKeys.templateParsingInvalidCombination, {
         'reason': exception.message,
         'suggestions': [
           'Try a different UI element for this field type',
@@ -162,7 +163,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
     }
 
     if (exception.message.contains('Color palette error')) {
-      return MessageKey.error('template.parsing.color_palette_error', {
+      return MessageKey.error(L10nKeys.templateParsingColorPaletteError, {
         'reason': exception.message,
         'suggestions': [
           'Try a simpler color scheme',
@@ -173,7 +174,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
     }
 
     if (exception.message.contains('Color mapping error')) {
-      return MessageKey.error('template.parsing.color_mapping_error', {
+      return MessageKey.error(L10nKeys.templateParsingColorMappingError, {
         'reason': exception.message,
         'suggestions': [
           'Simplify color requirements',
@@ -183,7 +184,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
     }
 
     // Generic parsing error
-    return MessageKey.error('template.parsing.generic_error', {
+    return MessageKey.error(L10nKeys.templateParsingGenericError, {
       'reason': exception.message,
       'jsonPath': exception.jsonPath,
     });
@@ -193,7 +194,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
   MessageKey _mapRenderingException(TemplateRenderingException exception) {
     return switch (exception.stage) {
       RenderingStage.contextCreation => MessageKey.error(
-        'template.rendering.context_failed',
+        L10nKeys.templateRenderingContextFailed,
         {
           'reason': exception.message,
           'fieldId': exception.fieldId,
@@ -201,7 +202,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       RenderingStage.colorResolution => MessageKey.error(
-        'template.rendering.color_resolution_failed',
+        L10nKeys.templateRenderingColorResolutionFailed,
         {
           'reason': exception.message,
           'fieldId': exception.fieldId,
@@ -210,7 +211,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       RenderingStage.validation => MessageKey.error(
-        'template.rendering.validation_failed',
+        L10nKeys.templateRenderingValidationFailed,
         {
           'reason': exception.message,
           'fieldId': exception.fieldId,
@@ -218,7 +219,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       RenderingStage.widgetCreation => MessageKey.error(
-        'template.rendering.widget_creation_failed',
+        L10nKeys.templateRenderingWidgetCreationFailed,
         {
           'reason': exception.message,
           'fieldId': exception.fieldId,
@@ -230,7 +231,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       RenderingStage.accessibility => MessageKey.error(
-        'template.rendering.accessibility_failed',
+        L10nKeys.templateRenderingAccessibilityFailed,
         {
           'reason': exception.message,
           'fieldId': exception.fieldId,
@@ -242,7 +243,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       RenderingStage.layout => MessageKey.error(
-        'template.rendering.layout_failed',
+        L10nKeys.templateRenderingLayoutFailed,
         {
           'reason': exception.message,
           'suggestions': [
@@ -258,7 +259,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
   MessageKey _mapAccessibilityException(AccessibilityException exception) {
     return switch (exception.requirementType) {
       AccessibilityRequirementType.contrastRatio => MessageKey.warning(
-        'template.accessibility.contrast_ratio_failed',
+        L10nKeys.templateAccessibilityContrastRatioFailed,
         {
           'elementName': exception.elementName,
           'currentRatio': exception.currentValue,
@@ -270,7 +271,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       AccessibilityRequirementType.colorBlindness => MessageKey.warning(
-        'template.accessibility.color_blindness_issue',
+        L10nKeys.templateAccessibilityColorBlindnessIssue,
         {
           'elementName': exception.elementName,
           'suggestions': exception.suggestedAdjustments,
@@ -279,7 +280,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       AccessibilityRequirementType.focusIndicator => MessageKey.warning(
-        'template.accessibility.focus_indicator_failed',
+        L10nKeys.templateAccessibilityFocusIndicatorFailed,
         {
           'elementName': exception.elementName,
           'suggestions': exception.suggestedAdjustments,
@@ -288,7 +289,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       AccessibilityRequirementType.touchTargetSize => MessageKey.warning(
-        'template.accessibility.touch_target_size_failed',
+        L10nKeys.templateAccessibilityTouchTargetSizeFailed,
         {
           'elementName': exception.elementName,
           'currentSize': exception.currentValue,
@@ -299,7 +300,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
       ),
 
       AccessibilityRequirementType.textReadability => MessageKey.warning(
-        'template.accessibility.text_readability_failed',
+        L10nKeys.templateAccessibilityTextReadabilityFailed,
         {
           'elementName': exception.elementName,
           'suggestions': exception.suggestedAdjustments,
@@ -307,7 +308,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
         },
       ),
 
-      _ => MessageKey.warning('template.accessibility.generic_issue', {
+      _ => MessageKey.warning(L10nKeys.templateAccessibilityGenericIssue, {
         'elementName': exception.elementName,
         'requirementType': exception.requirementType.name,
         'suggestions': exception.suggestedAdjustments,

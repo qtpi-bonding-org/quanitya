@@ -1,5 +1,6 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import 'analytics_state.dart';
 
@@ -10,10 +11,10 @@ class AnalyticsMessageMapper implements IStateMessageMapper<AnalyticsState> {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         AnalyticsOperation.loadPipelines => null, // No message for loading
-        AnalyticsOperation.executePipeline => MessageKey.success('analytics.pipeline.executed'),
-        AnalyticsOperation.savePipeline => MessageKey.success('analytics.pipeline.saved'),
-        AnalyticsOperation.updatePipeline => MessageKey.success('analytics.pipeline.updated'),
-        AnalyticsOperation.deletePipeline => MessageKey.success('analytics.pipeline.deleted'),
+        AnalyticsOperation.executePipeline => MessageKey.success(L10nKeys.analyticsPipelineExecuted),
+        AnalyticsOperation.savePipeline => MessageKey.success(L10nKeys.analyticsPipelineSaved),
+        AnalyticsOperation.updatePipeline => MessageKey.success(L10nKeys.analyticsPipelineUpdated),
+        AnalyticsOperation.deletePipeline => MessageKey.success(L10nKeys.analyticsPipelineDeleted),
       };
     }
     return null; // Use global exception mapping for errors

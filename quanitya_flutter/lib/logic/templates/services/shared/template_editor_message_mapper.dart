@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import '../../../../features/templates/cubits/editor/template_editor_state.dart';
 
@@ -12,16 +13,16 @@ class TemplateEditorMessageMapper
     final operation = state.lastOperation;
     if (state.status.isSuccess && operation != null) {
       return switch (operation) {
-        TemplateEditorOperation.save => MessageKey.success('template.saved'),
-        TemplateEditorOperation.load => MessageKey.info('template.loaded'),
+        TemplateEditorOperation.save => MessageKey.success(L10nKeys.templateSaved),
+        TemplateEditorOperation.load => MessageKey.info(L10nKeys.templateLoaded),
         TemplateEditorOperation.addField => MessageKey.success(
-          'template.field_added',
+          L10nKeys.templateFieldAdded,
         ),
         TemplateEditorOperation.removeField => MessageKey.success(
-          'template.field_removed',
+          L10nKeys.templateFieldRemoved,
         ),
         TemplateEditorOperation.discard => MessageKey.info(
-          'template.discarded',
+          L10nKeys.templateDiscarded,
         ),
         _ => null, // No message for other operations
       };

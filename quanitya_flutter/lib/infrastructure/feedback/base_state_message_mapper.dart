@@ -1,4 +1,5 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 /// Base implementation of [IStateMessageMapper] that combines exception and domain mappers.
 ///
@@ -39,7 +40,7 @@ class BaseStateMessageMapper<S extends IUiFlowState>
       
       // Fallback: return generic error with the exception message
       return MessageKey.error(
-        'error.generic',
+        L10nKeys.errorGeneric,
         {'message': state.error.toString()},
       );
     }

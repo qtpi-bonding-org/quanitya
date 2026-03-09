@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import 'template_list_state.dart';
 
@@ -12,11 +13,11 @@ class TemplateListMessageMapper
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         TemplateListOperation.load => null, // Silent load
-        TemplateListOperation.archive => MessageKey.success('template.archived'),
-        TemplateListOperation.delete => MessageKey.success('template.deleted'),
-        TemplateListOperation.instantLog => MessageKey.success('log_entry.saved'),
-        TemplateListOperation.hide => MessageKey.success('template.hidden'),
-        TemplateListOperation.unhide => MessageKey.success('template.unhidden'),
+        TemplateListOperation.archive => MessageKey.success(L10nKeys.templateArchived),
+        TemplateListOperation.delete => MessageKey.success(L10nKeys.templateDeleted),
+        TemplateListOperation.instantLog => MessageKey.success(L10nKeys.logEntrySaved),
+        TemplateListOperation.hide => MessageKey.success(L10nKeys.templateHidden),
+        TemplateListOperation.unhide => MessageKey.success(L10nKeys.templateUnhidden),
         TemplateListOperation.toggleHiddenView => null, // Silent toggle
       };
     }

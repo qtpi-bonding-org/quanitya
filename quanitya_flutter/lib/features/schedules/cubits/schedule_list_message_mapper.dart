@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import 'schedule_list_state.dart';
 
@@ -12,10 +13,10 @@ class ScheduleListMessageMapper
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         ScheduleListOperation.load => null, // Silent load
-        ScheduleListOperation.pause => MessageKey.success('schedule.paused'),
-        ScheduleListOperation.resume => MessageKey.success('schedule.resumed'),
-        ScheduleListOperation.delete => MessageKey.success('schedule.deleted'),
-        ScheduleListOperation.update => MessageKey.success('schedule.updated'),
+        ScheduleListOperation.pause => MessageKey.success(L10nKeys.schedulePaused),
+        ScheduleListOperation.resume => MessageKey.success(L10nKeys.scheduleResumed),
+        ScheduleListOperation.delete => MessageKey.success(L10nKeys.scheduleDeleted),
+        ScheduleListOperation.update => MessageKey.success(L10nKeys.scheduleUpdated),
       };
     }
     return null; // Use global exception mapping for errors

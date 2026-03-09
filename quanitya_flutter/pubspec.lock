@@ -1312,8 +1312,8 @@ packages:
     dependency: "direct dev"
     description:
       path: "."
-      ref: cba64958fe77c9f36a0150c88a8e342aeda052e8
-      resolved-ref: cba64958fe77c9f36a0150c88a8e342aeda052e8
+      ref: "0ca0e58"
+      resolved-ref: "0ca0e5851d139c9efcfa5ede113b4d5dc5e82d0d"
       url: "https://github.com/qtpi-bonding-org/dart_l10n_key_resolver.git"
     source: git
     version: "0.1.0"

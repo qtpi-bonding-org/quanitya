@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import 'entry_detail_state.dart';
 
@@ -12,8 +13,8 @@ class EntryDetailMessageMapper
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         EntryDetailOperation.load => null, // Silent load
-        EntryDetailOperation.update => MessageKey.success('entry.updated'),
-        EntryDetailOperation.delete => MessageKey.success('entry.deleted'),
+        EntryDetailOperation.update => MessageKey.success(L10nKeys.entryUpdated),
+        EntryDetailOperation.delete => MessageKey.success(L10nKeys.entryDeleted),
       };
     }
     return null; // Use global exception mapping for errors

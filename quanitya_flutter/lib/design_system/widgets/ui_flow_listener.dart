@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 /// Reusable listener wrapper that handles global UI concerns for async operations.
 /// 
@@ -119,13 +120,13 @@ class UiFlowListener<B extends StateStreamable<S>, S extends IUiFlowState>
         
         // If exception mapper also returns null, use generic error
         messageKey ??= MessageKey.error(
-          'error.generic',
+          L10nKeys.errorGeneric,
           {'message': state.error.toString()},
         );
       } catch (_) {
         // No exception mapper registered, use generic error
         messageKey = MessageKey.error(
-          'error.generic',
+          L10nKeys.errorGeneric,
           {'message': state.error.toString()},
         );
       }
