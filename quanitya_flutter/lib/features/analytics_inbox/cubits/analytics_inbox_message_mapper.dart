@@ -1,5 +1,6 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import 'analytics_inbox_state.dart';
 
@@ -10,21 +11,21 @@ class AnalyticsInboxMessageMapper implements IStateMessageMapper<AnalyticsInboxS
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         AnalyticsInboxOperation.sendAll =>
-          MessageKey.success('analytics_inbox.send_all.success'),
+          MessageKey.success(L10nKeys.analyticsInboxSendAllSuccess),
         AnalyticsInboxOperation.clearSent =>
-          MessageKey.success('analytics_inbox.clear_sent.success'),
+          MessageKey.success(L10nKeys.analyticsInboxClearSentSuccess),
         AnalyticsInboxOperation.clearAll =>
-          MessageKey.success('analytics_inbox.clear_all.success'),
+          MessageKey.success(L10nKeys.analyticsInboxClearAllSuccess),
         AnalyticsInboxOperation.toggleAutoSend =>
-          MessageKey.success('analytics_inbox.toggle_auto_send.success'),
+          MessageKey.success(L10nKeys.analyticsInboxToggleAutoSendSuccess),
       };
     }
 
     if (state.status.isFailure && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         AnalyticsInboxOperation.sendAll =>
-          MessageKey.error('analytics_inbox.send_all.error'),
-        _ => MessageKey.error('analytics_inbox.operation.error'),
+          MessageKey.error(L10nKeys.analyticsInboxSendAllError),
+        _ => MessageKey.error(L10nKeys.analyticsInboxOperationError),
       };
     }
 

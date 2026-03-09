@@ -13,7 +13,7 @@ class LogEntryDetailMessageMapper
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         EntryDetailOperation.load =>
-          MessageKey.info('entry.loaded'),
+          MessageKey.info(L10nKeys.entryLoaded),
         EntryDetailOperation.update =>
           MessageKey.success(L10nKeys.entryUpdated),
         EntryDetailOperation.delete =>

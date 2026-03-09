@@ -13,7 +13,7 @@ class TemplateGeneratorMessageMapper
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         GeneratorOperation.generate =>
-          MessageKey.success('template.generated'),
+          MessageKey.success(L10nKeys.templateGenerated),
         GeneratorOperation.save => MessageKey.success(L10nKeys.templateSaved),
         GeneratorOperation.discard => MessageKey.info(L10nKeys.templateDiscarded),
       };

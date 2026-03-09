@@ -14,19 +14,19 @@ class TemplateEditorMessageMapper
       return switch (state.lastOperation!) {
         TemplateEditorOperation.load => MessageKey.info(L10nKeys.templateLoaded),
         TemplateEditorOperation.updateBasicInfo =>
-          MessageKey.success('template.info_updated'),
+          MessageKey.success(L10nKeys.templateInfoUpdated),
         TemplateEditorOperation.addField =>
           MessageKey.success(L10nKeys.templateFieldAdded),
         TemplateEditorOperation.updateField =>
-          MessageKey.success('template.field_updated'),
+          MessageKey.success(L10nKeys.templateFieldUpdated),
         TemplateEditorOperation.removeField =>
           MessageKey.success(L10nKeys.templateFieldRemoved),
         TemplateEditorOperation.reorderFields =>
-          MessageKey.success('template.fields_reordered'),
+          MessageKey.success(L10nKeys.templateFieldsReordered),
         TemplateEditorOperation.updateAesthetics =>
-          MessageKey.success('template.aesthetics_updated'),
+          MessageKey.success(L10nKeys.templateAestheticsUpdated),
         TemplateEditorOperation.updateSchedule =>
-          MessageKey.success('template.schedule_updated'),
+          MessageKey.success(L10nKeys.templateScheduleUpdated),
         TemplateEditorOperation.save => MessageKey.success(L10nKeys.templateSaved),
         TemplateEditorOperation.discard =>
           MessageKey.info(L10nKeys.templateDiscarded),

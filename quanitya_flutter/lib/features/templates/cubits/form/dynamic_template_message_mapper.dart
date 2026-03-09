@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import 'dynamic_template_state.dart';
 
@@ -12,13 +13,13 @@ class DynamicTemplateMessageMapper
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         DynamicTemplateOperation.load =>
-          MessageKey.info('template.form_loaded'),
+          MessageKey.info(L10nKeys.templateFormLoaded),
         DynamicTemplateOperation.validate =>
-          MessageKey.success('template.form_validated'),
+          MessageKey.success(L10nKeys.templateFormValidated),
         DynamicTemplateOperation.submit =>
-          MessageKey.success('entry.submitted'),
+          MessageKey.success(L10nKeys.entrySubmitted),
         DynamicTemplateOperation.clear =>
-          MessageKey.info('template.form_cleared'),
+          MessageKey.info(L10nKeys.templateFormCleared),
       };
     }
     return null; // Use global exception mapping for errors

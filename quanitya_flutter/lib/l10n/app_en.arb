@@ -703,5 +703,40 @@
   "cameraPermissionDeniedMessage": "We need camera access to scan QR codes for device pairing. Please enable it in your device settings.",
   "actionOpenSettings": "Open Settings",
   "cameraPermissionDeniedHeader": "Camera Disabled",
-  "pairingDataManualInstructions": "If you can't scan the QR code, tap 'Copy Pairing Data' on your other device and paste the code here."
+  "pairingDataManualInstructions": "If you can't scan the QR code, tap 'Copy Pairing Data' on your other device and paste the code here.",
+
+  "analyticsInboxSendAllSuccess": "All analytics sent",
+  "analyticsInboxClearSentSuccess": "Sent items cleared",
+  "analyticsInboxClearAllSuccess": "All items cleared",
+  "analyticsInboxToggleAutoSendSuccess": "Auto-send updated",
+  "analyticsInboxSendAllError": "Failed to send analytics",
+  "analyticsInboxOperationError": "Analytics inbox operation failed",
+
+  "appOperatingConnectionTested": "Connection tested",
+  "appOperatingModeChangedExternally": "Operating mode was changed externally",
+
+  "templateInfoUpdated": "Template info updated",
+  "templateFieldUpdated": "Field updated",
+  "templateFieldsReordered": "Fields reordered",
+  "templateAestheticsUpdated": "Appearance updated",
+  "templateScheduleUpdated": "Schedule updated",
+  "templateGenerated": "Template generated",
+  "templateFormLoaded": "Form loaded",
+  "templateFormValidated": "Form validated",
+  "templateFormCleared": "Form cleared",
+
+  "templateSharingPreviewLoaded": "Sharing preview loaded",
+  "templateSharingImported": "Template imported",
+  "templateSharingExported": "Template exported",
+
+  "entrySubmitted": "Entry submitted",
+  "entryLoaded": "Entry loaded",
+  "entryHistoryLoaded": "Entry history loaded",
+
+  "timelineLoaded": "Timeline loaded",
+  "timelineFiltered": "Timeline filtered",
+  "timelineSorted": "Timeline sorted",
+  "timelineHiddenToggled": "Hidden entries toggled",
+
+  "visualizationLoaded": "Visualization loaded"
 }

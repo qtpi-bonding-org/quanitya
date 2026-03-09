@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import 'log_entry_history_state.dart';
 
@@ -12,7 +13,7 @@ class LogEntryHistoryMessageMapper
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         LogEntryHistoryOperation.load =>
-          MessageKey.info('entry.history_loaded'),
+          MessageKey.info(L10nKeys.entryHistoryLoaded),
       };
     }
     return null; // Use global exception mapping for errors

@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import 'app_operating_state.dart';
 
@@ -12,13 +13,13 @@ class AppOperatingMessageMapper
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         AppOperatingOperation.testConnection =>
-          MessageKey.success('app_operating.connection_tested'),
+          MessageKey.success(L10nKeys.appOperatingConnectionTested),
         AppOperatingOperation.switchMode =>
-          MessageKey.success('app_operating.mode_switched'),
+          MessageKey.success(L10nKeys.appOperatingModeSwitched),
         AppOperatingOperation.configure =>
-          MessageKey.success('app_operating.configured'),
+          MessageKey.success(L10nKeys.appOperatingConfigured),
         AppOperatingOperation.externalChange =>
-          MessageKey.info('app_operating.mode_changed_externally'),
+          MessageKey.info(L10nKeys.appOperatingModeChangedExternally),
       };
     }
     return null; // Use global exception mapping for errors
