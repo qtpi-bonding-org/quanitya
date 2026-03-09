@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:graphic/graphic.dart';
 import 'package:intl/intl.dart';
+import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 
@@ -41,7 +42,7 @@ class MultiSeriesChart extends StatelessWidget {
     if (activeSeries.isEmpty) {
       return SizedBox(
         height: height,
-        child: const Center(child: Text('No data')),
+        child: Center(child: Text(context.l10n.chartNoData)),
       );
     }
 

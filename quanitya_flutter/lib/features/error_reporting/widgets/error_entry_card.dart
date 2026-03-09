@@ -260,9 +260,9 @@ class _ErrorDetails extends StatelessWidget {
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Stack trace copied to clipboard'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(context.l10n.stackTraceCopied),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

@@ -67,8 +67,8 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                   children: [
                     // AI Generation Section (at the top)
                     AiPromptWidget(
-                      title: 'AI GENERATOR',
-                      hintText: 'Describe what you want to track...',
+                      title: context.l10n.aiGeneratorTitle,
+                      hintText: context.l10n.aiGeneratorHint,
                       isLoading: _isGenerating,
                       onGenerate: (prompt) => _generateFromAi(context, prompt),
                     ),
@@ -247,7 +247,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     if (keyValue == null || keyValue.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('API key value not found')),
+          SnackBar(content: Text(context.l10n.aiApiKeyNotFound)),
         );
       }
       return;
@@ -288,7 +288,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
-          'Add OpenRouter API Key',
+          context.l10n.aiAddApiKeyTitle,
           style: context.text.titleLarge,
         ),
         content: SizedBox(
@@ -299,8 +299,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'To use AI template generation, add your OpenRouter API key. '
-                  'Get one at openrouter.ai',
+                  context.l10n.aiAddApiKeyDescription,
                   style: context.text.bodyMedium?.copyWith(
                     color: context.colors.textSecondary,
                   ),
@@ -308,18 +307,18 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                 VSpace.x3,
                 QuanityaTextFormField(
                   controller: nameController,
-                  labelText: 'Name',
-                  hintText: 'OpenRouter',
+                  labelText: context.l10n.aiApiKeyNameLabel,
+                  hintText: context.l10n.aiApiKeyNameDefault,
                 ),
                 VSpace.x2,
                 QuanityaTextFormField(
                   controller: keyController,
-                  labelText: 'API Key',
-                  hintText: 'sk-or-v1-...',
+                  labelText: context.l10n.aiApiKeyLabel,
+                  hintText: context.l10n.aiApiKeyHint,
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'API key is required';
+                      return context.l10n.aiApiKeyRequired;
                     }
                     return null;
                   },

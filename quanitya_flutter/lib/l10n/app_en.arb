@@ -799,5 +799,105 @@
         "type": "String"
       }
     }
-  }
+  },
+
+  "notificationsTitle": "Notifications",
+  "notificationsMarkAll": "Mark All",
+  "notificationsEmpty": "No notifications",
+  "notificationsCaughtUp": "You're all caught up",
+
+  "sortByHeader": "Sort By",
+  "sortByDate": "Date",
+  "sortByTemplate": "Template",
+  "sortOldestFirst": "Oldest First",
+  "sortNewestFirst": "Newest First",
+  "timeRangeHeader": "Time Range",
+  "templateFilterHeader": "Template",
+  "allTemplates": "All Templates",
+  "tooltipSortAndTime": "Sort & Time",
+  "tooltipFilterByTemplate": "Filter by Template",
+  "tooltipNotifications": "Notifications",
+  "tooltipHidePrivate": "Hide private entries",
+  "tooltipShowPrivate": "Show private entries",
+
+  "purchaseTitle": "Purchase Sync Days",
+  "purchaseAvailableProducts": "Available Products",
+  "purchaseNoProducts": "No products available",
+  "purchaseSuccessful": "Purchase complete",
+  "purchaseFailed": "Purchase failed",
+
+  "settingsPurchase": "Purchase Sync Days",
+  "settingsErrorReports": "Error Reports",
+  "settingsAnalyticsInbox": "Analytics Inbox",
+  "settingsSendFeedback": "Send Feedback",
+
+  "analyticsInboxTitle": "Analytics Inbox",
+  "analyticsInboxPrivacyNotice": "Events include: action name, timestamp, and platform. No personal data or content is ever sent.",
+  "analyticsInboxAutoSend": "Auto-send on startup",
+  "analyticsInboxAutoSendDescription": "Batch-send all events when the app opens",
+  "analyticsInboxEmpty": "No Pending Events",
+  "analyticsInboxEmptyDescription": "Analytics events will appear here as you use the app.",
+  "analyticsInboxClearAll": "Clear All",
+  "analyticsInboxSendAll": "Send All ({count})",
+  "@analyticsInboxSendAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsInboxClearAllTitle": "Clear All Events?",
+  "analyticsInboxClearAllMessage": "This will permanently delete all unsent analytics events.",
+
+  "analysisBuilderTitle": "Analysis Pipeline",
+  "analysisBuilderJsTitle": "JavaScript Analysis",
+  "analysisBuilderTooltipHidePreview": "Hide Live Preview",
+  "analysisBuilderTooltipShowPreview": "Show Live Preview",
+  "analysisBuilderEmptyTitle": "No analysis loaded",
+  "analysisBuilderEmptyDescription": "Load a pipeline to view its JavaScript code",
+
+  "chartNoData": "No data",
+
+  "templateContainerStyleTitle": "Container Style",
+  "templateContainerStyleDescription": "Choose the shape of field containers",
+  "templateAccentLabel": "Accent",
+  "templateToneLabel": "Tone",
+
+  "aiGeneratorTitle": "AI Generator",
+  "aiGeneratorHint": "Describe what you want to track...",
+  "aiAddApiKeyTitle": "Add OpenRouter API Key",
+  "aiAddApiKeyDescription": "To use AI template generation, add your OpenRouter API key. Get one at openrouter.ai",
+  "aiApiKeyNameLabel": "Name",
+  "aiApiKeyNameDefault": "OpenRouter",
+  "aiApiKeyLabel": "API Key",
+  "aiApiKeyHint": "sk-or-v1-...",
+  "aiApiKeyRequired": "API key is required",
+  "aiApiKeyNotFound": "API key value not found",
+
+  "templateImportUrlHint": "https://gist.github.com/...",
+  "templateImportPreview": "Preview",
+
+  "copiedToClipboard": "Copied to clipboard",
+  "stackTraceCopied": "Stack trace copied",
+  "pairingDataCopied": "Pairing data copied",
+
+  "deviceManagementRequiresCloud": "Device management requires cloud or self-hosted mode",
+
+  "tooltipViewInsights": "View insights",
+  "tooltipAnalyzeData": "Analyze Data",
+  "tooltipRemove": "Remove",
+  "tooltipMinReached": "Minimum items reached",
+  "tooltipStop": "Stop",
+  "tooltipStart": "Start",
+  "tooltipReset": "Reset",
+  "addFieldItem": "Add {label}",
+  "@addFieldItem": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldNoUiElement": "No input style defined",
+  "fieldNoOptions": "No options available"
 }

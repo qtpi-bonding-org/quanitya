@@ -219,7 +219,7 @@ class _ShowPairingQrViewState extends State<_ShowPairingQrView> {
             final data = jsonEncode(state.qrData!.toJson());
             Clipboard.setData(ClipboardData(text: data));
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Pairing data copied to clipboard')),
+              SnackBar(content: Text(context.l10n.pairingDataCopied)),
             );
           },
         ),

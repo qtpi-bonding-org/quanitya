@@ -89,14 +89,14 @@ class _TemplateImportViewState extends State<_TemplateImportView> {
 
                 QuanityaTextField(
                   controller: _urlController,
-                  hintText: 'https://gist.github.com/...',
+                  hintText: context.l10n.templateImportUrlHint,
                   keyboardType: TextInputType.url,
                   onSubmitted: (_) => _preview(context),
                 ),
                 VSpace.x3,
 
                 QuanityaTextButton(
-                  text: 'Preview',
+                  text: context.l10n.previewAction,
                   onPressed: state.status == UiFlowStatus.loading
                       ? null
                       : () => _preview(context),

@@ -150,7 +150,7 @@ class _VisualizationContent extends StatelessWidget {
           QuanityaIconButton(
             icon: Icons.analytics_outlined,
             onPressed: () => _showAnalysisOptions(context),
-            tooltip: 'Analyze Data',
+            tooltip: context.l10n.tooltipAnalyzeData,
           ),
       ],
     );

@@ -71,7 +71,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
               HSpace.x1,
               Flexible(
                 child: Text(
-                  'Device management requires cloud or self-hosted mode',
+                  context.l10n.deviceManagementRequiresCloud,
                   style: context.text.bodyMedium?.copyWith(
                     color: context.colors.textSecondary,
                   ),

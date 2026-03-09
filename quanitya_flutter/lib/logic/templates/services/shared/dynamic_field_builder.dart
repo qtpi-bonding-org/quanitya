@@ -6,6 +6,7 @@ import '../../enums/field_enum.dart';
 import '../../enums/ui_element_enum.dart';
 import '../../models/shared/field_validator.dart';
 import '../../models/shared/template_field.dart';
+import '../../../../support/extensions/context_extensions.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
@@ -680,7 +681,7 @@ class _TimerWidgetState extends State<_TimerWidget> {
           onPressed: _toggle,
           iconSize: AppSizes.iconLarge,
           color: widget.accentColor,
-          tooltip: _running ? 'Stop' : 'Start',
+          tooltip: _running ? context.l10n.tooltipStop : context.l10n.tooltipStart,
         ),
         if (!_running && display > 0)
           QuanityaIconButton(
@@ -688,7 +689,7 @@ class _TimerWidgetState extends State<_TimerWidget> {
             onPressed: _reset,
             iconSize: AppSizes.iconMedium,
             color: widget.secondaryColor,
-            tooltip: 'Reset',
+            tooltip: context.l10n.tooltipReset,
           ),
       ],
     );

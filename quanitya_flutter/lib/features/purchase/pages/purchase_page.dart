@@ -8,6 +8,7 @@ import '../cubits/purchase_cubit.dart';
 import '../cubits/purchase_state.dart';
 import '../cubits/entitlement_cubit.dart';
 import '../cubits/entitlement_state.dart';
+import '../../../support/extensions/context_extensions.dart';
 import '../widgets/product_card.dart';
 import '../widgets/balance_display.dart';
 
@@ -39,7 +40,7 @@ class _PurchaseView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Purchase')),
+      appBar: AppBar(title: Text(context.l10n.purchaseTitle)),
       body: RefreshIndicator(
         onRefresh: () async {
           context.read<PurchaseCubit>().loadProducts();
@@ -64,8 +65,8 @@ class _PurchaseView extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Available Products',
-                style: Theme.of(context).textTheme.titleLarge,
+                context.l10n.purchaseAvailableProducts,
+                style: context.text.titleLarge,
               ),
             ),
             const SizedBox(height: 8),
@@ -83,10 +84,10 @@ class _PurchaseView extends StatelessWidget {
                 }
 
                 if (state.products.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Text('No products available'),
+                      padding: const EdgeInsets.all(32),
+                      child: Text(context.l10n.purchaseNoProducts),
                     ),
                   );
                 }
@@ -123,8 +124,8 @@ class _PurchaseView extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       child: Text(
                         validation.success
-                            ? 'Purchase successful!'
-                            : validation.errorMessage ?? 'Purchase failed',
+                            ? context.l10n.purchaseSuccessful
+                            : validation.errorMessage ?? context.l10n.purchaseFailed,
                         style: TextStyle(
                           color: validation.success
                               ? Colors.green.shade900

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:graphic/graphic.dart';
 import 'package:intl/intl.dart';
+import '../../../support/extensions/context_extensions.dart';
 import '../../primitives/quanitya_palette.dart';
 
 /// A simple time series line chart widget.
@@ -37,7 +38,7 @@ class TimeSeriesChart extends StatelessWidget {
     if (data.isEmpty) {
       return SizedBox(
         height: height,
-        child: const Center(child: Text('No data')),
+        child: Center(child: Text(context.l10n.chartNoData)),
       );
     }
 

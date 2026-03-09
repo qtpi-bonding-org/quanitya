@@ -63,7 +63,7 @@ class LoggedEntryPage extends StatelessWidget {
                 // Visualization button
                 QuanityaIconButton(
                   icon: Icons.bar_chart,
-                  tooltip: 'View insights',
+                  tooltip: context.l10n.tooltipViewInsights,
                   onPressed: () {
                     AppNavigation.toVisualization(context, template.id);
                   },

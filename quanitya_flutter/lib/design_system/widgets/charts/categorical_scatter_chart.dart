@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../support/extensions/context_extensions.dart';
 import 'dart:ui' as ui;
 
 /// Data point for categorical scatter chart.
@@ -36,7 +37,7 @@ class CategoricalScatterChart extends StatelessWidget {
     if (data.isEmpty || categories.isEmpty) {
       return SizedBox(
         height: height,
-        child: const Center(child: Text('No data')),
+        child: Center(child: Text(context.l10n.chartNoData)),
       );
     }
 

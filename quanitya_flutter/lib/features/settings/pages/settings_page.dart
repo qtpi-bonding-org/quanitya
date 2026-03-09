@@ -116,25 +116,25 @@ class _SettingsContent extends StatelessWidget {
         VSpace.x3,
 
         QuanityaTextButton(
-          text: 'Purchase Sync Days',
+          text: context.l10n.settingsPurchase,
           onPressed: () => AppNavigation.toPurchase(context),
         ),
         VSpace.x3,
 
         QuanityaTextButton(
-          text: 'Error Reports',
+          text: context.l10n.settingsErrorReports,
           onPressed: () => AppNavigation.toErrorBox(context),
         ),
         VSpace.x3,
 
         QuanityaTextButton(
-          text: 'Analytics Inbox',
+          text: context.l10n.settingsAnalyticsInbox,
           onPressed: () => AppNavigation.toAnalyticsInbox(context),
         ),
         VSpace.x3,
 
         QuanityaTextButton(
-          text: 'Send Feedback',
+          text: context.l10n.settingsSendFeedback,
           onPressed: () => AppNavigation.toFeedback(context),
         ),
         VSpace.x4,

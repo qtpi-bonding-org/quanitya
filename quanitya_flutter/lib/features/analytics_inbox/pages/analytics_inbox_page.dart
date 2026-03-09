@@ -44,7 +44,7 @@ class _AnalyticsInboxView extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'Analytics Inbox',
+            context.l10n.analyticsInboxTitle,
             style: context.text.headlineMedium,
           ),
           leading: QuanityaIconButton(
@@ -98,8 +98,7 @@ class _PrivacyBanner extends StatelessWidget {
           HSpace.x2,
           Expanded(
             child: Text(
-              'Events include: action name, timestamp, and platform. '
-              'No personal data or content is ever sent.',
+              context.l10n.analyticsInboxPrivacyNotice,
               style: context.text.bodySmall?.copyWith(
                 color: context.colors.textPrimary,
               ),
@@ -133,14 +132,14 @@ class _AutoSendToggle extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Auto-send on startup',
+                      context.l10n.analyticsInboxAutoSend,
                       style: context.text.bodyLarge?.copyWith(
                         color: context.colors.textPrimary,
                       ),
                     ),
                     VSpace.x05,
                     Text(
-                      'Batch-send all events when the app opens',
+                      context.l10n.analyticsInboxAutoSendDescription,
                       style: context.text.bodySmall?.copyWith(
                         color: context.colors.textSecondary,
                       ),
@@ -178,7 +177,7 @@ class _EmptyState extends StatelessWidget {
             ),
             VSpace.x4,
             Text(
-              'No Pending Events',
+              context.l10n.analyticsInboxEmpty,
               style: context.text.headlineMedium?.copyWith(
                 color: context.colors.textPrimary,
               ),
@@ -186,7 +185,7 @@ class _EmptyState extends StatelessWidget {
             ),
             VSpace.x2,
             Text(
-              'Analytics events will appear here as you use the app.',
+              context.l10n.analyticsInboxEmptyDescription,
               style: context.text.bodyMedium?.copyWith(
                 color: context.colors.textSecondary,
               ),
@@ -309,7 +308,7 @@ class _BottomActions extends StatelessWidget {
               children: [
                 Expanded(
                   child: QuanityaTextButton(
-                    text: 'Clear All',
+                    text: context.l10n.analyticsInboxClearAll,
                     isDestructive: true,
                     onPressed: () => _confirmClearAll(context),
                   ),
@@ -317,7 +316,7 @@ class _BottomActions extends StatelessWidget {
                 HSpace.x3,
                 Expanded(
                   child: QuanityaTextButton(
-                    text: 'Send All (${state.unsentCount})',
+                    text: context.l10n.analyticsInboxSendAll(state.unsentCount),
                     onPressed: state.status == UiFlowStatus.loading
                         ? null
                         : () => context.read<AnalyticsInboxCubit>().sendAll(),
@@ -335,9 +334,9 @@ class _BottomActions extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => QuanityaConfirmationDialog(
-        title: 'Clear All Events?',
-        message: 'This will permanently delete all unsent analytics events.',
-        confirmText: 'Clear All',
+        title: context.l10n.analyticsInboxClearAllTitle,
+        message: context.l10n.analyticsInboxClearAllMessage,
+        confirmText: context.l10n.analyticsInboxClearAll,
         isDestructive: true,
         onConfirm: () => context.read<AnalyticsInboxCubit>().clearAll(),
       ),

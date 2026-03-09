@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import '../../../app/bootstrap.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/widgets/quanitya/general/zen_paper_background.dart';
@@ -46,7 +47,7 @@ class AnalysisBuilderPage extends StatelessWidget {
 
                     return Scaffold(
                       appBar: AppBar(
-                        title: const Text('Analysis Pipeline Viewer'),
+                        title: Text(context.l10n.analysisBuilderTitle),
                         backgroundColor:
                             QuanityaPalette.primary.backgroundPrimary,
                         elevation: 0,
@@ -61,15 +62,15 @@ class AnalysisBuilderPage extends StatelessWidget {
                                 ? QuanityaPalette.primary.successColor
                                 : QuanityaPalette.primary.textSecondary,
                             tooltip: state.livePreviewEnabled
-                                ? 'Hide Live Preview'
-                                : 'Show Live Preview',
+                                ? context.l10n.analysisBuilderTooltipHidePreview
+                                : context.l10n.analysisBuilderTooltipShowPreview,
                           ),
                         ],
                       ),
                       body: Row(
                         children: [
                           // Left: Code viewer
-                          Expanded(flex: 3, child: _buildCodeViewer(state)),
+                          Expanded(flex: 3, child: _buildCodeViewer(context, state)),
 
                           // Right: Live results (if enabled)
                           if (state.livePreviewEnabled &&
@@ -104,7 +105,7 @@ class AnalysisBuilderPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCodeViewer(AnalysisBuilderState state) {
+  Widget _buildCodeViewer(BuildContext context, AnalysisBuilderState state) {
     return ZenPaperBackground(
       baseColor: QuanityaPalette.primary.backgroundPrimary,
       child: Column(
@@ -135,7 +136,7 @@ class AnalysisBuilderPage extends StatelessWidget {
                     ),
                     HSpace.x1,
                     Text(
-                      'JavaScript Analysis',
+                      context.l10n.analysisBuilderJsTitle,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -164,7 +165,7 @@ class AnalysisBuilderPage extends StatelessWidget {
           // Code display with IDE-style monospace font
           Expanded(
             child: state.snippet.isEmpty
-                ? _buildEmptyState()
+                ? _buildEmptyState(context)
                 : Container(
                     // VS Code dark theme background (#1E1E1E) - intentionally hardcoded
                     // to match IDE appearance for code display consistency
@@ -219,7 +220,7 @@ class AnalysisBuilderPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -231,7 +232,7 @@ class AnalysisBuilderPage extends StatelessWidget {
           ),
           VSpace.x2,
           Text(
-            'No analysis script loaded',
+            context.l10n.analysisBuilderEmptyTitle,
             style: TextStyle(
               fontSize: 16,
               color: QuanityaPalette.primary.textSecondary,
@@ -239,7 +240,7 @@ class AnalysisBuilderPage extends StatelessWidget {
           ),
           VSpace.x1,
           Text(
-            'Load a pipeline to view its JavaScript code',
+            context.l10n.analysisBuilderEmptyDescription,
             style: TextStyle(
               fontSize: 14,
               color: QuanityaPalette.primary.textSecondary.withValues(

@@ -407,7 +407,7 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
             SizedBox(
               width: 80,
               child: Text(
-                "Accent",
+                context.l10n.templateAccentLabel,
                 style: context.text.bodyMedium?.copyWith(
                   color: context.colors.textSecondary,
                 ),
@@ -448,7 +448,7 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
             SizedBox(
               width: 80,
               child: Text(
-                "Tone",
+                context.l10n.templateToneLabel,
                 style: context.text.bodyMedium?.copyWith(
                   color: context.colors.textSecondary,
                 ),
@@ -538,7 +538,7 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
           children: [
             // Section title
             Text(
-              'Container Style',
+              context.l10n.templateContainerStyleTitle,
               style: context.text.titleMedium?.copyWith(
                 color: context.colors.textPrimary,
               ),
@@ -546,7 +546,7 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
             VSpace.x1,
             // Description
             Text(
-              'Choose the shape of field containers',
+              context.l10n.templateContainerStyleDescription,
               style: context.text.bodyMedium?.copyWith(
                 color: context.colors.textSecondary,
               ),

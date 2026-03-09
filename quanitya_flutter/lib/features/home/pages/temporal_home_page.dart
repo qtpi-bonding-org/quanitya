@@ -188,7 +188,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                                         ? palette.textPrimary 
                                         : palette.interactableColor,
                                   ),
-                                  tooltip: 'Sort & Time',
+                                  tooltip: context.l10n.tooltipSortAndTime,
                                   color: palette.backgroundPrimary,
                                   surfaceTintColor: palette.backgroundPrimary,
                                   onSelected: (value) async {
@@ -224,7 +224,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                                     // SORT BY
                                     PopupMenuItem(
                                       enabled: false,
-                                      child: Text('SORT BY', style: TextStyle(fontSize: AppSizes.fontMini, fontWeight: FontWeight.bold, color: palette.textPrimary)),
+                                      child: Text(context.l10n.sortByHeader, style: TextStyle(fontSize: AppSizes.fontMini, fontWeight: FontWeight.bold, color: palette.textPrimary)),
                                     ),
                                     PopupMenuItem(
                                       value: 'date',
@@ -232,7 +232,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                                         children: [
                                           Icon(dataState.pastSort.type == TimelineSortType.date ? Icons.check : null, size: AppSizes.iconSmall, color: palette.interactableColor),
                                           HSpace.x1,
-                                          const Text('Date'),
+                                          Text(context.l10n.sortByDate),
                                         ],
                                       ),
                                     ),
@@ -242,7 +242,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                                         children: [
                                           Icon(dataState.pastSort.type == TimelineSortType.template ? Icons.check : null, size: AppSizes.iconSmall, color: palette.interactableColor),
                                           HSpace.x1,
-                                          const Text('Template'),
+                                          Text(context.l10n.sortByTemplate),
                                         ],
                                       ),
                                     ),
@@ -254,7 +254,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                                         children: [
                                           Icon(dataState.pastSort.ascending ? Icons.arrow_upward : Icons.arrow_downward, size: AppSizes.iconSmall, color: palette.interactableColor),
                                           HSpace.x1,
-                                          Text(dataState.pastSort.ascending ? 'Oldest First' : 'Newest First'),
+                                          Text(dataState.pastSort.ascending ? context.l10n.sortOldestFirst : context.l10n.sortNewestFirst),
                                         ],
                                       ),
                                     ),
@@ -262,7 +262,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                                     // TIME RANGE
                                     PopupMenuItem(
                                       enabled: false,
-                                      child: Text('TIME RANGE', style: TextStyle(fontSize: AppSizes.fontMini, fontWeight: FontWeight.bold, color: palette.textPrimary)),
+                                      child: Text(context.l10n.timeRangeHeader, style: TextStyle(fontSize: AppSizes.fontMini, fontWeight: FontWeight.bold, color: palette.textPrimary)),
                                     ),
                                     ...TimelineTimeRange.values.map((range) {
                                       String label = range.name.toUpperCase();
@@ -293,7 +293,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                                         ? palette.textPrimary 
                                         : palette.interactableColor,
                                   ),
-                                  tooltip: 'Filter by Template',
+                                  tooltip: context.l10n.tooltipFilterByTemplate,
                                   color: palette.backgroundPrimary,
                                   surfaceTintColor: palette.backgroundPrimary,
                                   onSelected: (value) {
@@ -306,7 +306,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                                   itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                                     PopupMenuItem(
                                       enabled: false,
-                                      child: Text('TEMPLATE', style: TextStyle(fontSize: AppSizes.fontMini, fontWeight: FontWeight.bold, color: palette.textPrimary)),
+                                      child: Text(context.l10n.templateFilterHeader, style: TextStyle(fontSize: AppSizes.fontMini, fontWeight: FontWeight.bold, color: palette.textPrimary)),
                                     ),
                                     PopupMenuItem(
                                       value: 'clear',
@@ -314,7 +314,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                                         children: [
                                           Icon(dataState.filters.templateId == null ? Icons.check : null, size: AppSizes.iconSmall, color: palette.interactableColor),
                                           HSpace.x1,
-                                          const Text('All Templates'),
+                                          Text(context.l10n.allTemplates),
                                         ],
                                       ),
                                     ),
@@ -355,7 +355,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                           icon: Icons.notifications_outlined,
                           iconSize: AppSizes.iconMedium,
                           color: palette.interactableColor,
-                          tooltip: 'Notifications',
+                          tooltip: context.l10n.tooltipNotifications,
                           onPressed: () => AppNavigation.toNotificationInbox(context),
                         ),
                         QuanityaIconButton(
@@ -403,7 +403,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                         icon: state.showingHidden ? Icons.lock_open : Icons.lock,
                         iconSize: AppSizes.iconMedium,
                         color: palette.interactableColor,
-                        tooltip: state.showingHidden ? 'Hide private entries' : 'Show private entries',
+                        tooltip: state.showingHidden ? context.l10n.tooltipHidePrivate : context.l10n.tooltipShowPrivate,
                         onPressed: () => _timelineCubit?.toggleShowHidden(),
                       );
                     },

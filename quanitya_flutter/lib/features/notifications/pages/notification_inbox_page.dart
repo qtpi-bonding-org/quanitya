@@ -35,7 +35,7 @@ class _NotificationInboxView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notifications', style: context.text.headlineMedium),
+        title: Text(context.l10n.notificationsTitle, style: context.text.headlineMedium),
         leading: QuanityaIconButton(
           icon: Icons.arrow_back,
           onPressed: () => AppNavigation.back(context),
@@ -46,7 +46,7 @@ class _NotificationInboxView extends StatelessWidget {
               if (state.notifications.isEmpty) return const SizedBox.shrink();
               return TextButton(
                 onPressed: () => context.read<NotificationInboxCubit>().markAllAsReceived(),
-                child: const Text('Mark All'),
+                child: Text(context.l10n.notificationsMarkAll),
               );
             },
           ),
@@ -88,9 +88,9 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(Icons.notifications_none, size: 64, color: context.colors.textPrimary.withValues(alpha: 0.5)),
           VSpace.x4,
-          Text('No notifications', style: context.text.headlineMedium),
+          Text(context.l10n.notificationsEmpty, style: context.text.headlineMedium),
           VSpace.x2,
-          Text('You\'re all caught up!', style: context.text.bodyMedium),
+          Text(context.l10n.notificationsCaughtUp, style: context.text.bodyMedium),
         ],
       ),
     );
