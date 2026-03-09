@@ -3,32 +3,16 @@
   "onboardingTitle": "QUANITYA",
   "successGeneric": "Success",
   "errorGeneric": "An error occurred",
-  "errorNetwork": "Network connection error",
-  "errorAppOperating": "Operating mode error",
   "appOperatingModeSwitched": "Operating mode updated",
   "appOperatingConnectionSuccess": "Connection successful",
   "appOperatingConnectionFailed": "Connection failed",
   "appOperatingConfigured": "Configuration saved",
-  "loadingGeneric": "Loading...",
   "validationRequired": "This field is required",
-  "validationInvalidFormat": "Invalid format",
-  "validationTooShort": "Too short",
-  "validationTooLong": "Too long",
-  "navDashboard": "Dashboard",
-  "navTemplates": "Templates",
-  "navSettings": "Settings",
   "actionSave": "Save",
   "actionCancel": "Cancel",
   "actionDelete": "Delete",
   "actionEdit": "Edit",
   "actionAdd": "Add",
-  "templateRegenerationSuccess": "Template regenerated",
-  "templatePreviewSuccess": "Preview created",
-  "templateValidationSuccess": "Template validated",
-  "templateGenerationLoading": "Generating your template...",
-  "templateRegenerationLoading": "Regenerating template...",
-  "templatePreviewLoading": "Creating template preview...",
-  "templateValidationLoading": "Validating template...",
   "templateGenerationValidationFailed": "There was an issue with your template request",
   "@templateGenerationValidationFailed": {
     "description": "Error message when template generation request validation fails"
@@ -37,93 +21,33 @@
   "@templateGenerationAiServiceFailed": {
     "description": "Error message when AI service fails during template generation"
   },
-  "templateGenerationSchemaValidationFailed": "The generated template doesn't meet our quality standards. Please try a simpler request.",
+  "templateGenerationSchemaValidationFailed": "Something went wrong while generating your template. Please try again.",
   "@templateGenerationSchemaValidationFailed": {
     "description": "Error message when generated template fails schema validation"
   },
-  "templateGenerationPerformanceFailed": "Your template request is too complex. Please try reducing the number of fields or simplifying your description.",
+  "templateGenerationPerformanceFailed": "This request took too long to process. Try a simpler description or fewer fields.",
   "@templateGenerationPerformanceFailed": {
     "description": "Error message when template generation exceeds performance limits"
   },
-  "llmTemplateGenerated": "Template generated with AI",
-  "@llmTemplateGenerated": {
-    "description": "Success message when LLM generates a template"
+  "analysisSaved": "Analysis saved",
+  "@analysisSaved": {
+    "description": "Success message when analysis analysis is saved"
   },
-  "llmTemplateRegenerated": "Template updated",
-  "@llmTemplateRegenerated": {
-    "description": "Success message when LLM regenerates a template"
+  "analysisStepAdded": "Step added",
+  "@analysisStepAdded": {
+    "description": "Success message when step is added to analysis"
   },
-  "pipelineSaved": "Analysis saved",
-  "@pipelineSaved": {
-    "description": "Success message when analysis pipeline is saved"
+  "analysisStepRemoved": "Step removed",
+  "@analysisStepRemoved": {
+    "description": "Success message when step is removed from analysis"
   },
-  "pipelineStepAdded": "Step added",
-  "@pipelineStepAdded": {
-    "description": "Success message when step is added to pipeline"
-  },
-  "pipelineStepRemoved": "Step removed",
-  "@pipelineStepRemoved": {
-    "description": "Success message when step is removed from pipeline"
-  },
-  "pipelineStepUpdated": "Step updated",
-  "@pipelineStepUpdated": {
-    "description": "Success message when step parameters are updated"
-  },
-  "analyticsPipelineExecuted": "Analysis complete",
-  "@analyticsPipelineExecuted": {
-    "description": "Success message when analytics pipeline executes"
-  },
-  "analyticsPipelineSaved": "Analysis saved",
-  "@analyticsPipelineSaved": {
-    "description": "Success message when analytics pipeline is saved"
-  },
-  "analyticsPipelineUpdated": "Analysis updated",
-  "@analyticsPipelineUpdated": {
-    "description": "Success message when analytics pipeline is updated"
-  },
-  "analyticsPipelineDeleted": "Analysis deleted",
-  "@analyticsPipelineDeleted": {
-    "description": "Success message when analytics pipeline is deleted"
-  },
-  "llmServiceError": "AI service is temporarily unavailable. Please try again later.",
-  "@llmServiceError": {
-    "description": "Error message when LLM service fails"
-  },
-  "llmConfigurationError": "AI service configuration issue. Please check your settings.",
-  "@llmConfigurationError": {
-    "description": "Error message when LLM configuration is invalid"
+  "analysisStepUpdated": "Step updated",
+  "@analysisStepUpdated": {
+    "description": "Success message when step is updated"
   },
   "templateGenerationProcessingFailed": "There was an issue finalizing your template. This is usually temporary.",
   "@templateGenerationProcessingFailed": {
     "description": "Error message when template post-processing fails"
-  },
-  "templateGenerationPerformanceWarning": "Generation took longer than expected ({timeMs}ms). Consider: {suggestion}",
-  "@templateGenerationPerformanceWarning": {
-    "description": "Warning message when template generation exceeds time targets",
-    "placeholders": {
-      "timeMs": {
-        "type": "int",
-        "description": "Time taken in milliseconds"
-      },
-      "suggestion": {
-        "type": "String",
-        "description": "Suggestion for improving performance"
-      }
-    }
-  },
-  "templateGenerationRetryAttempt": "Retry attempt {attempt} using {strategy}...",
-  "@templateGenerationRetryAttempt": {
-    "description": "Message shown during retry attempts",
-    "placeholders": {
-      "attempt": {
-        "type": "int",
-        "description": "Current retry attempt number"
-      },
-      "strategy": {
-        "type": "String",
-        "description": "Retry strategy being used"
-      }
-    }
   },
   "templateParsingMissingField": "The generated template is missing required information. Please try again.",
   "templateParsingInvalidValue": "The generated template has invalid data. Please try again.",
@@ -137,10 +61,6 @@
   "templateRenderingWidgetCreationFailed": "We couldn't create the interface elements. Please try different field types.",
   "templateRenderingAccessibilityFailed": "We couldn't make your template accessible. Please allow automatic adjustments.",
   "templateRenderingLayoutFailed": "There was an issue with the template layout. Please try fewer fields.",
-  "templateAccessibilityAdjustmentsMade": "Accessibility improvements made to ensure your template works for all users",
-  "@templateAccessibilityAdjustmentsMade": {
-    "description": "Message shown when accessibility adjustments are automatically applied"
-  },
   "templateAccessibilityContrastRatioFailed": "The colors in your template don't have enough contrast for accessibility. We can automatically adjust them.",
   "templateAccessibilityColorBlindnessIssue": "Some colors in your template may not be distinguishable for users with color vision differences. We can help fix this.",
   "templateAccessibilityFocusIndicatorFailed": "Some elements in your template need better focus indicators for keyboard navigation.",
@@ -149,7 +69,6 @@
   "templateAccessibilityGenericIssue": "Your template has accessibility issues that we can help resolve automatically.",
   "logHistoryTitle": "Log History",
   "logEntryNoData": "No data",
-  "logEntryEmpty": "Empty",
   "logEntryNoEntries": "No entries yet",
   "templateInfoTitle": "Info",
   "templateFieldsCount": "{count} Fields",
@@ -176,12 +95,7 @@
   "active": "Active",
   "inactive": "Inactive",
   "settingsTitle": "Settings",
-  "darkMode": "Dark Mode",
-  "clearData": "Clear Data",
-  "clearDataTitle": "Clear Data?",
-  "clearDataMessage": "This will delete all local data. This action cannot be undone.",
   "confirm": "Confirm",
-  "export": "Export",
   "import_": "Import",
   "exportData": "Export Data",
   "importData": "Import Data",
@@ -193,7 +107,6 @@
   "selectTablesTitle": "Select Tables",
   "selectTablesExportButton": "Export Selected",
   "selectTablesImportButton": "Import Selected",
-  "settingsClearSuccess": "Data cleared",
   "importRecoveryKey": "Import Recovery Key",
   "importRecoveryKeyTitle": "Import Recovery Key",
   "importRecoveryKeyMessage": "Paste your recovery key below to verify it.",
@@ -209,40 +122,21 @@
   "recoveryKeysExistWarning": "Keys already exist on this device",
   "recoveryConfirmEraseKeys": "I understand this will erase my existing keys and replace them with the recovered account",
   "deviceLabelLabel": "Device Name",
-  "deviceLabelHint": "Auto-detected from your device",
-  "deviceLabelRequired": "Device name is required",
   "recoverAccount": "Recover Account",
   "recovering": "Recovering...",
-  "version": "v{version}",
-  "@version": {
-    "placeholders": {
-      "version": {
-        "type": "String"
-      }
-    }
-  },
   "logEntryAction": "Log Entry",
   "createTemplateTitle": "Generate Template",
   "editTemplateTitle": "Edit Template",
   "previewAction": "Preview",
   "discardAction": "Discard",
-  "previewAndSaveAction": "Preview & Save",
-  "basicInfoSection": "Basic Info",
   "templateNameLabel": "Template Name",
   "templateNameHint": "e.g., Daily Mood Check-in",
   "templateDescriptionLabel": "Description (Optional)",
   "templateDescriptionHint": "Brief description of what this template tracks...",
   "colorThemeSection": "Color Theme",
   "typographySection": "Typography",
-  "selectIconTitle": "Select Icon",
   "fontTitleLabel": "Title Font",
   "fontBodyLabel": "Body Font",
-  "fontSystem": "System Default",
-  "paletteColor1": "Primary",
-  "paletteColor2": "Secondary",
-  "paletteColor3": "Accent",
-  "paletteNeutral1": "Surface",
-  "paletteNeutral2": "Background",
   "pickColorTitle": "Pick Color",
   "selectAction": "Select",
   "templateFieldsSection": "Template Fields",
@@ -262,17 +156,6 @@
   "fieldDate": "Date",
   "fieldChoice": "Choice",
   "fieldFloat": "Decimal",
-  "fieldDimension": "Dimension",
-  "fieldReference": "Reference",
-  "fieldMore": "More...",
-  "addFieldTitle": "Add {type} Field",
-  "@addFieldTitle": {
-    "placeholders": {
-      "type": {
-        "type": "String"
-      }
-    }
-  },
   "fieldLabelLabel": "Field Label",
   "fieldLabelHint": "e.g., Mood Level, Energy, Notes",
   "widgetTypeLabel": "Input Style",
@@ -291,15 +174,6 @@
   "widgetSearchField": "Search Field",
   "widgetLocationPicker": "Location Picker",
   "widgetTimer": "Timer",
-  "chooseFieldTypeTitle": "Choose Field Type",
-  "fieldTypeIntegerDesc": "Whole numbers (1, 2, 3)",
-  "fieldTypeFloatDesc": "Decimal numbers (1.5, 2.7)",
-  "fieldTypeTextDesc": "Text input (short or long)",
-  "fieldTypeBooleanDesc": "Yes/No or On/Off toggle",
-  "fieldTypeDatetimeDesc": "Date and time picker",
-  "fieldTypeEnumeratedDesc": "Multiple choice options",
-  "fieldTypeDimensionDesc": "Number with unit (5 km, 10 lbs)",
-  "fieldTypeReferenceDesc": "Link to another template",
   "deleteFieldTitle": "Delete Field",
   "deleteFieldMessage": "Are you sure you want to delete \"{label}\"?",
   "@deleteFieldMessage": {
@@ -311,16 +185,11 @@
   },
   "fieldOptionsLabel": "Options",
   "addOptionHint": "Add an option...",
-  "noOptionsYet": "No options added yet",
   "quickAccessIconLabel": "Quick Access Icon",
   "quickAccessIconDescription": "This icon will appear on the home page for quick access",
-  "tapToChangeIcon": "Tap to change",
   "templateNamePlaceholder": "Template Name",
-  "homePastLabel": "PAST",
   "homePastDescription": "History & Logs",
-  "homeFutureLabel": "FUTURE",
   "homeFutureDescription": "Planned Tasks",
-  "noTemplatesYet": "No templates yet",
   "tooltipEditTemplate": "Edit template",
   "tooltipCustomLog": "Custom log",
   "tooltipQuickEntry": "Quick entry",
@@ -342,38 +211,27 @@
     }
   },
   "aboutPronunciation": "/kwɑˈnɪtjə/ (Kwah-NIT-yuh)",
-
   "aboutPhilosophyTitle": "Philosophy",
-  
   "aboutQuaTitle": "Qua",
   "aboutQuaSubtitle": "QUA(NTI/LI)TATIVE",
   "aboutQuaDescription": "The observation of self. Whether quantitative metrics or qualitative feelings, the data is yours alone.",
-  
   "aboutAnityaTitle": "Anitya",
   "aboutAnityaSubtitle": "IMPERMANENCE",
   "aboutAnityaDescription": "The self is a process, not a fixed identity. Your data serves as proof of this flux—documenting a continuous stream of change where no single moment defines the whole.",
-  
   "aboutPrivacyTitle": "Private",
   "aboutPrivacyDescription": "Data is encrypted before it ever leaves this device. Only you hold the decryption keys.",
-  
   "aboutAnonymousTitle": "Anonymous",
   "aboutAnonymousDescription": "No personal information. The account is defined solely by a cryptographic key.",
-
   "aboutLocalTitle": "Local-First",
   "aboutLocalDescription": "Fully functional offline. Your data is on this device; the server is an optional, encrypted backup.",
-  
   "aboutSourceTitle": "Source Available",
   "aboutSourceDescription": "Trust requires transparency. The codebase is public for auditing, ensuring security claims are verifiable.",
-
-  "onboardingTagline": "Track anything. Own everything.",
   "getStarted": "Get Started",
-  "learnMore": "Learn More",
   "recoveryKeyTitle": "Save Your Recovery Key",
   "recoveryKeyDescription": "This key is the only way to recover your account. Save it somewhere safe - we cannot recover it for you.",
   "exportToICloud": "Save to iCloud Keychain",
   "exportToFile": "Save as File",
   "copyToClipboard": "Copy to Clipboard",
-  "recoveryKeyConfirmation": "I have saved my recovery key",
   "continueAction": "Continue",
   "onboardingAccountCreated": "Account created",
   "onboardingExportedICloud": "Saved to iCloud Keychain",
@@ -384,9 +242,6 @@
   "backupICloudSubtitle": "Syncs across your Apple devices",
   "backupFileSubtitle": "Save to Files, AirDrop, or other apps",
   "backupClipboardSubtitle": "Paste into a password manager",
-  "backupBiometricsTitle": "Store on Device",
-  "backupBiometricsSubtitle": "Protected by Face ID / Touch ID",
-  "backupBiometricsWarning": "If you lose this device, you'll lose this backup",
   "backupDeviceAuthTitle": "Store on Device",
   "backupDeviceAuthSubtitle": "Protected by your device passcode",
   "backupDeviceAuthWarning": "If you lose this device, you'll lose this backup",
@@ -399,23 +254,10 @@
       }
     }
   },
-  "e2eeTitle": "Your Recovery Key",
-  "e2eeSubtitle": "We're about to generate a unique recovery key for your account. This key is the only way to access your data if you lose your device or need to restore your account.",
-  "e2eeRecoveryKeyTitle": "Recovery Key",
-  "e2eeRecoveryKeyDescription": "A master key you'll save securely. This is the only way to recover your data if you lose access to all your devices.",
-  "e2eeDeviceKeyTitle": "Device Key",
-  "e2eeDeviceKeyDescription": "Generated and stored securely on this device. Used for day-to-day encryption without needing your recovery key.",
-  "e2eeDataKeyTitle": "Data Encryption",
-  "e2eeDataKeyDescription": "All your entries are encrypted with strong AES-256 encryption before being stored or synced.",
-  "e2eeWarningTitle": "No Recovery Without It",
-  "e2eeWarningDescription": "If you lose your recovery key, your data cannot be recovered. There is no password reset, no support ticket, no backdoor. This is by design to protect your privacy.",
-  "e2eeGenerateKeys": "Generate Recovery Key",
-  "e2eeGeneratingKeys": "Generating...",
   "createAccount": "Create Account",
   "generatingKeysTitle": "Setting up encryption",
   "generatingKeysDescription": "Creating your unique encryption keys to keep your data private and secure.",
   "generatingKeysHint": "This may take a few seconds",
-
   "errorTimeout": "The operation timed out. Please try again.",
   "errorAuthFailed": "Authentication failed. Please try again.",
   "errorAuthUnauthorized": "You don't have permission to perform this action.",
@@ -430,11 +272,8 @@
   "errorFormatInvalid": "Invalid data format.",
   "errorArgumentInvalid": "Invalid input provided.",
   "errorStateInvalid": "Invalid operation state.",
-  "errorNetworkGeneric": "Network error. Please check your connection.",
   "errorOffline": "You're offline. Some features require an internet connection.",
-  
   "templateSaved": "Template saved",
-  "templateLoaded": "Template loaded",
   "templateFieldAdded": "Field added",
   "templateFieldRemoved": "Field removed",
   "templateDiscarded": "Changes discarded",
@@ -442,20 +281,14 @@
   "templateArchived": "Template archived",
   "templateHidden": "Template hidden",
   "templateUnhidden": "Template shown",
-  
   "templateIntegrationCombinationGenerationFailed": "Could not create this template. Try simpler fields.",
   "templateIntegrationSchemaConversionFailed": "Template conversion failed. Please try again.",
   "templateIntegrationPipelineOrchestrationFailed": "Something went wrong. Please try again.",
   "templateIntegrationWidgetGenerationFailed": "Could not build the form. Try different field types.",
-  
   "logEntrySaved": "Entry logged",
-  
   "schedulePaused": "Schedule paused",
   "scheduleResumed": "Schedule resumed",
   "scheduleDeleted": "Schedule deleted",
-  "scheduleSaved": "Schedule saved",
-  "noSchedulesYet": "No schedules yet",
-  
   "errorLogEntryValidation": "Entry validation failed: {errors}",
   "@errorLogEntryValidation": {
     "placeholders": {
@@ -466,21 +299,15 @@
   },
   "errorTemplateNotFound": "Template not found",
   "errorTemplateSchemaChange": "Cannot change field types on existing template",
-  
   "confirmDeleteEntry": "Are you sure you want to delete this entry? This cannot be undone.",
-  "confirmDeleteSchedule": "Are you sure you want to delete this schedule?",
   "entryDeleted": "Entry deleted",
   "entryUpdated": "Entry updated",
   "scheduleUpdated": "Schedule updated",
-  "editEntry": "Edit Entry",
-  
-  "appInfoTitle": "App Info",
   "information": "Information",
   "privacyPolicy": "Privacy Policy",
   "termsOfService": "Terms of Service",
   "sourceCode": "Source Code",
   "sourceCodeSubtitle": "View on GitHub",
-  
   "visualizationTitle": "Visualization",
   "visualizationDataTitle": "Data Visualization",
   "visualizationLast30Days": "{templateName} - Last 30 days",
@@ -491,17 +318,12 @@
       }
     }
   },
-  "visualizationCompareFields": "Compare Fields",
-  "visualizationSelectFields": "Select 2+ fields to overlay on one chart",
-  "visualizationClear": "Clear",
   "visualizationTrend": "Trend",
   "visualizationCompletion": "Completion",
   "visualizationCategories": "Categories",
   "visualizationNoData": "No data",
-  "visualizationAverage": "Average",
   "visualizationEntries": "Entries",
   "visualizationConsistency": "Consistency",
-
   "devicesTitle": "Devices",
   "noDevices": "No devices registered",
   "thisDevice": "This Device",
@@ -518,10 +340,6 @@
       }
     }
   },
-  "deviceRevoked": "Device revoked",
-  "refresh": "Refresh",
-  "pullToRefresh": "Pull down to refresh",
-
   "devToolsTitle": "Dev Tools",
   "devSeedFakeData": "Seed Fake Data",
   "devSeed": "Seed",
@@ -536,8 +354,6 @@
   "devWipeKeysConfirm": "Wipe Keys",
   "devConnectToCloud": "Connect to Cloud",
   "devConnect": "Connect",
-  "devConnected": "Connected to cloud",
-  "devConnectionFailed": "Cloud connection failed",
   "devCreateAccount": "Create Account",
   "devCreate": "Create",
   "devAccountCreated": "Account created",
@@ -546,9 +362,7 @@
   "devRegister": "Register",
   "devAccountRegistered": "Account registered",
   "devAccountRegistrationFailed": "Account registration failed",
-
   "addToExistingAccount": "Add to Existing Account",
-  "iHaveAnAccount": "I Have an Account",
   "connectDevice": "Connect Device",
   "connectDeviceTitle": "Connect This Device",
   "connectDeviceDescription": "Choose how to connect this device to your existing account.",
@@ -580,9 +394,6 @@
   "copyPairingData": "Copy Pairing Data",
   "enterPairingData": "Enter Pairing Data",
   "pairingDataHint": "Paste pairing data here...",
-  "pairingDataInvalid": "Invalid pairing data format",
-  "pairingDataPasted": "Pairing data pasted",
-
   "webhookCreated": "Webhook created",
   "webhookUpdated": "Webhook updated",
   "webhookDeleted": "Webhook deleted",
@@ -623,62 +434,19 @@
   "apiKeyValue": "Key Value",
   "apiKeyValueHint": "Enter your API key",
   "apiKeyConfigured": "Configured",
-  "apiKeyNotSet": "Not set",
   "deleteWebhookTitle": "Delete Webhook",
   "deleteWebhookMessage": "Are you sure you want to delete this webhook?",
   "deleteApiKeyTitle": "Delete API Key",
   "deleteApiKeyMessage": "Are you sure you want to delete this API key? Webhooks using it will lose authentication.",
-  
   "fieldIsListLabel": "Allow multiple values",
   "fieldIsListHint": "Enable to record multiple entries (e.g., workout sets, ingredients)",
-  
   "fieldDefaultValueLabel": "Default Value (optional)",
   "fieldDefaultValueHint": "Pre-filled when logging",
   "fieldDefaultValueAddOptionsFirst": "Add options first to set a default",
   "booleanTrue": "Yes",
   "booleanFalse": "No",
   "actionClear": "Clear",
-  
-  "aiSuggestionsTitle": "AI Suggestions",
-  "aiSuggestionsDescription": "Get smart analysis suggestions for your field",
-  "aiSuggestionsLoading": "Generating AI suggestions...",
-  "aiSuggestionsGenerated": "AI suggestions ready",
-  "aiSuggestionsError": "Failed to generate AI suggestions",
-  "aiSuggestionsEmpty": "No suggestions available for this field",
   "aiSuggestionsApplied": "AI suggestion applied",
-  "aiSuggestionsFieldRequired": "Please select a field first",
-  "aiSuggestionsIntentHint": "What would you like to analyze? (e.g., 'Find weekly patterns', 'Calculate averages')",
-  "aiSuggestionsIntentLabel": "Analysis Goal",
-  "aiSuggestionsGenerate": "Generate Suggestions",
-  "aiSuggestionsApply": "Apply This Analysis",
-  "aiSuggestionsConfidence": "Confidence: {confidence}%",
-  "@aiSuggestionsConfidence": {
-    "placeholders": {
-      "confidence": {
-        "type": "int"
-      }
-    }
-  },
-  "aiSuggestionsUseCase": "Use Case: {useCase}",
-  "@aiSuggestionsUseCase": {
-    "placeholders": {
-      "useCase": {
-        "type": "String"
-      }
-    }
-  },
-  "aiSuggestionsStepsCount": "{count} steps",
-  "@aiSuggestionsStepsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "fieldSelectionTitle": "Select Field",
-  "fieldSelectionDescription": "Choose a field to analyze with AI suggestions",
-  "fieldSelectionRequired": "Field selection is required for AI suggestions",
-  "llmConfigurationRequired": "AI service configuration required. Please check your settings.",
   "notificationMarkedAsReceived": "Notification marked as received",
   "notificationDismissed": "Notification dismissed",
   "notificationAllMarkedAsReceived": "All notifications marked as received",
@@ -686,14 +454,6 @@
   "errorFeedbackTooShort": "Feedback must be at least 10 characters",
   "errorFeedbackTooLong": "Feedback must be less than 5000 characters",
   "errorFeedbackInvalidType": "Invalid feedback type",
-  "errorReportSynced": "{count, plural, =1{1 error report synced} other{{count} error reports synced}}",
-  "@errorReportSynced": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "errorPublicSubmissionFailed": "Failed to submit. Please try again.",
   "errorChallengeRequestFailed": "Failed to get challenge from server",
   "errorProofOfWorkFailed": "Verification failed. Please try again.",
@@ -702,44 +462,28 @@
   "cameraPermissionDeniedTitle": "Camera Access Required",
   "cameraPermissionDeniedMessage": "We need camera access to scan QR codes for device pairing. Please enable it in your device settings.",
   "actionOpenSettings": "Open Settings",
-  "cameraPermissionDeniedHeader": "Camera Disabled",
   "pairingDataManualInstructions": "If you can't scan the QR code, tap 'Copy Pairing Data' on your other device and paste the code here.",
-
   "analyticsInboxSendAllSuccess": "All analytics sent",
   "analyticsInboxClearSentSuccess": "Sent items cleared",
   "analyticsInboxClearAllSuccess": "All items cleared",
   "analyticsInboxToggleAutoSendSuccess": "Auto-send updated",
   "analyticsInboxSendAllError": "Failed to send analytics",
   "analyticsInboxOperationError": "Analytics inbox operation failed",
-
   "appOperatingConnectionTested": "Connection tested",
   "appOperatingModeChangedExternally": "Operating mode was changed externally",
-
   "templateInfoUpdated": "Template info updated",
   "templateFieldUpdated": "Field updated",
   "templateFieldsReordered": "Fields reordered",
   "templateAestheticsUpdated": "Appearance updated",
   "templateScheduleUpdated": "Schedule updated",
   "templateGenerated": "Template generated",
-  "templateFormLoaded": "Form loaded",
-  "templateFormValidated": "Form validated",
   "templateFormCleared": "Form cleared",
-
-  "templateSharingPreviewLoaded": "Sharing preview loaded",
   "templateSharingImported": "Template imported",
   "templateSharingExported": "Template exported",
-
   "entrySubmitted": "Entry submitted",
-  "entryLoaded": "Entry loaded",
-  "entryHistoryLoaded": "Entry history loaded",
-
-  "timelineLoaded": "Timeline loaded",
   "timelineFiltered": "Timeline filtered",
   "timelineSorted": "Timeline sorted",
   "timelineHiddenToggled": "Hidden entries toggled",
-
-  "visualizationLoaded": "Visualization loaded",
-
   "feedbackTitle": "Send Feedback",
   "feedbackTypeFeature": "Feature",
   "feedbackTypeBug": "Bug",
@@ -747,50 +491,6 @@
   "feedbackHint": "Tell us what you think...",
   "feedbackPrivacyNotice": "Your feedback is anonymous and helps us improve.",
   "feedbackSubmitButton": "Submit Feedback",
-
-  "paramDialogConfigureTitle": "Configure {label}",
-  "@paramDialogConfigureTitle": {
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
-  "paramDialogInputLabel": "Input {index}",
-  "@paramDialogInputLabel": {
-    "placeholders": {
-      "index": {
-        "type": "int"
-      }
-    }
-  },
-  "paramDialogSelectDataSource": "Select data source",
-  "paramDialogRequired": "Required",
-  "paramDialogWindowSize": "Window Size (days)",
-  "paramDialogPercentile": "Percentile (0-100)",
-  "paramDialogThreshold": "Threshold",
-  "paramDialogValue": "Value",
-  "paramDialogEnterNumber": "Enter number",
-  "paramDialogMustBeNumber": "Must be a number",
-  "paramDialogMustBeAtLeast": "Must be >= {min}",
-  "@paramDialogMustBeAtLeast": {
-    "placeholders": {
-      "min": {
-        "type": "String"
-      }
-    }
-  },
-  "paramDialogMustBeAtMost": "Must be <= {max}",
-  "@paramDialogMustBeAtMost": {
-    "placeholders": {
-      "max": {
-        "type": "String"
-      }
-    }
-  },
-  "paramDialogOperator": "Operator",
-  "paramDialogAddOperation": "Add Operation",
-
   "errorPageTitle": "Error",
   "errorPageNotFound": "Page not found: {location}",
   "@errorPageNotFound": {
@@ -800,12 +500,10 @@
       }
     }
   },
-
   "notificationsTitle": "Notifications",
   "notificationsMarkAll": "Mark All",
   "notificationsEmpty": "No notifications",
   "notificationsCaughtUp": "You're all caught up",
-
   "sortByHeader": "Sort By",
   "sortByDate": "Date",
   "sortByTemplate": "Template",
@@ -819,18 +517,15 @@
   "tooltipNotifications": "Notifications",
   "tooltipHidePrivate": "Hide private entries",
   "tooltipShowPrivate": "Show private entries",
-
   "purchaseTitle": "Purchase Sync Days",
   "purchaseAvailableProducts": "Available Products",
   "purchaseNoProducts": "No products available",
   "purchaseSuccessful": "Purchase complete",
   "purchaseFailed": "Purchase failed",
-
   "settingsPurchase": "Purchase Sync Days",
   "settingsErrorReports": "Error Reports",
   "settingsAnalyticsInbox": "Analytics Inbox",
   "settingsSendFeedback": "Send Feedback",
-
   "analyticsInboxTitle": "Analytics Inbox",
   "analyticsInboxPrivacyNotice": "Events include: action name, timestamp, and platform. No personal data or content is ever sent.",
   "analyticsInboxAutoSend": "Auto-send on startup",
@@ -848,21 +543,17 @@
   },
   "analyticsInboxClearAllTitle": "Clear All Events?",
   "analyticsInboxClearAllMessage": "This will permanently delete all unsent analytics events.",
-
   "analysisBuilderTitle": "Analysis Pipeline",
   "analysisBuilderJsTitle": "JavaScript Analysis",
   "analysisBuilderTooltipHidePreview": "Hide Live Preview",
   "analysisBuilderTooltipShowPreview": "Show Live Preview",
   "analysisBuilderEmptyTitle": "No analysis loaded",
   "analysisBuilderEmptyDescription": "Load a pipeline to view its JavaScript code",
-
   "chartNoData": "No data",
-
   "templateContainerStyleTitle": "Container Style",
   "templateContainerStyleDescription": "Choose the shape of field containers",
   "templateAccentLabel": "Accent",
   "templateToneLabel": "Tone",
-
   "aiGeneratorTitle": "AI Generator",
   "aiGeneratorHint": "Describe what you want to track...",
   "aiAddApiKeyTitle": "Add OpenRouter API Key",
@@ -873,31 +564,13 @@
   "aiApiKeyHint": "sk-or-v1-...",
   "aiApiKeyRequired": "API key is required",
   "aiApiKeyNotFound": "API key value not found",
-
   "templateImportUrlHint": "https://gist.github.com/...",
-  "templateImportPreview": "Preview",
-
-  "copiedToClipboard": "Copied to clipboard",
   "stackTraceCopied": "Stack trace copied",
   "pairingDataCopied": "Pairing data copied",
-
   "deviceManagementRequiresCloud": "Device management requires cloud or self-hosted mode",
-
   "tooltipViewInsights": "View insights",
   "tooltipAnalyzeData": "Analyze Data",
-  "tooltipRemove": "Remove",
-  "tooltipMinReached": "Minimum items reached",
   "tooltipStop": "Stop",
   "tooltipStart": "Start",
-  "tooltipReset": "Reset",
-  "addFieldItem": "Add {label}",
-  "@addFieldItem": {
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
-  "fieldNoUiElement": "No input style defined",
-  "fieldNoOptions": "No options available"
+  "tooltipReset": "Reset"
 }
