@@ -12,7 +12,7 @@ class TemplateEditorMessageMapper
   MessageKey? map(TemplateEditorState state) {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
-        TemplateEditorOperation.load => MessageKey.info(L10nKeys.templateLoaded),
+        TemplateEditorOperation.load => null,
         TemplateEditorOperation.updateBasicInfo =>
           MessageKey.success(L10nKeys.templateInfoUpdated),
         TemplateEditorOperation.addField =>

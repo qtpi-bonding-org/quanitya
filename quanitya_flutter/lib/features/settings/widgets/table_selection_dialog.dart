@@ -102,7 +102,7 @@ class _TableSelectionDialogState extends State<TableSelectionDialog> {
       ),
       actions: [
         QuanityaTextButton(
-          text: context.l10n.cancel,
+          text: context.l10n.actionCancel,
           onPressed: () => Navigator.of(context).pop(),
         ),
         QuanityaTextButton(

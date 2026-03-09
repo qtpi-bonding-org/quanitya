@@ -153,7 +153,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
             onPressed: state.canSave ? widget.onPreview : null,
           ),
           end: QuanityaTextButton(
-            text: context.l10n.saveAction,
+            text: context.l10n.actionSave,
             onPressed: state.canSave ? widget.onSave : null,
           ),
         ),

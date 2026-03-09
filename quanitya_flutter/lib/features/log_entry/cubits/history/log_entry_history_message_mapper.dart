@@ -12,8 +12,7 @@ class LogEntryHistoryMessageMapper
   MessageKey? map(LogEntryHistoryState state) {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
-        LogEntryHistoryOperation.load =>
-          MessageKey.info(L10nKeys.entryHistoryLoaded),
+        LogEntryHistoryOperation.load => null,
       };
     }
     return null; // Use global exception mapping for errors

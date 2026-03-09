@@ -12,8 +12,7 @@ class VisualizationMessageMapper
   MessageKey? map(VisualizationState state) {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
-        VisualizationOperation.load =>
-          MessageKey.info(L10nKeys.visualizationLoaded),
+        VisualizationOperation.load => null,
       };
     }
     return null; // Use global exception mapping for errors

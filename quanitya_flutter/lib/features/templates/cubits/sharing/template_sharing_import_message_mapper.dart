@@ -11,8 +11,7 @@ class TemplateSharingImportMessageMapper
   MessageKey? map(TemplateSharingImportState state) {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
-        TemplateSharingImportOperation.preview =>
-          MessageKey.info(L10nKeys.templateSharingPreviewLoaded),
+        TemplateSharingImportOperation.preview => null,
         TemplateSharingImportOperation.confirmImport =>
           MessageKey.success(L10nKeys.templateSharingImported),
         TemplateSharingImportOperation.clear => null,

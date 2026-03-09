@@ -191,20 +191,15 @@ class _HeaderSection extends StatelessWidget {
       spacing: VSpace.x2,
       children: [
         Text(context.l10n.aboutTitle, style: context.text.headlineLarge),
-        Text.rich(
-          TextSpan(
-            style: bodyStyle,
-            children: [
-              TextSpan(text: context.l10n.aboutSubtitlePrefix),
-              TextSpan(text: context.l10n.aboutQuaTitle, style: boldStyle),
-              TextSpan(text: context.l10n.aboutSubtitleQuaMeaning),
-              TextSpan(text: context.l10n.aboutAnityaTitle, style: boldStyle),
-              TextSpan(text: context.l10n.aboutSubtitleAnityaMeaning),
-            ],
+        Text(
+          context.l10n.aboutSubtitle(
+            context.l10n.aboutQuaTitle,
+            context.l10n.aboutAnityaTitle,
           ),
+          style: bodyStyle,
         ),
         Text(
-          context.l10n.aboutPronounciation,
+          context.l10n.aboutPronunciation,
           style: bodyStyle.copyWith(fontStyle: FontStyle.italic),
         ),
       ],

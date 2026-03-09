@@ -22,7 +22,6 @@
   "actionDelete": "Delete",
   "actionEdit": "Edit",
   "actionAdd": "Add",
-  "templateGenerationSuccess": "Template generated",
   "templateRegenerationSuccess": "Template regenerated",
   "templatePreviewSuccess": "Preview created",
   "templateValidationSuccess": "Template validated",
@@ -181,7 +180,6 @@
   "clearData": "Clear Data",
   "clearDataTitle": "Clear Data?",
   "clearDataMessage": "This will delete all local data. This action cannot be undone.",
-  "clear": "Clear",
   "confirm": "Confirm",
   "export": "Export",
   "import_": "Import",
@@ -227,13 +225,12 @@
   "createTemplateTitle": "Generate Template",
   "editTemplateTitle": "Edit Template",
   "previewAction": "Preview",
-  "saveAction": "Save",
   "discardAction": "Discard",
   "previewAndSaveAction": "Preview & Save",
-  "basicInfoSection": "BASIC INFO",
-  "templateNameLabel": "TEMPLATE NAME",
+  "basicInfoSection": "Basic Info",
+  "templateNameLabel": "Template Name",
   "templateNameHint": "e.g., Daily Mood Check-in",
-  "templateDescriptionLabel": "DESCRIPTION (OPTIONAL)",
+  "templateDescriptionLabel": "Description (Optional)",
   "templateDescriptionHint": "Brief description of what this template tracks...",
   "colorThemeSection": "Color Theme",
   "typographySection": "Typography",
@@ -249,7 +246,7 @@
   "pickColorTitle": "Pick Color",
   "selectAction": "Select",
   "templateFieldsSection": "Template Fields",
-  "fieldsCount": "{count} FIELDS",
+  "fieldsCount": "{count} Fields",
   "@fieldsCount": {
     "placeholders": {
       "count": {
@@ -333,10 +330,18 @@
   "scheduleWeekly": "Weekly",
   "scheduleTimeLabel": "Time:",
   "aboutTitle": "Quanitya",
-  "aboutSubtitlePrefix": "Quanitya is a portmanteau of ",
-  "aboutSubtitleQuaMeaning": " (Measurement) and ",
-  "aboutSubtitleAnityaMeaning": " (Impermanence).",
-  "aboutPronounciation": "/kwɑˈnɪtjə/ (Kwah-NIT-yuh)",
+  "aboutSubtitle": "Quanitya is a portmanteau of {quaWord} (Measurement) and {anityaWord} (Impermanence).",
+  "@aboutSubtitle": {
+    "placeholders": {
+      "quaWord": {
+        "type": "String"
+      },
+      "anityaWord": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutPronunciation": "/kwɑˈnɪtjə/ (Kwah-NIT-yuh)",
 
   "aboutPhilosophyTitle": "Philosophy",
   
@@ -381,10 +386,10 @@
   "backupClipboardSubtitle": "Paste into a password manager",
   "backupBiometricsTitle": "Store on Device",
   "backupBiometricsSubtitle": "Protected by Face ID / Touch ID",
-  "backupBiometricsWarning": "Lost device = lost key",
+  "backupBiometricsWarning": "If you lose this device, you'll lose this backup",
   "backupDeviceAuthTitle": "Store on Device",
   "backupDeviceAuthSubtitle": "Protected by your device passcode",
-  "backupDeviceAuthWarning": "Lost device = lost key",
+  "backupDeviceAuthWarning": "If you lose this device, you'll lose this backup",
   "backupRequiredMessage": "Please complete at least one backup method to continue",
   "backupCompleteMessage": "{count, plural, =1{1 backup method completed} other{{count} backup methods completed}}",
   "@backupCompleteMessage": {
@@ -462,8 +467,6 @@
   "errorTemplateNotFound": "Template not found",
   "errorTemplateSchemaChange": "Cannot change field types on existing template",
   
-  "delete": "Delete",
-  "cancel": "Cancel",
   "confirmDeleteEntry": "Are you sure you want to delete this entry? This cannot be undone.",
   "confirmDeleteSchedule": "Are you sure you want to delete this schedule?",
   "entryDeleted": "Entry deleted",

@@ -51,7 +51,7 @@ class _ImportRecoveryKeyDialogState extends State<ImportRecoveryKeyDialog> {
       ),
       actions: [
         QuanityaTextButton(
-          text: context.l10n.cancel,
+          text: context.l10n.actionCancel,
           onPressed: () => Navigator.of(context).pop(),
         ),
         QuanityaTextButton(

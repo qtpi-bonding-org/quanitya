@@ -193,7 +193,7 @@ class _SettingsContent extends StatelessWidget {
         ),
         actions: [
           QuanityaTextButton(
-            text: context.l10n.cancel,
+            text: context.l10n.actionCancel,
             onPressed: () => Navigator.of(context).pop(false),
           ),
           QuanityaTextButton(

@@ -12,8 +12,7 @@ class TimelineDataMessageMapper
   MessageKey? map(TimelineDataState state) {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
-        TimelineDataOperation.load =>
-          MessageKey.info(L10nKeys.timelineLoaded),
+        TimelineDataOperation.load => null,
         TimelineDataOperation.filter =>
           MessageKey.info(L10nKeys.timelineFiltered),
         TimelineDataOperation.sort =>

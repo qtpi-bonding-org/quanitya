@@ -12,10 +12,8 @@ class DynamicTemplateMessageMapper
   MessageKey? map(DynamicTemplateState state) {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
-        DynamicTemplateOperation.load =>
-          MessageKey.info(L10nKeys.templateFormLoaded),
-        DynamicTemplateOperation.validate =>
-          MessageKey.success(L10nKeys.templateFormValidated),
+        DynamicTemplateOperation.load => null,
+        DynamicTemplateOperation.validate => null,
         DynamicTemplateOperation.submit =>
           MessageKey.success(L10nKeys.entrySubmitted),
         DynamicTemplateOperation.clear =>

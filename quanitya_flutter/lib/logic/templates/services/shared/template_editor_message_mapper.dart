@@ -14,7 +14,7 @@ class TemplateEditorMessageMapper
     if (state.status.isSuccess && operation != null) {
       return switch (operation) {
         TemplateEditorOperation.save => MessageKey.success(L10nKeys.templateSaved),
-        TemplateEditorOperation.load => MessageKey.info(L10nKeys.templateLoaded),
+        TemplateEditorOperation.load => null,
         TemplateEditorOperation.addField => MessageKey.success(
           L10nKeys.templateFieldAdded,
         ),

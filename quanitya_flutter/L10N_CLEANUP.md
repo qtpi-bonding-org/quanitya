@@ -1,154 +1,55 @@
 # L10n Cleanup Plan
 
-## 1. BUG: Duplicate Keys (fix immediately)
-Lines 639-642 in `app_en.arb` duplicate keys from lines 57-72. JSON last-value-wins means the `@` metadata descriptions are orphaned.
+## 1. BUG: Duplicate Keys ✅
+Deleted duplicate keys (pipelineStepAdded, pipelineStepRemoved, pipelineStepUpdated, pipelineSaved) that appeared twice in `app_en.arb`.
 
-| Key | Line 57-72 value | Line 639-642 value (wins) |
-|-----|-----------------|--------------------------|
-| `pipelineSaved` | "Pipeline saved successfully!" | "Pipeline saved successfully" |
-| `pipelineStepUpdated` | "Step parameters updated" | "Step updated successfully" |
+## 2. Tone: Drop "successfully" and "!" ✅
+Standardized ~25 success messages to short past-tense, no "!", no "successfully".
 
-**Action:** Delete lines 639-642 and keep the first set (which has `@` metadata).
+## 3. Redundant Keys ✅
+Audited all pairs:
+- `templateGenerationSuccess` — deleted (unused, `templateGenerated` already exists)
+- `saveAction` — deleted, replaced with `actionSave` (1 widget updated)
+- `cancel` — deleted, replaced with `actionCancel` (3 widgets updated)
+- `delete` — deleted (unused, `actionDelete` already used)
+- `clear` — deleted (unused, `actionClear` already used)
+- `templateSaved` vs `pipelineSaved` — kept both (different domains)
+- `logEntrySaved` vs `entrySubmitted` — kept both (different workflows)
 
----
+## 4. Debug-sounding Toasts ✅
+Removed loading toasts from 8 message mappers. Loading content is expected behavior — users don't need a toast for it.
 
-## 2. Tone: Drop "successfully" and "!" everywhere
-Two styles fighting:
-- Older: `"Template generated successfully!"`, `"Analysis pipeline saved successfully!"`
-- Newer toast: `"Template saved"`, `"Entry logged"`, `"Field added"`
+Removed: `templateFormLoaded`, `templateFormValidated`, `entryLoaded`, `entryHistoryLoaded`, `timelineLoaded`, `visualizationLoaded`, `templateSharingPreviewLoaded`, `templateLoaded` (2 mappers).
 
-Newer style is better -- concise, consistent. A 3-second toast doesn't need enthusiasm.
+## 5. Developer Jargon → User Language ✅
+Rephrased ~15 jargon strings (e.g., "Widget Type" → "Input Style", "Pipeline error" → "Something went wrong").
 
-**Action:** Standardize all success feedback to short past-tense, no "!", no "successfully":
-- `templateGenerationSuccess` -> "Template generated"
-- `templateRegenerationSuccess` -> "Template regenerated"
-- `templatePreviewSuccess` -> "Preview created"
-- `templateValidationSuccess` -> "Template validated"
-- `llmTemplateGenerated` -> "Template generated with AI"
-- `llmTemplateRegenerated` -> "Template updated"
-- `analyticsPipelineExecuted` -> "Analysis complete"
-- `analyticsPipelineSaved` -> "Analysis saved"
-- `analyticsPipelineUpdated` -> "Analysis updated"
-- `analyticsPipelineDeleted` -> "Analysis deleted"
-- `devSeeded` -> "Fake data seeded"
-- `devCleared` -> "All data cleared"
-- `devConnected` -> "Connected to cloud"
-- `devAccountCreated` -> "Account created"
-- `devAccountRegistered` -> "Account registered"
-- `pairingCompleted` -> "Device paired"
-- `feedbackSubmitted` -> KEEP "Thank you for your feedback!" (gratitude is fine)
+## 6. Sentence Fragments ✅
+Merged `aboutSubtitlePrefix` + `aboutSubtitleQuaMeaning` + `aboutSubtitleAnityaMeaning` into single `aboutSubtitle` key with `{quaWord}` and `{anityaWord}` placeholders.
 
----
+## 7. Terse Warnings ✅
+Changed "Lost device = lost key" → "If you lose this device, you'll lose this backup" for both `backupBiometricsWarning` and `backupDeviceAuthWarning`.
 
-## 3. Redundant Keys
-| Keep | Remove/Merge | Reason |
-|------|-------------|--------|
-| `templateGenerated` | `templateGenerationSuccess` | Same event |
-| `templateSaved` | possibly `pipelineSaved` | If pipeline = analysis, use "Analysis saved" |
-| `logEntrySaved` ("Entry logged") | `entrySubmitted` ("Entry submitted") | Audit if same action |
-| `actionSave` | `saveAction` | Duplicate button labels |
-| `actionCancel` | `cancel` | Duplicate button labels |
-| `actionDelete` | `delete` | Duplicate button labels |
-| `actionClear` | `clear` | Duplicate button labels |
+## 8. Inconsistent Capitalization ✅
+Standardized to Title Case:
+- `"BASIC INFO"` → `"Basic Info"`
+- `"TEMPLATE NAME"` → `"Template Name"`
+- `"DESCRIPTION (OPTIONAL)"` → `"Description (Optional)"`
+- `"{count} FIELDS"` → `"{count} Fields"`
 
-**Action:** Audit usage and consolidate.
+## 9. Minor Nits ✅
+- `aboutPronounciation` → `aboutPronunciation` (typo in key name fixed)
+- `templateUnhidden`: already "Template shown" — no change needed
+- `recoveryKeysExistWarning` vs `errorKeysAlreadyExist` — kept both (different contexts: UI warning card vs exception toast)
+- `errorStateInvalid` — kept as-is (maps from StateError in exception mapper)
 
----
+## 10. Hardcoded Strings ✅ (partial)
+- `feedback_page.dart` ✅
+- `smart_parameter_dialog.dart` ✅
+- `app_router.dart` ✅
+- `operation_registry.dart` — deferred (requires adding ~105 ARB entries for 35 operations × 3 strings)
 
-## 4. Debug-sounding Toasts
-Shown as 3-second info toasts but read like log statements:
-
-| Key | Current | Question |
-|-----|---------|----------|
-| `templateFormLoaded` | "Form loaded" | Does the user need this? |
-| `templateFormValidated` | "Form validated" | Same |
-| `entryLoaded` | "Entry loaded" | Same |
-| `entryHistoryLoaded` | "Entry history loaded" | Same |
-| `timelineLoaded` | "Timeline loaded" | Same |
-| `visualizationLoaded` | "Visualization loaded" | Same |
-| `templateSharingPreviewLoaded` | "Sharing preview loaded" | Same |
-| `templateLoaded` | "Template loaded" | Same |
-
-**Action:** Consider whether these should be toasts at all. Loading content is expected.
-
----
-
-## 5. Developer Jargon -> User Language
-
-| Current | Suggested | Why |
-|---------|-----------|-----|
-| "Operating mode updated" | "Settings updated" or "Mode switched" | Users don't know "operating mode" |
-| "Operating mode error" | "Connection mode error" | Slightly better |
-| "Operating mode was changed externally" | "Your sync settings were updated from another device" | Explain what happened |
-| "Pipeline error. Please try again." | "Something went wrong. Please try again." | Users don't see pipelines |
-| "Failed to generate field combinations" | "Could not create this template. Try simpler fields." | No jargon |
-| "Failed to convert schema" | "Template conversion failed. Please try again." | No jargon |
-| "Failed to generate widgets" | "Could not build the form. Try different field types." | No jargon |
-| "Generating Cryptographic Keys" | "Setting up encryption" | Simpler |
-| "Failed to generate proof-of-work" | "Verification failed. Please try again." | No jargon |
-| "Widget Type" | "Input Style" or "Display Style" | Users pick how a field looks |
-| "Trigger URL (GET request only)..." | "When an entry is logged, this URL will be called. Note: URLs are stored unencrypted." | Clear |
-| "Keys already exist on this device." | "This device already has an account." | User-facing |
-| "Paste your recovery key (JWK) below" | "Paste your recovery key below" | Drop "(JWK)" |
-| "Paste JWK here..." | "Paste recovery key here..." | Drop "JWK" |
-
----
-
-## 6. Sentence Fragments (translation hazard)
-`aboutSubtitlePrefix` + `aboutSubtitleQuaMeaning` + `aboutSubtitleAnityaMeaning` are concatenated fragments. Breaks in languages with different word order.
-
-**Action:** Merge into one string with placeholders or rich text.
-
----
-
-## 7. Terse Warnings
-`backupBiometricsWarning` / `backupDeviceAuthWarning`: "Lost device = lost key"
-
-**Action:** Consider "If you lose this device, you'll lose this backup"
-
----
-
-## 8. Inconsistent Capitalization
-- ALL CAPS: `"BASIC INFO"`, `"TEMPLATE NAME"`, `"DESCRIPTION (OPTIONAL)"`, `"{count} FIELDS"`
-- Title Case: `"Color Theme"`, `"Typography"`
-
-**Action:** Pick one style for section headers.
-
----
-
-## 9. Minor Nits
-- `templateUnhidden`: "Template visible" -> "Template shown" (matches "Template hidden")
-- `errorStateInvalid`: "Invalid operation state." -- pure developer error, user can't act
-- `recoveryKeysExistWarning` vs `errorKeysAlreadyExist` -- redundant?
-- `aboutPronounciation` -- typo in key name (should be `aboutPronunciation`)
-
----
-
-## 10. Hardcoded Strings to Extract
-
-### feedback_page.dart
-Replace hardcoded titles, labels, hints, button text, and validation messages.
-
-### smart_parameter_dialog.dart
-Replace hardcoded labels, button text, and validation messages.
-
-### operation_registry.dart
-Externalize technical labels and descriptions for analytical operations.
-
-### app_router.dart
-Replace hardcoded error page text.
-
----
-
-## Effort Summary
-
-| Category | Count | Effort |
-|----------|-------|--------|
-| Delete duplicate lines | 4 keys | Trivial |
-| Drop "successfully" / "!" | ~25 strings | Small |
-| Remove/merge redundant keys | ~8 pairs | Medium |
-| Rephrase jargon | ~15 strings | Small |
-| Evaluate debug toasts | ~8 strings | Design decision |
-| Merge about fragments | 3 -> 1 string | Small |
-| Fix capitalization | ~4 strings | Trivial |
-| Extract hardcoded strings | 4 files | Medium |
+## Infrastructure Improvements
+- Upgraded `dart_l10n_key_resolver` — `L10nKeys` now generates typed `(String, Map)` methods for parameterized entries
+- Upgraded `cubit_ui_flow` — added `MessageKey.xFrom()` factories accepting typed records
+- Bumped `flutter_error_privserver` for `cubit_ui_flow` compatibility
