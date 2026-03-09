@@ -34,9 +34,8 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
         ),
 
       // Repository-specific exceptions
-      LogEntryValidationException e => MessageKey.error(
-          L10nKeys.errorLogEntryValidation,
-          {'errors': e.errors.join(', ')},
+      LogEntryValidationException e => MessageKey.errorFrom(
+          L10nKeys.errorLogEntryValidation(e.errors.join(', ')),
         ),
       TemplateNotFoundException e => MessageKey.error(
           L10nKeys.errorTemplateNotFound,

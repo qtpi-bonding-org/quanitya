@@ -53,13 +53,13 @@ dependencies:
   cubit_ui_flow:
     git: 
       url: https://github.com/qtpi-bonding-org/flutter_cubit_ui_flow.git
-      ref: 737f24b
+      ref: 6692e2d
   
   # Privacy-preserving error reporting
   flutter_error_privserver:
     git:
       url: https://github.com/qtpi-bonding-org/flutter_error_privserver.git
-      ref: 40786c2
+      ref: f8c938a
   
   # Code Generation
   freezed_annotation: ^2.4.1
@@ -186,7 +186,7 @@ dev_dependencies:
   l10n_key_resolver:
     git:
       url: https://github.com/qtpi-bonding-org/dart_l10n_key_resolver.git
-      ref: 0ca0e58
+      ref: 2e5c947
   bloc_test: ^9.1.7
   mocktail: ^1.0.4
 

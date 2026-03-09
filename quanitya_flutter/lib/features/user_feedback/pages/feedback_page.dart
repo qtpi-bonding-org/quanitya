@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../app_router.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
@@ -48,12 +49,13 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
   
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return UiFlowListener<FeedbackCubit, FeedbackState>(
       mapper: GetIt.instance<FeedbackMessageMapper>(),
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'Send Feedback',
+            l10n.feedbackTitle,
             style: context.text.headlineMedium,
           ),
           leading: QuanityaIconButton(
@@ -70,21 +72,21 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
                 children: [
                   // Type selector
                   SegmentedButton<String>(
-                    segments: const [
+                    segments: [
                       ButtonSegment(
                         value: 'feature_request',
-                        label: Text('Feature'),
-                        icon: Icon(Icons.lightbulb_outline),
+                        label: Text(l10n.feedbackTypeFeature),
+                        icon: const Icon(Icons.lightbulb_outline),
                       ),
                       ButtonSegment(
                         value: 'bug',
-                        label: Text('Bug'),
-                        icon: Icon(Icons.bug_report),
+                        label: Text(l10n.feedbackTypeBug),
+                        icon: const Icon(Icons.bug_report),
                       ),
                       ButtonSegment(
                         value: 'general',
-                        label: Text('General'),
-                        icon: Icon(Icons.chat_bubble_outline),
+                        label: Text(l10n.feedbackTypeGeneral),
+                        icon: const Icon(Icons.chat_bubble_outline),
                       ),
                     ],
                     selected: {_selectedType},
@@ -99,7 +101,7 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
                   QuanityaTextField(
                     controller: _textController,
                     maxLines: 10,
-                    hintText: 'Tell us what you think...',
+                    hintText: l10n.feedbackHint,
                   ),
                   
                   VSpace.x3,
@@ -121,7 +123,7 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
                           HSpace.x2,
                           Expanded(
                             child: Text(
-                              'Your feedback is anonymous and helps us improve.',
+                              l10n.feedbackPrivacyNotice,
                               style: context.text.bodySmall?.copyWith(
                                 color: context.colors.textPrimary.withValues(alpha: 0.7),
                               ),
@@ -135,7 +137,7 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
                   
                   // Submit button
                   QuanityaTextButton(
-                    text: 'Submit Feedback',
+                    text: l10n.feedbackSubmitButton,
                     onPressed: state.status == UiFlowStatus.loading
                         ? null
                         : () => _submitFeedback(context),
@@ -153,9 +155,10 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
     final text = _textController.text.trim();
     
     if (text.length < 10) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Feedback must be at least 10 characters'),
+        SnackBar(
+          content: Text(l10n.errorFeedbackTooShort),
         ),
       );
       return;

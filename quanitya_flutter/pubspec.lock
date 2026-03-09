@@ -343,8 +343,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "737f24b"
-      resolved-ref: "737f24bb8d5ebdbe9c6479f00655771bed623eb6"
+      ref: "6692e2d"
+      resolved-ref: "6692e2d95d0bcdae59e2b9096a39c3b582807516"
       url: "https://github.com/qtpi-bonding-org/flutter_cubit_ui_flow.git"
     source: git
     version: "0.1.0"
@@ -649,8 +649,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "40786c2"
-      resolved-ref: "40786c2d89df12299b9de9eebed44ddc1fbe8bb1"
+      ref: f8c938a
+      resolved-ref: f8c938a332e42555adb3ccca3b545f7862da1dda
       url: "https://github.com/qtpi-bonding-org/flutter_error_privserver.git"
     source: git
     version: "0.1.0"
@@ -1321,8 +1321,8 @@ packages:
     dependency: "direct dev"
     description:
       path: "."
-      ref: "0ca0e58"
-      resolved-ref: "0ca0e5851d139c9efcfa5ede113b4d5dc5e82d0d"
+      ref: "2e5c947"
+      resolved-ref: "2e5c947f6dc39037a7323409f42e1532b8502e5f"
       url: "https://github.com/qtpi-bonding-org/dart_l10n_key_resolver.git"
     source: git
     version: "0.1.0"

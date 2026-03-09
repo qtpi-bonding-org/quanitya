@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
@@ -39,10 +40,11 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
   
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final definition = OperationRegistry.instance.getDefinition(widget.operation)!;
-    
+
     return AlertDialog(
-      title: Text('Configure ${definition.label}'),
+      title: Text(l10n.paramDialogConfigureTitle(definition.label)),
       content: Container(
         width: 400,
         child: Form(
@@ -83,11 +85,11 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
       ),
       actions: [
         QuanityaTextButton(
-          text: 'Cancel',
+          text: l10n.actionCancel,
           onPressed: () => Navigator.of(context).pop(),
         ),
         QuanityaTextButton(
-          text: 'Add Operation',
+          text: l10n.paramDialogAddOperation,
           onPressed: _canConfirm() ? _confirm : null,
         ),
       ],
@@ -95,15 +97,16 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
   }
   
   List<Widget> _buildInputKeySelectors(OperationDefinition definition) {
+    final l10n = AppLocalizations.of(context)!;
     final inputKeys = <Widget>[];
-    
+
     for (int i = 0; i < definition.inputCount; i++) {
       inputKeys.add(
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Input ${i + 1}',
+              l10n.paramDialogInputLabel(i + 1),
               style: context.text.bodySmall?.copyWith(
                 color: QuanityaPalette.primary.textSecondary,
               ),
@@ -111,7 +114,7 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
             VSpace.x025,
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
-                hintText: 'Select data source',
+                hintText: l10n.paramDialogSelectDataSource,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
                 ),
@@ -128,7 +131,7 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
                 });
               },
               validator: (value) {
-                if (value == null) return 'Required';
+                if (value == null) return l10n.paramDialogRequired;
                 return null;
               },
             ),
@@ -142,6 +145,7 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
   }
   
   Widget _buildParameterField(String param, OperationDefinition definition) {
+    final l10n = AppLocalizations.of(context)!;
     return switch (param) {
       'fieldName' => DynamicFieldSelector(
           availableFields: widget.availableFields,
@@ -151,16 +155,17 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
             });
           },
         ),
-      'windowDays' => _buildNumberField(param, 'Window Size (days)', 1, 365),
-      'percentile' => _buildNumberField(param, 'Percentile (0-100)', 0, 100),
-      'threshold' => _buildNumberField(param, 'Threshold', null, null),
+      'windowDays' => _buildNumberField(param, l10n.paramDialogWindowSize, 1, 365),
+      'percentile' => _buildNumberField(param, l10n.paramDialogPercentile, 0, 100),
+      'threshold' => _buildNumberField(param, l10n.paramDialogThreshold, null, null),
       'operator' => _buildOperatorSelector(),
-      'value' => _buildNumberField(param, 'Value', null, null),
+      'value' => _buildNumberField(param, l10n.paramDialogValue, null, null),
       _ => _buildGenericField(param),
     };
   }
   
   Widget _buildNumberField(String param, String label, double? min, double? max) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -173,7 +178,7 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
         VSpace.x025,
         TextFormField(
           decoration: InputDecoration(
-            hintText: min != null && max != null ? '$min - $max' : 'Enter number',
+            hintText: min != null && max != null ? '$min - $max' : l10n.paramDialogEnterNumber,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
             ),
@@ -188,11 +193,11 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
             }
           },
           validator: (value) {
-            if (value?.isEmpty ?? true) return 'Required';
+            if (value?.isEmpty ?? true) return l10n.paramDialogRequired;
             final number = double.tryParse(value!);
-            if (number == null) return 'Must be a number';
-            if (min != null && number < min) return 'Must be >= $min';
-            if (max != null && number > max) return 'Must be <= $max';
+            if (number == null) return l10n.paramDialogMustBeNumber;
+            if (min != null && number < min) return l10n.paramDialogMustBeAtLeast('$min');
+            if (max != null && number > max) return l10n.paramDialogMustBeAtMost('$max');
             return null;
           },
         ),
@@ -201,11 +206,12 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
   }
   
   Widget _buildOperatorSelector() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Operator',
+          l10n.paramDialogOperator,
           style: context.text.bodySmall?.copyWith(
             color: QuanityaPalette.primary.textSecondary,
           ),
@@ -225,13 +231,14 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
               _params['operator'] = value;
             });
           },
-          validator: (value) => value == null ? 'Required' : null,
+          validator: (value) => value == null ? l10n.paramDialogRequired : null,
         ),
       ],
     );
   }
   
   Widget _buildGenericField(String param) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -254,7 +261,7 @@ class _SmartParameterDialogState extends State<SmartParameterDialog> {
             });
           },
           validator: (value) {
-            if (value?.isEmpty ?? true) return 'Required';
+            if (value?.isEmpty ?? true) return l10n.paramDialogRequired;
             return null;
           },
         ),

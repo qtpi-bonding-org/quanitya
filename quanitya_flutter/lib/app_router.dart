@@ -13,6 +13,7 @@ import 'features/settings/pages/app_info_page.dart';
 import 'features/analytics_inbox/pages/analytics_inbox_page.dart';
 import 'features/error_reporting/pages/error_box_page.dart';
 import 'features/user_feedback/pages/feedback_page.dart';
+import 'l10n/app_localizations.dart';
 import 'features/notifications/pages/notification_inbox_page.dart';
 import 'features/log_entry/pages/log_entry_page.dart';
 import 'features/log_entry/pages/logged_entry_page.dart';
@@ -316,13 +317,16 @@ class AppRouter {
         ],
       ),
     ],
-    errorBuilder: (context, state) => ZenPaperBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(title: const Text('Error')),
-        body: Center(child: Text('Page not found: ${state.matchedLocation}')),
-      ),
-    ),
+    errorBuilder: (context, state) {
+      final l10n = AppLocalizations.of(context)!;
+      return ZenPaperBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(title: Text(l10n.errorPageTitle)),
+          body: Center(child: Text(l10n.errorPageNotFound(state.matchedLocation))),
+        ),
+      );
+    },
     );
   }
 }

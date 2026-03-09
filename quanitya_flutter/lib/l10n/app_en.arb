@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
   "onboardingTitle": "QUANITYA",
-  "successGeneric": "Success!",
+  "successGeneric": "Success",
   "errorGeneric": "An error occurred",
   "errorNetwork": "Network connection error",
   "errorAppOperating": "Operating mode error",
@@ -22,10 +22,10 @@
   "actionDelete": "Delete",
   "actionEdit": "Edit",
   "actionAdd": "Add",
-  "templateGenerationSuccess": "Template generated successfully!",
-  "templateRegenerationSuccess": "Template regenerated successfully!",
-  "templatePreviewSuccess": "Template preview created successfully!",
-  "templateValidationSuccess": "Template validation completed successfully!",
+  "templateGenerationSuccess": "Template generated",
+  "templateRegenerationSuccess": "Template regenerated",
+  "templatePreviewSuccess": "Preview created",
+  "templateValidationSuccess": "Template validated",
   "templateGenerationLoading": "Generating your template...",
   "templateRegenerationLoading": "Regenerating template...",
   "templatePreviewLoading": "Creating template preview...",
@@ -46,43 +46,43 @@
   "@templateGenerationPerformanceFailed": {
     "description": "Error message when template generation exceeds performance limits"
   },
-  "llmTemplateGenerated": "Template generated successfully using AI!",
+  "llmTemplateGenerated": "Template generated with AI",
   "@llmTemplateGenerated": {
     "description": "Success message when LLM generates a template"
   },
-  "llmTemplateRegenerated": "Template updated successfully!",
+  "llmTemplateRegenerated": "Template updated",
   "@llmTemplateRegenerated": {
     "description": "Success message when LLM regenerates a template"
   },
-  "pipelineSaved": "Pipeline saved successfully!",
+  "pipelineSaved": "Analysis saved",
   "@pipelineSaved": {
     "description": "Success message when analysis pipeline is saved"
   },
-  "pipelineStepAdded": "Step added to pipeline",
+  "pipelineStepAdded": "Step added",
   "@pipelineStepAdded": {
     "description": "Success message when step is added to pipeline"
   },
-  "pipelineStepRemoved": "Step removed from pipeline",
+  "pipelineStepRemoved": "Step removed",
   "@pipelineStepRemoved": {
     "description": "Success message when step is removed from pipeline"
   },
-  "pipelineStepUpdated": "Step parameters updated",
+  "pipelineStepUpdated": "Step updated",
   "@pipelineStepUpdated": {
     "description": "Success message when step parameters are updated"
   },
-  "analyticsPipelineExecuted": "Analysis completed successfully!",
+  "analyticsPipelineExecuted": "Analysis complete",
   "@analyticsPipelineExecuted": {
     "description": "Success message when analytics pipeline executes"
   },
-  "analyticsPipelineSaved": "Analysis pipeline saved successfully!",
+  "analyticsPipelineSaved": "Analysis saved",
   "@analyticsPipelineSaved": {
     "description": "Success message when analytics pipeline is saved"
   },
-  "analyticsPipelineUpdated": "Analysis pipeline updated successfully!",
+  "analyticsPipelineUpdated": "Analysis updated",
   "@analyticsPipelineUpdated": {
     "description": "Success message when analytics pipeline is updated"
   },
-  "analyticsPipelineDeleted": "Analysis pipeline deleted successfully!",
+  "analyticsPipelineDeleted": "Analysis deleted",
   "@analyticsPipelineDeleted": {
     "description": "Success message when analytics pipeline is deleted"
   },
@@ -187,8 +187,8 @@
   "import_": "Import",
   "exportData": "Export Data",
   "importData": "Import Data",
-  "settingsExportSuccess": "Data exported successfully",
-  "settingsImportSuccess": "Data imported successfully",
+  "settingsExportSuccess": "Data exported",
+  "settingsImportSuccess": "Data imported",
   "importDataConfirmTitle": "Import Data?",
   "importDataConfirmMessage": "This will replace all existing data with the imported file. This cannot be undone.",
   "importDataConfirmButton": "Import & Replace",
@@ -198,11 +198,11 @@
   "settingsClearSuccess": "Data cleared",
   "importRecoveryKey": "Import Recovery Key",
   "importRecoveryKeyTitle": "Import Recovery Key",
-  "importRecoveryKeyMessage": "Paste your recovery key (JWK) below to verify it.",
-  "importRecoveryKeyHint": "Paste JWK here...",
-  "settingsRecoveryKeyVerified": "Recovery key verified successfully",
-  "settingsRecoveryAccountRecovered": "Account recovered successfully",
-  "settingsDevicesRevoked": "Device revoked successfully",
+  "importRecoveryKeyMessage": "Paste your recovery key below to verify it.",
+  "importRecoveryKeyHint": "Paste recovery key here...",
+  "settingsRecoveryKeyVerified": "Recovery key verified",
+  "settingsRecoveryAccountRecovered": "Account recovered",
+  "settingsDevicesRevoked": "Device revoked",
   "accountRecoveryTitle": "Recover Account",
   "accountRecoveryDescription": "Enter your recovery key to restore access to your account. This will register this device with your existing account.",
   "recoveryKeyLabel": "Recovery Key",
@@ -278,7 +278,7 @@
   },
   "fieldLabelLabel": "Field Label",
   "fieldLabelHint": "e.g., Mood Level, Energy, Notes",
-  "widgetTypeLabel": "Widget Type",
+  "widgetTypeLabel": "Input Style",
   "widgetSlider": "Slider",
   "widgetStepper": "Stepper (+/-)",
   "widgetTextField": "Text Field",
@@ -370,7 +370,7 @@
   "copyToClipboard": "Copy to Clipboard",
   "recoveryKeyConfirmation": "I have saved my recovery key",
   "continueAction": "Continue",
-  "onboardingAccountCreated": "Account created successfully",
+  "onboardingAccountCreated": "Account created",
   "onboardingExportedICloud": "Saved to iCloud Keychain",
   "onboardingExportedFile": "Recovery key exported",
   "onboardingCopiedClipboard": "Copied to clipboard",
@@ -407,7 +407,7 @@
   "e2eeGenerateKeys": "Generate Recovery Key",
   "e2eeGeneratingKeys": "Generating...",
   "createAccount": "Create Account",
-  "generatingKeysTitle": "Generating Cryptographic Keys",
+  "generatingKeysTitle": "Setting up encryption",
   "generatingKeysDescription": "Creating your unique encryption keys to keep your data private and secure.",
   "generatingKeysHint": "This may take a few seconds",
 
@@ -419,7 +419,7 @@
   "errorSyncFailed": "Sync failed. Please check your connection.",
   "errorEncryptionFailed": "Encryption error. Please try again.",
   "errorKeysFailed": "Key management error. Please try again.",
-  "errorKeysAlreadyExist": "Keys already exist on this device.",
+  "errorKeysAlreadyExist": "This device already has an account.",
   "errorPairingDeviceAlreadySetup": "This device is already set up. Cannot pair again.",
   "errorPairingFailed": "Pairing failed. Please try again.",
   "errorFormatInvalid": "Invalid data format.",
@@ -436,12 +436,12 @@
   "templateDeleted": "Template deleted",
   "templateArchived": "Template archived",
   "templateHidden": "Template hidden",
-  "templateUnhidden": "Template visible",
+  "templateUnhidden": "Template shown",
   
-  "templateIntegrationCombinationGenerationFailed": "Failed to generate field combinations. Please check field compatibility.",
-  "templateIntegrationSchemaConversionFailed": "Failed to convert schema. Please verify field combinations.",
-  "templateIntegrationPipelineOrchestrationFailed": "Pipeline error. Please try again.",
-  "templateIntegrationWidgetGenerationFailed": "Failed to generate widgets. Please check field definitions.",
+  "templateIntegrationCombinationGenerationFailed": "Could not create this template. Try simpler fields.",
+  "templateIntegrationSchemaConversionFailed": "Template conversion failed. Please try again.",
+  "templateIntegrationPipelineOrchestrationFailed": "Something went wrong. Please try again.",
+  "templateIntegrationWidgetGenerationFailed": "Could not build the form. Try different field types.",
   
   "logEntrySaved": "Entry logged",
   
@@ -515,17 +515,17 @@
       }
     }
   },
-  "deviceRevoked": "Device revoked successfully",
+  "deviceRevoked": "Device revoked",
   "refresh": "Refresh",
   "pullToRefresh": "Pull down to refresh",
 
   "devToolsTitle": "Dev Tools",
   "devSeedFakeData": "Seed Fake Data",
   "devSeed": "Seed",
-  "devSeeded": "Database seeded with fake data!",
+  "devSeeded": "Fake data seeded",
   "devClearAllData": "Clear All Data",
   "devClear": "Clear",
-  "devCleared": "All data cleared!",
+  "devCleared": "All data cleared",
   "devWipeCryptoKeys": "Wipe Crypto Keys",
   "devWipe": "Wipe",
   "devWipeKeysTitle": "Wipe Crypto Keys",
@@ -533,15 +533,15 @@
   "devWipeKeysConfirm": "Wipe Keys",
   "devConnectToCloud": "Connect to Cloud",
   "devConnect": "Connect",
-  "devConnected": "Connected to cloud successfully!",
+  "devConnected": "Connected to cloud",
   "devConnectionFailed": "Cloud connection failed",
   "devCreateAccount": "Create Account",
   "devCreate": "Create",
-  "devAccountCreated": "Account created successfully!",
+  "devAccountCreated": "Account created",
   "devAccountCreationFailed": "Account creation failed",
   "devRegisterAccount": "Register Account",
   "devRegister": "Register",
-  "devAccountRegistered": "Account registered with server!",
+  "devAccountRegistered": "Account registered",
   "devAccountRegistrationFailed": "Account registration failed",
 
   "addToExistingAccount": "Add to Existing Account",
@@ -572,8 +572,8 @@
   },
   "pairingConfirmAdd": "Add Device",
   "pairingQrGenerated": "QR code ready",
-  "pairingCompleted": "Device paired successfully!",
-  "pairingDeviceAdded": "Device added successfully",
+  "pairingCompleted": "Device paired",
+  "pairingDeviceAdded": "Device added",
   "copyPairingData": "Copy Pairing Data",
   "enterPairingData": "Enter Pairing Data",
   "pairingDataHint": "Paste pairing data here...",
@@ -588,7 +588,7 @@
   "apiKeyUpdated": "API key updated",
   "apiKeyDeleted": "API key deleted",
   "webhooksTitle": "Webhooks",
-  "webhooksDescription": "Trigger URL (GET request only). Warning: URLs are not encrypted metadata.",
+  "webhooksDescription": "When an entry is logged, this URL will be called. Note: URLs are stored unencrypted.",
   "addWebhook": "Add Webhook",
   "editWebhook": "Edit Webhook",
   "webhookName": "Name",
@@ -636,18 +636,13 @@
   "booleanFalse": "No",
   "actionClear": "Clear",
   
-  "pipelineStepAdded": "Step added to pipeline",
-  "pipelineStepRemoved": "Step removed from pipeline", 
-  "pipelineStepUpdated": "Step updated successfully",
-  "pipelineSaved": "Pipeline saved successfully",
-  
   "aiSuggestionsTitle": "AI Suggestions",
   "aiSuggestionsDescription": "Get smart analysis suggestions for your field",
   "aiSuggestionsLoading": "Generating AI suggestions...",
-  "aiSuggestionsGenerated": "AI suggestions generated successfully",
+  "aiSuggestionsGenerated": "AI suggestions ready",
   "aiSuggestionsError": "Failed to generate AI suggestions",
   "aiSuggestionsEmpty": "No suggestions available for this field",
-  "aiSuggestionsApplied": "AI suggestion applied to pipeline",
+  "aiSuggestionsApplied": "AI suggestion applied",
   "aiSuggestionsFieldRequired": "Please select a field first",
   "aiSuggestionsIntentHint": "What would you like to analyze? (e.g., 'Find weekly patterns', 'Calculate averages')",
   "aiSuggestionsIntentLabel": "Analysis Goal",
@@ -698,7 +693,7 @@
   },
   "errorPublicSubmissionFailed": "Failed to submit. Please try again.",
   "errorChallengeRequestFailed": "Failed to get challenge from server",
-  "errorProofOfWorkFailed": "Failed to generate proof-of-work",
+  "errorProofOfWorkFailed": "Verification failed. Please try again.",
   "errorSignatureFailed": "Failed to sign submission",
   "errorRateLimitExceeded": "Too many submissions. Please try again later.",
   "cameraPermissionDeniedTitle": "Camera Access Required",
@@ -740,5 +735,66 @@
   "timelineSorted": "Timeline sorted",
   "timelineHiddenToggled": "Hidden entries toggled",
 
-  "visualizationLoaded": "Visualization loaded"
+  "visualizationLoaded": "Visualization loaded",
+
+  "feedbackTitle": "Send Feedback",
+  "feedbackTypeFeature": "Feature",
+  "feedbackTypeBug": "Bug",
+  "feedbackTypeGeneral": "General",
+  "feedbackHint": "Tell us what you think...",
+  "feedbackPrivacyNotice": "Your feedback is anonymous and helps us improve.",
+  "feedbackSubmitButton": "Submit Feedback",
+
+  "paramDialogConfigureTitle": "Configure {label}",
+  "@paramDialogConfigureTitle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "paramDialogInputLabel": "Input {index}",
+  "@paramDialogInputLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "paramDialogSelectDataSource": "Select data source",
+  "paramDialogRequired": "Required",
+  "paramDialogWindowSize": "Window Size (days)",
+  "paramDialogPercentile": "Percentile (0-100)",
+  "paramDialogThreshold": "Threshold",
+  "paramDialogValue": "Value",
+  "paramDialogEnterNumber": "Enter number",
+  "paramDialogMustBeNumber": "Must be a number",
+  "paramDialogMustBeAtLeast": "Must be >= {min}",
+  "@paramDialogMustBeAtLeast": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "paramDialogMustBeAtMost": "Must be <= {max}",
+  "@paramDialogMustBeAtMost": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "paramDialogOperator": "Operator",
+  "paramDialogAddOperation": "Add Operation",
+
+  "errorPageTitle": "Error",
+  "errorPageNotFound": "Page not found: {location}",
+  "@errorPageNotFound": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  }
 }
