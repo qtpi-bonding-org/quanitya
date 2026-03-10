@@ -1,0 +1,154 @@
+import 'package:flutter/material.dart';
+
+import '../../../design_system/primitives/app_sizes.dart';
+import '../../../design_system/primitives/app_spacings.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../support/extensions/context_extensions.dart';
+
+/// Generic layout shell for outbox tabs.
+///
+/// Provides a consistent structure: optional banner at top,
+/// expanded content area in the middle, and optional bottom actions.
+/// Each outbox tab (Feedback, Analytics, Errors) plugs its specific
+/// widgets into these slots.
+class OutboxTabContent extends StatelessWidget {
+  /// Optional banner shown at the top (e.g. privacy notice).
+  final Widget? banner;
+
+  /// The main content area — fills available space.
+  final Widget content;
+
+  /// Optional widget pinned to the bottom (e.g. action buttons).
+  final Widget? bottomAction;
+
+  /// Optional empty-state widget shown instead of [content] when [isEmpty] is true.
+  final Widget? emptyState;
+
+  /// When true, shows [emptyState] instead of the normal layout.
+  final bool isEmpty;
+
+  /// When true, shows a loading indicator instead of content.
+  final bool isLoading;
+
+  const OutboxTabContent({
+    super.key,
+    this.banner,
+    required this.content,
+    this.bottomAction,
+    this.emptyState,
+    this.isEmpty = false,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (isEmpty && emptyState != null) {
+      return emptyState!;
+    }
+
+    return Column(
+      children: [
+        if (banner != null) banner!,
+        Expanded(child: content),
+        if (bottomAction != null) bottomAction!,
+      ],
+    );
+  }
+}
+
+/// Reusable privacy banner used across outbox tabs.
+class OutboxPrivacyBanner extends StatelessWidget {
+  final String text;
+
+  const OutboxPrivacyBanner({super.key, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: AppPadding.allDouble,
+      decoration: BoxDecoration(
+        color: context.colors.infoColor.withValues(alpha: 0.1),
+        border: Border(
+          bottom: BorderSide(
+            color: context.colors.infoColor.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.privacy_tip_outlined,
+            size: AppSizes.iconMedium,
+            color: context.colors.infoColor,
+          ),
+          HSpace.x2,
+          Expanded(
+            child: Text(
+              text,
+              style: context.text.bodySmall?.copyWith(
+                color: context.colors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Reusable empty state for outbox tabs.
+class OutboxEmptyState extends StatelessWidget {
+  final IconData icon;
+  final Color? iconColor;
+  final String title;
+  final String description;
+
+  const OutboxEmptyState({
+    super.key,
+    required this.icon,
+    this.iconColor,
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: AppPadding.page,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: AppSizes.iconLarge * 2,
+              color: iconColor ?? context.colors.textSecondary,
+            ),
+            VSpace.x4,
+            Text(
+              title,
+              style: context.text.headlineMedium?.copyWith(
+                color: context.colors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            VSpace.x2,
+            Text(
+              description,
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
