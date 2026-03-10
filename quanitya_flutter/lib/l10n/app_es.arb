@@ -95,6 +95,8 @@
   "active": "Activo",
   "inactive": "Inactivo",
   "settingsTitle": "Ajustes",
+  "settingsDevicesSection": "Dispositivos",
+  "settingsDataSection": "Importar / Exportar Datos",
   "confirm": "Confirmar",
   "import_": "Importar",
   "exportData": "Exportar Datos",
