@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../support/extensions/context_extensions.dart';
+import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../support/extensions/context_extensions.dart';
 
 /// Human-friendly labels for SQL table names.
 String _humanize(String tableName) {
@@ -12,44 +14,42 @@ String _humanize(String tableName) {
       .join(' ');
 }
 
-/// Reusable dialog that lets the user select which tables to export/import.
+/// Bottom sheet that lets the user select which tables to export/import.
 ///
 /// All tables are checked by default. Returns the selected table names
 /// as a `Set<String>`, or null if cancelled.
-class TableSelectionDialog extends StatefulWidget {
+class TableSelectionSheet extends StatefulWidget {
   final List<String> tableNames;
-  final String title;
   final String confirmButtonText;
 
-  const TableSelectionDialog({
+  const TableSelectionSheet({
     super.key,
     required this.tableNames,
-    required this.title,
     required this.confirmButtonText,
   });
 
-  /// Show the dialog and return selected table names, or null if cancelled.
+  /// Show the sheet and return selected table names, or null if cancelled.
   static Future<Set<String>?> show(
     BuildContext context, {
     required List<String> tableNames,
     required String title,
     required String confirmButtonText,
   }) {
-    return showDialog<Set<String>>(
+    return LooseInsertSheet.show<Set<String>>(
       context: context,
-      builder: (_) => TableSelectionDialog(
+      title: title,
+      builder: (_) => TableSelectionSheet(
         tableNames: tableNames,
-        title: title,
         confirmButtonText: confirmButtonText,
       ),
     );
   }
 
   @override
-  State<TableSelectionDialog> createState() => _TableSelectionDialogState();
+  State<TableSelectionSheet> createState() => _TableSelectionSheetState();
 }
 
-class _TableSelectionDialogState extends State<TableSelectionDialog> {
+class _TableSelectionSheetState extends State<TableSelectionSheet> {
   late final Set<String> _selected;
 
   @override
@@ -60,56 +60,61 @@ class _TableSelectionDialogState extends State<TableSelectionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(
-        widget.title,
-        style: context.text.titleLarge,
-      ),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: widget.tableNames.length,
-          itemBuilder: (context, index) {
-            final name = widget.tableNames[index];
-            return CheckboxListTile(
-              title: Text(
-                _humanize(name),
-                style: context.text.bodyMedium,
-              ),
-              subtitle: Text(
-                name,
-                style: context.text.bodySmall?.copyWith(
-                  color: context.colors.textSecondary,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: widget.tableNames.length,
+            itemBuilder: (context, index) {
+              final name = widget.tableNames[index];
+              return CheckboxListTile(
+                title: Text(
+                  _humanize(name),
+                  style: context.text.bodyMedium,
                 ),
-              ),
-              value: _selected.contains(name),
-              onChanged: (checked) {
-                setState(() {
-                  if (checked == true) {
-                    _selected.add(name);
-                  } else {
-                    _selected.remove(name);
-                  }
-                });
-              },
-              activeColor: context.colors.interactableColor,
-              controlAffinity: ListTileControlAffinity.leading,
-              dense: true,
-            );
-          },
+                subtitle: Text(
+                  name,
+                  style: context.text.bodySmall?.copyWith(
+                    color: context.colors.textSecondary,
+                  ),
+                ),
+                value: _selected.contains(name),
+                onChanged: (checked) {
+                  setState(() {
+                    if (checked == true) {
+                      _selected.add(name);
+                    } else {
+                      _selected.remove(name);
+                    }
+                  });
+                },
+                activeColor: context.colors.interactableColor,
+                controlAffinity: ListTileControlAffinity.leading,
+                dense: true,
+              );
+            },
+          ),
         ),
-      ),
-      actions: [
-        QuanityaTextButton(
-          text: context.l10n.actionCancel,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        QuanityaTextButton(
-          text: widget.confirmButtonText,
-          onPressed: _selected.isEmpty
-              ? null
-              : () => Navigator.of(context).pop(_selected),
+        VSpace.x3,
+
+        // Action buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            QuanityaTextButton(
+              text: context.l10n.actionCancel,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            HSpace.x2,
+            QuanityaTextButton(
+              text: widget.confirmButtonText,
+              onPressed: _selected.isEmpty
+                  ? null
+                  : () => Navigator.of(context).pop(_selected),
+            ),
+          ],
         ),
       ],
     );

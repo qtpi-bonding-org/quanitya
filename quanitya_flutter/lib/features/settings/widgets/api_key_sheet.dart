@@ -5,25 +5,45 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
+import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/webhook/webhook_cubit.dart';
 
-/// Dialog for creating/editing an API key
-class ApiKeyDialog extends StatefulWidget {
+/// Bottom sheet for creating/editing an API key.
+class ApiKeySheet extends StatefulWidget {
   final ApiKeyModel? apiKey;
 
-  const ApiKeyDialog({
+  const ApiKeySheet({
     super.key,
     this.apiKey,
   });
 
+  /// Show the API key sheet as a modal bottom sheet.
+  static Future<void> show({
+    required BuildContext context,
+    required WebhookCubit cubit,
+    ApiKeyModel? apiKey,
+  }) {
+    return LooseInsertSheet.show(
+      context: context,
+      title: apiKey != null
+          ? context.l10n.editApiKey
+          : context.l10n.addApiKey,
+      builder: (sheetContext) => BlocProvider.value(
+        value: cubit,
+        child: ApiKeySheet(apiKey: apiKey),
+      ),
+    );
+  }
+
   @override
-  State<ApiKeyDialog> createState() => _ApiKeyDialogState();
+  State<ApiKeySheet> createState() => _ApiKeySheetState();
 }
 
-class _ApiKeyDialogState extends State<ApiKeyDialog> {
+class _ApiKeySheetState extends State<ApiKeySheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _headerNameController;
@@ -51,123 +71,123 @@ class _ApiKeyDialogState extends State<ApiKeyDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(
-        _isEditing ? context.l10n.editApiKey : context.l10n.addApiKey,
-        style: context.text.titleLarge,
-      ),
-      content: SizedBox(
-        width: 400,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Name field
-              QuanityaTextFormField(
-                controller: _nameController,
-                labelText: context.l10n.apiKeyName,
-                hintText: context.l10n.apiKeyNameHint,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return context.l10n.validationRequired;
-                  }
-                  return null;
-                },
-              ),
-              VSpace.x3,
+    return SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Name field
+            QuanityaTextFormField(
+              controller: _nameController,
+              labelText: context.l10n.apiKeyName,
+              hintText: context.l10n.apiKeyNameHint,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return context.l10n.validationRequired;
+                }
+                return null;
+              },
+            ),
+            VSpace.x3,
 
-              // Auth type dropdown
-              Text(
-                context.l10n.apiKeyType,
-                style: context.text.bodyMedium?.copyWith(
-                  color: context.colors.textSecondary,
-                ),
+            // Auth type dropdown
+            Text(
+              context.l10n.apiKeyType,
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.textSecondary,
               ),
-              VSpace.x1,
-              DropdownButtonFormField<AuthType>(
-                initialValue: _authType,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                  ),
-                  contentPadding: AppPadding.allSingle,
+            ),
+            VSpace.x1,
+            DropdownButtonFormField<AuthType>(
+              initialValue: _authType,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
                 ),
-                items: [
-                  DropdownMenuItem(
-                    value: AuthType.bearer,
-                    child: Text(context.l10n.apiKeyTypeBearer),
-                  ),
-                  DropdownMenuItem(
-                    value: AuthType.apiKeyHeader,
-                    child: Text(context.l10n.apiKeyTypeHeader),
-                  ),
-                ],
-                onChanged: (value) => setState(() => _authType = value!),
+                contentPadding: AppPadding.allSingle,
               ),
-              VSpace.x3,
-
-              // Header name (only for apiKeyHeader type)
-              if (_authType == AuthType.apiKeyHeader) ...[
-                QuanityaTextFormField(
-                  controller: _headerNameController,
-                  labelText: context.l10n.apiKeyHeaderName,
-                  hintText: context.l10n.apiKeyHeaderNameHint,
-                  validator: (value) {
-                    if (_authType == AuthType.apiKeyHeader && (value == null || value.isEmpty)) {
-                      return context.l10n.validationRequired;
-                    }
-                    return null;
-                  },
+              items: [
+                DropdownMenuItem(
+                  value: AuthType.bearer,
+                  child: Text(context.l10n.apiKeyTypeBearer),
                 ),
-                VSpace.x3,
+                DropdownMenuItem(
+                  value: AuthType.apiKeyHeader,
+                  child: Text(context.l10n.apiKeyTypeHeader),
+                ),
               ],
+              onChanged: (value) => setState(() => _authType = value!),
+            ),
+            VSpace.x3,
 
-              // Key value field
+            // Header name (only for apiKeyHeader type)
+            if (_authType == AuthType.apiKeyHeader) ...[
               QuanityaTextFormField(
-                controller: _keyValueController,
-                labelText: context.l10n.apiKeyValue,
-                hintText: _isEditing ? '••••••••' : context.l10n.apiKeyValueHint,
-                obscureText: true,
+                controller: _headerNameController,
+                labelText: context.l10n.apiKeyHeaderName,
+                hintText: context.l10n.apiKeyHeaderNameHint,
                 validator: (value) {
-                  // Only required for new keys
-                  if (!_isEditing && (value == null || value.isEmpty)) {
+                  if (_authType == AuthType.apiKeyHeader && (value == null || value.isEmpty)) {
                     return context.l10n.validationRequired;
                   }
                   return null;
                 },
               ),
-              if (_isEditing)
-                Padding(
-                  padding: EdgeInsets.only(top: AppSizes.space),
-                  child: Text(
-                    'Leave empty to keep existing key',
-                    style: context.text.bodySmall?.copyWith(
-                      color: context.colors.textSecondary,
-                    ),
+              VSpace.x3,
+            ],
+
+            // Key value field
+            QuanityaTextFormField(
+              controller: _keyValueController,
+              labelText: context.l10n.apiKeyValue,
+              hintText: _isEditing ? '••••••••' : context.l10n.apiKeyValueHint,
+              obscureText: true,
+              validator: (value) {
+                // Only required for new keys
+                if (!_isEditing && (value == null || value.isEmpty)) {
+                  return context.l10n.validationRequired;
+                }
+                return null;
+              },
+            ),
+            if (_isEditing)
+              Padding(
+                padding: EdgeInsets.only(top: AppSizes.space),
+                child: Text(
+                  'Leave empty to keep existing key',
+                  style: context.text.bodySmall?.copyWith(
+                    color: context.colors.textSecondary,
                   ),
                 ),
-            ],
-          ),
+              ),
+            VSpace.x4,
+
+            // Action buttons
+            Row(
+              children: [
+                if (_isEditing)
+                  QuanityaTextButton(
+                    text: context.l10n.actionDelete,
+                    isDestructive: true,
+                    onPressed: () => _confirmDelete(context),
+                  ),
+                const Spacer(),
+                QuanityaTextButton(
+                  text: context.l10n.actionCancel,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                HSpace.x2,
+                QuanityaTextButton(
+                  text: context.l10n.actionSave,
+                  onPressed: _save,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      actions: [
-        if (_isEditing)
-          QuanityaTextButton(
-            text: context.l10n.actionDelete,
-            isDestructive: true,
-            onPressed: () => _confirmDelete(context),
-          ),
-        QuanityaTextButton(
-          text: context.l10n.actionCancel,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        QuanityaTextButton(
-          text: context.l10n.actionSave,
-          onPressed: _save,
-        ),
-      ],
     );
   }
 
@@ -176,7 +196,7 @@ class _ApiKeyDialogState extends State<ApiKeyDialog> {
 
     final cubit = context.read<WebhookCubit>();
     final keyValue = _keyValueController.text.isNotEmpty ? _keyValueController.text : null;
-    
+
     if (_isEditing) {
       cubit.updateApiKey(
         id: widget.apiKey!.id,
@@ -193,32 +213,21 @@ class _ApiKeyDialogState extends State<ApiKeyDialog> {
         keyValue: keyValue!,
       );
     }
-    
+
     Navigator.of(context).pop();
   }
 
   void _confirmDelete(BuildContext context) {
-    showDialog(
+    QuanityaConfirmationDialog.show(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.deleteApiKeyTitle),
-        content: Text(context.l10n.deleteApiKeyMessage),
-        actions: [
-          QuanityaTextButton(
-            text: context.l10n.actionCancel,
-            onPressed: () => Navigator.of(dialogContext).pop(),
-          ),
-          QuanityaTextButton(
-            text: context.l10n.actionDelete,
-            isDestructive: true,
-            onPressed: () {
-              context.read<WebhookCubit>().deleteApiKey(widget.apiKey!.id);
-              Navigator.of(dialogContext).pop();
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
+      title: context.l10n.deleteApiKeyTitle,
+      message: context.l10n.deleteApiKeyMessage,
+      confirmText: context.l10n.actionDelete,
+      isDestructive: true,
+      onConfirm: () {
+        context.read<WebhookCubit>().deleteApiKey(widget.apiKey!.id);
+        Navigator.of(context).pop();
+      },
     );
   }
 }

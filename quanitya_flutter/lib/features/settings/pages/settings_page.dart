@@ -30,11 +30,11 @@ import '../cubits/device_management/device_management_cubit.dart';
 import '../cubits/webhook/webhook_cubit.dart';
 import '../cubits/webhook/webhook_state.dart';
 import '../cubits/webhook/webhook_message_mapper.dart';
-import '../widgets/import_recovery_key_dialog.dart';
+import '../widgets/import_recovery_key_sheet.dart';
 import '../widgets/device_list_section.dart';
-import '../widgets/webhook_dialog.dart';
-import '../widgets/api_key_dialog.dart';
-import '../widgets/table_selection_dialog.dart';
+import '../widgets/webhook_sheet.dart';
+import '../widgets/api_key_sheet.dart';
+import '../widgets/table_selection_sheet.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -143,7 +143,7 @@ class _SettingsContent extends StatelessWidget {
     final cubit = context.read<DataExportCubit>();
     final tableNames = cubit.getExportableTableNames();
 
-    final selected = await TableSelectionDialog.show(
+    final selected = await TableSelectionSheet.show(
       context,
       tableNames: tableNames,
       title: context.l10n.selectTablesTitle,
@@ -162,7 +162,7 @@ class _SettingsContent extends StatelessWidget {
     if (availableTables == null || !context.mounted) return;
 
     // 2. Let user select which tables to import.
-    final selected = await TableSelectionDialog.show(
+    final selected = await TableSelectionSheet.show(
       context,
       tableNames: availableTables,
       title: context.l10n.selectTablesTitle,
@@ -186,12 +186,9 @@ class _SettingsContent extends StatelessWidget {
   }
 
   void _showImportRecoveryKeyDialog(BuildContext context) {
-    showDialog(
+    ImportRecoveryKeySheet.show(
       context: context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<RecoveryKeyCubit>(),
-        child: const ImportRecoveryKeyDialog(),
-      ),
+      cubit: context.read<RecoveryKeyCubit>(),
     );
   }
 }
@@ -243,12 +240,10 @@ class _ApiKeysSection extends StatelessWidget {
   }
 
   void _showApiKeyDialog(BuildContext context, ApiKeyModel? apiKey) {
-    showDialog(
+    ApiKeySheet.show(
       context: context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<WebhookCubit>(),
-        child: ApiKeyDialog(apiKey: apiKey),
-      ),
+      cubit: context.read<WebhookCubit>(),
+      apiKey: apiKey,
     );
   }
 }
@@ -414,16 +409,12 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
 
   void _showWebhookDialog(BuildContext context, WebhookModel? webhook) {
     if (_templates == null) return;
-    
-    showDialog(
+
+    WebhookSheet.show(
       context: context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<WebhookCubit>(),
-        child: WebhookDialog(
-          webhook: webhook,
-          templates: _templates!.map((t) => t.template).toList(),
-        ),
-      ),
+      cubit: context.read<WebhookCubit>(),
+      templates: _templates!.map((t) => t.template).toList(),
+      webhook: webhook,
     );
   }
 }
