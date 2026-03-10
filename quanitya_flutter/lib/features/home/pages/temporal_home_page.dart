@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/bootstrap.dart';
-import '../../../app_router.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
@@ -342,37 +341,6 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                             );
                           }
                         ),
-                      // Add Template & Settings Buttons - Only on Present page (index 1)
-                      if (_currentIndex == 1) ...[
-                        QuanityaIconButton(
-                          icon: Icons.assignment_add,
-                          iconSize: AppSizes.iconMedium,
-                          color: palette.interactableColor,
-                          tooltip: context.l10n.createTemplateTitle,
-                          onPressed: () => AppNavigation.toTemplateGenerator(context),
-                        ),
-                        QuanityaIconButton(
-                          icon: Icons.notifications_outlined,
-                          iconSize: AppSizes.iconMedium,
-                          color: palette.interactableColor,
-                          tooltip: context.l10n.tooltipNotifications,
-                          onPressed: () => AppNavigation.toNotificationInbox(context),
-                        ),
-                        QuanityaIconButton(
-                          icon: Icons.outbox,
-                          iconSize: AppSizes.iconMedium,
-                          color: palette.interactableColor,
-                          tooltip: context.l10n.tooltipAnalyticsOutbox,
-                          onPressed: () => AppNavigation.toAnalyticsInbox(context),
-                        ),
-                        QuanityaIconButton(
-                          icon: Icons.settings,
-                          iconSize: AppSizes.iconMedium,
-                          color: palette.interactableColor,
-                          tooltip: context.l10n.settingsTitle,
-                          onPressed: () => AppNavigation.toSettings(context),
-                        ),
-                      ],
                     ],
                   ),
                 ),
