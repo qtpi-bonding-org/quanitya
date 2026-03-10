@@ -22,18 +22,15 @@ class TemporalPresentPanel extends StatelessWidget {
       padding: AppPadding.pageHorizontal,
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Templates', style: context.text.headlineMedium),
-              QuanityaIconButton(
-                icon: Icons.assignment_add,
-                iconSize: AppSizes.iconMedium,
-                color: palette.interactableColor,
-                tooltip: context.l10n.createTemplateTitle,
-                onPressed: () => AppNavigation.toTemplateGenerator(context),
-              ),
-            ],
+          Align(
+            alignment: Alignment.centerRight,
+            child: QuanityaIconButton(
+              icon: Icons.assignment_add,
+              iconSize: AppSizes.iconMedium,
+              color: palette.interactableColor,
+              tooltip: context.l10n.createTemplateTitle,
+              onPressed: () => AppNavigation.toTemplateGenerator(context),
+            ),
           ),
           VSpace.x2,
           const Expanded(child: TemplateListWidget()),
