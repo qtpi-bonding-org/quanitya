@@ -79,8 +79,9 @@ class _FolderTabWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tabColor = context.colors.textSecondary;
-    final borderColor = context.colors.textSecondary.withValues(alpha: 0.3);
+    final palette = QuanityaPalette.primary;
+    final tabColor = isSelected ? palette.textPrimary : palette.interactableColor;
+    final borderColor = (isSelected ? palette.textPrimary : palette.interactableColor).withValues(alpha: 0.3);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
