@@ -34,7 +34,7 @@ class TemporalIndicator extends StatelessWidget {
         final page = controller.hasClients ? (controller.page ?? 1.0) : 1.0;
 
         return SizedBox(
-          height: AppSizes.inputHeight, // Using 56 instead of 60
+          height: AppSizes.space * 4, // Compact height to sit tight above tab bar
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,

@@ -33,83 +33,78 @@ class _ResultsSectionState extends State<ResultsSection> {
 
   @override
   Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
     return BlocProvider(
       create: (_) => GetIt.I<TemplateListCubit>()..load(),
-      child: Stack(
-        children: [
-          // Page content with top bookmark selector
-          Column(
-            children: [
-              // Bookmark selector at top
-              SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    top: AppSizes.space,
-                    right: AppSizes.space,
-                  ),
-                  child: Align(
-                    alignment: Alignment.topRight,
-                    child: QuanityaIconButton(
-                      icon: _selectedTemplateId != null
-                          ? Icons.bookmark
-                          : Icons.bookmark_outline,
-                      onPressed: () => _selectTemplate(context),
-                      tooltip: 'Select experiment',
+      child: Builder(
+        builder: (innerContext) => Stack(
+          children: [
+            // Page content with top bookmark selector
+            Column(
+              children: [
+                // Bookmark selector at top
+                SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: AppSizes.space,
+                      right: AppSizes.space,
+                    ),
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: QuanityaIconButton(
+                        icon: _selectedTemplateId != null
+                            ? Icons.bookmark
+                            : Icons.bookmark_outline,
+                        onPressed: () => _selectTemplate(innerContext),
+                        tooltip: 'Select experiment',
+                      ),
                     ),
                   ),
                 ),
-              ),
-              // Swipeable pages
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  physics: const ClampingScrollPhysics(),
-                  onPageChanged: (i) => setState(() => _currentPageIndex = i),
-                  children: [
-                    ResultsGraphsPage(templateId: _selectedTemplateId),
-                    ResultsAnalysisPage(templateId: _selectedTemplateId),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          // Page indicator at bottom
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              color: palette.backgroundPrimary,
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.5),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                // Swipeable pages
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const ClampingScrollPhysics(),
+                    onPageChanged: (i) => setState(() => _currentPageIndex = i),
                     children: [
-                      _PageLabel(
-                        label: 'Graphs',
-                        isActive: _currentPageIndex == 0,
-                        onTap: () => _pageController.animateToPage(0,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut),
-                      ),
-                      _PageLabel(
-                        label: 'Analysis',
-                        isActive: _currentPageIndex == 1,
-                        onTap: () => _pageController.animateToPage(1,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut),
-                      ),
+                      ResultsGraphsPage(templateId: _selectedTemplateId),
+                      ResultsAnalysisPage(templateId: _selectedTemplateId),
                     ],
                   ),
                 ),
+              ],
+            ),
+            // Page indicator at bottom
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.25),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _PageLabel(
+                      label: 'Graphs',
+                      isActive: _currentPageIndex == 0,
+                      onTap: () => _pageController.animateToPage(0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut),
+                    ),
+                    _PageLabel(
+                      label: 'Analysis',
+                      isActive: _currentPageIndex == 1,
+                      onTap: () => _pageController.animateToPage(1,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

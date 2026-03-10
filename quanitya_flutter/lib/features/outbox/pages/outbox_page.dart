@@ -75,33 +75,27 @@ class _OutboxPageState extends State<OutboxPage> {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: Container(
-                  color: QuanityaPalette.primary.backgroundPrimary,
-                  child: SafeArea(
-                    top: false,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _PageLabel(
-                            label: l10n.outboxTabFeedback,
-                            isActive: _currentIndex == 0,
-                            onTap: () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
-                          ),
-                          _PageLabel(
-                            label: l10n.outboxTabAnalytics,
-                            isActive: _currentIndex == 1,
-                            onTap: () => _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
-                          ),
-                          _PageLabel(
-                            label: l10n.outboxTabErrors,
-                            isActive: _currentIndex == 2,
-                            onTap: () => _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
-                          ),
-                        ],
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.25),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _PageLabel(
+                        label: l10n.outboxTabFeedback,
+                        isActive: _currentIndex == 0,
+                        onTap: () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
                       ),
-                    ),
+                      _PageLabel(
+                        label: l10n.outboxTabAnalytics,
+                        isActive: _currentIndex == 1,
+                        onTap: () => _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                      ),
+                      _PageLabel(
+                        label: l10n.outboxTabErrors,
+                        isActive: _currentIndex == 2,
+                        onTap: () => _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                      ),
+                    ],
                   ),
                 ),
               ),

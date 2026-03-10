@@ -219,15 +219,9 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: Container(
-                  color: palette.backgroundPrimary,
-                  child: SafeArea(
-                    top: false,
-                    child: TemporalIndicator(
-                      controller: _pageController,
-                      onTabSelected: _onTabSelected,
-                    ),
-                  ),
+                child: TemporalIndicator(
+                  controller: _pageController,
+                  onTabSelected: _onTabSelected,
                 ),
               ),
 
