@@ -294,7 +294,7 @@ class _BottomActions extends StatelessWidget {
           width: double.infinity,
           padding: AppPadding.allDouble,
           decoration: BoxDecoration(
-            color: context.colors.backgroundPrimary,
+            color: Colors.transparent,
             border: Border(
               top: BorderSide(
                 color: context.colors.textSecondary.withValues(alpha: 0.2),

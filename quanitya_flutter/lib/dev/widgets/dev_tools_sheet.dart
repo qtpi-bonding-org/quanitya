@@ -43,10 +43,11 @@ class DevToolsSheet extends StatelessWidget {
     return SafeArea(
       child: Padding(
         padding: AppPadding.page,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             // Handle bar
             Center(
               child: Container(
@@ -142,6 +143,7 @@ class DevToolsSheet extends StatelessWidget {
             ),
             VSpace.x4,
           ],
+          ),
         ),
       ),
     );

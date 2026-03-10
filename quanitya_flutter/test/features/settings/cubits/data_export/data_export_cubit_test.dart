@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
@@ -5,10 +6,17 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import 'package:quanitya_flutter/features/settings/cubits/data_export/data_export_cubit.dart';
 import 'package:quanitya_flutter/features/settings/cubits/data_export/data_export_state.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:quanitya_flutter/data/repositories/data_export_repository.dart';
 
 @GenerateMocks([DataExportRepository])
 import 'data_export_cubit_test.mocks.dart';
+
+final _fakeFile = XFile.fromData(
+  Uint8List.fromList([]),
+  name: 'test.json',
+  mimeType: 'application/json',
+);
 
 void main() {
   group('DataExportCubit', () {
@@ -49,7 +57,9 @@ void main() {
       final selectedTables = {'tracker_templates', 'log_entries'};
 
       test('emits loading then success on successful export', () async {
-        when(mockRepo.exportData(selectedTables))
+        when(mockRepo.prepareExportFile(selectedTables))
+            .thenAnswer((_) async => _fakeFile);
+        when(mockRepo.shareExportFile(any))
             .thenAnswer((_) async => DataExportResult.success);
 
         final cubit = buildCubit();
@@ -67,11 +77,14 @@ void main() {
         expect(states.last.status, equals(UiFlowStatus.success));
         expect(states.last.lastOperation, equals(DataExportOperation.export));
 
-        verify(mockRepo.exportData(selectedTables)).called(1);
+        verify(mockRepo.prepareExportFile(selectedTables)).called(1);
+        verify(mockRepo.shareExportFile(any)).called(1);
       });
 
       test('emits loading then idle when export is cancelled', () async {
-        when(mockRepo.exportData(selectedTables))
+        when(mockRepo.prepareExportFile(selectedTables))
+            .thenAnswer((_) async => _fakeFile);
+        when(mockRepo.shareExportFile(any))
             .thenAnswer((_) async => DataExportResult.cancelled);
 
         final cubit = buildCubit();

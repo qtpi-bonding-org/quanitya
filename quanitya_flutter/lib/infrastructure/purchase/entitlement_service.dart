@@ -98,7 +98,10 @@ class EntitlementService implements IEntitlementService {
         .authenticateDevice(challenge, signature);
 
     if (!authResult.success || authResult.accountId == null) {
-      throw const EntitlementException('Authentication failed');
+      throw EntitlementException(
+        'AUTH_UNKNOWN: device authentication failed '
+        '(success=${authResult.success}, hasAccountId=${authResult.accountId != null})',
+      );
     }
 
     return _AuthParams(

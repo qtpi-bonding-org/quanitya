@@ -299,6 +299,7 @@
   },
   "errorTemplateNotFound": "Modèle introuvable",
   "errorTemplateSchemaChange": "Impossible de modifier les types.",
+  "confirmDeleteTemplate": "Voulez-vous vraiment supprimer ce modèle ? Cette action est irréversible.",
   "confirmDeleteEntry": "Voulez-vous vraiment supprimer ceci ?",
   "entryDeleted": "Entrée supprimée",
   "entryUpdated": "Entrée mise à jour",

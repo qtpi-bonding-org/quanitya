@@ -11,6 +11,8 @@ import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../support/extensions/context_extensions.dart';
+import '../../../../app_router.dart';
+import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../cubits/editor/template_editor_cubit.dart';
 import '../../cubits/editor/template_editor_state.dart';
 import '../../cubits/generator/template_generator_cubit.dart';
@@ -137,17 +139,28 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   }
 
   Widget _buildStickyBottomBar(BuildContext context, TemplateEditorState state) {
+    final isEditing = state.template != null;
+
     return SafeArea(
       top: false,
       child: Padding(
         padding: AppPadding.allDouble,
         child: QuanityaRow(
           spacing: HSpace.x2,
-          start: QuanityaTextButton(
-            text: context.l10n.discardAction,
-            onPressed: () => context.read<TemplateEditorCubit>().discard(),
-            isDestructive: true,
-          ),
+          start: isEditing
+              ? QuanityaTextButton(
+                  text: context.l10n.actionDelete,
+                  onPressed: () => _confirmDeleteTemplate(context, state),
+                  isDestructive: true,
+                )
+              : QuanityaTextButton(
+                  text: context.l10n.discardAction,
+                  onPressed: () {
+                    context.read<TemplateEditorCubit>().discard();
+                    AppNavigation.back(context);
+                  },
+                  isDestructive: true,
+                ),
           middle: QuanityaTextButton(
             text: context.l10n.previewAction,
             onPressed: state.canSave ? widget.onPreview : null,
@@ -159,6 +172,52 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDeleteTemplate(
+    BuildContext context,
+    TemplateEditorState state,
+  ) async {
+    final templateId = state.template?.id;
+    if (templateId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          context.l10n.actionDelete,
+          style: context.text.titleLarge,
+        ),
+        content: Text(
+          context.l10n.confirmDeleteTemplate,
+          style: context.text.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(context.l10n.actionCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              context.l10n.actionDelete,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final repo = GetIt.I<TemplateWithAestheticsRepository>();
+      await repo.archive(templateId);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.templateDeleted)),
+        );
+        AppNavigation.back(context);
+      }
+    }
   }
 
   Widget _buildAddFieldList(BuildContext context) {

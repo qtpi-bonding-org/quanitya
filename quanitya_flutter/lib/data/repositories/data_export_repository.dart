@@ -43,44 +43,55 @@ class DataExportRepository {
     return _db.allTables.map((t) => t.actualTableName).toList();
   }
 
-  /// Export selected tables as JSON file via share sheet.
-  Future<DataExportResult> exportData(Set<String> tableNames) async {
+  /// Prepare export data from selected tables.
+  ///
+  /// Returns an [XFile] ready to share. This is the heavy/async part
+  /// (DB queries + JSON encoding) that should run under a loading overlay.
+  Future<XFile> prepareExportFile(Set<String> tableNames) async {
+    debugPrint('📤 DataExportRepository: Starting export...');
+
+    final exportData = <String, dynamic>{
+      'exportedAt': DateTime.now().toIso8601String(),
+      'schemaVersion': _db.schemaVersion,
+      'format': 'raw_tables',
+    };
+
+    for (final tableName in tableNames) {
+      final rows = await _db.customSelect('SELECT * FROM $tableName').get();
+      exportData[tableName] = rows.map((r) => r.data).toList();
+      debugPrint('📤   $tableName: ${rows.length} rows');
+    }
+
+    final jsonString =
+        const JsonEncoder.withIndent('  ').convert(exportData);
+    final bytes = Uint8List.fromList(utf8.encode(jsonString));
+
+    final timestamp = DateTime.now()
+        .toIso8601String()
+        .replaceAll(':', '-')
+        .split('.')
+        .first;
+    final filename = 'quanitya_export_$timestamp.json';
+
+    debugPrint('📤   Prepared file: $filename');
+
+    return XFile.fromData(
+      bytes,
+      name: filename,
+      mimeType: 'application/json',
+    );
+  }
+
+  /// Share a prepared export file via the system share sheet.
+  ///
+  /// This opens a platform share sheet which may never return on iOS,
+  /// so callers must not hold a loading overlay while awaiting this.
+  Future<DataExportResult> shareExportFile(XFile file) async {
     try {
-      debugPrint('📤 DataExportRepository: Starting export...');
-
-      final exportData = <String, dynamic>{
-        'exportedAt': DateTime.now().toIso8601String(),
-        'schemaVersion': _db.schemaVersion,
-        'format': 'raw_tables',
-      };
-
-      for (final tableName in tableNames) {
-        final rows = await _db.customSelect('SELECT * FROM $tableName').get();
-        exportData[tableName] = rows.map((r) => r.data).toList();
-        debugPrint('📤   $tableName: ${rows.length} rows');
-      }
-
-      final jsonString =
-          const JsonEncoder.withIndent('  ').convert(exportData);
-      final bytes = Uint8List.fromList(utf8.encode(jsonString));
-
-      final timestamp = DateTime.now()
-          .toIso8601String()
-          .replaceAll(':', '-')
-          .split('.')
-          .first;
-      final filename = 'quanitya_export_$timestamp.json';
-
-      debugPrint('📤   Sharing file: $filename');
+      debugPrint('📤   Sharing file: ${file.name}');
 
       final result = await Share.shareXFiles(
-        [
-          XFile.fromData(
-            bytes,
-            name: filename,
-            mimeType: 'application/json',
-          ),
-        ],
+        [file],
         subject: 'Quanitya Data Export',
         text: 'Your Quanitya data backup',
       );
@@ -97,7 +108,7 @@ class DataExportRepository {
           return DataExportResult.failed;
       }
     } catch (e, stack) {
-      debugPrint('❌ DataExportRepository: Export failed: $e');
+      debugPrint('❌ DataExportRepository: Share failed: $e');
       debugPrint('❌ Stack: $stack');
       rethrow;
     }

@@ -1,4 +1,5 @@
 import 'package:injectable/injectable.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../../support/extensions/cubit_ui_flow_extension.dart';
@@ -17,21 +18,39 @@ class DataExportCubit extends QuanityaCubit<DataExportState> {
   }
 
   /// Export selected tables as JSON via share sheet.
+  ///
+  /// Shows loading overlay only during data preparation (DB queries + JSON
+  /// encoding). The overlay is dismissed before the share sheet opens because
+  /// `Share.shareXFiles` can hang indefinitely on iOS until the share sheet
+  /// is fully dismissed by the user.
   Future<void> exportData(Set<String> selectedTables) async {
+    // Step 1: Prepare export file under loading overlay.
+    XFile? file;
     await tryOperation(() async {
-      final result = await _exportRepo.exportData(selectedTables);
+      file = await _exportRepo.prepareExportFile(selectedTables);
+      return state.copyWith(status: UiFlowStatus.idle);
+    }, emitLoading: true);
+
+    // If preparation failed, tryOperation already emitted error state
+    // and file will still be null.
+    if (file == null) return;
+
+    // Step 2: Open share sheet WITHOUT loading overlay.
+    // Share.shareXFiles can block indefinitely on iOS.
+    try {
+      final result = await _exportRepo.shareExportFile(file!);
 
       if (result == DataExportResult.success) {
         analytics?.trackDataExported();
-        return state.copyWith(
+        emit(state.copyWith(
           status: UiFlowStatus.success,
           lastOperation: DataExportOperation.export,
-        );
+        ));
       }
-
-      // Cancelled - return to idle, no message
-      return state.copyWith(status: UiFlowStatus.idle);
-    }, emitLoading: true);
+      // Cancelled/failed — stay idle, no message needed.
+    } catch (e) {
+      emit(createErrorState(e));
+    }
   }
 
   /// Pick an import file and return the table names found in it.

@@ -65,12 +65,13 @@ class _WebhookDialogState extends State<WebhookDialog> {
           ),
           content: SizedBox(
             width: 400,
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   // Name field
                   QuanityaTextFormField(
                     controller: _nameController,
@@ -112,7 +113,7 @@ class _WebhookDialogState extends State<WebhookDialog> {
                   ),
                   VSpace.x1,
                   DropdownButtonFormField<String>(
-                    initialValue: _selectedTemplateId,
+                    value: _selectedTemplateId,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
@@ -141,7 +142,7 @@ class _WebhookDialogState extends State<WebhookDialog> {
                   ),
                   VSpace.x1,
                   DropdownButtonFormField<String?>(
-                    initialValue: _selectedApiKeyId,
+                    value: _selectedApiKeyId,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
@@ -177,7 +178,8 @@ class _WebhookDialogState extends State<WebhookDialog> {
                       ),
                     ],
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

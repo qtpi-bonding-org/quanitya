@@ -19,40 +19,46 @@ class ErrorBoxDao {
   // Write Operations
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Save an error entry with automatic deduplication
+  /// Save an error entry with automatic deduplication.
+  ///
+  /// Uses a transaction to atomically check-then-insert/update, preventing
+  /// UNIQUE constraint violations from concurrent calls with the same
+  /// fingerprint.
   Future<void> saveError(ErrorEntry error) async {
     final fingerprint = _generateFingerprint(error);
     final now = DateTime.now();
-    
-    // Check if error with same fingerprint already exists
-    final existing = await (_db.select(_db.errorBoxEntries)
-          ..where((e) => e.fingerprint.equals(fingerprint)))
-        .getSingleOrNull();
-    
-    if (existing != null) {
-      // Increment occurrence count and update last occurred time
-      await (_db.update(_db.errorBoxEntries)
+
+    await _db.transaction(() async {
+      // Check if error with same fingerprint already exists
+      final existing = await (_db.select(_db.errorBoxEntries)
             ..where((e) => e.fingerprint.equals(fingerprint)))
-          .write(ErrorBoxEntriesCompanion(
-        occurrenceCount: Value(existing.occurrenceCount + 1),
-        timestamp: Value(now), // Update to latest occurrence time
-      ));
-    } else {
-      // Insert new error with generated UUID
-      const uuid = Uuid();
-      await _db.into(_db.errorBoxEntries).insert(
-        ErrorBoxEntriesCompanion.insert(
-          id: uuid.v4(),
-          errorType: error.errorType,
-          errorCode: error.errorCode,
-          source: error.source,
-          stackTrace: error.stackTrace,
-          userMessage: Value(error.userMessage),
-          timestamp: error.timestamp,
-          fingerprint: fingerprint,
-        ),
-      );
-    }
+          .getSingleOrNull();
+
+      if (existing != null) {
+        // Increment occurrence count and update last occurred time
+        await (_db.update(_db.errorBoxEntries)
+              ..where((e) => e.fingerprint.equals(fingerprint)))
+            .write(ErrorBoxEntriesCompanion(
+          occurrenceCount: Value(existing.occurrenceCount + 1),
+          timestamp: Value(now), // Update to latest occurrence time
+        ));
+      } else {
+        // Insert new error with generated UUID
+        const uuid = Uuid();
+        await _db.into(_db.errorBoxEntries).insert(
+          ErrorBoxEntriesCompanion.insert(
+            id: uuid.v4(),
+            errorType: error.errorType,
+            errorCode: error.errorCode,
+            source: error.source,
+            stackTrace: error.stackTrace,
+            userMessage: Value(error.userMessage),
+            timestamp: error.timestamp,
+            fingerprint: fingerprint,
+          ),
+        );
+      }
+    });
   }
 
   /// Mark an error as sent

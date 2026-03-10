@@ -36,12 +36,13 @@ class ToastFeedbackService implements cubit_ui_flow.IFeedbackService {
             top: MediaQuery.of(context).viewPadding.top + 16.0,
             left: 16.0,
             right: 16.0,
-            child: Material(
-              color: Colors.transparent,
-              child: GestureDetector(
-                onTap: _removeOverlay,
-                onVerticalDragEnd: (_) => _removeOverlay(),
-                child: Center(
+            child: Center(
+              child: Material(
+                color: Colors.transparent,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _removeOverlay,
+                  onVerticalDragEnd: (_) => _removeOverlay(),
                   child: PostItToast(
                     message: message.message,
                     type: toastType,

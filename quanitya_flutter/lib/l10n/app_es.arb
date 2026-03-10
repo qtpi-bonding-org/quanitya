@@ -299,6 +299,7 @@
   },
   "errorTemplateNotFound": "Plantilla no encontrada",
   "errorTemplateSchemaChange": "No se pueden cambiar los tipos de campo en una plantilla existente.",
+  "confirmDeleteTemplate": "¿Eliminar esta plantilla? No se puede deshacer.",
   "confirmDeleteEntry": "¿Eliminar esta entrada? No se puede deshacer.",
   "entryDeleted": "Entrada eliminada",
   "entryUpdated": "Entrada actualizada",

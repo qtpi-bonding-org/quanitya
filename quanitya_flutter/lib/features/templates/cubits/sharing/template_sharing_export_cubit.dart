@@ -38,49 +38,57 @@ class TemplateSharingExportCubit
     String? description,
     List<String>? pipelineIds,
   }) async {
+    // Phase 1: Prepare export data under loading overlay
+    late final String jsonString;
+    late final String filename;
     await tryOperation(() async {
-      final jsonString = await _exportService.exportTemplate(
+      jsonString = await _exportService.exportTemplate(
         templateWithAesthetics: templateWithAesthetics,
         author: author,
         description: description,
         includedPipelineIds: pipelineIds,
       );
 
-      final bytes = Uint8List.fromList(utf8.encode(jsonString));
-      final filename =
+      filename =
           '${templateWithAesthetics.template.name.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(RegExp(r'\s+'), '_').toLowerCase()}_template.json';
 
-      final result = await Share.shareXFiles(
-        [
-          XFile.fromData(
-            bytes,
-            name: filename,
-            mimeType: 'application/json',
-          ),
-        ],
-        subject: 'Quanitya Template',
+      return state.copyWith(
+        status: UiFlowStatus.idle,
+        exportedJson: jsonString,
       );
-
-      switch (result.status) {
-        case ShareResultStatus.success:
-          analytics?.trackTemplateExported();
-          return state.copyWith(
-            status: UiFlowStatus.success,
-            lastOperation: TemplateSharingExportOperation.export,
-            shareResult: TemplateShareResult.success,
-            exportedJson: jsonString,
-          );
-        case ShareResultStatus.dismissed:
-          return state.copyWith(
-            status: UiFlowStatus.idle,
-            shareResult: TemplateShareResult.dismissed,
-          );
-        case ShareResultStatus.unavailable:
-          return state.copyWith(
-            status: UiFlowStatus.idle,
-            shareResult: TemplateShareResult.unavailable,
-          );
-      }
     }, emitLoading: true);
+
+    // Phase 2: Open share sheet without loading overlay (can hang on iOS)
+    final bytes = Uint8List.fromList(utf8.encode(jsonString));
+    final result = await Share.shareXFiles(
+      [
+        XFile.fromData(
+          bytes,
+          name: filename,
+          mimeType: 'application/json',
+        ),
+      ],
+      subject: 'Quanitya Template',
+    );
+
+    switch (result.status) {
+      case ShareResultStatus.success:
+        analytics?.trackTemplateExported();
+        emit(state.copyWith(
+          status: UiFlowStatus.success,
+          lastOperation: TemplateSharingExportOperation.export,
+          shareResult: TemplateShareResult.success,
+        ));
+      case ShareResultStatus.dismissed:
+        emit(state.copyWith(
+          status: UiFlowStatus.idle,
+          shareResult: TemplateShareResult.dismissed,
+        ));
+      case ShareResultStatus.unavailable:
+        emit(state.copyWith(
+          status: UiFlowStatus.idle,
+          shareResult: TemplateShareResult.unavailable,
+        ));
+    }
   }
 }

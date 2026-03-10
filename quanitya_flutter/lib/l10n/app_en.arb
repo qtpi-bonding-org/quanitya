@@ -299,6 +299,7 @@
   },
   "errorTemplateNotFound": "Template not found",
   "errorTemplateSchemaChange": "Cannot change field types on existing template.",
+  "confirmDeleteTemplate": "Are you sure you want to delete this template? This cannot be undone.",
   "confirmDeleteEntry": "Are you sure you want to delete this entry? This cannot be undone.",
   "entryDeleted": "Entry deleted",
   "entryUpdated": "Entry updated",

@@ -66,6 +66,10 @@ class TemplateDetailView extends StatelessWidget {
                       icon: Icons.edit,
                       onPressed: () => AppNavigation.toTemplateGenerator(context, state.template),
                     ),
+                    QuanityaIconButton(
+                      icon: Icons.delete_outline,
+                      onPressed: () => _confirmDeleteTemplate(context, state.template!),
+                    ),
                   ],
                 );
               },
@@ -149,6 +153,49 @@ class TemplateDetailView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDeleteTemplate(
+    BuildContext context,
+    TemplateWithAesthetics template,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          context.l10n.actionDelete,
+          style: context.text.titleLarge,
+        ),
+        content: Text(
+          context.l10n.confirmDeleteTemplate,
+          style: context.text.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(context.l10n.actionCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              context.l10n.actionDelete,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final repo = GetIt.instance<TemplateWithAestheticsRepository>();
+      await repo.archive(template.template.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.templateDeleted)),
+        );
+        AppNavigation.back(context);
+      }
+    }
   }
 
   void _shareTemplate(BuildContext context, TemplateWithAesthetics template) {

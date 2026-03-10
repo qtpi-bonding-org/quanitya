@@ -126,7 +126,7 @@ class LiveResultsPanel extends StatelessWidget {
   ) {
     if (scalars.isEmpty) return _buildEmptyState(context, gridSpacing);
 
-    return Padding(
+    return SingleChildScrollView(
       padding: EdgeInsets.all(gridSpacing * 0.5),
       child: Center(
         child: Wrap(

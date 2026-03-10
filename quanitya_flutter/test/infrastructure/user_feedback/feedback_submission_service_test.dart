@@ -58,7 +58,7 @@ void main() {
       
       verify(mockSubmissionService.submitWithVerification(
         endpoint: 'feedback',
-        payload: 'general:${feedbackText.length}',
+        payload: 'general:$feedbackText',
         submitCallback: anyNamed('submitCallback'),
       )).called(1);
     });
@@ -144,7 +144,7 @@ void main() {
       
       verify(mockSubmissionService.submitWithVerification(
         endpoint: 'feedback',
-        payload: 'feature_request:${feedbackText.length}',
+        payload: 'feature_request:$feedbackText',
         submitCallback: anyNamed('submitCallback'),
       )).called(1);
     });
@@ -180,7 +180,7 @@ void main() {
       
       verify(mockSubmissionService.submitWithVerification(
         endpoint: 'feedback',
-        payload: 'bug:${feedbackText.length}',
+        payload: 'bug:$feedbackText',
         submitCallback: anyNamed('submitCallback'),
       )).called(1);
     });

@@ -299,6 +299,7 @@
   },
   "errorTemplateNotFound": "Modelo não encontrado.",
   "errorTemplateSchemaChange": "Não é possível alterar o tipo de campo em modelos existentes.",
+  "confirmDeleteTemplate": "Tem certeza que deseja excluir este modelo? Esta ação não pode ser desfeita.",
   "confirmDeleteEntry": "Tem certeza que deseja excluir? Esta ação não pode ser desfeita.",
   "entryDeleted": "Registro removido",
   "entryUpdated": "Registro atualizado",

@@ -38,8 +38,8 @@ class FeedbackSubmissionService {
         _validateFeedback(feedbackText, feedbackType);
         
         // Build payload for signing
-        // Format: "challenge:feedbackType:textLength"
-        final payloadSuffix = '$feedbackType:${feedbackText.length}';
+        // Format: "challenge:feedbackType:feedbackText"
+        final payloadSuffix = '$feedbackType:$feedbackText';
         
         // Submit via PublicSubmissionService
         final response = await _submissionService.submitWithVerification(
