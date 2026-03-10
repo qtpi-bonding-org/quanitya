@@ -189,6 +189,7 @@ dev_dependencies:
       ref: 2e5c947
   bloc_test: ^9.1.7
   mocktail: ^1.0.4
+  flutter_launcher_icons: ^0.14.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -245,3 +246,21 @@ flutter_native_splash:
     image: assets/quanitya.png
     color_dark: "#1A1A1A"
     image_dark: assets/quanitya.png
+
+# App Icon Configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/quanitya.png"
+  remove_alpha_ios: true
+  min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/quanitya.png"
+  web:
+    generate: true
+    image_path: "assets/quanitya.png"
+    background_color: "#FFFFFF"
+    theme_color: "#FFFFFF"
+  macos:
+    generate: true
+    image_path: "assets/quanitya.png"
