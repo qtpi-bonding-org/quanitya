@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' as cubit_ui_flow;
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 
 import '../l10n/app_localizations.dart';
+import '../design_system/primitives/app_sizes.dart';
 import '../app_router.dart';
 import '../infrastructure/feedback/localization_service.dart';
 import '../infrastructure/error_reporting/quanitya_error_toast_builder.dart';
@@ -77,7 +79,10 @@ class _QuanityaAppState extends State<QuanityaApp> {
                 service.update(l10n);
               }
             }
-            return child ?? const SizedBox.shrink();
+            return ResponsiveLayoutConfig(
+              baseSpacing: AppSizes.space,
+              child: child ?? const SizedBox.shrink(),
+            );
           },
         );
       },
