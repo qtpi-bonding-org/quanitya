@@ -25,13 +25,20 @@ void showDevToolsSheet(BuildContext context) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    isDismissible: true,
+    enableDrag: true,
     backgroundColor: context.colors.backgroundPrimary,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
         top: Radius.circular(AppSizes.radiusLarge),
       ),
     ),
-    builder: (ctx) => const DevToolsSheet(),
+    builder: (ctx) => ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+      ),
+      child: const DevToolsSheet(),
+    ),
   );
 }
 
