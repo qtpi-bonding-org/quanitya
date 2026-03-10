@@ -8,8 +8,9 @@ import '../../../../logic/templates/models/shared/tracker_template.dart';
 import '../../../../design_system/structures/column.dart';
 import '../../../../design_system/structures/row.dart';
 import '../../../../design_system/structures/group.dart';
+import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 
-class LogEntryItem extends StatefulWidget {
+class LogEntryItem extends StatelessWidget {
   final LogEntryModel entry;
   final TrackerTemplateModel? template;
 
@@ -20,106 +21,117 @@ class LogEntryItem extends StatefulWidget {
   });
 
   @override
-  State<LogEntryItem> createState() => _LogEntryItemState();
-}
-
-class _LogEntryItemState extends State<LogEntryItem> {
-  bool _isExpanded = false;
-
-  @override
   Widget build(BuildContext context) {
-    // Format timestamp: "Today, 10:45 AM" or "Dec 25, 10:45 AM"
-    // Use displayTimestamp which handles nullable occurredAt/scheduledFor
-    final date = widget.entry.displayTimestamp;
+    final date = entry.displayTimestamp;
     final now = DateTime.now();
     final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
     final timeStr = "${isToday ? 'Today' : '${date.month}/${date.day}'}, ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
 
+    final headerRow = Text(
+      timeStr,
+      style: context.text.labelMedium,
+    );
+
+    if (template == null) {
+      return QuanityaGroup(
+        child: QuanityaColumn(
+          crossAlignment: CrossAxisAlignment.stretch,
+          children: [headerRow],
+        ),
+      );
+    }
+
+    final keys = entry.data.keys.toList();
+
+    // If 2 or fewer fields, show everything directly — no fold needed.
+    if (keys.length <= 2) {
+      return QuanityaGroup(
+        child: QuanityaColumn(
+          crossAlignment: CrossAxisAlignment.stretch,
+          children: [
+            headerRow,
+            ..._buildFieldWidgets(context, keys, 0, keys.length, expanded: true),
+          ],
+        ),
+      );
+    }
+
+    // More than 2 fields: use NotebookFold.
+    // Header shows timestamp + first 2 fields summary + "+N more" hint.
+    // Child shows remaining fields.
     return QuanityaGroup(
-      onTap: () {
-        setState(() {
-          _isExpanded = !_isExpanded;
-        });
-      },
       child: QuanityaColumn(
         crossAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header Row: Timestamp + Expand Icon
-          QuanityaRow(
-            start: Text(
-              timeStr,
-              style: context.text.labelMedium, // 14px metadata
+          headerRow,
+          if (entry.data.isEmpty)
+            Text(context.l10n.logEntryNoData, style: context.text.bodySmall)
+          else
+            NotebookFold(
+              initiallyExpanded: false,
+              header: QuanityaColumn(
+                children: [
+                  ..._buildFieldWidgets(context, keys, 0, 2, expanded: false),
+                  Padding(
+                    padding: EdgeInsets.only(left: AppSizes.space),
+                    child: Text(
+                      "... +${keys.length - 2} more",
+                      style: context.text.labelMedium,
+                    ),
+                  ),
+                ],
+              ),
+              child: QuanityaColumn(
+                children: _buildFieldWidgets(context, keys, 2, keys.length, expanded: true),
+              ),
             ),
-            end: Icon(
-              _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-              color: context.colors.interactableColor, // Teal for tappable affordance
-              size: AppSizes.iconSmall,
-            ),
-          ),
-          
-          // Data Content
-          if (widget.template != null)
-            ..._buildFields(context, widget.entry, widget.template!),
         ],
       ),
     );
   }
 
-  List<Widget> _buildFields(BuildContext context, LogEntryModel entry, TrackerTemplateModel template) {
+  List<Widget> _buildFieldWidgets(
+    BuildContext context,
+    List<String> keys,
+    int start,
+    int end, {
+    required bool expanded,
+  }) {
     if (entry.data.isEmpty) {
-        return [Text(context.l10n.logEntryNoData, style: context.text.bodySmall)];
+      return [Text(context.l10n.logEntryNoData, style: context.text.bodySmall)];
     }
 
     final fields = <Widget>[];
-
-    // Simple display: Key - Value
-    // In a real app, we would use the FieldDefinitions from the template to format this properly
-    // (e.g. boolean as Checkbox, number with units, etc.)
-    // For now, we iterate the data map.
-    
     final data = entry.data;
-    // Show summary (first 2 fields) if compacted, or all if expanded
-    final keys = data.keys.toList();
-    final countToShow = _isExpanded ? keys.length : (keys.length > 2 ? 2 : keys.length);
 
-    for (var i = 0; i < countToShow; i++) {
+    for (var i = start; i < end; i++) {
       final key = keys[i];
       final value = data[key];
-      // Find field name if possible
-      final fieldDef = template.fields.firstWhere((f) => f.id == key, orElse: () => template.fields.first); // Fallback is slightly risky but okay for now
-      final label = fieldDef.id == key ? fieldDef.label : key; // Try to use label
+      final fieldDef = template!.fields.firstWhere(
+        (f) => f.id == key,
+        orElse: () => template!.fields.first,
+      );
+      final label = fieldDef.id == key ? fieldDef.label : key;
 
       fields.add(
         Padding(
           padding: EdgeInsets.only(left: AppSizes.space),
           child: QuanityaRow(
-             spacing: HSpace.x1,
-             alignment: CrossAxisAlignment.start,
-             start: Text(
-                "$label:",
-                style: context.text.bodyLarge!.copyWith(color: context.colors.textSecondary), // 16px
-             ),
-             middle: Text(
-                value.toString(),
-                style: context.text.bodyLarge, // 16px
-                maxLines: _isExpanded ? null : 1,
-                overflow: _isExpanded ? null : TextOverflow.ellipsis,
-             ),
+            spacing: HSpace.x1,
+            alignment: CrossAxisAlignment.start,
+            start: Text(
+              "$label:",
+              style: context.text.bodyLarge!.copyWith(color: context.colors.textSecondary),
+            ),
+            middle: Text(
+              value.toString(),
+              style: context.text.bodyLarge,
+              maxLines: expanded ? null : 1,
+              overflow: expanded ? null : TextOverflow.ellipsis,
+            ),
           ),
         ),
       );
-    }
-    
-    if (!_isExpanded && keys.length > 2) {
-       fields.add(
-         Padding(
-           padding: EdgeInsets.only(left: AppSizes.space),
-           child: Text(
-             "... +${keys.length - 2} more", 
-             style: context.text.labelMedium // 14px metadata
-           ),
-         )
-       );
     }
 
     return fields;
