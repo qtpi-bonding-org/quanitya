@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:flutter_iconpicker/Models/configuration.dart';
+import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../design_system/primitives/app_spacings.dart';
@@ -308,26 +309,23 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
               ),
             ),
             VSpace.x2,
-            Row(
+            LayoutGroup.row(
+              minChildWidth: 18,
               children: [
-                Expanded(
-                  child: _buildFontDropdown(
-                    context, 
-                    context.l10n.fontTitleLabel, 
-                    allFonts,
-                    titleFont,
-                    (val) => context.read<TemplateEditorCubit>().updateTitleFont(val),
-                  ),
+                _buildFontDropdown(
+                  context,
+                  context.l10n.fontTitleLabel,
+                  allFonts,
+                  titleFont,
+                  (val) => context.read<TemplateEditorCubit>().updateTitleFont(val),
                 ),
                 HSpace.x2,
-                Expanded(
-                  child: _buildFontDropdown(
-                    context, 
-                    context.l10n.fontBodyLabel, 
-                    allFonts,
-                    bodyFont,
-                    (val) => context.read<TemplateEditorCubit>().updateBodyFont(val),
-                  ),
+                _buildFontDropdown(
+                  context,
+                  context.l10n.fontBodyLabel,
+                  allFonts,
+                  bodyFont,
+                  (val) => context.read<TemplateEditorCubit>().updateBodyFont(val),
                 ),
               ],
             )
@@ -559,9 +557,8 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
             ),
             VSpace.x2,
             // Preset grid
-            Wrap(
-              spacing: AppSizes.space,
-              runSpacing: AppSizes.space,
+            LayoutGroup.grid(
+              minItemWidth: 12,
               children: TemplateContainerStyle.values.map((style) {
                 final isSelected = style == selectedContainerStyle;
                 return _PresetCard(
