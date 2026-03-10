@@ -14,6 +14,7 @@ import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dar
 import '../../../design_system/widgets/quanitya_text_field.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart' as btn;
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
+import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/pairing_scan_cubit.dart';
@@ -209,40 +210,42 @@ class _ScanPairingQrViewState extends State<_ScanPairingQrView>
 
   void _showManualEntryDialog(BuildContext context) {
     final controller = TextEditingController();
-    showDialog(
+    LooseInsertSheet.show(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.enterPairingData),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.l10n.pairingDataManualInstructions,
-              style: context.text.bodyMedium,
-            ),
-            VSpace.x2,
-            QuanityaTextField(
-              controller: controller,
-              maxLines: 5,
-              hintText: context.l10n.pairingDataHint,
-            ),
-          ],
-        ),
-        actions: [
-          btn.QuanityaTextButton(
-            text: context.l10n.actionCancel,
-            onPressed: () => Navigator.pop(dialogContext),
+      title: context.l10n.enterPairingData,
+      builder: (sheetContext) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.pairingDataManualInstructions,
+            style: context.text.bodyMedium,
           ),
-          btn.QuanityaTextButton(
-            text: context.l10n.pairingConfirmAdd,
-            onPressed: () {
-              final text = controller.text.trim();
-              if (text.isNotEmpty) {
-                context.read<PairingScanCubit>().processQrCode(text);
-                Navigator.pop(dialogContext);
-              }
-            },
+          VSpace.x2,
+          QuanityaTextField(
+            controller: controller,
+            maxLines: 5,
+            hintText: context.l10n.pairingDataHint,
+          ),
+          VSpace.x3,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              btn.QuanityaTextButton(
+                text: context.l10n.actionCancel,
+                onPressed: () => Navigator.pop(sheetContext),
+              ),
+              btn.QuanityaTextButton(
+                text: context.l10n.pairingConfirmAdd,
+                onPressed: () {
+                  final text = controller.text.trim();
+                  if (text.isNotEmpty) {
+                    context.read<PairingScanCubit>().processQrCode(text);
+                    Navigator.pop(sheetContext);
+                  }
+                },
+              ),
+            ],
           ),
         ],
       ),

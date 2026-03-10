@@ -10,6 +10,7 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_confirmation_dialog.dart';
+import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../app_router.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
@@ -322,67 +323,63 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     final nameController = TextEditingController(text: 'OpenRouter');
     final keyController = TextEditingController();
     final formKey = GlobalKey<FormState>();
-    
-    final result = await showDialog<bool>(
+
+    final result = await LooseInsertSheet.show<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          context.l10n.aiAddApiKeyTitle,
-          style: context.text.titleLarge,
-        ),
-        content: SizedBox(
-          width: 400,
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+      title: context.l10n.aiAddApiKeyTitle,
+      builder: (sheetContext) => Form(
+        key: formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              context.l10n.aiAddApiKeyDescription,
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.textSecondary,
+              ),
+            ),
+            VSpace.x3,
+            QuanityaTextFormField(
+              controller: nameController,
+              labelText: context.l10n.aiApiKeyNameLabel,
+              hintText: context.l10n.aiApiKeyNameDefault,
+            ),
+            VSpace.x2,
+            QuanityaTextFormField(
+              controller: keyController,
+              labelText: context.l10n.aiApiKeyLabel,
+              hintText: context.l10n.aiApiKeyHint,
+              obscureText: true,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return context.l10n.aiApiKeyRequired;
+                }
+                return null;
+              },
+            ),
+            VSpace.x3,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(
-                  context.l10n.aiAddApiKeyDescription,
-                  style: context.text.bodyMedium?.copyWith(
-                    color: context.colors.textSecondary,
-                  ),
+                QuanityaTextButton(
+                  text: context.l10n.actionCancel,
+                  onPressed: () => Navigator.of(sheetContext).pop(false),
                 ),
-                VSpace.x3,
-                QuanityaTextFormField(
-                  controller: nameController,
-                  labelText: context.l10n.aiApiKeyNameLabel,
-                  hintText: context.l10n.aiApiKeyNameDefault,
-                ),
-                VSpace.x2,
-                QuanityaTextFormField(
-                  controller: keyController,
-                  labelText: context.l10n.aiApiKeyLabel,
-                  hintText: context.l10n.aiApiKeyHint,
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return context.l10n.aiApiKeyRequired;
+                QuanityaTextButton(
+                  text: context.l10n.actionSave,
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      Navigator.of(sheetContext).pop(true);
                     }
-                    return null;
                   },
                 ),
               ],
             ),
-          ),
+          ],
         ),
-        actions: [
-          QuanityaTextButton(
-            text: context.l10n.actionCancel,
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-          ),
-          QuanityaTextButton(
-            text: context.l10n.actionSave,
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.of(dialogContext).pop(true);
-              }
-            },
-          ),
-        ],
       ),
     );
-    
+
     if (result == true && context.mounted) {
       final apiKeyRepo = GetIt.I<ApiKeyRepository>();
       await apiKeyRepo.create(
@@ -390,11 +387,11 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
         authType: AuthType.bearer,
         keyValue: keyController.text,
       );
-      
+
       // Retry generation would happen here, but we avoid context usage after async gap
       // User can manually retry if needed
     }
-    
+
     nameController.dispose();
     keyController.dispose();
   }

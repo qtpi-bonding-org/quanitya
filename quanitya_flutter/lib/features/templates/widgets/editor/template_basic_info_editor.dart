@@ -9,6 +9,7 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/structures/column.dart';
 import '../../../../design_system/widgets/styled_field_container.dart';
+import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../support/utils/icon_resolver.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
@@ -500,25 +501,30 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
   }
 
   void _showColorPicker(BuildContext context, Color currentColor, Function(Color) onColorChanged) {
-    showDialog(
+    LooseInsertSheet.show(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.pickColorTitle),
-        content: SingleChildScrollView(
-          child: ColorPicker(
-            pickerColor: currentColor,
-            onColorChanged: onColorChanged,
-            enableAlpha: false,
-            labelTypes: const [], // Hide hex/rgb labels if too cluttered
-            pickerAreaHeightPercent: 0.7,
-          ),
+      title: context.l10n.pickColorTitle,
+      builder: (ctx) => SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ColorPicker(
+              pickerColor: currentColor,
+              onColorChanged: onColorChanged,
+              enableAlpha: false,
+              labelTypes: const [],
+              pickerAreaHeightPercent: 0.7,
+            ),
+            VSpace.x2,
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                child: Text(context.l10n.selectAction),
+                onPressed: () => Navigator.of(ctx).pop(),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            child: Text(context.l10n.selectAction),
-            onPressed: () => Navigator.of(ctx).pop(),
-          ),
-        ],
       ),
     );
   }
