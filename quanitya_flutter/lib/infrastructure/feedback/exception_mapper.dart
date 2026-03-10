@@ -8,7 +8,10 @@ import '../../features/device_pairing/services/pairing_service.dart' show Pairin
 import '../auth/auth_service.dart' show AuthException;
 import '../crypto/exceptions/crypto_exceptions.dart';
 import '../public_submission/exceptions/public_submission_exceptions.dart';
+import '../purchase/purchase_exception.dart';
+import '../purchase/entitlement_exception.dart';
 import '../user_feedback/exceptions/feedback_exceptions.dart';
+import '../../features/settings/exceptions/llm_provider_exception.dart';
 
 /// Global exception mapper for the Quanitya application.
 /// 
@@ -80,6 +83,13 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
 
       // Feedback exceptions
       FeedbackException e => _mapFeedbackException(e),
+
+      // Purchase exceptions
+      PurchaseException() => const MessageKey.error(L10nKeys.errorPurchaseFailed),
+      EntitlementException() => const MessageKey.error(L10nKeys.errorEntitlementFailed),
+
+      // LLM provider exceptions
+      LlmProviderException() => const MessageKey.error(L10nKeys.errorLlmProviderFailed),
 
       // Generic exceptions
       FormatException() => const MessageKey.error(L10nKeys.errorFormatInvalid),
