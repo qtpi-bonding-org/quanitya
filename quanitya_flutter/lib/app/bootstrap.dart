@@ -23,6 +23,7 @@ import '../infrastructure/feedback/exception_mapper.dart';
 import '../infrastructure/fonts/font_preloader_service.dart';
 import '../infrastructure/notifications/notification_service.dart';
 import '../logic/schedules/services/schedule_generator_service.dart';
+import '../features/settings/services/tested_models_service.dart';
 import '../features/app_operating_mode/cubits/app_operating_cubit.dart';
 import '../features/app_operating_mode/models/app_operating_mode.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -175,6 +176,13 @@ Future<void> bootstrap() async {
       final generator = getIt<ScheduleGeneratorService>();
       final result = await generator.generatePendingTodos();
       debugPrint('Bootstrap: Todo generation complete - $result');
+    }
+
+    // 9.5. Sync tested LLM models (fails silently if offline)
+    if (getIt.isRegistered<TestedModelsService>()) {
+      debugPrint('Bootstrap: Syncing tested LLM models...');
+      await getIt<TestedModelsService>().syncOnStartup();
+      debugPrint('Bootstrap: Tested LLM models synced');
     }
 
     // 10. Initialize router with correct initial location based on key status
