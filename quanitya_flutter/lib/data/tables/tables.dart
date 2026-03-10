@@ -353,3 +353,38 @@ class AppOperatingSettings extends Table {
   DateTimeColumn get updatedAt =>
       dateTime().named('updated_at').withDefault(currentDateAndTime)();
 }
+
+/// OpenRouterModels table - cached model list from OpenRouter API
+///
+/// LOCAL-ONLY - never synced. Populated from two sources:
+/// 1. tested_models.json (GitHub) on startup — sets tested: true
+/// 2. Full OpenRouter API /models endpoint — sets pricing/context data
+class OpenRouterModels extends Table {
+  TextColumn get id => text()();
+  IntColumn get contextLength =>
+      integer().named('context_length').withDefault(const Constant(0))();
+  TextColumn get promptPrice =>
+      text().named('prompt_price').withDefault(const Constant('0'))();
+  TextColumn get completionPrice =>
+      text().named('completion_price').withDefault(const Constant('0'))();
+  BoolColumn get tested =>
+      boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// LlmProviderConfigs table - saved LLM provider configurations
+///
+/// LOCAL-ONLY - never synced. Users can save multiple configs.
+/// Most recently used config is active on app restart.
+class LlmProviderConfigs extends Table {
+  TextColumn get id => text()();
+  TextColumn get baseUrl => text().named('base_url')();
+  TextColumn get modelId => text().named('model_id')();
+  TextColumn get apiKeyId => text().named('api_key_id').nullable()();
+  DateTimeColumn get lastUsedAt => dateTime().named('last_used_at')();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

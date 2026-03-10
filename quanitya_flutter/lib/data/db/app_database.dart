@@ -33,6 +33,8 @@ part 'app_database.g.dart';
     ErrorBoxEntries,
     Notifications,
     AnalyticsInboxEntries,
+    OpenRouterModels,
+    LlmProviderConfigs,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -44,7 +46,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -66,6 +68,10 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(analyticsInboxEntries);
           // Add analytics_auto_send column to app_operating_settings
           await m.addColumn(appOperatingSettings, appOperatingSettings.analyticsAutoSend);
+        }
+        if (from < 5) {
+          await m.createTable(openRouterModels);
+          await m.createTable(llmProviderConfigs);
         }
       },
     );
