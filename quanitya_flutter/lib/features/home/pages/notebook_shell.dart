@@ -13,6 +13,7 @@ import '../../settings/cubits/recovery_key/recovery_key_cubit.dart';
 import '../../settings/cubits/device_management/device_management_cubit.dart';
 import '../../settings/cubits/webhook/webhook_cubit.dart';
 import '../../app_operating_mode/cubits/app_operating_cubit.dart';
+import '../../results/pages/results_section.dart';
 import '../../settings/pages/settings_page.dart';
 import 'temporal_home_page.dart';
 
@@ -49,7 +50,7 @@ class _NotebookShellState extends State<NotebookShell> {
               index: _currentIndex,
               children: [
                 const TemporalHomePage(),
-                const Placeholder(), // Results — Task 20
+                const ResultsSection(),
                 // Inbox
                 BlocProvider(
                   create: (_) => GetIt.instance<NotificationInboxCubit>()..loadNotifications(),
