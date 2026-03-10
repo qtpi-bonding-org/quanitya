@@ -1,5 +1,6 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
@@ -99,13 +100,18 @@ class _VisualizationContent extends StatelessWidget {
                   ),
                 ),
                 VSpace.x4,
-                ...data.numericFields
-                    .map((field) => _NumericChartSection(fieldData: field)),
-                ...data.booleanFields.map(
-                  (field) => _BooleanChartSection(fieldData: field),
-                ),
-                ...data.categoricalFields.map(
-                  (field) => _CategoricalChartSection(fieldData: field),
+                LayoutGroup.grid(
+                  minItemWidth: 30,
+                  children: [
+                    ...data.numericFields
+                        .map((field) => _NumericChartSection(fieldData: field)),
+                    ...data.booleanFields.map(
+                      (field) => _BooleanChartSection(fieldData: field),
+                    ),
+                    ...data.categoricalFields.map(
+                      (field) => _CategoricalChartSection(fieldData: field),
+                    ),
+                  ],
                 ),
                 VSpace.x4,
                 _StatsSummary(
@@ -184,29 +190,32 @@ class _NumericChartSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
     
-    return Padding(
-      padding: EdgeInsets.only(bottom: AppSizes.space * 3),
-      child: QuanityaColumn(
-        crossAlignment: CrossAxisAlignment.start,
-        children: [
-          _SectionHeader(
-            title: fieldData.field.label,
-            subtitle: context.l10n.visualizationTrend,
-          ),
-          VSpace.x2,
-          if (fieldData.isEmpty)
-            const _NoDataMessage()
-          else
-            TimeSeriesChart(
-              data: fieldData.points
-                  .map((p) => {'date': p.date, 'value': p.value})
-                  .toList(),
-              valueLabel: fieldData.field.label,
-              lineColor: palette.primaryColor,
-              height: AppSizes.space * 22.5,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        QuanityaColumn(
+          crossAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionHeader(
+              title: fieldData.field.label,
+              subtitle: context.l10n.visualizationTrend,
             ),
-        ],
-      ),
+            VSpace.x2,
+            if (fieldData.isEmpty)
+              const _NoDataMessage()
+            else
+              TimeSeriesChart(
+                data: fieldData.points
+                    .map((p) => {'date': p.date, 'value': p.value})
+                    .toList(),
+                valueLabel: fieldData.field.label,
+                lineColor: palette.primaryColor,
+                height: AppSizes.space * 22.5,
+              ),
+          ],
+        ),
+        VSpace.x3,
+      ],
     );
   }
 }
@@ -219,31 +228,34 @@ class _BooleanChartSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
     
-    return Padding(
-      padding: EdgeInsets.only(bottom: AppSizes.space * 3),
-      child: QuanityaColumn(
-        crossAlignment: CrossAxisAlignment.start,
-        children: [
-          _SectionHeader(
-            title: fieldData.field.label,
-            subtitle: context.l10n.visualizationCompletion,
-          ),
-          VSpace.x2,
-          if (fieldData.isEmpty)
-            const _NoDataMessage()
-          else
-            Center(
-              child: BooleanHeatmapChart(
-                data: fieldData.points
-                    .map((p) => BooleanPoint(date: p.date, value: p.value))
-                    .toList(),
-                height: AppSizes.space * 20, // Increased from 15 to 20 (160px)
-                trueColor: palette.successColor,
-                weeks: 12,
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        QuanityaColumn(
+          crossAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionHeader(
+              title: fieldData.field.label,
+              subtitle: context.l10n.visualizationCompletion,
             ),
-        ],
-      ),
+            VSpace.x2,
+            if (fieldData.isEmpty)
+              const _NoDataMessage()
+            else
+              Center(
+                child: BooleanHeatmapChart(
+                  data: fieldData.points
+                      .map((p) => BooleanPoint(date: p.date, value: p.value))
+                      .toList(),
+                  height: AppSizes.space * 20, // Increased from 15 to 20 (160px)
+                  trueColor: palette.successColor,
+                  weeks: 12,
+                ),
+              ),
+          ],
+        ),
+        VSpace.x3,
+      ],
     );
   }
 }
@@ -256,34 +268,37 @@ class _CategoricalChartSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
     
-    return Padding(
-      padding: EdgeInsets.only(bottom: AppSizes.space * 3),
-      child: QuanityaColumn(
-        crossAlignment: CrossAxisAlignment.start,
-        children: [
-          _SectionHeader(
-            title: fieldData.field.label,
-            subtitle: context.l10n.visualizationCategories,
-          ),
-          VSpace.x2,
-          if (fieldData.isEmpty || fieldData.categories.isEmpty)
-            const _NoDataMessage()
-          else
-            Center(
-              child: CategoricalScatterChart(
-                data: fieldData.points
-                    .map(
-                      (p) => CategoricalPoint(date: p.date, category: p.category),
-                    )
-                    .toList(),
-                categories: fieldData.categories,
-                height: AppSizes.space * 5 +
-                    (fieldData.categories.length * AppSizes.space * 4),
-                dotColor: palette.primaryColor,
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        QuanityaColumn(
+          crossAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionHeader(
+              title: fieldData.field.label,
+              subtitle: context.l10n.visualizationCategories,
             ),
-        ],
-      ),
+            VSpace.x2,
+            if (fieldData.isEmpty || fieldData.categories.isEmpty)
+              const _NoDataMessage()
+            else
+              Center(
+                child: CategoricalScatterChart(
+                  data: fieldData.points
+                      .map(
+                        (p) => CategoricalPoint(date: p.date, category: p.category),
+                      )
+                      .toList(),
+                  categories: fieldData.categories,
+                  height: AppSizes.space * 5 +
+                      (fieldData.categories.length * AppSizes.space * 4),
+                  dotColor: palette.primaryColor,
+                ),
+              ),
+          ],
+        ),
+        VSpace.x3,
+      ],
     );
   }
 }
@@ -712,9 +727,8 @@ class _AnalysisResultCard extends StatelessWidget {
   Widget _buildScalarDisplay(BuildContext context, List<dynamic> scalars) {
     final palette = QuanityaPalette.primary;
     
-    return Wrap(
-      spacing: AppSizes.space * 2,
-      runSpacing: AppSizes.space,
+    return LayoutGroup.grid(
+      minItemWidth: 15,
       children: scalars.map((scalar) {
         return Container(
           padding: AppPadding.allDouble,
