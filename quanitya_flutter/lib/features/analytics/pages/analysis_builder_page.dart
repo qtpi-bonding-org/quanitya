@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
@@ -40,6 +41,14 @@ class AnalysisBuilderPage extends StatefulWidget {
 
 class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
   bool _isGenerating = false;
+  final _codeController = TextEditingController();
+  String _lastSnippet = '';
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,30 +99,25 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
                     ),
                 ],
               ),
-              body: Row(
+              body: LayoutGroup.row(
+                minChildWidth: 30,
                 children: [
-                  Expanded(
-                    flex: 3,
-                    child: _buildMainContent(context, state, cubit),
-                  ),
+                  _buildMainContent(context, state, cubit),
                   if (state.livePreviewEnabled && state.liveResults != null)
-                    Expanded(
-                      flex: 2,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            left: BorderSide(
-                              color:
-                                  palette.textSecondary.withValues(alpha: 0.2),
-                              width: 1,
-                            ),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          left: BorderSide(
+                            color:
+                                palette.textSecondary.withValues(alpha: 0.2),
+                            width: 1,
                           ),
                         ),
-                        child: LiveResultsPanel(
-                          results: state.liveResults,
-                          column: 0,
-                          row: 0,
-                        ),
+                      ),
+                      child: LiveResultsPanel(
+                        results: state.liveResults,
+                        column: 0,
+                        row: 0,
                       ),
                     ),
                 ],
@@ -190,26 +194,62 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
         Expanded(
           child: state.snippet.isEmpty
               ? _buildEmptyState(context)
-              : Container(
-                  // VS Code dark theme — intentionally hardcoded for IDE aesthetic
-                  color: const Color(0xFF1E1E1E),
-                  padding: AppPadding.allDouble,
-                  child: SingleChildScrollView(
-                    child: SelectableText(
-                      state.snippet,
-                      style: TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: AppSizes.fontSmall,
-                        height: 1.6,
-                        // VS Code text color — intentionally hardcoded
-                        color: const Color(0xFFD4D4D4),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                ),
+              : _buildCodeEditor(context, state, cubit),
         ),
       ],
+    );
+  }
+
+  Widget _buildCodeEditor(
+    BuildContext context,
+    AnalysisBuilderState state,
+    AnalysisBuilderCubit cubit,
+  ) {
+    // Sync controller with cubit state (e.g. after AI generation)
+    // without fighting the user's cursor position during manual edits.
+    if (state.snippet != _lastSnippet) {
+      _lastSnippet = state.snippet;
+      final selection = _codeController.selection;
+      _codeController.text = state.snippet;
+      // Restore cursor if within bounds, otherwise move to end.
+      if (selection.isValid &&
+          selection.end <= state.snippet.length) {
+        _codeController.selection = selection;
+      } else {
+        _codeController.selection = TextSelection.collapsed(
+          offset: state.snippet.length,
+        );
+      }
+    }
+
+    return Container(
+      // Dark overlay on paper — 0.85 opacity lets the dot grid bleed through.
+      color: const Color(0xFF1E1E1E).withValues(alpha: 0.85),
+      padding: AppPadding.allDouble,
+      child: TextField(
+        controller: _codeController,
+        onChanged: (value) {
+          _lastSnippet = value;
+          cubit.updateSnippet(value);
+        },
+        maxLines: null,
+        expands: true,
+        textAlignVertical: TextAlignVertical.top,
+        style: TextStyle(
+          fontFamily: 'monospace',
+          fontSize: AppSizes.fontSmall,
+          height: 1.6,
+          color: const Color(0xFFD4D4D4),
+          letterSpacing: 0.5,
+        ),
+        cursorColor: const Color(0xFFD4D4D4),
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
+          isDense: true,
+        ),
+        keyboardType: TextInputType.multiline,
+      ),
     );
   }
 
