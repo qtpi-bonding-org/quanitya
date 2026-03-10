@@ -34,10 +34,8 @@ class FolderTabBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        padding: EdgeInsets.only(
-          left: AppSizes.space,
-          right: AppSizes.space,
-          bottom: AppSizes.space,
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSizes.space,
         ),
         child: Row(
           children: List.generate(tabs.length, (index) {
