@@ -12,6 +12,7 @@ import '../cubits/notification_inbox_cubit.dart';
 import '../mappers/notification_message_mapper.dart';
 import '../widgets/notification_card.dart';
 
+/// The standalone page with Scaffold — used for deep-link / push navigation.
 class NotificationInboxPage extends StatelessWidget {
   const NotificationInboxPage({super.key});
 
@@ -22,59 +23,64 @@ class NotificationInboxPage extends StatelessWidget {
       child: UiFlowStateListener<NotificationInboxCubit, NotificationInboxState>(
         mapper: GetIt.instance<NotificationMessageMapper>(),
         uiService: GetIt.instance<IUiFlowService>(),
-        child: const _NotificationInboxView(),
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(context.l10n.notificationsTitle, style: context.text.headlineMedium),
+            leading: QuanityaIconButton(
+              icon: Icons.arrow_back,
+              onPressed: () => AppNavigation.back(context),
+            ),
+          ),
+          body: const NotificationInboxContent(),
+        ),
       ),
     );
   }
 }
 
-class _NotificationInboxView extends StatelessWidget {
-  const _NotificationInboxView();
+/// The content body, usable standalone or embedded in [NotebookShell].
+///
+/// Expects [NotificationInboxCubit] to be available via [BlocProvider] above.
+class NotificationInboxContent extends StatelessWidget {
+  const NotificationInboxContent({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.notificationsTitle, style: context.text.headlineMedium),
-        leading: QuanityaIconButton(
-          icon: Icons.arrow_back,
-          onPressed: () => AppNavigation.back(context),
-        ),
-        actions: [
-          BlocBuilder<NotificationInboxCubit, NotificationInboxState>(
-            builder: (context, state) {
-              if (state.notifications.isEmpty) return const SizedBox.shrink();
-              return TextButton(
+    return BlocBuilder<NotificationInboxCubit, NotificationInboxState>(
+      builder: (context, state) {
+        if (state.notifications.isEmpty) {
+          return _EmptyState();
+        }
+
+        return Column(
+          children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
                 onPressed: () => context.read<NotificationInboxCubit>().markAllAsReceived(),
                 child: Text(context.l10n.notificationsMarkAll),
-              );
-            },
-          ),
-        ],
-      ),
-      body: BlocBuilder<NotificationInboxCubit, NotificationInboxState>(
-        builder: (context, state) {
-          if (state.notifications.isEmpty) {
-            return _EmptyState();
-          }
-
-          return ListView.separated(
-            padding: AppPadding.page,
-            itemCount: state.notifications.length,
-            separatorBuilder: (context, index) => VSpace.x3,
-            itemBuilder: (context, index) {
-              final notification = state.notifications[index];
-              return NotificationCard(
-                notification: notification,
-                onMark: () => context.read<NotificationInboxCubit>()
-                  .markAsReceived(notification.id),
-                onDismiss: () => context.read<NotificationInboxCubit>()
-                  .dismiss(notification.id),
-              );
-            },
-          );
-        },
-      ),
+              ),
+            ),
+            Expanded(
+              child: ListView.separated(
+                padding: AppPadding.page,
+                itemCount: state.notifications.length,
+                separatorBuilder: (context, index) => VSpace.x3,
+                itemBuilder: (context, index) {
+                  final notification = state.notifications[index];
+                  return NotificationCard(
+                    notification: notification,
+                    onMark: () => context.read<NotificationInboxCubit>()
+                      .markAsReceived(notification.id),
+                    onDismiss: () => context.read<NotificationInboxCubit>()
+                      .dismiss(notification.id),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

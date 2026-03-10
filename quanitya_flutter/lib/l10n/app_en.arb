@@ -95,6 +95,8 @@
   "active": "Active",
   "inactive": "Inactive",
   "settingsTitle": "Settings",
+  "settingsDevicesSection": "Devices",
+  "settingsDataSection": "Data Import / Export",
   "confirm": "Confirm",
   "import_": "Import",
   "exportData": "Export Data",
@@ -587,6 +589,10 @@
   "syncActive": "Cloud Sync Active",
   "syncInactive": "No Sync Access",
   "entitlementLabel": "Entitlement #{id}",
+  "outboxTitle": "Outbox",
+  "outboxTabFeedback": "Feedback",
+  "outboxTabAnalytics": "Analytics",
+  "outboxTabErrors": "Errors",
   "@entitlementLabel": {
     "placeholders": {
       "id": {

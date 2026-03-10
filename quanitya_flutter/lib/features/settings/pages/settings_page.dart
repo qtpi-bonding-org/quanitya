@@ -13,6 +13,7 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../infrastructure/crypto/crypto_key_repository.dart';
@@ -54,6 +55,7 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
+/// Standalone page with Scaffold — used for deep-link / push navigation.
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
 
@@ -82,10 +84,7 @@ class SettingsView extends StatelessWidget {
                 ),
               ],
             ),
-            body: Padding(
-              padding: AppPadding.page,
-              child: _SettingsContent(),
-            ),
+            body: const SettingsContent(),
           ),
         ),
       ),
@@ -93,48 +92,110 @@ class SettingsView extends StatelessWidget {
   }
 }
 
-class _SettingsContent extends StatelessWidget {
+/// The content body, usable standalone or embedded in [NotebookShell].
+///
+/// Expects [DataExportCubit], [RecoveryKeyCubit], [DeviceManagementCubit],
+/// [WebhookCubit], and [AppOperatingCubit] to be available above.
+class SettingsContent extends StatelessWidget {
+  const SettingsContent({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        const DeviceListSection(),
-        VSpace.x4,
+    return Padding(
+      padding: AppPadding.page,
+      child: ListView(
+        children: [
+          NotebookFold(
+            header: Row(children: [
+              Icon(Icons.devices, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+              HSpace.x2,
+              Text(context.l10n.settingsDevicesSection, style: context.text.titleMedium),
+            ]),
+            child: const DeviceListSection(),
+          ),
+          VSpace.x3,
 
+          NotebookFold(
+            header: Row(children: [
+              Icon(Icons.import_export, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+              HSpace.x2,
+              Text(context.l10n.settingsDataSection, style: context.text.titleMedium),
+            ]),
+            child: _DataSection(),
+          ),
+          VSpace.x3,
+
+          NotebookFold(
+            header: Row(children: [
+              Icon(Icons.vpn_key, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+              HSpace.x2,
+              Text(context.l10n.apiKeysTitle, style: context.text.titleMedium),
+            ]),
+            child: const _ApiKeysSection(),
+          ),
+          VSpace.x3,
+
+          NotebookFold(
+            header: Row(children: [
+              Icon(Icons.webhook, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+              HSpace.x2,
+              Text(context.l10n.webhooksTitle, style: context.text.titleMedium),
+            ]),
+            child: const _WebhooksSection(),
+          ),
+          VSpace.x3,
+
+          NotebookFold(
+            header: Row(children: [
+              Icon(Icons.shopping_bag, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+              HSpace.x2,
+              Text(context.l10n.settingsPurchase, style: context.text.titleMedium),
+            ]),
+            child: Center(
+              child: QuanityaTextButton(
+                text: context.l10n.settingsPurchase,
+                onPressed: () => AppNavigation.toPurchase(context),
+              ),
+            ),
+          ),
+          VSpace.x3,
+
+          NotebookFold(
+            header: Row(children: [
+              Icon(Icons.delete_forever, size: AppSizes.iconMedium, color: context.colors.errorColor),
+              HSpace.x2,
+              Text(context.l10n.deleteAccountTitle, style: context.text.titleMedium?.copyWith(
+                color: context.colors.errorColor,
+              )),
+            ]),
+            child: const _DeleteAccountButton(),
+          ),
+          VSpace.x2,
+        ],
+      ),
+    );
+  }
+}
+
+class _DataSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
         QuanityaTextButton(
           text: context.l10n.exportData,
           onPressed: () => _startExport(context),
         ),
         VSpace.x3,
-
         QuanityaTextButton(
           text: context.l10n.importData,
           onPressed: () => _startImport(context),
         ),
         VSpace.x3,
-
         QuanityaTextButton(
           text: context.l10n.importRecoveryKey,
           onPressed: () => _showImportRecoveryKeyDialog(context),
         ),
-        VSpace.x3,
-
-        QuanityaTextButton(
-          text: context.l10n.settingsPurchase,
-          onPressed: () => AppNavigation.toPurchase(context),
-        ),
-        VSpace.x3,
-
-        VSpace.x4,
-
-        const _ApiKeysSection(),
-        VSpace.x4,
-
-        const _WebhooksSection(),
-        VSpace.x4,
-
-        const _DeleteAccountButton(),
-        VSpace.x2,
       ],
     );
   }

@@ -587,6 +587,10 @@
   "syncActive": "Sincronização Ativa",
   "syncInactive": "Sem Acesso à Sincronização",
   "entitlementLabel": "Direito #{id}",
+  "outboxTitle": "Caixa de saída",
+  "outboxTabFeedback": "Feedback",
+  "outboxTabAnalytics": "Analíticas",
+  "outboxTabErrors": "Erros",
   "@entitlementLabel": {
     "placeholders": {
       "id": {
