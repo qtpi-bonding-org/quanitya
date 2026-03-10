@@ -11,6 +11,7 @@ import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
+import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../app_router.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';

@@ -11,6 +11,7 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/detail/entry_detail_cubit.dart';
 
