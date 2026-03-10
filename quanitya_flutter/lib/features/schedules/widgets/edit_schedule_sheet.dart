@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../design_system/primitives/app_spacings.dart';
-import '../../../design_system/primitives/app_sizes.dart';
-import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../logic/schedules/models/schedule.dart';
 import '../../../support/extensions/context_extensions.dart';
@@ -26,10 +25,9 @@ class EditScheduleSheet extends StatefulWidget {
     required ScheduleModel schedule,
     required String templateName,
   }) {
-    return showModalBottomSheet<ScheduleModel>(
+    return LooseInsertSheet.show<ScheduleModel>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      title: templateName,
       builder: (_) => EditScheduleSheet(
         schedule: schedule,
         templateName: templateName,
@@ -103,90 +101,45 @@ class _EditScheduleSheetState extends State<EditScheduleSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    
-    return Container(
-      decoration: BoxDecoration(
-        color: palette.backgroundPrimary,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSizes.radiusMedium),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Reuse ScheduleSection
+        ScheduleSection(
+          frequency: _frequency,
+          reminderTime: _time,
+          weeklyDays: _weeklyDays,
+          onFrequencyChanged: (f) => setState(() => _frequency = f),
+          onTimeChanged: (t) => setState(() => _time = t),
+          onWeeklyDaysChanged: (days) => setState(() => _weeklyDays = days),
         ),
-      ),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: AppPadding.page,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: AppPadding.verticalSingle,
-                  decoration: BoxDecoration(
-                    color: palette.textSecondary.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                  ),
-                ),
+
+        VSpace.x4,
+
+        // Action buttons
+        Row(
+          children: [
+            Expanded(
+              child: QuanityaTextButton(
+                text: context.l10n.actionCancel,
+                onPressed: () => Navigator.pop(context),
               ),
-              
-              VSpace.x2,
-              
-              // Title
-              Text(
-                widget.templateName,
-                style: context.text.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+            HSpace.x2,
+            Expanded(
+              child: QuanityaTextButton(
+                text: context.l10n.actionSave,
+                onPressed: () {
+                  final newRrule = _buildUpdatedRrule();
+                  final updated = widget.schedule.updateRule(newRrule);
+                  Navigator.pop(context, updated);
+                },
               ),
-              
-              VSpace.x3,
-              
-              // Reuse ScheduleSection
-              ScheduleSection(
-                frequency: _frequency,
-                reminderTime: _time,
-                weeklyDays: _weeklyDays,
-                onFrequencyChanged: (f) => setState(() => _frequency = f),
-                onTimeChanged: (t) => setState(() => _time = t),
-                onWeeklyDaysChanged: (days) => setState(() => _weeklyDays = days),
-              ),
-              
-              VSpace.x4,
-              
-              // Action buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: QuanityaTextButton(
-                      text: context.l10n.actionCancel,
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                  HSpace.x2,
-                  Expanded(
-                    child: QuanityaTextButton(
-                      text: context.l10n.actionSave,
-                      onPressed: () {
-                        final newRrule = _buildUpdatedRrule();
-                        final updated = widget.schedule.updateRule(newRrule);
-                        Navigator.pop(context, updated);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              
-              VSpace.x2,
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
+      ],
     );
   }
 }
