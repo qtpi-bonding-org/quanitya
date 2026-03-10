@@ -393,6 +393,7 @@ class _WebhooksSection extends StatefulWidget {
 
 class _WebhooksSectionState extends State<_WebhooksSection> {
   List<TemplateWithAesthetics>? _templates;
+  bool _templateLoadFailed = false;
 
   @override
   void initState() {
@@ -401,10 +402,19 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
   }
 
   Future<void> _loadTemplates() async {
-    final repo = GetIt.instance<TemplateWithAestheticsRepository>();
-    final templates = await repo.find(isArchived: false);
-    if (mounted) {
-      setState(() => _templates = templates);
+    try {
+      final repo = GetIt.instance<TemplateWithAestheticsRepository>();
+      final templates = await repo.find(isArchived: false);
+      if (mounted) {
+        setState(() {
+          _templates = templates;
+          _templateLoadFailed = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _templateLoadFailed = true);
+      }
     }
   }
 
@@ -431,16 +441,11 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
             VSpace.x3,
 
             ...state.webhooks.map((webhook) {
-              final templateName = _templates
-                  ?.firstWhere(
-                    (t) => t.template.id == webhook.templateId,
-                    orElse: () => TemplateWithAesthetics(
-                      template: _templates!.first.template.copyWith(name: 'Unknown'),
-                      aesthetics: _templates!.first.aesthetics,
-                    ),
-                  )
-                  .template
-                  .name ?? 'Unknown';
+              final match = _templates?.cast<TemplateWithAesthetics?>().firstWhere(
+                    (t) => t!.template.id == webhook.templateId,
+                    orElse: () => null,
+                  );
+              final templateName = match?.template.name ?? 'Unknown';
               
               return Padding(
                 padding: AppPadding.verticalSingle,
@@ -454,14 +459,33 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
               );
             }),
 
-            Center(
-              child: QuanityaTextButton(
-                text: context.l10n.addWebhook,
-                onPressed: _templates != null && _templates!.isNotEmpty
-                    ? () => _showWebhookDialog(context, null)
-                    : null,
+            if (_templateLoadFailed)
+              Center(
+                child: QuanityaTextButton(
+                  text: context.l10n.addWebhook,
+                  onPressed: _loadTemplates,
+                ),
+              )
+            else if (_templates == null)
+              const Center(
+                child: Padding(
+                  padding: AppPadding.allDouble,
+                  child: SizedBox(
+                    width: AppSizes.iconMedium,
+                    height: AppSizes.iconMedium,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              )
+            else
+              Center(
+                child: QuanityaTextButton(
+                  text: context.l10n.addWebhook,
+                  onPressed: _templates!.isNotEmpty
+                      ? () => _showWebhookDialog(context, null)
+                      : null,
+                ),
               ),
-            ),
           ],
         );
       },
