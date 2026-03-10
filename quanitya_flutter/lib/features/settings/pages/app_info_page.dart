@@ -45,7 +45,7 @@ class AppInfoPage extends StatelessWidget {
               icon: Icons.code,
               title: context.l10n.sourceCode,
               subtitle: context.l10n.sourceCodeSubtitle,
-              onTap: () => _launchUrl('https://codeberg.org/qtpi-bonding-org/quanitya'),
+              onTap: () => _launchUrl('https://github.com/qtpi-bonding-org/quanitya'),
             ),
           ],
         ),
