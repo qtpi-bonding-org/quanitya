@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/bootstrap.dart';
 import '../../../design_system/primitives/app_sizes.dart';
-import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../dev/dev_module.dart';
@@ -220,16 +219,14 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TemporalIndicator(
-                        controller: _pageController,
-                        onTabSelected: _onTabSelected,
-                      ),
-                      VSpace.x1,
-                    ],
+                child: Container(
+                  color: palette.backgroundPrimary,
+                  child: SafeArea(
+                    top: false,
+                    child: TemporalIndicator(
+                      controller: _pageController,
+                      onTabSelected: _onTabSelected,
+                    ),
                   ),
                 ),
               ),

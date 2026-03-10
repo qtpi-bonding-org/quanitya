@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
-import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
@@ -34,58 +33,80 @@ class _ResultsSectionState extends State<ResultsSection> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
     return BlocProvider(
       create: (_) => GetIt.I<TemplateListCubit>()..load(),
-      child: Column(
+      child: Stack(
         children: [
-          // Header with page indicator and template selector
-          SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: EdgeInsets.all(AppSizes.space),
-              child: Row(
-                children: [
-                  _PageLabel(
-                    label: 'Graphs',
-                    isActive: _currentPageIndex == 0,
-                    onTap: () => _pageController.animateToPage(
-                      0,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
+          // Page content with top bookmark selector
+          Column(
+            children: [
+              // Bookmark selector at top
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    top: AppSizes.space,
+                    right: AppSizes.space,
+                  ),
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: QuanityaIconButton(
+                      icon: _selectedTemplateId != null
+                          ? Icons.bookmark
+                          : Icons.bookmark_outline,
+                      onPressed: () => _selectTemplate(context),
+                      tooltip: 'Select experiment',
                     ),
                   ),
-                  HSpace.x2,
-                  _PageLabel(
-                    label: 'Analysis',
-                    isActive: _currentPageIndex == 1,
-                    onTap: () => _pageController.animateToPage(
-                      1,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    ),
-                  ),
-                  const Spacer(),
-                  QuanityaIconButton(
-                    icon: _selectedTemplateId != null
-                        ? Icons.bookmark
-                        : Icons.bookmark_outline,
-                    onPressed: () => _selectTemplate(context),
-                    tooltip: 'Select experiment',
-                  ),
-                ],
+                ),
               ),
-            ),
+              // Swipeable pages
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  physics: const ClampingScrollPhysics(),
+                  onPageChanged: (i) => setState(() => _currentPageIndex = i),
+                  children: [
+                    ResultsGraphsPage(templateId: _selectedTemplateId),
+                    ResultsAnalysisPage(templateId: _selectedTemplateId),
+                  ],
+                ),
+              ),
+            ],
           ),
-          // Swipeable pages
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const ClampingScrollPhysics(),
-              onPageChanged: (i) => setState(() => _currentPageIndex = i),
-              children: [
-                ResultsGraphsPage(templateId: _selectedTemplateId),
-                ResultsAnalysisPage(templateId: _selectedTemplateId),
-              ],
+          // Page indicator at bottom
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              color: palette.backgroundPrimary,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _PageLabel(
+                        label: 'Graphs',
+                        isActive: _currentPageIndex == 0,
+                        onTap: () => _pageController.animateToPage(0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut),
+                      ),
+                      _PageLabel(
+                        label: 'Analysis',
+                        isActive: _currentPageIndex == 1,
+                        onTap: () => _pageController.animateToPage(1,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -124,11 +145,18 @@ class _PageLabel extends StatelessWidget {
     final palette = QuanityaPalette.primary;
     return GestureDetector(
       onTap: onTap,
-      child: Text(
-        label,
-        style: context.text.titleMedium?.copyWith(
-          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-          color: isActive ? palette.textPrimary : palette.textSecondary,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSizes.space * 1.5,
+          vertical: AppSizes.space,
+        ),
+        child: Text(
+          label,
+          style: context.text.bodySmall?.copyWith(
+            fontWeight: isActive ? FontWeight.w900 : FontWeight.w500,
+            color: isActive ? palette.textPrimary : palette.interactableColor,
+          ),
         ),
       ),
     );

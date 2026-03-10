@@ -4,6 +4,7 @@ import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../analytics_inbox/cubits/analytics_inbox_cubit.dart';
@@ -55,42 +56,53 @@ class _OutboxPageState extends State<OutboxPage> {
         mapper: GetIt.instance<AnalyticsInboxMessageMapper>(),
         child: UiFlowListener<FeedbackCubit, FeedbackState>(
           mapper: GetIt.instance<FeedbackMessageMapper>(),
-          child: Column(
+          child: Stack(
             children: [
-              SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSizes.space),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _PageDot(
-                        label: l10n.outboxTabFeedback,
-                        isActive: _currentIndex == 0,
-                      ),
-                      _PageDot(
-                        label: l10n.outboxTabAnalytics,
-                        isActive: _currentIndex == 1,
-                      ),
-                      _PageDot(
-                        label: l10n.outboxTabErrors,
-                        isActive: _currentIndex == 2,
-                      ),
-                    ],
-                  ),
-                ),
+              // Page content
+              PageView(
+                controller: _pageController,
+                physics: const ClampingScrollPhysics(),
+                onPageChanged: (index) =>
+                    setState(() => _currentIndex = index),
+                children: const [
+                  FeedbackTabContent(),
+                  AnalyticsTabContent(),
+                  ErrorsTabContent(),
+                ],
               ),
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  physics: const ClampingScrollPhysics(),
-                  onPageChanged: (index) =>
-                      setState(() => _currentIndex = index),
-                  children: const [
-                    FeedbackTabContent(),
-                    AnalyticsTabContent(),
-                    ErrorsTabContent(),
-                  ],
+              // Indicator at bottom
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  color: QuanityaPalette.primary.backgroundPrimary,
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _PageLabel(
+                            label: l10n.outboxTabFeedback,
+                            isActive: _currentIndex == 0,
+                            onTap: () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                          ),
+                          _PageLabel(
+                            label: l10n.outboxTabAnalytics,
+                            isActive: _currentIndex == 1,
+                            onTap: () => _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                          ),
+                          _PageLabel(
+                            label: l10n.outboxTabErrors,
+                            isActive: _currentIndex == 2,
+                            onTap: () => _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -101,26 +113,34 @@ class _OutboxPageState extends State<OutboxPage> {
   }
 }
 
-class _PageDot extends StatelessWidget {
-  const _PageDot({
+class _PageLabel extends StatelessWidget {
+  const _PageLabel({
     required this.label,
     required this.isActive,
+    this.onTap,
   });
 
   final String label;
   final bool isActive;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Text(
-        label,
-        style: context.text.bodySmall?.copyWith(
-          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-          color: isActive
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+    final palette = QuanityaPalette.primary;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSizes.space * 1.5,
+          vertical: AppSizes.space,
+        ),
+        child: Text(
+          label,
+          style: context.text.bodySmall?.copyWith(
+            fontWeight: isActive ? FontWeight.w900 : FontWeight.w500,
+            color: isActive ? palette.textPrimary : palette.interactableColor,
+          ),
         ),
       ),
     );
