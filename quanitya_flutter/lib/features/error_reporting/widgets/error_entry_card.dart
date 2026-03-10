@@ -8,14 +8,15 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart' as btn;
 
 /// Card displaying an error entry with complete technical details
-/// 
+///
 /// Shows PII-free error information with expandable details and
 /// actions to send or delete the error report.
-class ErrorEntryCard extends StatefulWidget {
+class ErrorEntryCard extends StatelessWidget {
   final ErrorEntry error;
   final int occurrenceCount;
   final VoidCallback onSend;
@@ -30,17 +31,10 @@ class ErrorEntryCard extends StatefulWidget {
   });
 
   @override
-  State<ErrorEntryCard> createState() => _ErrorEntryCardState();
-}
-
-class _ErrorEntryCardState extends State<ErrorEntryCard> {
-  bool _isExpanded = false;
-
-  @override
   Widget build(BuildContext context) {
-    final formattedTime = DateFormat.yMd().add_jm().format(widget.error.timestamp);
-    final occurrenceText = widget.occurrenceCount > 1 
-        ? '${widget.occurrenceCount} times'
+    final formattedTime = DateFormat.yMd().add_jm().format(error.timestamp);
+    final occurrenceText = occurrenceCount > 1
+        ? '$occurrenceCount times'
         : 'Once';
 
     return Container(
@@ -49,54 +43,8 @@ class _ErrorEntryCardState extends State<ErrorEntryCard> {
         color: QuanityaPalette.primary.backgroundPrimary,
         borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
       ),
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _ErrorHeader(
-              error: widget.error,
-              formattedTime: formattedTime,
-              occurrenceText: occurrenceText,
-              isExpanded: _isExpanded,
-              onToggleExpanded: () => setState(() => _isExpanded = !_isExpanded),
-            ),
-            if (_isExpanded) ...[
-              VSpace.x3,
-              _ErrorDetails(error: widget.error),
-              VSpace.x3,
-              _ActionButtons(
-                onSend: widget.onSend,
-                onDelete: widget.onDelete,
-              ),
-            ],
-          ],
-        ),
-      );
-  }
-}
-
-class _ErrorHeader extends StatelessWidget {
-  final ErrorEntry error;
-  final String formattedTime;
-  final String occurrenceText;
-  final bool isExpanded;
-  final VoidCallback onToggleExpanded;
-
-  const _ErrorHeader({
-    required this.error,
-    required this.formattedTime,
-    required this.occurrenceText,
-    required this.isExpanded,
-    required this.onToggleExpanded,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onToggleExpanded,
-      borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      child: Padding(
-        padding: EdgeInsets.all(AppSizes.space * 0.5),
-        child: Row(
+      child: NotebookFold(
+        header: Row(
           children: [
             Container(
               padding: EdgeInsets.all(AppSizes.space * 0.75),
@@ -150,10 +98,17 @@ class _ErrorHeader extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              isExpanded ? Icons.expand_less : Icons.expand_more,
-              size: AppSizes.iconMedium,
-              color: context.colors.textSecondary,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            VSpace.x3,
+            _ErrorDetails(error: error),
+            VSpace.x3,
+            _ActionButtons(
+              onSend: onSend,
+              onDelete: onDelete,
             ),
           ],
         ),
