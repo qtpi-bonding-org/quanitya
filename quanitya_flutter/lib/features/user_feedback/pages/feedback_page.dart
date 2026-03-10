@@ -12,6 +12,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_field.dart';
+import '../../outbox/widgets/outbox_tab_content.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../cubits/feedback_cubit.dart';
 import '../cubits/feedback_state.dart';
@@ -30,23 +31,9 @@ class FeedbackPage extends StatelessWidget {
   }
 }
 
-class _FeedbackPageContent extends StatefulWidget {
+class _FeedbackPageContent extends StatelessWidget {
   const _FeedbackPageContent();
-  
-  @override
-  State<_FeedbackPageContent> createState() => _FeedbackPageContentState();
-}
 
-class _FeedbackPageContentState extends State<_FeedbackPageContent> {
-  final _textController = TextEditingController();
-  String _selectedType = 'general';
-  
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
-  
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -63,112 +50,126 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
             onPressed: () => AppNavigation.back(context),
           ),
         ),
-        body: BlocBuilder<FeedbackCubit, FeedbackState>(
-          builder: (context, state) {
-            return SingleChildScrollView(
-              padding: AppPadding.page,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Type selector - icons with label shown only for active
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _FeedbackTypeChip(
-                        value: 'feature_request',
-                        icon: Icons.lightbulb_outline,
-                        label: l10n.feedbackTypeFeature,
-                        isSelected: _selectedType == 'feature_request',
-                        onTap: () => setState(() => _selectedType = 'feature_request'),
-                      ),
-                      HSpace.x3,
-                      _FeedbackTypeChip(
-                        value: 'bug',
-                        icon: Icons.bug_report,
-                        label: l10n.feedbackTypeBug,
-                        isSelected: _selectedType == 'bug',
-                        onTap: () => setState(() => _selectedType = 'bug'),
-                      ),
-                      HSpace.x3,
-                      _FeedbackTypeChip(
-                        value: 'general',
-                        icon: Icons.chat_bubble_outline,
-                        label: l10n.feedbackTypeGeneral,
-                        isSelected: _selectedType == 'general',
-                        onTap: () => setState(() => _selectedType = 'general'),
-                      ),
-                    ],
-                  ),
-                  
-                  VSpace.x4,
-                  
-                  // Text input
-                  QuanityaTextField(
-                    controller: _textController,
-                    maxLines: 10,
-                    hintText: l10n.feedbackHint,
-                  ),
-                  
-                  VSpace.x3,
-                  
-                  // Privacy notice
-                  Container(
-                    padding: AppPadding.allDouble,
-                    decoration: BoxDecoration(
-                      color: QuanityaPalette.primary.backgroundPrimary,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                    ),
-                    child: Row(
-                        children: [
-                          Icon(
-                            Icons.privacy_tip_outlined,
-                            size: AppSizes.iconMedium,
-                            color: context.colors.interactableColor,
-                          ),
-                          HSpace.x2,
-                          Expanded(
-                            child: Text(
-                              l10n.feedbackPrivacyNotice,
-                              style: context.text.bodySmall?.copyWith(
-                                color: context.colors.textPrimary.withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  
-                  VSpace.x4,
-                  
-                  // Submit button
-                  QuanityaTextButton(
-                    text: l10n.feedbackSubmitButton,
-                    onPressed: state.status == UiFlowStatus.loading
-                        ? null
-                        : () => _submitFeedback(context),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+        body: const FeedbackTabContent(),
       ),
     );
   }
-  
+}
+
+/// Reusable feedback form content — used in both standalone FeedbackPage
+/// and the unified OutboxPage tab.
+class FeedbackTabContent extends StatefulWidget {
+  const FeedbackTabContent({super.key});
+
+  @override
+  State<FeedbackTabContent> createState() => _FeedbackTabContentState();
+}
+
+class _FeedbackTabContentState extends State<FeedbackTabContent> {
+  final _textController = TextEditingController();
+  String _selectedType = 'general';
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return BlocBuilder<FeedbackCubit, FeedbackState>(
+      builder: (context, state) {
+        return OutboxTabContent(
+          content: SingleChildScrollView(
+            padding: AppPadding.page,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _FeedbackTypeChip(
+                      value: 'feature_request',
+                      icon: Icons.lightbulb_outline,
+                      label: l10n.feedbackTypeFeature,
+                      isSelected: _selectedType == 'feature_request',
+                      onTap: () => setState(() => _selectedType = 'feature_request'),
+                    ),
+                    HSpace.x3,
+                    _FeedbackTypeChip(
+                      value: 'bug',
+                      icon: Icons.bug_report,
+                      label: l10n.feedbackTypeBug,
+                      isSelected: _selectedType == 'bug',
+                      onTap: () => setState(() => _selectedType = 'bug'),
+                    ),
+                    HSpace.x3,
+                    _FeedbackTypeChip(
+                      value: 'general',
+                      icon: Icons.chat_bubble_outline,
+                      label: l10n.feedbackTypeGeneral,
+                      isSelected: _selectedType == 'general',
+                      onTap: () => setState(() => _selectedType = 'general'),
+                    ),
+                  ],
+                ),
+                VSpace.x4,
+                QuanityaTextField(
+                  controller: _textController,
+                  maxLines: 10,
+                  hintText: l10n.feedbackHint,
+                ),
+                VSpace.x3,
+                Container(
+                  padding: AppPadding.allDouble,
+                  decoration: BoxDecoration(
+                    color: QuanityaPalette.primary.backgroundPrimary,
+                    borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.privacy_tip_outlined,
+                        size: AppSizes.iconMedium,
+                        color: context.colors.interactableColor,
+                      ),
+                      HSpace.x2,
+                      Expanded(
+                        child: Text(
+                          l10n.feedbackPrivacyNotice,
+                          style: context.text.bodySmall?.copyWith(
+                            color: context.colors.textPrimary.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                VSpace.x4,
+                QuanityaTextButton(
+                  text: l10n.feedbackSubmitButton,
+                  onPressed: state.status == UiFlowStatus.loading
+                      ? null
+                      : () => _submitFeedback(context),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _submitFeedback(BuildContext context) {
     final text = _textController.text.trim();
-    
     if (text.length < 10) {
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.errorFeedbackTooShort),
-        ),
+        SnackBar(content: Text(l10n.errorFeedbackTooShort)),
       );
       return;
     }
-    
     context.read<FeedbackCubit>().submitFeedback(
       feedbackText: text,
       feedbackType: _selectedType,
