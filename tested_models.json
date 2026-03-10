@@ -1,0 +1,6 @@
+{
+  "tested_models": [
+    "openai/gpt-4o-mini"
+  ],
+  "recommended_default": "openai/gpt-4o-mini"
+}
