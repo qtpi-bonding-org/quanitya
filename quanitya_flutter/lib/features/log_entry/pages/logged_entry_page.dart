@@ -61,14 +61,6 @@ class LoggedEntryPage extends StatelessWidget {
                 onPressed: () => AppNavigation.back(context),
               ),
               actions: [
-                // Visualization button
-                QuanityaIconButton(
-                  icon: Icons.bar_chart,
-                  tooltip: context.l10n.tooltipViewInsights,
-                  onPressed: () {
-                    AppNavigation.toVisualization(context, template.id);
-                  },
-                ),
                 // Edit button
                 QuanityaIconButton(
                   icon: Icons.edit_outlined,
