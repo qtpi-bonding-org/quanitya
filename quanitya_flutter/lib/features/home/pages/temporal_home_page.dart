@@ -10,7 +10,6 @@ import '../cubits/temporal_timeline_cubit.dart';
 import '../cubits/temporal_timeline_state.dart';
 import '../cubits/timeline_data_cubit.dart';
 import '../cubits/timeline_data_state.dart';
-import '../widgets/temporal_indicator.dart';
 import '../widgets/temporal_zen_paper.dart';
 import '../widgets/temporal_past_panel.dart';
 import '../widgets/temporal_present_panel.dart';
@@ -20,13 +19,15 @@ import '../widgets/template_filter_sheet.dart';
 import '../../schedules/cubits/schedule_list_cubit.dart';
 
 class TemporalHomePage extends StatefulWidget {
-  const TemporalHomePage({super.key});
+  final ValueChanged<int>? onPageChanged;
+
+  const TemporalHomePage({super.key, this.onPageChanged});
 
   @override
-  State<TemporalHomePage> createState() => _TemporalHomePageState();
+  State<TemporalHomePage> createState() => TemporalHomePageState();
 }
 
-class _TemporalHomePageState extends State<TemporalHomePage> {
+class TemporalHomePageState extends State<TemporalHomePage> {
   late final PageController _pageController;
   int _currentIndex = 1;
   double _pastScrollOffset = 0.0;
@@ -48,7 +49,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
     super.dispose();
   }
 
-  void _onTabSelected(int index) {
+  void goToPage(int index) {
     _pageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 300),
@@ -60,6 +61,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
     setState(() {
       _currentIndex = index;
     });
+    widget.onPageChanged?.call(index);
   }
 
   @override
@@ -214,18 +216,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                 ),
               ),
 
-              // Layer 3: Navigation Indicator (Bottom)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: TemporalIndicator(
-                  controller: _pageController,
-                  onTabSelected: _onTabSelected,
-                ),
-              ),
-
-              // Layer 4: Lock Icon (top-left) - toggles hidden content visibility
+              // Layer 3: Lock Icon (top-left) - toggles hidden content visibility
               Positioned(
                 top: 0,
                 left: 0,
