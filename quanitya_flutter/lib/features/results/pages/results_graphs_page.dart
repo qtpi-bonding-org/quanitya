@@ -34,6 +34,7 @@ class ResultsGraphsPage extends StatelessWidget {
     }
 
     return BlocProvider(
+      key: ValueKey(templateId),
       create: (_) => GetIt.I<VisualizationCubit>()..loadForTemplate(templateId!),
       child: const _GraphsContent(),
     );
