@@ -249,17 +249,15 @@ class _FieldEditorListState extends State<FieldEditorList> {
   }
 
   void _showDeleteConfirmation(BuildContext context, TemplateField field) {
-    showDialog(
+    QuanityaConfirmationDialog.show(
       context: context,
-      builder: (c) => QuanityaConfirmationDialog(
-        title: context.l10n.deleteFieldTitle,
-        message: context.l10n.deleteFieldMessage(field.label),
-        confirmText: context.l10n.actionDelete,
-        isDestructive: true,
-        onConfirm: () {
-          context.read<TemplateEditorCubit>().removeField(field.id);
-        },
-      ),
+      title: context.l10n.deleteFieldTitle,
+      message: context.l10n.deleteFieldMessage(field.label),
+      confirmText: context.l10n.actionDelete,
+      isDestructive: true,
+      onConfirm: () {
+        context.read<TemplateEditorCubit>().removeField(field.id);
+      },
     );
   }
 }

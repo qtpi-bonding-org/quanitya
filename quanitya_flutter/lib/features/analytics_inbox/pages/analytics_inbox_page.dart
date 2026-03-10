@@ -17,6 +17,7 @@ import '../../../data/dao/analytics_inbox_dao.dart';
 import '../cubits/analytics_inbox_cubit.dart';
 import '../cubits/analytics_inbox_state.dart';
 import '../cubits/analytics_inbox_message_mapper.dart';
+import '../../outbox/widgets/outbox_tab_content.dart';
 
 /// Analytics Inbox Page - Review and send usage analytics events
 ///
@@ -52,60 +53,39 @@ class _AnalyticsInboxView extends StatelessWidget {
             onPressed: () => AppNavigation.back(context),
           ),
         ),
-        body: BlocBuilder<AnalyticsInboxCubit, AnalyticsInboxState>(
-          builder: (context, state) {
-            return Column(
-              children: [
-                _PrivacyBanner(),
-                _AutoSendToggle(),
-                Expanded(
-                  child: state.groupedEvents.isEmpty
-                      ? _EmptyState()
-                      : _EventList(),
-                ),
-                if (state.groupedEvents.isNotEmpty) _BottomActions(),
-              ],
-            );
-          },
-        ),
+        body: const AnalyticsTabContent(),
       ),
     );
   }
 }
 
-class _PrivacyBanner extends StatelessWidget {
+/// Reusable analytics inbox content — used in both standalone AnalyticsInboxPage
+/// and the unified OutboxPage tab.
+class AnalyticsTabContent extends StatelessWidget {
+  const AnalyticsTabContent({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: AppPadding.allDouble,
-      decoration: BoxDecoration(
-        color: context.colors.infoColor.withValues(alpha: 0.1),
-        border: Border(
-          bottom: BorderSide(
-            color: context.colors.infoColor.withValues(alpha: 0.3),
-            width: 1,
+    return BlocBuilder<AnalyticsInboxCubit, AnalyticsInboxState>(
+      builder: (context, state) {
+        return OutboxTabContent(
+          isEmpty: state.groupedEvents.isEmpty,
+          emptyState: OutboxEmptyState(
+            icon: Icons.analytics_outlined,
+            title: context.l10n.analyticsInboxEmpty,
+            description: context.l10n.analyticsInboxEmptyDescription,
           ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.privacy_tip_outlined,
-            size: AppSizes.iconMedium,
-            color: context.colors.infoColor,
+          banner: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OutboxPrivacyBanner(text: context.l10n.analyticsInboxPrivacyNotice),
+              _AutoSendToggle(),
+            ],
           ),
-          HSpace.x2,
-          Expanded(
-            child: Text(
-              context.l10n.analyticsInboxPrivacyNotice,
-              style: context.text.bodySmall?.copyWith(
-                color: context.colors.textPrimary,
-              ),
-            ),
-          ),
-        ],
-      ),
+          content: _EventList(),
+          bottomAction: _BottomActions(),
+        );
+      },
     );
   }
 }
@@ -157,43 +137,6 @@ class _AutoSendToggle extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: AppPadding.page,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.analytics_outlined,
-              size: AppSizes.iconLarge * 2,
-              color: context.colors.textSecondary,
-            ),
-            VSpace.x4,
-            Text(
-              context.l10n.analyticsInboxEmpty,
-              style: context.text.headlineMedium?.copyWith(
-                color: context.colors.textPrimary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            VSpace.x2,
-            Text(
-              context.l10n.analyticsInboxEmptyDescription,
-              style: context.text.bodyMedium?.copyWith(
-                color: context.colors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -331,15 +274,13 @@ class _BottomActions extends StatelessWidget {
   }
 
   void _confirmClearAll(BuildContext context) {
-    showDialog(
+    QuanityaConfirmationDialog.show(
       context: context,
-      builder: (_) => QuanityaConfirmationDialog(
-        title: context.l10n.analyticsInboxClearAllTitle,
-        message: context.l10n.analyticsInboxClearAllMessage,
-        confirmText: context.l10n.analyticsInboxClearAll,
-        isDestructive: true,
-        onConfirm: () => context.read<AnalyticsInboxCubit>().clearAll(),
-      ),
+      title: context.l10n.analyticsInboxClearAllTitle,
+      message: context.l10n.analyticsInboxClearAllMessage,
+      confirmText: context.l10n.analyticsInboxClearAll,
+      isDestructive: true,
+      onConfirm: () => context.read<AnalyticsInboxCubit>().clearAll(),
     );
   }
 }

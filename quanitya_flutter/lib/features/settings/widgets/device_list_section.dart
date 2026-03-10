@@ -310,17 +310,15 @@ class _DeviceCard extends StatelessWidget {
   }
 
   void _confirmRevoke(BuildContext context) {
-    showDialog(
+    QuanityaConfirmationDialog.show(
       context: context,
-      builder: (dialogContext) => QuanityaConfirmationDialog(
-        title: context.l10n.revokeDevice,
-        message: context.l10n.revokeDeviceConfirmation(device.label),
-        confirmText: context.l10n.revoke,
-        isDestructive: true,
-        onConfirm: () {
-          context.read<DeviceManagementCubit>().revokeDevice(device.id!);
-        },
-      ),
+      title: context.l10n.revokeDevice,
+      message: context.l10n.revokeDeviceConfirmation(device.label),
+      confirmText: context.l10n.revoke,
+      isDestructive: true,
+      onConfirm: () {
+        context.read<DeviceManagementCubit>().revokeDevice(device.id!);
+      },
     );
   }
 }

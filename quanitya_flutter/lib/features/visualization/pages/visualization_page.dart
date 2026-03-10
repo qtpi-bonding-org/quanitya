@@ -13,6 +13,7 @@ import '../../../design_system/widgets/charts/time_series_chart.dart';
 import '../../../design_system/widgets/charts/boolean_heatmap_chart.dart';
 import '../../../design_system/widgets/charts/categorical_scatter_chart.dart';
 import '../../../design_system/widgets/charts/contribution_heatmap.dart';
+import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../logic/templates/models/shared/tracker_template.dart';
@@ -164,10 +165,10 @@ class _VisualizationContent extends StatelessWidget {
     if (data == null) return;
     
     // Show bottom sheet with field selection for analysis
-    showModalBottomSheet(
+    LooseInsertSheet.show(
       context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => _AnalysisFieldSelector(
+      title: 'Analyze Field Data',
+      builder: (_) => _AnalysisFieldSelector(
         template: data.template,
         numericFields: data.numericFields,
       ),

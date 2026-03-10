@@ -314,17 +314,14 @@ class _ScanPairingQrViewState extends State<_ScanPairingQrView>
     // Capture cubit before async gap
     final cubit = context.read<PairingScanCubit>();
 
-    showDialog(
+    QuanityaConfirmationDialog.show(
       context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => QuanityaConfirmationDialog(
-        title: context.l10n.pairingConfirmTitle,
-        message: context.l10n.pairingConfirmMessage(pending.label),
-        confirmText: context.l10n.pairingConfirmAdd,
-        onConfirm: () {
-          cubit.confirmAddDevice();
-        },
-      ),
+      title: context.l10n.pairingConfirmTitle,
+      message: context.l10n.pairingConfirmMessage(pending.label),
+      confirmText: context.l10n.pairingConfirmAdd,
+      onConfirm: () {
+        cubit.confirmAddDevice();
+      },
     ).then((_) {
       // If dialog was dismissed without confirming, cancel
       if (!mounted) return;
