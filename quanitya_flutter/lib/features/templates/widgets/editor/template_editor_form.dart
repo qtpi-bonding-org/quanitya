@@ -8,6 +8,7 @@ import '../../../../design_system/structures/row.dart';
 import '../../../../design_system/structures/group.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
+import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../../support/extensions/context_extensions.dart';

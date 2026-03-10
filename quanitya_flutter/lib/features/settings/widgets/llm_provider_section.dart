@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/llm_provider/llm_provider_cubit.dart';

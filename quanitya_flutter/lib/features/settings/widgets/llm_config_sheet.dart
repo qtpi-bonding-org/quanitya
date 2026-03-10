@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../design_system/primitives/app_spacings.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
