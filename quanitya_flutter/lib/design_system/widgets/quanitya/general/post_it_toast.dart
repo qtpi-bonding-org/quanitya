@@ -17,11 +17,13 @@ enum PostItType { info, success, error, warning }
 class PostItToast extends StatelessWidget {
   final String message;
   final PostItType type;
+  final Widget? action;
 
   const PostItToast({
     super.key,
     required this.message,
     required this.type,
+    this.action,
   });
 
   @override
@@ -45,15 +47,24 @@ class PostItToast extends StatelessWidget {
         horizontal: AppSizes.space * 1.5,
         vertical: AppSizes.space,
       ),
-      child: Text(
-        message,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontFamily: QuanityaFonts.headerFamily,
-          fontSize: AppSizes.fontSmall,
-          fontWeight: FontWeight.w500,
-          color: palette.textPrimary,
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: QuanityaFonts.headerFamily,
+              fontSize: AppSizes.fontSmall,
+              fontWeight: FontWeight.w500,
+              color: palette.textPrimary,
+            ),
+          ),
+          if (action != null) ...[
+            SizedBox(height: AppSizes.space * 0.5),
+            action!,
+          ],
+        ],
       ),
     );
   }
