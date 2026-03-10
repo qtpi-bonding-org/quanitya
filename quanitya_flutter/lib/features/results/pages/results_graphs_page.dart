@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
@@ -75,6 +76,7 @@ class _GraphsContent extends StatelessWidget {
                       data.template.name,
                       style: context.text.headlineSmall,
                       overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ],
@@ -87,14 +89,19 @@ class _GraphsContent extends StatelessWidget {
                 ),
               ),
               VSpace.x4,
-              ...data.numericFields.map(
-                (field) => _NumericChartSection(fieldData: field),
-              ),
-              ...data.booleanFields.map(
-                (field) => _BooleanChartSection(fieldData: field),
-              ),
-              ...data.categoricalFields.map(
-                (field) => _CategoricalChartSection(fieldData: field),
+              LayoutGroup.grid(
+                minItemWidth: 30,
+                children: [
+                  ...data.numericFields.map(
+                    (field) => _NumericChartSection(fieldData: field),
+                  ),
+                  ...data.booleanFields.map(
+                    (field) => _BooleanChartSection(fieldData: field),
+                  ),
+                  ...data.categoricalFields.map(
+                    (field) => _CategoricalChartSection(fieldData: field),
+                  ),
+                ],
               ),
               VSpace.x4,
               _StatsSummary(

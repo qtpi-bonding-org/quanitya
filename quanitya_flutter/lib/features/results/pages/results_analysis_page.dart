@@ -1,5 +1,6 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
@@ -74,6 +75,7 @@ class _AnalysisContent extends StatelessWidget {
                       data.template.name,
                       style: context.text.headlineSmall,
                       overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ],
@@ -265,9 +267,8 @@ class _AnalysisResultCard extends StatelessWidget {
   Widget _buildScalarDisplay(BuildContext context, List<dynamic> scalars) {
     final palette = QuanityaPalette.primary;
 
-    return Wrap(
-      spacing: AppSizes.space * 2,
-      runSpacing: AppSizes.space,
+    return LayoutGroup.grid(
+      minItemWidth: 15,
       children: scalars.map((scalar) {
         return Container(
           padding: AppPadding.allDouble,
@@ -539,7 +540,7 @@ class _NoAnalysisPlaceholder extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: AppPadding.allTriple,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
