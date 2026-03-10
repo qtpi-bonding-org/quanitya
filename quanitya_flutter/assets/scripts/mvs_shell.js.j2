@@ -94,17 +94,19 @@ try {
     };
     
     // Return success result to Dart host
-    JSON.stringify({
+    var __result__ = JSON.stringify({
         status: 'success',
         result: result
     }, replacer);
-    
+    __result__;
+
 } catch (e) {
     // Return error to Dart host
-    JSON.stringify({
+    var __error__ = JSON.stringify({
         status: 'error',
         message: e.message,
         stack: e.stack
     });
+    __error__;
 }
 

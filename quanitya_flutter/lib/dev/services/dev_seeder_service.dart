@@ -7,6 +7,8 @@ import 'package:injectable/injectable.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/db/app_database.dart';
+import '../../data/dao/log_entry_dual_dao.dart';
+import '../../data/dao/tracker_template_dual_dao.dart';
 import '../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../logic/templates/enums/field_enum.dart';
 import '../../logic/templates/enums/ui_element_enum.dart';
@@ -14,17 +16,24 @@ import '../../logic/templates/models/shared/template_field.dart';
 import '../../logic/templates/models/shared/template_aesthetics.dart';
 
 /// Development seeder service for populating the database with fake data.
-/// 
+///
 /// Use this to quickly test UI without manually entering data.
 /// Only available in debug builds.
 @lazySingleton
 class DevSeederService {
   final AppDatabase _db;
   final ICryptoKeyRepository _cryptoKeyRepo;
+  final LogEntryDualDao _logEntryDao;
+  final TrackerTemplateDualDao _templateDao;
   final _uuid = const Uuid();
   final _random = Random();
 
-  DevSeederService(this._db, this._cryptoKeyRepo);
+  DevSeederService(
+    this._db,
+    this._cryptoKeyRepo,
+    this._logEntryDao,
+    this._templateDao,
+  );
 
   /// Clear all data and seed with fresh fake data.
   Future<void> clearAndSeed() async {
@@ -112,15 +121,14 @@ class DevSeederService {
       ),
     ];
 
-    await _db.into(_db.trackerTemplates).insert(
-      TrackerTemplatesCompanion.insert(
-        id: id,
-        name: 'Mood Tracker',
-        fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
-        updatedAt: DateTime.now(),
-        isArchived: const Value(false),
-      ),
-    );
+    await _templateDao.upsert(TrackerTemplate(
+      id: id,
+      name: 'Mood Tracker',
+      fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
+      updatedAt: DateTime.now(),
+      isArchived: false,
+      isHidden: false,
+    ));
 
     await _seedAesthetics(id, '😊', 'mood_outline');
     return id;
@@ -142,15 +150,14 @@ class DevSeederService {
       ),
     ];
 
-    await _db.into(_db.trackerTemplates).insert(
-      TrackerTemplatesCompanion.insert(
-        id: id,
-        name: 'Weight Log',
-        fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
-        updatedAt: DateTime.now(),
-        isArchived: const Value(false),
-      ),
-    );
+    await _templateDao.upsert(TrackerTemplate(
+      id: id,
+      name: 'Weight Log',
+      fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
+      updatedAt: DateTime.now(),
+      isArchived: false,
+      isHidden: false,
+    ));
 
     await _seedAesthetics(id, '⚖️', 'scale');
     return id;
@@ -180,15 +187,14 @@ class DevSeederService {
       ),
     ];
 
-    await _db.into(_db.trackerTemplates).insert(
-      TrackerTemplatesCompanion.insert(
-        id: id,
-        name: 'Workout',
-        fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
-        updatedAt: DateTime.now(),
-        isArchived: const Value(false),
-      ),
-    );
+    await _templateDao.upsert(TrackerTemplate(
+      id: id,
+      name: 'Workout',
+      fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
+      updatedAt: DateTime.now(),
+      isArchived: false,
+      isHidden: false,
+    ));
 
     await _seedAesthetics(id, '💪', 'fitness_center');
     return id;
@@ -217,15 +223,14 @@ class DevSeederService {
       ),
     ];
 
-    await _db.into(_db.trackerTemplates).insert(
-      TrackerTemplatesCompanion.insert(
-        id: id,
-        name: 'Sleep Log',
-        fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
-        updatedAt: DateTime.now(),
-        isArchived: const Value(false),
-      ),
-    );
+    await _templateDao.upsert(TrackerTemplate(
+      id: id,
+      name: 'Sleep Log',
+      fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
+      updatedAt: DateTime.now(),
+      isArchived: false,
+      isHidden: false,
+    ));
 
     await _seedAesthetics(id, '😴', 'bedtime');
     return id;
@@ -252,16 +257,14 @@ class DevSeederService {
       ),
     ];
 
-    await _db.into(_db.trackerTemplates).insert(
-      TrackerTemplatesCompanion.insert(
-        id: id,
-        name: 'Private Journal',
-        fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
-        updatedAt: DateTime.now(),
-        isArchived: const Value(false),
-        isHidden: Value(isHidden),
-      ),
-    );
+    await _templateDao.upsert(TrackerTemplate(
+      id: id,
+      name: 'Private Journal',
+      fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
+      updatedAt: DateTime.now(),
+      isArchived: false,
+      isHidden: isHidden,
+    ));
 
     await _seedAesthetics(id, '🔒', 'lock', color: '#9C27B0'); // Purple
     return id;
@@ -290,16 +293,14 @@ class DevSeederService {
       ),
     ];
 
-    await _db.into(_db.trackerTemplates).insert(
-      TrackerTemplatesCompanion.insert(
-        id: id,
-        name: 'Medication Log',
-        fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
-        updatedAt: DateTime.now(),
-        isArchived: const Value(false),
-        isHidden: Value(isHidden),
-      ),
-    );
+    await _templateDao.upsert(TrackerTemplate(
+      id: id,
+      name: 'Medication Log',
+      fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
+      updatedAt: DateTime.now(),
+      isArchived: false,
+      isHidden: isHidden,
+    ));
 
     await _seedAesthetics(id, '💊', 'medication', color: '#E91E63'); // Pink
     return id;
@@ -433,21 +434,19 @@ class DevSeederService {
 
   Future<void> _seedFutureTodos(String templateId) async {
     final now = DateTime.now();
-    
+
     // Create 5 future todos
     for (var i = 1; i <= 5; i++) {
       final scheduledFor = now.add(Duration(days: i));
-      
-      await _db.into(_db.logEntries).insert(
-        LogEntriesCompanion.insert(
-          id: _uuid.v4(),
-          templateId: templateId,
-          scheduledFor: Value(scheduledFor),
-          occurredAt: const Value(null),
-          dataJson: '{}',
-          updatedAt: now,
-        ),
-      );
+
+      await _logEntryDao.upsert(LogEntry(
+        id: _uuid.v4(),
+        templateId: templateId,
+        scheduledFor: scheduledFor,
+        occurredAt: null,
+        dataJson: '{}',
+        updatedAt: now,
+      ));
     }
   }
 
@@ -510,16 +509,14 @@ class DevSeederService {
     required DateTime occurredAt,
     required Map<String, dynamic> data,
   }) async {
-    await _db.into(_db.logEntries).insert(
-      LogEntriesCompanion.insert(
-        id: _uuid.v4(),
-        templateId: templateId,
-        scheduledFor: const Value(null),
-        occurredAt: Value(occurredAt),
-        dataJson: jsonEncode(data),
-        updatedAt: DateTime.now(),
-      ),
-    );
+    await _logEntryDao.upsert(LogEntry(
+      id: _uuid.v4(),
+      templateId: templateId,
+      scheduledFor: null,
+      occurredAt: occurredAt,
+      dataJson: jsonEncode(data),
+      updatedAt: DateTime.now(),
+    ));
   }
 
   String _randomMoodNote() {
