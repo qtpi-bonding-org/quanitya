@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../../app_router.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
-import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/widgets/quanitya_empty_or.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../cubits/list/template_list_cubit.dart';
@@ -57,39 +57,30 @@ class TemplateListWidget extends StatelessWidget {
                     
                     return QuanityaEmptyOr(
                       isEmpty: state.templates.isEmpty,
-                      child: GridView.builder(
+                      child: SingleChildScrollView(
                         padding: AppPadding.page,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: AppSizes.space * 2,
-                          mainAxisSpacing: AppSizes.space * 2,
-                          childAspectRatio: 1.0,
+                        child: LayoutGroup.grid(
+                          minItemWidth: 20,
+                          children: state.templates.map((item) {
+                            final cubit = context.read<TemplateListCubit>();
+                            return TrackerCard(
+                              title: item.template.name,
+                              icon: item.aesthetics.icon,
+                              emoji: item.aesthetics.emoji,
+                              color: item.aesthetics.palette.accents.firstOrNull,
+                              template: item.template,
+                              onIconTap: () {
+                                AppNavigation.toTemplateGenerator(context, item);
+                              },
+                              onEdit: () {
+                                AppNavigation.toLogEntry(context, item.template.id);
+                              },
+                              onQuickAction: () {
+                                cubit.instantLog(item.template);
+                              },
+                            );
+                          }).toList(),
                         ),
-                        itemCount: state.templates.length,
-                        itemBuilder: (context, index) {
-                          final item = state.templates[index];
-                          final cubit = context.read<TemplateListCubit>();
-                          return TrackerCard(
-                            title: item.template.name,
-                            icon: item.aesthetics.icon,
-                            emoji: item.aesthetics.emoji,
-                            // Use accent1 (first accent color) for the card
-                            color: item.aesthetics.palette.accents.firstOrNull,
-                            template: item.template, // Pass template for default checking
-                            onIconTap: () {
-                              // Navigate to template editor
-                              AppNavigation.toTemplateGenerator(context, item);
-                            },
-                            onEdit: () {
-                              // Navigate to log entry form (custom log with review)
-                              AppNavigation.toLogEntry(context, item.template.id);
-                            },
-                            onQuickAction: () {
-                              // Instant log - save immediately with defaults
-                              cubit.instantLog(item.template);
-                            },
-                          );
-                        },
                       ),
                     );
                   },
