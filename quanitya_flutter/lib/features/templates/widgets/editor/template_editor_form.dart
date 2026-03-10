@@ -8,8 +8,8 @@ import '../../../../design_system/structures/row.dart';
 import '../../../../design_system/structures/group.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
-import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../app_router.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
@@ -181,43 +181,23 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     final templateId = state.template?.id;
     if (templateId == null) return;
 
-    final confirmed = await showDialog<bool>(
+    QuanityaConfirmationDialog.show(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          context.l10n.actionDelete,
-          style: context.text.titleLarge,
-        ),
-        content: Text(
-          context.l10n.confirmDeleteTemplate,
-          style: context.text.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(context.l10n.actionCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(
-              context.l10n.actionDelete,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ),
-        ],
-      ),
+      title: context.l10n.actionDelete,
+      message: context.l10n.confirmDeleteTemplate,
+      confirmText: context.l10n.actionDelete,
+      isDestructive: true,
+      onConfirm: () async {
+        final repo = GetIt.I<TemplateWithAestheticsRepository>();
+        await repo.archive(templateId);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.templateDeleted)),
+          );
+          AppNavigation.back(context);
+        }
+      },
     );
-
-    if (confirmed == true && context.mounted) {
-      final repo = GetIt.I<TemplateWithAestheticsRepository>();
-      await repo.archive(templateId);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.templateDeleted)),
-        );
-        AppNavigation.back(context);
-      }
-    }
   }
 
   Widget _buildAddFieldList(BuildContext context) {

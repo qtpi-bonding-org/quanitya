@@ -18,6 +18,7 @@ import '../../../logic/schedules/models/schedule.dart';
 import '../../schedules/widgets/edit_schedule_sheet.dart';
 import '../../../../design_system/structures/column.dart';
 import '../../../../design_system/structures/row.dart';
+import '../../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 
 class TemplateEditorPage extends StatelessWidget {
   final String templateId;
@@ -163,43 +164,23 @@ class TemplateDetailView extends StatelessWidget {
     BuildContext context,
     TemplateWithAesthetics template,
   ) async {
-    final confirmed = await showDialog<bool>(
+    QuanityaConfirmationDialog.show(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          context.l10n.actionDelete,
-          style: context.text.titleLarge,
-        ),
-        content: Text(
-          context.l10n.confirmDeleteTemplate,
-          style: context.text.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(context.l10n.actionCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(
-              context.l10n.actionDelete,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ),
-        ],
-      ),
+      title: context.l10n.actionDelete,
+      message: context.l10n.confirmDeleteTemplate,
+      confirmText: context.l10n.actionDelete,
+      isDestructive: true,
+      onConfirm: () async {
+        final repo = GetIt.instance<TemplateWithAestheticsRepository>();
+        await repo.archive(template.template.id);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.templateDeleted)),
+          );
+          AppNavigation.back(context);
+        }
+      },
     );
-
-    if (confirmed == true && context.mounted) {
-      final repo = GetIt.instance<TemplateWithAestheticsRepository>();
-      await repo.archive(template.template.id);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.templateDeleted)),
-        );
-        AppNavigation.back(context);
-      }
-    }
   }
 
   void _shareTemplate(BuildContext context, TemplateWithAesthetics template) {

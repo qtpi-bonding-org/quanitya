@@ -8,9 +8,9 @@ import '../../../app_router.dart';
 import '../../../data/dao/log_entry_query_dao.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
-import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/detail/entry_detail_cubit.dart';
 
@@ -171,28 +171,13 @@ class LoggedEntryPage extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context) {
-    showDialog(
+    QuanityaConfirmationDialog.show(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.actionDelete),
-        content: Text(context.l10n.confirmDeleteEntry),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(context.l10n.actionCancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              context.read<EntryDetailCubit>().deleteEntry();
-            },
-            child: Text(
-              context.l10n.actionDelete,
-              style: TextStyle(color: QuanityaPalette.primary.destructiveColor),
-            ),
-          ),
-        ],
-      ),
+      title: context.l10n.actionDelete,
+      message: context.l10n.confirmDeleteEntry,
+      confirmText: context.l10n.actionDelete,
+      isDestructive: true,
+      onConfirm: () => context.read<EntryDetailCubit>().deleteEntry(),
     );
   }
 }

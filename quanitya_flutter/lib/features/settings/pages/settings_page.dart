@@ -125,22 +125,6 @@ class _SettingsContent extends StatelessWidget {
         ),
         VSpace.x3,
 
-        QuanityaTextButton(
-          text: context.l10n.settingsErrorReports,
-          onPressed: () => AppNavigation.toErrorBox(context),
-        ),
-        VSpace.x3,
-
-        QuanityaTextButton(
-          text: context.l10n.settingsAnalyticsInbox,
-          onPressed: () => AppNavigation.toAnalyticsInbox(context),
-        ),
-        VSpace.x3,
-
-        QuanityaTextButton(
-          text: context.l10n.settingsSendFeedback,
-          onPressed: () => AppNavigation.toFeedback(context),
-        ),
         VSpace.x4,
 
         const _ApiKeysSection(),
@@ -187,29 +171,13 @@ class _SettingsContent extends StatelessWidget {
     if (selected == null || !context.mounted) return;
 
     // 3. Confirm destructive operation.
-    final confirmed = await showDialog<bool>(
+    final confirmed = await QuanityaConfirmationDialog.show(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(
-          context.l10n.importDataConfirmTitle,
-          style: context.text.titleLarge,
-        ),
-        content: Text(
-          context.l10n.importDataConfirmMessage,
-          style: context.text.bodyMedium,
-        ),
-        actions: [
-          QuanityaTextButton(
-            text: context.l10n.actionCancel,
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          QuanityaTextButton(
-            text: context.l10n.importDataConfirmButton,
-            isDestructive: true,
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
+      title: context.l10n.importDataConfirmTitle,
+      message: context.l10n.importDataConfirmMessage,
+      confirmText: context.l10n.importDataConfirmButton,
+      isDestructive: true,
+      onConfirm: () {},
     );
     if (confirmed != true || !context.mounted) return;
 
@@ -594,43 +562,41 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
   Future<void> _confirmDelete(BuildContext context) async {
     final goRouter = GoRouter.of(context);
 
-    showDialog(
+    QuanityaConfirmationDialog.show(
       context: context,
-      builder: (_) => QuanityaConfirmationDialog(
-        title: context.l10n.deleteAccountTitle,
-        message: context.l10n.deleteAccountMessage,
-        confirmText: context.l10n.deleteAccountConfirm,
-        isDestructive: true,
-        onConfirm: () async {
-          if (!mounted) return;
-          setState(() => _isLoading = true);
+      title: context.l10n.deleteAccountTitle,
+      message: context.l10n.deleteAccountMessage,
+      confirmText: context.l10n.deleteAccountConfirm,
+      isDestructive: true,
+      onConfirm: () async {
+        if (!mounted) return;
+        setState(() => _isLoading = true);
 
-          try {
-            // Delete server-side data if client is available
-            if (GetIt.instance.isRegistered<cloud.Client>()) {
-              try {
-                final client = GetIt.instance<cloud.Client>();
-                await client.accountDeletion.deleteAccount();
-              } catch (_) {
-                // Server deletion may fail if offline or local-only mode.
-                // Still proceed with local wipe so the user can reset.
-              }
+        try {
+          // Delete server-side data if client is available
+          if (GetIt.instance.isRegistered<cloud.Client>()) {
+            try {
+              final client = GetIt.instance<cloud.Client>();
+              await client.accountDeletion.deleteAccount();
+            } catch (_) {
+              // Server deletion may fail if offline or local-only mode.
+              // Still proceed with local wipe so the user can reset.
             }
-
-            // Wipe local keys (this also clears secure storage)
-            final keyRepo = GetIt.instance<ICryptoKeyRepository>();
-            await keyRepo.clearKeys();
-
-            AppRouter.resetKeyCheck();
-
-            if (mounted) {
-              goRouter.goNamed(RouteNames.onboarding);
-            }
-          } finally {
-            if (mounted) setState(() => _isLoading = false);
           }
-        },
-      ),
+
+          // Wipe local keys (this also clears secure storage)
+          final keyRepo = GetIt.instance<ICryptoKeyRepository>();
+          await keyRepo.clearKeys();
+
+          AppRouter.resetKeyCheck();
+
+          if (mounted) {
+            goRouter.goNamed(RouteNames.onboarding);
+          }
+        } finally {
+          if (mounted) setState(() => _isLoading = false);
+        }
+      },
     );
   }
 }
