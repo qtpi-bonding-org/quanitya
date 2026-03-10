@@ -467,13 +467,13 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
                 ),
               )
             else if (_templates == null)
-              const Center(
+              Center(
                 child: Padding(
                   padding: AppPadding.allDouble,
                   child: SizedBox(
                     width: AppSizes.iconMedium,
                     height: AppSizes.iconMedium,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: const CircularProgressIndicator(strokeWidth: 2),
                   ),
                 ),
               )
