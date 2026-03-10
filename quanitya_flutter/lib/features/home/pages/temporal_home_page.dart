@@ -359,6 +359,13 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                           onPressed: () => AppNavigation.toNotificationInbox(context),
                         ),
                         QuanityaIconButton(
+                          icon: Icons.outbox,
+                          iconSize: AppSizes.iconMedium,
+                          color: palette.interactableColor,
+                          tooltip: context.l10n.tooltipAnalyticsOutbox,
+                          onPressed: () => AppNavigation.toAnalyticsInbox(context),
+                        ),
+                        QuanityaIconButton(
                           icon: Icons.settings,
                           iconSize: AppSizes.iconMedium,
                           color: palette.interactableColor,

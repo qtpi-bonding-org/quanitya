@@ -63,6 +63,10 @@ class TemplateDetailView extends StatelessWidget {
                       onPressed: () => _shareTemplate(context, state.template!),
                     ),
                     QuanityaIconButton(
+                      icon: state.template!.template.isHidden ? Icons.visibility : Icons.visibility_off,
+                      onPressed: () => context.read<TemplateDetailCubit>().toggleHidden(),
+                    ),
+                    QuanityaIconButton(
                       icon: Icons.edit,
                       onPressed: () => AppNavigation.toTemplateGenerator(context, state.template),
                     ),

@@ -133,7 +133,7 @@ class _WebhookDialogState extends State<WebhookDialog> {
                   ),
                   VSpace.x3,
 
-                  // API Key dropdown
+                  // API Key dropdown (required, 1:1 with webhook)
                   Text(
                     context.l10n.webhookApiKey,
                     style: context.text.bodyMedium?.copyWith(
@@ -141,25 +141,37 @@ class _WebhookDialogState extends State<WebhookDialog> {
                     ),
                   ),
                   VSpace.x1,
-                  DropdownButtonFormField<String?>(
-                    value: _selectedApiKeyId,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                      ),
-                      contentPadding: AppPadding.allSingle,
-                    ),
-                    items: [
-                      DropdownMenuItem<String?>(
-                        value: null,
-                        child: Text(context.l10n.webhookNoAuth),
-                      ),
-                      ...state.apiKeys.map((k) => DropdownMenuItem(
-                        value: k.id,
-                        child: Text(k.name),
-                      )),
-                    ],
-                    onChanged: (value) => setState(() => _selectedApiKeyId = value),
+                  Builder(
+                    builder: (context) {
+                      // Filter to keys not already used by other webhooks
+                      final usedKeyIds = state.webhooks
+                          .where((w) => w.apiKeyId != null && w.id != widget.webhook?.id)
+                          .map((w) => w.apiKeyId!)
+                          .toSet();
+                      final availableKeys = state.apiKeys
+                          .where((k) => !usedKeyIds.contains(k.id) || k.id == _selectedApiKeyId)
+                          .toList();
+
+                      return DropdownButtonFormField<String>(
+                        value: _selectedApiKeyId,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+                          ),
+                          contentPadding: AppPadding.allSingle,
+                        ),
+                        hint: Text(context.l10n.webhookSelectApiKey),
+                        items: availableKeys.map((k) => DropdownMenuItem(
+                          value: k.id,
+                          child: Text(k.name),
+                        )).toList(),
+                        onChanged: (value) => setState(() => _selectedApiKeyId = value),
+                        validator: (value) {
+                          if (value == null) return context.l10n.validationRequired;
+                          return null;
+                        },
+                      );
+                    },
                   ),
                   VSpace.x3,
 

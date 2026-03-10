@@ -63,6 +63,16 @@ class TemplateDetailCubit extends QuanityaCubit<TemplateDetailState> {
     await _scheduleRepo.delete(scheduleId);
   }
 
+  Future<void> toggleHidden() async {
+    final template = state.template;
+    if (template == null) return;
+    if (template.template.isHidden) {
+      await _templateRepo.unhide(template.template.id);
+    } else {
+      await _templateRepo.hide(template.template.id);
+    }
+  }
+
   @override
   Future<void> close() {
     _templateSub?.cancel();

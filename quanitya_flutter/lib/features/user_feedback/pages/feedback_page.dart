@@ -70,29 +70,34 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Type selector
-                  SegmentedButton<String>(
-                    segments: [
-                      ButtonSegment(
+                  // Type selector - icons with label shown only for active
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _FeedbackTypeChip(
                         value: 'feature_request',
-                        label: Text(l10n.feedbackTypeFeature),
-                        icon: const Icon(Icons.lightbulb_outline),
+                        icon: Icons.lightbulb_outline,
+                        label: l10n.feedbackTypeFeature,
+                        isSelected: _selectedType == 'feature_request',
+                        onTap: () => setState(() => _selectedType = 'feature_request'),
                       ),
-                      ButtonSegment(
+                      HSpace.x3,
+                      _FeedbackTypeChip(
                         value: 'bug',
-                        label: Text(l10n.feedbackTypeBug),
-                        icon: const Icon(Icons.bug_report),
+                        icon: Icons.bug_report,
+                        label: l10n.feedbackTypeBug,
+                        isSelected: _selectedType == 'bug',
+                        onTap: () => setState(() => _selectedType = 'bug'),
                       ),
-                      ButtonSegment(
+                      HSpace.x3,
+                      _FeedbackTypeChip(
                         value: 'general',
-                        label: Text(l10n.feedbackTypeGeneral),
-                        icon: const Icon(Icons.chat_bubble_outline),
+                        icon: Icons.chat_bubble_outline,
+                        label: l10n.feedbackTypeGeneral,
+                        isSelected: _selectedType == 'general',
+                        onTap: () => setState(() => _selectedType = 'general'),
                       ),
                     ],
-                    selected: {_selectedType},
-                    onSelectionChanged: (Set<String> selected) {
-                      setState(() => _selectedType = selected.first);
-                    },
                   ),
                   
                   VSpace.x4,
@@ -167,6 +172,68 @@ class _FeedbackPageContentState extends State<_FeedbackPageContent> {
     context.read<FeedbackCubit>().submitFeedback(
       feedbackText: text,
       feedbackType: _selectedType,
+    );
+  }
+}
+
+class _FeedbackTypeChip extends StatelessWidget {
+  final String value;
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _FeedbackTypeChip({
+    required this.value,
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSelected
+        ? context.colors.interactableColor
+        : context.colors.textSecondary;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSizes.space * 2,
+          vertical: AppSizes.space,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? context.colors.interactableColor.withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+          border: Border.all(
+            color: isSelected
+                ? context.colors.interactableColor
+                : context.colors.textSecondary.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: AppSizes.iconLarge),
+            if (isSelected) ...[
+              VSpace.x1,
+              Text(
+                label,
+                style: context.text.labelSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

@@ -17,6 +17,7 @@ import '../../logic/analytics/models/analysis_pipeline.dart';
 import '../../support/extensions/context_extensions.dart';
 import '../../features/app_operating_mode/cubits/app_operating_cubit.dart';
 import '../../infrastructure/auth/auth_service.dart';
+import '../../infrastructure/notifications/notification_service.dart';
 import '../services/dev_seeder_service.dart';
 
 /// Shows a bottom sheet with dev tools
@@ -116,6 +117,13 @@ class DevToolsSheet extends StatelessWidget {
             _DevToolRow(
               label: context.l10n.devRegisterAccount,
               child: _DevRegisterAccountButton(),
+            ),
+            VSpace.x2,
+
+            // Test local notification
+            _DevToolRow(
+              label: 'Test Notification',
+              child: _DevTestNotificationButton(),
             ),
             VSpace.x2,
 
@@ -651,5 +659,61 @@ return {
     await repo.savePipeline(scalarPipeline);
     await repo.savePipeline(vectorPipeline);
     await repo.savePipeline(matrixPipeline);
+  }
+}
+
+class _DevTestNotificationButton extends StatefulWidget {
+  @override
+  State<_DevTestNotificationButton> createState() => _DevTestNotificationButtonState();
+}
+
+class _DevTestNotificationButtonState extends State<_DevTestNotificationButton> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return SizedBox(
+        width: AppSizes.iconMedium,
+        height: AppSizes.iconMedium,
+        child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
+      );
+    }
+
+    return QuanityaTextButton(
+      text: 'Send',
+      onPressed: () async {
+        setState(() => _isLoading = true);
+        try {
+          final notificationService = GetIt.instance<NotificationService>();
+          await notificationService.showNow(
+            id: 9999,
+            title: 'Quanitya Test',
+            body: 'This is a test notification from dev tools',
+          );
+          if (mounted) {
+            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
+            feedbackService.show(
+              cubit_ui_flow.FeedbackMessage(
+                message: 'Notification sent',
+                type: cubit_ui_flow.MessageType.success,
+              ),
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
+            feedbackService.show(
+              cubit_ui_flow.FeedbackMessage(
+                message: 'Failed: $e',
+                type: cubit_ui_flow.MessageType.error,
+              ),
+            );
+          }
+        } finally {
+          if (mounted) setState(() => _isLoading = false);
+        }
+      },
+    );
   }
 }
