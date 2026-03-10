@@ -82,7 +82,11 @@ class _FeedbackTabContentState extends State<FeedbackTabContent> {
       builder: (context, state) {
         return OutboxTabContent(
           content: SingleChildScrollView(
-            padding: AppPadding.page,
+            padding: EdgeInsets.only(
+              left: AppSizes.space * 2,
+              right: AppSizes.space * 2,
+              top: AppSizes.space * 2,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

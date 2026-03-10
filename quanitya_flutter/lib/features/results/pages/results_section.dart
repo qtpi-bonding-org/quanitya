@@ -36,12 +36,12 @@ class _ResultsSectionState extends State<ResultsSection> {
     return BlocProvider(
       create: (_) => GetIt.I<TemplateListCubit>()..load(),
       child: Builder(
-        builder: (innerContext) => Column(
-          children: [
-            // Bookmark selector at top
-            SafeArea(
-              bottom: false,
-              child: Padding(
+        builder: (innerContext) => SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              // Bookmark selector at top
+              Padding(
                 padding: EdgeInsets.only(
                   top: AppSizes.space,
                   right: AppSizes.space,
@@ -57,43 +57,43 @@ class _ResultsSectionState extends State<ResultsSection> {
                   ),
                 ),
               ),
-            ),
-            // Swipeable pages
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const ClampingScrollPhysics(),
-                onPageChanged: (i) => setState(() => _currentPageIndex = i),
-                children: [
-                  ResultsGraphsPage(templateId: _selectedTemplateId),
-                  ResultsAnalysisPage(templateId: _selectedTemplateId),
-                ],
+              // Swipeable pages
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  physics: const ClampingScrollPhysics(),
+                  onPageChanged: (i) => setState(() => _currentPageIndex = i),
+                  children: [
+                    ResultsGraphsPage(templateId: _selectedTemplateId),
+                    ResultsAnalysisPage(templateId: _selectedTemplateId),
+                  ],
+                ),
               ),
-            ),
-            // Indicator at bottom, in the layout flow
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.25),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _PageLabel(
-                    label: 'Graphs',
-                    isActive: _currentPageIndex == 0,
-                    onTap: () => _pageController.animateToPage(0,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut),
-                  ),
-                  _PageLabel(
-                    label: 'Analysis',
-                    isActive: _currentPageIndex == 1,
-                    onTap: () => _pageController.animateToPage(1,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut),
-                  ),
-                ],
+              // Indicator at bottom, in the layout flow
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.25),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _PageLabel(
+                      label: 'Graphs',
+                      isActive: _currentPageIndex == 0,
+                      onTap: () => _pageController.animateToPage(0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut),
+                    ),
+                    _PageLabel(
+                      label: 'Analysis',
+                      isActive: _currentPageIndex == 1,
+                      onTap: () => _pageController.animateToPage(1,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

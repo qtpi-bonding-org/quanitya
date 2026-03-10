@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
-import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 
@@ -33,16 +32,13 @@ class TemporalIndicator extends StatelessWidget {
         // Default to 1.0 if not attached yet.
         final page = controller.hasClients ? (controller.page ?? 1.0) : 1.0;
 
-        return SizedBox(
-          height: AppSizes.space * 4, // Compact height to sit tight above tab bar
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.25),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _buildLabel(context, '-t', 0, page),
-              HSpace.x4,
               _buildLabel(context, 't', 1, page),
-              HSpace.x4,
               _buildLabel(context, '+t', 2, page),
             ],
           ),

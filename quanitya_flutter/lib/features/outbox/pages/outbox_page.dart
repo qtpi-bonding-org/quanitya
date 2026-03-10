@@ -56,45 +56,48 @@ class _OutboxPageState extends State<OutboxPage> {
         mapper: GetIt.instance<AnalyticsInboxMessageMapper>(),
         child: UiFlowListener<FeedbackCubit, FeedbackState>(
           mapper: GetIt.instance<FeedbackMessageMapper>(),
-          child: Column(
-            children: [
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  physics: const ClampingScrollPhysics(),
-                  onPageChanged: (index) => setState(() => _currentIndex = index),
-                  children: const [
-                    FeedbackTabContent(),
-                    AnalyticsTabContent(),
-                    ErrorsTabContent(),
-                  ],
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const ClampingScrollPhysics(),
+                    onPageChanged: (index) => setState(() => _currentIndex = index),
+                    children: const [
+                      FeedbackTabContent(),
+                      AnalyticsTabContent(),
+                      ErrorsTabContent(),
+                    ],
+                  ),
                 ),
-              ),
-              // Indicator at bottom, in the layout flow
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.25),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _PageLabel(
-                      label: l10n.outboxTabFeedback,
-                      isActive: _currentIndex == 0,
-                      onTap: () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
-                    ),
-                    _PageLabel(
-                      label: l10n.outboxTabAnalytics,
-                      isActive: _currentIndex == 1,
-                      onTap: () => _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
-                    ),
-                    _PageLabel(
-                      label: l10n.outboxTabErrors,
-                      isActive: _currentIndex == 2,
-                      onTap: () => _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
-                    ),
-                  ],
+                // Indicator at bottom, in the layout flow
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.25),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _PageLabel(
+                        label: l10n.outboxTabFeedback,
+                        isActive: _currentIndex == 0,
+                        onTap: () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                      ),
+                      _PageLabel(
+                        label: l10n.outboxTabAnalytics,
+                        isActive: _currentIndex == 1,
+                        onTap: () => _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                      ),
+                      _PageLabel(
+                        label: l10n.outboxTabErrors,
+                        isActive: _currentIndex == 2,
+                        onTap: () => _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
