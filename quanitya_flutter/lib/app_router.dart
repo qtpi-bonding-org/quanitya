@@ -13,6 +13,7 @@ import 'features/settings/pages/app_info_page.dart';
 import 'features/analytics_inbox/pages/analytics_inbox_page.dart';
 import 'features/error_reporting/pages/error_box_page.dart';
 import 'features/user_feedback/pages/feedback_page.dart';
+import 'features/outbox/pages/outbox_page.dart';
 import 'l10n/app_localizations.dart';
 import 'features/notifications/pages/notification_inbox_page.dart';
 import 'features/log_entry/pages/log_entry_page.dart';
@@ -22,7 +23,7 @@ import 'features/log_entry/pages/logged_entry_editor_page.dart';
 import 'data/repositories/template_with_aesthetics_repository.dart';
 import 'data/dao/log_entry_query_dao.dart';
 import 'features/log_entry/pages/logged_entries_template_page.dart';
-import 'features/home/pages/temporal_home_page.dart';
+import 'features/home/pages/notebook_shell.dart';
 import 'design_system/widgets/quanitya/general/zen_paper_background.dart';
 import 'features/onboarding/pages/onboarding_page.dart';
 import 'features/onboarding/pages/about_page.dart';
@@ -129,7 +130,7 @@ class AppRouter {
           GoRoute(
             path: AppRoutes.home,
             name: RouteNames.home,
-            builder: (context, state) => const TemporalHomePage(),
+            builder: (context, state) => const NotebookShell(),
           ),
           GoRoute(
             path: AppRoutes.onboarding,
@@ -252,6 +253,11 @@ class AppRouter {
             builder: (context, state) => const FeedbackPage(),
           ),
           GoRoute(
+            path: AppRoutes.outbox,
+            name: RouteNames.outbox,
+            builder: (context, state) => const OutboxPage(),
+          ),
+          GoRoute(
             path: AppRoutes.notificationInbox,
             name: RouteNames.notificationInbox,
             builder: (context, state) => const NotificationInboxPage(),
@@ -353,6 +359,7 @@ class AppRoutes {
   static const String errorBox = '/error-box';
   static const String analyticsInbox = '/analytics-inbox';
   static const String feedback = '/feedback';
+  static const String outbox = '/outbox';
   static const String notificationInbox = '/notification-inbox';
   static const String connectDevice = '/connect-device';
   static const String pipelineBuilder = '/pipeline-builder';
@@ -384,6 +391,7 @@ class RouteNames {
   static const String errorBox = 'errorBox';
   static const String analyticsInbox = 'analyticsInbox';
   static const String feedback = 'feedback';
+  static const String outbox = 'outbox';
   static const String notificationInbox = 'notificationInbox';
   static const String connectDevice = 'connectDevice';
   static const String pipelineBuilder = 'pipelineBuilder';
@@ -439,6 +447,10 @@ class AppNavigation {
 
   static void toAnalyticsInbox(BuildContext context) {
     context.pushNamed(RouteNames.analyticsInbox);
+  }
+
+  static void toOutbox(BuildContext context) {
+    context.pushNamed(RouteNames.outbox);
   }
 
   static void toNotificationInbox(BuildContext context) {
