@@ -91,6 +91,7 @@ class QuanityaConfirmationDialog extends StatelessWidget {
         padding: EdgeInsets.all(AppSizes.space * 2),
         child: QuanityaColumn(
           crossAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(title, style: context.text.headlineMedium),
             Text(message, style: context.text.bodyLarge),

@@ -5,6 +5,7 @@ class QuanityaColumn extends StatelessWidget {
   final List<Widget> children;
   final CrossAxisAlignment crossAlignment;
   final MainAxisAlignment mainAlignment;
+  final MainAxisSize mainAxisSize;
   final Widget? spacing; // The "Gap" token (e.g., VSpace.x1)
 
   const QuanityaColumn({
@@ -13,6 +14,7 @@ class QuanityaColumn extends StatelessWidget {
     // Default to Hard Left Align (as per Design Guide)
     this.crossAlignment = CrossAxisAlignment.start,
     this.mainAlignment = MainAxisAlignment.start,
+    this.mainAxisSize = MainAxisSize.max,
     // Default to "Component Breath" (8px) if not specified
     this.spacing,
   });
@@ -26,6 +28,7 @@ class QuanityaColumn extends StatelessWidget {
       return Column(
         crossAxisAlignment: crossAlignment,
         mainAxisAlignment: mainAlignment,
+        mainAxisSize: mainAxisSize,
         children: children,
       );
     }
@@ -43,6 +46,7 @@ class QuanityaColumn extends StatelessWidget {
     return Column(
       crossAxisAlignment: crossAlignment,
       mainAxisAlignment: mainAlignment,
+      mainAxisSize: mainAxisSize,
       children: spacedChildren,
     );
   }
