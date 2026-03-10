@@ -34,6 +34,10 @@ import '../cubits/webhook/webhook_message_mapper.dart';
 import '../widgets/import_recovery_key_sheet.dart';
 import '../widgets/device_list_section.dart';
 import '../widgets/webhook_sheet.dart';
+import '../cubits/llm_provider/llm_provider_cubit.dart';
+import '../cubits/llm_provider/llm_provider_state.dart';
+import '../cubits/llm_provider/llm_provider_message_mapper.dart';
+import '../widgets/llm_provider_section.dart';
 import '../widgets/api_key_sheet.dart';
 import '../widgets/table_selection_sheet.dart';
 
@@ -48,6 +52,7 @@ class SettingsPage extends StatelessWidget {
         BlocProvider(create: (_) => GetIt.instance<RecoveryKeyCubit>()),
         BlocProvider(create: (_) => GetIt.instance<DeviceManagementCubit>()),
         BlocProvider(create: (_) => GetIt.instance<WebhookCubit>()..load()),
+        BlocProvider(create: (_) => GetIt.instance<LlmProviderCubit>()..load()),
         BlocProvider.value(value: GetIt.instance<AppOperatingCubit>()),
       ],
       child: const SettingsView(),
@@ -61,30 +66,33 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return UiFlowListener<DataExportCubit, DataExportState>(
-      mapper: GetIt.instance<DataExportMessageMapper>(),
-      child: UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
-        mapper: GetIt.instance<RecoveryKeyMessageMapper>(),
-        child: UiFlowListener<WebhookCubit, WebhookState>(
-          mapper: GetIt.instance<WebhookMessageMapper>(),
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text(
-                context.l10n.settingsTitle,
-                style: context.text.headlineMedium,
-              ),
-              leading: QuanityaIconButton(
-                icon: Icons.arrow_back,
-                onPressed: () => AppNavigation.back(context),
-              ),
-              actions: [
-                QuanityaIconButton(
-                  icon: Icons.info,
-                  onPressed: () => AppNavigation.toAppInfo(context),
+    return UiFlowListener<LlmProviderCubit, LlmProviderState>(
+      mapper: GetIt.instance<LlmProviderMessageMapper>(),
+      child: UiFlowListener<DataExportCubit, DataExportState>(
+        mapper: GetIt.instance<DataExportMessageMapper>(),
+        child: UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
+          mapper: GetIt.instance<RecoveryKeyMessageMapper>(),
+          child: UiFlowListener<WebhookCubit, WebhookState>(
+            mapper: GetIt.instance<WebhookMessageMapper>(),
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  context.l10n.settingsTitle,
+                  style: context.text.headlineMedium,
                 ),
-              ],
+                leading: QuanityaIconButton(
+                  icon: Icons.arrow_back,
+                  onPressed: () => AppNavigation.back(context),
+                ),
+                actions: [
+                  QuanityaIconButton(
+                    icon: Icons.info,
+                    onPressed: () => AppNavigation.toAppInfo(context),
+                  ),
+                ],
+              ),
+              body: const SettingsContent(),
             ),
-            body: const SettingsContent(),
           ),
         ),
       ),
@@ -122,6 +130,16 @@ class SettingsContent extends StatelessWidget {
               Text(context.l10n.settingsDataSection, style: context.text.titleMedium),
             ]),
             child: _DataSection(),
+          ),
+          VSpace.x3,
+
+          NotebookFold(
+            header: Row(children: [
+              Icon(Icons.smart_toy, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+              HSpace.x2,
+              Text(context.l10n.settingsLlmSection, style: context.text.titleMedium),
+            ]),
+            child: const LlmProviderSection(),
           ),
           VSpace.x3,
 
