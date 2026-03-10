@@ -6,6 +6,7 @@ import '../../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../support/utils/icon_resolver.dart';
 import '../../../../logic/templates/models/shared/tracker_template.dart';
+import '../../../../logic/templates/models/shared/field_validator.dart';
 
 class TrackerCard extends StatelessWidget {
   final String title;
@@ -86,14 +87,14 @@ class TrackerCard extends StatelessWidget {
 
             // Quick Action (Lightning) - Using QuanityaIconButton with interactableColor
             Opacity(
-              opacity: _hasAnyDefaults() ? 1.0 : 0.3,
+              opacity: _canInstantLog() ? 1.0 : 0.3,
               child: QuanityaIconButton(
                 icon: Icons.bolt,
                 iconSize: AppSizes.size20,
-                tooltip: _hasAnyDefaults() 
+                tooltip: _canInstantLog()
                     ? context.l10n.tooltipQuickEntry
                     : 'No default values set - quick log unavailable',
-                onPressed: _hasAnyDefaults() ? onQuickAction : null,
+                onPressed: _canInstantLog() ? onQuickAction : null,
                 // Uses interactableColor by default
               ),
             ),
@@ -152,9 +153,19 @@ class TrackerCard extends StatelessWidget {
     return IconResolver.resolve(iconString);
   }
 
-  /// Check if template has any fields with default values
-  bool _hasAnyDefaults() {
+  /// Check if all required fields have valid default values for instant logging.
+  /// A template can be instant-logged only when every non-optional, non-deleted
+  /// field has a defaultValue set.
+  bool _canInstantLog() {
     if (template == null) return false;
-    return template!.fields.any((field) => field.defaultValue != null);
+    final activeFields = template!.fields.where((f) => !f.isDeleted);
+    if (activeFields.isEmpty) return false;
+    for (final field in activeFields) {
+      final isOptional = field.validators.any(
+        (v) => v.validatorType == ValidatorType.optional,
+      );
+      if (!isOptional && field.defaultValue == null) return false;
+    }
+    return true;
   }
 }
