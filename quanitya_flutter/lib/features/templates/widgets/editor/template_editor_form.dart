@@ -10,19 +10,14 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_confirmation_dialog.dart';
-import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
-import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../app_router.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../cubits/editor/template_editor_cubit.dart';
 import '../../cubits/editor/template_editor_state.dart';
 import '../../cubits/generator/template_generator_cubit.dart';
-import '../../../../infrastructure/llm/models/llm_types.dart';
-import '../../../../infrastructure/webhooks/api_key_repository.dart';
-import '../../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../../design_system/widgets/ai/ai_prompt_widget.dart';
-import '../../../../design_system/widgets/quanitya_text_form_field.dart';
+import '../../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../../app_operating_mode/cubits/app_operating_cubit.dart';
 import '../../../app_operating_mode/models/app_operating_mode.dart';
 import 'field_editor_list.dart';
@@ -263,32 +258,16 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   Future<void> _generateFromAi(BuildContext context, String prompt) async {
     if (prompt.isEmpty || _isGenerating) return;
 
-    // Capture cubit before any async operations
     final editorCubit = context.read<TemplateEditorCubit>();
-    
-    // Get API key from repository
-    final apiKeyRepo = GetIt.I<ApiKeyRepository>();
-    final apiKeys = await apiKeyRepo.getAll();
-    
-    // Look for an OpenRouter key (by name containing "openrouter" case-insensitive)
-    final openRouterKey = apiKeys.where(
-      (k) => k.name.toLowerCase().contains('openrouter'),
-    ).firstOrNull;
-    
-    if (openRouterKey == null) {
-      // Show dialog to add API key
-      if (context.mounted) {
-        await _showAddApiKeyDialog(context);
-      }
-      return;
-    }
-    
-    // Get the actual key value
-    final keyValue = await apiKeyRepo.getKeyValue(openRouterKey.id);
-    if (keyValue == null || keyValue.isEmpty) {
+    final useCloudProxy =
+        context.read<AppOperatingCubit>().state.mode == AppOperatingMode.cloud;
+
+    final llmCubit = GetIt.I<LlmProviderCubit>();
+    final config = await llmCubit.buildLlmConfig(useCloudProxy: useCloudProxy);
+    if (config == null) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.aiApiKeyNotFound)),
+          SnackBar(content: Text(context.l10n.llmProviderConfigureLlm)),
         );
       }
       return;
@@ -297,18 +276,9 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     setState(() => _isGenerating = true);
 
     try {
-      // Get the generator cubit and generate
       final generatorCubit = GetIt.I<TemplateGeneratorCubit>();
-      
-      final config = LlmConfig.openRouter(
-        apiKey: keyValue,
-        model: 'openai/gpt-4o-mini',
-        useCloudProxy: context.read<AppOperatingCubit>().state.mode == AppOperatingMode.cloud,
-      );
-      
       await generatorCubit.generate(prompt, config);
-      
-      // If generation succeeded, load the preview into the editor
+
       final preview = generatorCubit.state.preview;
       if (preview != null && mounted) {
         editorCubit.loadTemplate(preview);
@@ -318,82 +288,5 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
         setState(() => _isGenerating = false);
       }
     }
-  }
-
-  Future<void> _showAddApiKeyDialog(BuildContext context) async {
-    final nameController = TextEditingController(text: 'OpenRouter');
-    final keyController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    final result = await LooseInsertSheet.show<bool>(
-      context: context,
-      title: context.l10n.aiAddApiKeyTitle,
-      builder: (sheetContext) => Form(
-        key: formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              context.l10n.aiAddApiKeyDescription,
-              style: context.text.bodyMedium?.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
-            VSpace.x3,
-            QuanityaTextFormField(
-              controller: nameController,
-              labelText: context.l10n.aiApiKeyNameLabel,
-              hintText: context.l10n.aiApiKeyNameDefault,
-            ),
-            VSpace.x2,
-            QuanityaTextFormField(
-              controller: keyController,
-              labelText: context.l10n.aiApiKeyLabel,
-              hintText: context.l10n.aiApiKeyHint,
-              obscureText: true,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return context.l10n.aiApiKeyRequired;
-                }
-                return null;
-              },
-            ),
-            VSpace.x3,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                QuanityaTextButton(
-                  text: context.l10n.actionCancel,
-                  onPressed: () => Navigator.of(sheetContext).pop(false),
-                ),
-                QuanityaTextButton(
-                  text: context.l10n.actionSave,
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      Navigator.of(sheetContext).pop(true);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (result == true && context.mounted) {
-      final apiKeyRepo = GetIt.I<ApiKeyRepository>();
-      await apiKeyRepo.create(
-        name: nameController.text,
-        authType: AuthType.bearer,
-        keyValue: keyController.text,
-      );
-
-      // Retry generation would happen here, but we avoid context usage after async gap
-      // User can manually retry if needed
-    }
-
-    nameController.dispose();
-    keyController.dispose();
   }
 }
