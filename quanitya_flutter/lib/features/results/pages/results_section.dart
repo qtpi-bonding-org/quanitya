@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../support/extensions/context_extensions.dart';
 import '../../templates/cubits/list/template_list_cubit.dart';
 import '../widgets/template_selector_sheet.dart';
 import 'results_analysis_page.dart';
@@ -12,25 +14,16 @@ import 'results_graphs_page.dart';
 /// Main Results section with two swipeable pages (Graphs and Analysis)
 /// and a template selector.
 class ResultsSection extends StatefulWidget {
-  final ValueChanged<int>? onPageChanged;
-
-  const ResultsSection({super.key, this.onPageChanged});
+  const ResultsSection({super.key});
 
   @override
-  State<ResultsSection> createState() => ResultsSectionState();
+  State<ResultsSection> createState() => _ResultsSectionState();
 }
 
-class ResultsSectionState extends State<ResultsSection> {
+class _ResultsSectionState extends State<ResultsSection> {
   String? _selectedTemplateId;
+  int _currentPageIndex = 0;
   final _pageController = PageController();
-
-  void goToPage(int index) {
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-  }
 
   @override
   void dispose() {
@@ -70,12 +63,33 @@ class ResultsSectionState extends State<ResultsSection> {
               child: PageView(
                 controller: _pageController,
                 physics: const ClampingScrollPhysics(),
-                onPageChanged: (i) {
-                  widget.onPageChanged?.call(i);
-                },
+                onPageChanged: (i) => setState(() => _currentPageIndex = i),
                 children: [
                   ResultsGraphsPage(templateId: _selectedTemplateId),
                   ResultsAnalysisPage(templateId: _selectedTemplateId),
+                ],
+              ),
+            ),
+            // Indicator at bottom, in the layout flow
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.25),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _PageLabel(
+                    label: 'Graphs',
+                    isActive: _currentPageIndex == 0,
+                    onTap: () => _pageController.animateToPage(0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut),
+                  ),
+                  _PageLabel(
+                    label: 'Analysis',
+                    isActive: _currentPageIndex == 1,
+                    onTap: () => _pageController.animateToPage(1,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut),
+                  ),
                 ],
               ),
             ),
@@ -97,5 +111,39 @@ class ResultsSectionState extends State<ResultsSection> {
     if (selectedId != null && mounted) {
       setState(() => _selectedTemplateId = selectedId);
     }
+  }
+}
+
+class _PageLabel extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final VoidCallback? onTap;
+
+  const _PageLabel({
+    required this.label,
+    required this.isActive,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSizes.space * 1.5,
+          vertical: AppSizes.space * 0.5,
+        ),
+        child: Text(
+          label,
+          style: context.text.bodySmall?.copyWith(
+            fontWeight: isActive ? FontWeight.w900 : FontWeight.w500,
+            color: isActive ? palette.textPrimary : palette.interactableColor,
+          ),
+        ),
+      ),
+    );
   }
 }

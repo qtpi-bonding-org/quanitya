@@ -10,6 +10,7 @@ import '../cubits/temporal_timeline_cubit.dart';
 import '../cubits/temporal_timeline_state.dart';
 import '../cubits/timeline_data_cubit.dart';
 import '../cubits/timeline_data_state.dart';
+import '../widgets/temporal_indicator.dart';
 import '../widgets/temporal_zen_paper.dart';
 import '../widgets/temporal_past_panel.dart';
 import '../widgets/temporal_present_panel.dart';
@@ -19,28 +20,25 @@ import '../widgets/template_filter_sheet.dart';
 import '../../schedules/cubits/schedule_list_cubit.dart';
 
 class TemporalHomePage extends StatefulWidget {
-  final ValueChanged<int>? onPageChanged;
-
-  const TemporalHomePage({super.key, this.onPageChanged});
+  const TemporalHomePage({super.key});
 
   @override
-  State<TemporalHomePage> createState() => TemporalHomePageState();
+  State<TemporalHomePage> createState() => _TemporalHomePageState();
 }
 
-class TemporalHomePageState extends State<TemporalHomePage> {
+class _TemporalHomePageState extends State<TemporalHomePage> {
   late final PageController _pageController;
   int _currentIndex = 1;
   double _pastScrollOffset = 0.0;
   double _futureScrollOffset = 0.0;
-  
-  // Store cubit references to avoid context issues in callbacks
+
   TemporalTimelineCubit? _timelineCubit;
   TimelineDataCubit? _dataCubit;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: 1); // Start at Present
+    _pageController = PageController(initialPage: 1);
   }
 
   @override
@@ -49,25 +47,10 @@ class TemporalHomePageState extends State<TemporalHomePage> {
     super.dispose();
   }
 
-  void goToPage(int index) {
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _onPageChanged(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-    widget.onPageChanged?.call(index);
-  }
-
   @override
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
-    
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -88,18 +71,15 @@ class TemporalHomePageState extends State<TemporalHomePage> {
       ],
       child: MultiBlocListener(
         listeners: [
-          // Coordinate UI cubit auth state with data cubit
           BlocListener<TemporalTimelineCubit, TemporalTimelineState>(
-            listenWhen: (previous, current) => 
+            listenWhen: (previous, current) =>
               previous.showingHidden != current.showingHidden,
             listener: (context, state) {
-              // When auth state changes, update data cubit
               _dataCubit?.setIncludeHidden(state.showingHidden);
             },
           ),
-          // Update UI cubit page index when PageView changes
           BlocListener<TemporalTimelineCubit, TemporalTimelineState>(
-            listenWhen: (previous, current) => 
+            listenWhen: (previous, current) =>
               previous.currentPageIndex != current.currentPageIndex,
             listener: (context, state) {
               if (state.currentPageIndex != _currentIndex) {
@@ -125,43 +105,49 @@ class TemporalHomePageState extends State<TemporalHomePage> {
                 futureScrollOffset: _futureScrollOffset,
               ),
 
-              // Layer 1: Page Content
+              // Layer 1: Content + Indicator in a Column
               SafeArea(
-                child: PageView(
-                  controller: _pageController,
-                  onPageChanged: (index) {
-                    _onPageChanged(index);
-                    // Update UI cubit with new page index using stored reference
-                    _timelineCubit?.setCurrentPage(index);
-                  },
-                  // Use clamping physics for a solid paper feel
-                  physics: const ClampingScrollPhysics(),
+                child: Column(
                   children: [
-                    // Past Panel - Historical log entries
-                    TemporalPastPanel(
-                      onScrollOffsetChanged: (offset) {
-                        setState(() {
-                          _pastScrollOffset = offset;
-                        });
-                      },
+                    Expanded(
+                      child: PageView(
+                        controller: _pageController,
+                        onPageChanged: (index) {
+                          setState(() => _currentIndex = index);
+                          _timelineCubit?.setCurrentPage(index);
+                        },
+                        physics: const ClampingScrollPhysics(),
+                        children: [
+                          TemporalPastPanel(
+                            onScrollOffsetChanged: (offset) {
+                              setState(() => _pastScrollOffset = offset);
+                            },
+                          ),
+                          const TemporalPresentPanel(),
+                          TemporalFuturePanel(
+                            onScrollOffsetChanged: (offset) {
+                              setState(() => _futureScrollOffset = offset);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-
-                    // Present Panel - Template management
-                    const TemporalPresentPanel(),
-
-                    // Future Panel - Schedules and reminders
-                    TemporalFuturePanel(
-                      onScrollOffsetChanged: (offset) {
-                        setState(() {
-                          _futureScrollOffset = offset;
-                        });
+                    // Indicator sits at bottom, in the layout flow
+                    TemporalIndicator(
+                      controller: _pageController,
+                      onTabSelected: (index) {
+                        _pageController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
                       },
                     ),
                   ],
                 ),
               ),
 
-              // Layer 2: Settings Button (Top Right) - Always visible
+              // Layer 2: Filter Buttons (Top Right) - Past page only
               Positioned(
                 top: 0,
                 right: 0,
@@ -169,20 +155,16 @@ class TemporalHomePageState extends State<TemporalHomePage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Filter Buttons - Only for Past page
                       if (_currentIndex == 0)
                         Builder(
                           builder: (context) {
                             final dataState = context.watch<TimelineDataCubit>().state;
-                            
-                            // Check if filters are active
                             final hasTimeFilter = dataState.filters.timeRange != TimelineTimeRange.all;
                             final hasTemplateFilter = dataState.filters.templateId != null;
 
                             return Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Sort/Time Filter Button
                                 QuanityaIconButton(
                                   icon: Icons.sort,
                                   color: hasTimeFilter
@@ -194,8 +176,6 @@ class TemporalHomePageState extends State<TemporalHomePage> {
                                     _dataCubit!,
                                   ),
                                 ),
-
-                                // Template Filter Button
                                 QuanityaIconButton(
                                   icon: Icons.filter_list,
                                   color: hasTemplateFilter
@@ -216,7 +196,7 @@ class TemporalHomePageState extends State<TemporalHomePage> {
                 ),
               ),
 
-              // Layer 3: Lock Icon (top-left) - toggles hidden content visibility
+              // Layer 3: Lock Icon (top-left)
               Positioned(
                 top: 0,
                 left: 0,
@@ -224,7 +204,7 @@ class TemporalHomePageState extends State<TemporalHomePage> {
                   child: Builder(
                     builder: (context) {
                       final state = context.watch<TemporalTimelineCubit>().state;
-                      
+
                       return QuanityaIconButton(
                         icon: state.showingHidden ? Icons.lock_open : Icons.lock,
                         iconSize: AppSizes.iconMedium,
