@@ -25,9 +25,7 @@ class ResultsAnalysisPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (templateId == null) {
-      return const _EmptyTemplateState(
-        message: 'Select an experiment to view analysis',
-      );
+      return const _EmptyTemplateState();
     }
 
     return BlocProvider(
@@ -573,26 +571,12 @@ class _NoAnalysisPlaceholder extends StatelessWidget {
 }
 
 class _EmptyTemplateState extends StatelessWidget {
-  final String message;
-  const _EmptyTemplateState({required this.message});
+  const _EmptyTemplateState();
 
   @override
   Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const QuanityaEmptyState(size: 80, opacity: 0.2),
-          VSpace.x2,
-          Text(
-            message,
-            style: context.text.bodyMedium?.copyWith(
-              color: palette.textSecondary,
-            ),
-          ),
-        ],
-      ),
+    return const Center(
+      child: QuanityaEmptyState(size: 80, opacity: 0.2),
     );
   }
 }
