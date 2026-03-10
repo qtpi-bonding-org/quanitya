@@ -16,6 +16,8 @@ import '../widgets/temporal_zen_paper.dart';
 import '../widgets/temporal_past_panel.dart';
 import '../widgets/temporal_present_panel.dart';
 import '../widgets/temporal_future_panel.dart';
+import '../widgets/sort_options_sheet.dart';
+import '../widgets/template_filter_sheet.dart';
 import '../../schedules/cubits/schedule_list_cubit.dart';
 
 class TemporalHomePage extends StatefulWidget {
@@ -180,162 +182,29 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 // Sort/Time Filter Button
-                                PopupMenuButton<String>(
-                                  icon: Icon(
-                                    Icons.sort,
-                                    color: hasTimeFilter 
-                                        ? palette.textPrimary 
-                                        : palette.interactableColor,
-                                  ),
+                                QuanityaIconButton(
+                                  icon: Icons.sort,
+                                  color: hasTimeFilter
+                                      ? palette.textPrimary
+                                      : palette.interactableColor,
                                   tooltip: context.l10n.tooltipSortAndTime,
-                                  color: palette.backgroundPrimary,
-                                  surfaceTintColor: palette.backgroundPrimary,
-                                  onSelected: (value) async {
-                                    if (value == 'toggleDir') {
-                                      _dataCubit?.togglePastSort();
-                                    } else if (value == 'date') {
-                                      _dataCubit?.setPastSort(type: TimelineSortType.date);
-                                    } else if (value == 'template') {
-                                      _dataCubit?.setPastSort(type: TimelineSortType.template);
-                                    } else if (value.startsWith('range_')) {
-                                      final rangeName = value.substring(6);
-                                      if (rangeName == 'custom') {
-                                        final picked = await showDateRangePicker(
-                                          context: context,
-                                          firstDate: DateTime(2020),
-                                          lastDate: DateTime(2030),
-                                          initialDateRange: dataState.filters.customStartDate != null && dataState.filters.customEndDate != null
-                                              ? DateTimeRange(start: dataState.filters.customStartDate!, end: dataState.filters.customEndDate!)
-                                              : null,
-                                        );
-                                        if (picked != null) {
-                                          _dataCubit?.setTimeRange(TimelineTimeRange.custom, start: picked.start, end: picked.end);
-                                        }
-                                      } else {
-                                        final range = TimelineTimeRange.values.firstWhere(
-                                          (e) => e.name == rangeName
-                                        );
-                                        _dataCubit?.setTimeRange(range);
-                                      }
-                                    }
-                                  },
-                                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                    // SORT BY
-                                    PopupMenuItem(
-                                      enabled: false,
-                                      child: Text(context.l10n.sortByHeader, style: TextStyle(fontSize: AppSizes.fontMini, fontWeight: FontWeight.bold, color: palette.textPrimary)),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'date',
-                                      child: Row(
-                                        children: [
-                                          Icon(dataState.pastSort.type == TimelineSortType.date ? Icons.check : null, size: AppSizes.iconSmall, color: palette.interactableColor),
-                                          HSpace.x1,
-                                          Text(context.l10n.sortByDate),
-                                        ],
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'template',
-                                      child: Row(
-                                        children: [
-                                          Icon(dataState.pastSort.type == TimelineSortType.template ? Icons.check : null, size: AppSizes.iconSmall, color: palette.interactableColor),
-                                          HSpace.x1,
-                                          Text(context.l10n.sortByTemplate),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuDivider(),
-                                    // DIRECTION
-                                    PopupMenuItem(
-                                      value: 'toggleDir',
-                                      child: Row(
-                                        children: [
-                                          Icon(dataState.pastSort.ascending ? Icons.arrow_upward : Icons.arrow_downward, size: AppSizes.iconSmall, color: palette.interactableColor),
-                                          HSpace.x1,
-                                          Text(dataState.pastSort.ascending ? context.l10n.sortOldestFirst : context.l10n.sortNewestFirst),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuDivider(),
-                                    // TIME RANGE
-                                    PopupMenuItem(
-                                      enabled: false,
-                                      child: Text(context.l10n.timeRangeHeader, style: TextStyle(fontSize: AppSizes.fontMini, fontWeight: FontWeight.bold, color: palette.textPrimary)),
-                                    ),
-                                    ...TimelineTimeRange.values.map((range) {
-                                      String label = range.name.toUpperCase();
-                                      if (range == TimelineTimeRange.custom && dataState.filters.customStartDate != null) {
-                                        final start = dataState.filters.customStartDate!;
-                                        final end = dataState.filters.customEndDate ?? start;
-                                        label = '${start.month}/${start.day} - ${end.month}/${end.day}';
-                                      }
-                                      return PopupMenuItem(
-                                        value: 'range_${range.name}',
-                                        child: Row(
-                                          children: [
-                                            Icon(dataState.filters.timeRange == range ? Icons.check : null, size: AppSizes.iconSmall, color: palette.interactableColor),
-                                            HSpace.x1,
-                                            Text(label),
-                                          ],
-                                        ),
-                                      );
-                                    }),
-                                  ],
-                                ),
-                                
-                                // Template Filter Button
-                                PopupMenuButton<String>(
-                                  icon: Icon(
-                                    Icons.filter_list,
-                                    color: hasTemplateFilter 
-                                        ? palette.textPrimary 
-                                        : palette.interactableColor,
+                                  onPressed: () => SortOptionsSheet.show(
+                                    context,
+                                    _dataCubit!,
                                   ),
+                                ),
+
+                                // Template Filter Button
+                                QuanityaIconButton(
+                                  icon: Icons.filter_list,
+                                  color: hasTemplateFilter
+                                      ? palette.textPrimary
+                                      : palette.interactableColor,
                                   tooltip: context.l10n.tooltipFilterByTemplate,
-                                  color: palette.backgroundPrimary,
-                                  surfaceTintColor: palette.backgroundPrimary,
-                                  onSelected: (value) {
-                                    if (value == 'clear') {
-                                      _dataCubit?.setTemplateFilter(null);
-                                    } else {
-                                      _dataCubit?.setTemplateFilter(value);
-                                    }
-                                  },
-                                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                    PopupMenuItem(
-                                      enabled: false,
-                                      child: Text(context.l10n.templateFilterHeader, style: TextStyle(fontSize: AppSizes.fontMini, fontWeight: FontWeight.bold, color: palette.textPrimary)),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'clear',
-                                      child: Row(
-                                        children: [
-                                          Icon(dataState.filters.templateId == null ? Icons.check : null, size: AppSizes.iconSmall, color: palette.interactableColor),
-                                          HSpace.x1,
-                                          Text(context.l10n.allTemplates),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuDivider(),
-                                    ...dataState.availableTemplates.map((template) {
-                                      return PopupMenuItem(
-                                        value: template.id,
-                                        child: Row(
-                                          children: [
-                                            Icon(dataState.filters.templateId == template.id ? Icons.check : null, size: AppSizes.iconSmall, color: palette.interactableColor),
-                                            HSpace.x1,
-                                            Expanded(
-                                              child: Text(
-                                                template.name,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }),
-                                  ],
+                                  onPressed: () => TemplateFilterSheet.show(
+                                    context,
+                                    _dataCubit!,
+                                  ),
                                 ),
                               ],
                             );
