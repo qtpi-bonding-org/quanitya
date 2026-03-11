@@ -535,7 +535,7 @@ class DevSeederService {
   // Analysis Pipeline Seeders
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Seeds analysis pipelines for the first numeric-field template found.
+  /// Seeds analysis pipelines for all templates with numeric fields.
   /// Call from dev tools button only.
   Future<void> seedAnalysisPipelines() async {
     // Clear any existing pipelines first (removes stale test data)
@@ -544,13 +544,12 @@ class DevSeederService {
       await _pipelineRepo.deletePipeline(p.id);
     }
 
-    // Find the first template with numeric fields (likely Mood Tracker)
     final templates = await _db.select(_db.trackerTemplates).get();
     if (templates.isEmpty) {
       throw Exception('No templates found. Seed fake data first.');
     }
 
-    // Find a template with numeric fields by parsing fieldsJson
+    bool seeded = false;
     for (final template in templates) {
       final fieldsJson = jsonDecode(template.fieldsJson) as List;
       final numericField = fieldsJson.cast<Map<String, dynamic>>().where(
@@ -563,11 +562,13 @@ class DevSeederService {
       if (numericField != null) {
         final fieldLabel = numericField['label'] as String;
         await _seedAnalysisPipelinesForField(template.id, fieldLabel);
-        return;
+        seeded = true;
       }
     }
 
-    throw Exception('No templates with numeric fields found.');
+    if (!seeded) {
+      throw Exception('No templates with numeric fields found.');
+    }
   }
 
   Future<void> _seedAnalysisPipelinesForField(

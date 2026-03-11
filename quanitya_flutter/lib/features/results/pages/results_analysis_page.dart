@@ -366,11 +366,13 @@ class _AnalysisResultCard extends StatelessWidget {
     }
 
     final matrix = matrices.first;
+    final cols = matrix.columnNames as List<String>;
+    final previewRows = (matrix.data as List).take(5).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Matrix Output',
+          'Matrix Output (${(matrix.data as List).length} rows)',
           style: context.text.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
             color: palette.textPrimary,
@@ -383,12 +385,34 @@ class _AnalysisResultCard extends StatelessWidget {
             color: palette.backgroundPrimary,
             borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
           ),
-          child: Text(
-            '${matrix.values.length} rows x ${matrix.values.isNotEmpty ? matrix.values.first.length : 0} cols',
-            style: context.text.bodySmall?.copyWith(
-              fontFamily: 'monospace',
-              color: palette.textSecondary,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                cols.join(', '),
+                style: context.text.bodySmall?.copyWith(
+                  fontFamily: 'monospace',
+                  fontWeight: FontWeight.w600,
+                  color: palette.textPrimary,
+                ),
+              ),
+              VSpace.x05,
+              ...previewRows.map((row) => Text(
+                    (row as List).map((v) => (v as num).toStringAsFixed(2)).join(', '),
+                    style: context.text.bodySmall?.copyWith(
+                      fontFamily: 'monospace',
+                      color: palette.textSecondary,
+                    ),
+                  )),
+              if ((matrix.data as List).length > 5)
+                Text(
+                  '... ${(matrix.data as List).length - 5} more rows',
+                  style: context.text.bodySmall?.copyWith(
+                    color: palette.textSecondary,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+            ],
           ),
         ),
       ],
@@ -475,7 +499,7 @@ class _FieldAnalysisCard extends StatelessWidget {
           onTap: () {
             AppNavigation.toAnalysisBuilder(
               context,
-              fieldId: fieldData.field.id,
+              fieldId: fieldData.field.label,
               templateId: templateId,
             );
           },

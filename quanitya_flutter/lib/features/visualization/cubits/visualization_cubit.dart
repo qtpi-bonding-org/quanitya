@@ -37,10 +37,12 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
       final consistencyRate = totalDays > 0 ? loggedDays / totalDays : 0.0;
 
       // Load and execute analysis pipelines for this template's fields
+      // Pipeline fieldIds use "templateId:fieldLabel" format
+      // Load pipelines for this template
+      // Pipeline fieldIds use "templateId:fieldLabel" format
       final pipelines = await _pipelineRepo.getAllPipelines();
-      final templateFieldIds = data.numericFields.map((f) => f.field.id).toSet();
       final relevantPipelines = pipelines.where(
-        (p) => templateFieldIds.contains(p.fieldId),
+        (p) => p.fieldId.startsWith('$templateId:'),
       ).toList();
 
       final analysisResults = <String, dynamic>{};
