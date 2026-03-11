@@ -90,8 +90,8 @@ class InAppPurchaseProvider implements IPurchaseProvider {
 
     // 1. Get challenge from server
     final challengeResponse = await _client.productCatalog.getChallenge();
-    final challenge = challengeResponse['challenge'] as String;
-    final difficulty = challengeResponse['difficulty'] as int;
+    final challenge = challengeResponse.challenge;
+    final difficulty = challengeResponse.difficulty;
 
     // 2. Mine proof-of-work
     final proofOfWork = await Hashcash.mint(challenge, difficulty: difficulty);
