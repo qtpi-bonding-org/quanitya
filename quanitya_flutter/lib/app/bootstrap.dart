@@ -17,8 +17,6 @@ import '../infrastructure/config/dev_config.dart';
 import '../infrastructure/purchase/i_purchase_provider.dart';
 import '../infrastructure/purchase/i_purchase_service.dart';
 import '../infrastructure/error_reporting/error_reporter_service.dart';
-import '../infrastructure/error_reporting/quanitya_error_toast_builder.dart';
-import '../infrastructure/error_reporting/quanitya_error_box_page_builder.dart';
 import '../infrastructure/feedback/exception_mapper.dart';
 import '../infrastructure/fonts/font_preloader_service.dart';
 import '../infrastructure/notifications/notification_service.dart';
@@ -262,12 +260,6 @@ void _autoSendAnalytics() {
 /// Sets up the library to capture PII-free error data from all cubits
 /// and store it locally for user-controlled reporting to developers.
 void _configureErrorPrivserver() {
-  // Always register ErrorBoxPageCubit first (needed by Error Box UI)
-  if (!getIt.isRegistered<ErrorBoxPageCubit>()) {
-    getIt.registerFactory<ErrorBoxPageCubit>(() => ErrorBoxPageCubit());
-    debugPrint('ErrorPrivserver: Registered ErrorBoxPageCubit');
-  }
-
   // Configure ErrorPrivserver if dependencies are available
   if (getIt.isRegistered<ErrorReporterService>() &&
       getIt.isRegistered<cubit_ui_flow.IExceptionKeyMapper>() &&
@@ -278,13 +270,10 @@ void _configureErrorPrivserver() {
 
     ErrorPrivserver.configure(
       ErrorPrivserverConfig(
-        storage: errorBoxRepo, // Repository implements ErrorBoxStorage
+        storage: errorBoxRepo,
         reporter: (errorEntry) => errorReporter.sendErrorReport(errorEntry),
         errorCodeMapper: ErrorCodeMapper.mapError,
         exceptionMapper: (error) => exceptionMapper.map(error),
-        showToast: false, // Disabled - no BuildContext access in bootstrap
-        toastBuilder: const QuanityaErrorToastBuilder(),
-        pageBuilder: const QuanityaErrorBoxPageBuilder(),
       ),
     );
 

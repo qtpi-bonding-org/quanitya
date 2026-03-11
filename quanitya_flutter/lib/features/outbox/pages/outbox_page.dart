@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
@@ -11,6 +10,9 @@ import '../../analytics_inbox/cubits/analytics_inbox_cubit.dart';
 import '../../analytics_inbox/cubits/analytics_inbox_state.dart';
 import '../../analytics_inbox/cubits/analytics_inbox_message_mapper.dart';
 import '../../analytics_inbox/pages/analytics_inbox_page.dart';
+import '../../error_reporting/cubits/error_box_cubit.dart';
+import '../../error_reporting/cubits/error_box_state.dart';
+import '../../error_reporting/cubits/error_box_message_mapper.dart';
 import '../../error_reporting/pages/error_box_page.dart';
 import '../../user_feedback/cubits/feedback_cubit.dart';
 import '../../user_feedback/cubits/feedback_state.dart';
@@ -49,14 +51,16 @@ class _OutboxPageState extends State<OutboxPage> {
           create: (_) => GetIt.instance<AnalyticsInboxCubit>()..load(),
         ),
         BlocProvider(
-          create: (_) => GetIt.instance<ErrorBoxPageCubit>()..loadErrors(),
+          create: (_) => GetIt.instance<ErrorBoxCubit>()..load(),
         ),
       ],
       child: UiFlowListener<AnalyticsInboxCubit, AnalyticsInboxState>(
         mapper: GetIt.instance<AnalyticsInboxMessageMapper>(),
         child: UiFlowListener<FeedbackCubit, FeedbackState>(
           mapper: GetIt.instance<FeedbackMessageMapper>(),
-          child: SafeArea(
+          child: UiFlowListener<ErrorBoxCubit, ErrorBoxState>(
+            mapper: GetIt.instance<ErrorBoxMessageMapper>(),
+            child: SafeArea(
             bottom: false,
             child: Column(
               children: [
@@ -98,6 +102,7 @@ class _OutboxPageState extends State<OutboxPage> {
                 ),
               ],
             ),
+          ),
           ),
         ),
       ),
