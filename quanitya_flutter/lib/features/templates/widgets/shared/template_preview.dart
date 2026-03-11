@@ -6,6 +6,7 @@ import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/styled_field_container.dart';
+import '../../../../support/extensions/color_extensions.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../logic/templates/enums/ai/allowed_font.dart';
 import '../../../../logic/templates/enums/ai/template_preset.dart';
@@ -17,6 +18,7 @@ import '../../../../logic/templates/services/shared/default_value_handler.dart';
 import '../../../../logic/templates/services/shared/dynamic_field_builder.dart';
 import '../../../../design_system/widgets/quanitya/general/zen_paper_background.dart';
 import '../../../../infrastructure/fonts/font_preloader_service.dart';
+import '../../../../support/utils/icon_resolver.dart';
 
 /// Unified template preview widget that works with any template source.
 ///
@@ -364,7 +366,7 @@ class _TemplatePreviewState extends State<TemplatePreview> {
 
     // Icon
     if (aesthetics?.icon != null && aesthetics!.icon!.isNotEmpty) {
-      final iconData = _parseIconData(aesthetics.icon!);
+      final iconData = IconResolver.resolve(aesthetics.icon!);
       if (iconData != null) {
         return Container(
           width: AppSizes.iconXLarge,
@@ -522,50 +524,6 @@ class _TemplatePreviewState extends State<TemplatePreview> {
     );
   }
 
-  IconData? _parseIconData(String iconString) {
-    final parts = iconString.split(':');
-    final iconName = parts.length > 1 ? parts[1] : parts[0];
-    return _materialIconMap[iconName];
-  }
-
-  static const Map<String, IconData> _materialIconMap = {
-    'fitness_center': Icons.fitness_center,
-    'favorite': Icons.favorite,
-    'mood': Icons.mood,
-    'local_drink': Icons.local_drink,
-    'restaurant': Icons.restaurant,
-    'directions_run': Icons.directions_run,
-    'bedtime': Icons.bedtime,
-    'medication': Icons.medication,
-    'monitor_weight': Icons.monitor_weight,
-    'self_improvement': Icons.self_improvement,
-    'spa': Icons.spa,
-    'psychology': Icons.psychology,
-    'water_drop': Icons.water_drop,
-    'coffee': Icons.coffee,
-    'local_cafe': Icons.local_cafe,
-    'smoking_rooms': Icons.smoking_rooms,
-    'no_drinks': Icons.no_drinks,
-    'sports': Icons.sports,
-    'sports_gymnastics': Icons.sports_gymnastics,
-    'hiking': Icons.hiking,
-    'pool': Icons.pool,
-    'pedal_bike': Icons.pedal_bike,
-    'directions_walk': Icons.directions_walk,
-    'timer': Icons.timer,
-    'schedule': Icons.schedule,
-    'event': Icons.event,
-    'note': Icons.note,
-    'edit_note': Icons.edit_note,
-    'checklist': Icons.checklist,
-    'task_alt': Icons.task_alt,
-    'star': Icons.star,
-    'emoji_emotions': Icons.emoji_emotions,
-    'sentiment_satisfied': Icons.sentiment_satisfied,
-    'sentiment_dissatisfied': Icons.sentiment_dissatisfied,
-    'thumb_up': Icons.thumb_up,
-    'thumb_down': Icons.thumb_down,
-  };
 }
 
 /// Action configuration for template preview
