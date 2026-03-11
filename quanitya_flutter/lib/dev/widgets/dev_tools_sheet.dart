@@ -44,6 +44,8 @@ class DevToolsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return SafeArea(
       child: Padding(
         padding: AppPadding.page,
@@ -52,108 +54,146 @@ class DevToolsSheet extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-            // Handle bar
-            Center(
-              child: Container(
-                width: AppSizes.space * 5,
-                height: AppSizes.space * 0.5,
-                decoration: BoxDecoration(
-                  color: context.colors.textSecondary.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+              // Handle bar
+              Center(
+                child: Container(
+                  width: AppSizes.space * 5,
+                  height: AppSizes.space * 0.5,
+                  decoration: BoxDecoration(
+                    color: context.colors.textSecondary.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+                  ),
                 ),
               ),
-            ),
-            VSpace.x3,
+              VSpace.x3,
 
-            // Title
-            Text(
-              context.l10n.devToolsTitle,
-              style: context.text.titleLarge?.copyWith(
-                color: context.colors.textPrimary,
+              // Title
+              Text(
+                l10n.devToolsTitle,
+                style: context.text.titleLarge?.copyWith(
+                  color: context.colors.textPrimary,
+                ),
               ),
-            ),
-            VSpace.x3,
+              VSpace.x3,
 
-            // Seed fake data
-            _DevToolRow(
-              label: context.l10n.devSeedFakeData,
-              child: _DevSeedButton(),
-            ),
-            VSpace.x2,
-
-            // Seed test analysis scripts
-            _DevToolRow(
-              label: 'Seed Test JS Analysis',
-              child: _DevSeedAnalysisButton(),
-            ),
-            VSpace.x2,
-
-            // Clear all data
-            _DevToolRow(
-              label: context.l10n.devClearAllData,
-              child: _DevClearButton(),
-            ),
-            VSpace.x2,
-
-            // Wipe crypto keys
-            _DevToolRow(
-              label: context.l10n.devWipeCryptoKeys,
-              child: _DevWipeKeysButton(),
-            ),
-            VSpace.x2,
-
-            // Connect to cloud
-            _DevToolRow(
-              label: context.l10n.devConnectToCloud,
-              child: _DevConnectCloudButton(),
-            ),
-            VSpace.x2,
-
-            // Create account
-            _DevToolRow(
-              label: context.l10n.devCreateAccount,
-              child: _DevCreateAccountButton(),
-            ),
-            VSpace.x2,
-
-            // Register account
-            _DevToolRow(
-              label: context.l10n.devRegisterAccount,
-              child: _DevRegisterAccountButton(),
-            ),
-            VSpace.x2,
-
-            // Test local notification
-            _DevToolRow(
-              label: 'Test Notification',
-              child: _DevTestNotificationButton(),
-            ),
-            VSpace.x2,
-
-            // Navigation shortcuts
-            const Divider(),
-            VSpace.x2,
-            Text(
-              'NAVIGATION',
-              style: context.text.titleMedium?.copyWith(
-                color: context.colors.textPrimary,
+              // Seed fake data (includes analysis scripts)
+              _DevToolRow(
+                label: l10n.devSeedFakeData,
+                child: _DevActionButton(
+                  text: l10n.devSeed,
+                  onPressed: () async {
+                    final seeder = GetIt.instance<DevSeederService>();
+                    await seeder.clearAndSeed();
+                  },
+                  successMessage: l10n.devSeeded,
+                ),
               ),
-            ),
-            VSpace.x2,
-            Wrap(
-              spacing: AppSizes.space,
-              runSpacing: AppSizes.space,
-              children: [
-                _NavChip(label: 'Onboarding', route: AppRoutes.onboarding),
-                _NavChip(label: 'About', route: AppRoutes.about),
-                _NavChip(label: 'Settings', route: AppRoutes.settings),
-                _NavChip(label: 'Template Editor', route: AppRoutes.templateEditor),
-                _NavChip(label: 'Visualization', route: AppRoutes.visualization),
-                _NavChip(label: 'Script Builder', route: AppRoutes.scriptBuilder),
-              ],
-            ),
-            VSpace.x4,
-          ],
+              VSpace.x2,
+
+              // Clear all data
+              _DevToolRow(
+                label: l10n.devClearAllData,
+                child: _DevActionButton(
+                  text: l10n.devClear,
+                  isDestructive: true,
+                  onPressed: () async {
+                    final seeder = GetIt.instance<DevSeederService>();
+                    await seeder.clearAll();
+                  },
+                  successMessage: l10n.devCleared,
+                ),
+              ),
+              VSpace.x2,
+
+              // Wipe crypto keys
+              _DevToolRow(
+                label: l10n.devWipeCryptoKeys,
+                child: _DevWipeKeysButton(),
+              ),
+              VSpace.x2,
+
+              // Connect to cloud
+              _DevToolRow(
+                label: l10n.devConnectToCloud,
+                child: _DevActionButton(
+                  text: l10n.devConnect,
+                  onPressed: () async {
+                    final appOperatingCubit = GetIt.instance<AppOperatingCubit>();
+                    await appOperatingCubit.switchToCloud();
+                  },
+                ),
+              ),
+              VSpace.x2,
+
+              // Create account
+              _DevToolRow(
+                label: l10n.devCreateAccount,
+                child: _DevActionButton(
+                  text: l10n.devCreate,
+                  onPressed: () async {
+                    final authService = GetIt.instance<AuthService>();
+                    await authService.createAccount(deviceLabel: 'Dev Test Device');
+                  },
+                  successMessage: l10n.devAccountCreated,
+                ),
+              ),
+              VSpace.x2,
+
+              // Register account
+              _DevToolRow(
+                label: l10n.devRegisterAccount,
+                child: _DevActionButton(
+                  text: l10n.devRegister,
+                  onPressed: () async {
+                    final authService = GetIt.instance<AuthService>();
+                    await authService.registerAccountWithServer(deviceLabel: 'Dev Test Device');
+                  },
+                  successMessage: l10n.devAccountRegistered,
+                ),
+              ),
+              VSpace.x2,
+
+              // Test local notification
+              _DevToolRow(
+                label: 'Test Notification',
+                child: _DevActionButton(
+                  text: 'Send',
+                  onPressed: () async {
+                    final notificationService = GetIt.instance<NotificationService>();
+                    await notificationService.showNow(
+                      id: 9999,
+                      title: 'Quanitya Test',
+                      body: 'This is a test notification from dev tools',
+                    );
+                  },
+                  successMessage: 'Notification sent',
+                ),
+              ),
+              VSpace.x2,
+
+              // Navigation shortcuts
+              const Divider(),
+              VSpace.x2,
+              Text(
+                'NAVIGATION',
+                style: context.text.titleMedium?.copyWith(
+                  color: context.colors.textPrimary,
+                ),
+              ),
+              VSpace.x2,
+              Wrap(
+                spacing: AppSizes.space,
+                runSpacing: AppSizes.space,
+                children: [
+                  _NavChip(label: 'Onboarding', route: AppRoutes.onboarding),
+                  _NavChip(label: 'About', route: AppRoutes.about),
+                  _NavChip(label: 'Settings', route: AppRoutes.settings),
+                  _NavChip(label: 'Template Editor', route: AppRoutes.templateEditor),
+                  _NavChip(label: 'Script Builder', route: AppRoutes.scriptBuilder),
+                ],
+              ),
+              VSpace.x4,
+            ],
           ),
         ),
       ),
@@ -213,8 +253,6 @@ class _NavChip extends StatelessWidget {
         AppNavigation.toSettings(context);
       case AppRoutes.templateEditor:
         AppNavigation.toTemplateDesigner(context);
-      case AppRoutes.visualization:
-        AppNavigation.toVisualization(context);
       case AppRoutes.scriptBuilder:
         AppNavigation.toAnalysisBuilder(context);
       default:
@@ -223,12 +261,25 @@ class _NavChip extends StatelessWidget {
   }
 }
 
-class _DevSeedButton extends StatefulWidget {
+/// Reusable dev action button with loading state and feedback.
+class _DevActionButton extends StatefulWidget {
+  final String text;
+  final Future<void> Function() onPressed;
+  final String? successMessage;
+  final bool isDestructive;
+
+  const _DevActionButton({
+    required this.text,
+    required this.onPressed,
+    this.successMessage,
+    this.isDestructive = false,
+  });
+
   @override
-  State<_DevSeedButton> createState() => _DevSeedButtonState();
+  State<_DevActionButton> createState() => _DevActionButtonState();
 }
 
-class _DevSeedButtonState extends State<_DevSeedButton> {
+class _DevActionButtonState extends State<_DevActionButton> {
   bool _isLoading = false;
 
   @override
@@ -241,20 +292,27 @@ class _DevSeedButtonState extends State<_DevSeedButton> {
       );
     }
 
-    final l10n = context.l10n;
     return QuanityaTextButton(
-      text: l10n.devSeed,
+      text: widget.text,
+      isDestructive: widget.isDestructive,
       onPressed: () async {
         setState(() => _isLoading = true);
         try {
-          final seeder = GetIt.instance<DevSeederService>();
-          await seeder.clearAndSeed();
-          if (mounted) {
-            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
-            feedbackService.show(
+          await widget.onPressed();
+          if (mounted && widget.successMessage != null) {
+            GetIt.instance<cubit_ui_flow.IFeedbackService>().show(
               cubit_ui_flow.FeedbackMessage(
-                message: l10n.devSeeded,
+                message: widget.successMessage!,
                 type: cubit_ui_flow.MessageType.success,
+              ),
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            GetIt.instance<cubit_ui_flow.IFeedbackService>().show(
+              cubit_ui_flow.FeedbackMessage(
+                message: 'Failed: $e',
+                type: cubit_ui_flow.MessageType.error,
               ),
             );
           }
@@ -266,50 +324,7 @@ class _DevSeedButtonState extends State<_DevSeedButton> {
   }
 }
 
-class _DevClearButton extends StatefulWidget {
-  @override
-  State<_DevClearButton> createState() => _DevClearButtonState();
-}
-
-class _DevClearButtonState extends State<_DevClearButton> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return SizedBox(
-        width: AppSizes.iconMedium,
-        height: AppSizes.iconMedium,
-        child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
-      );
-    }
-
-    final l10n = context.l10n;
-    return QuanityaTextButton(
-      text: l10n.devClear,
-      isDestructive: true,
-      onPressed: () async {
-        setState(() => _isLoading = true);
-        try {
-          final seeder = GetIt.instance<DevSeederService>();
-          await seeder.clearAll();
-          if (mounted) {
-            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
-            feedbackService.show(
-              cubit_ui_flow.FeedbackMessage(
-                message: l10n.devCleared,
-                type: cubit_ui_flow.MessageType.success,
-              ),
-            );
-          }
-        } finally {
-          if (mounted) setState(() => _isLoading = false);
-        }
-      },
-    );
-  }
-}
-
+/// Wipe keys needs special handling (confirmation dialog + navigation).
 class _DevWipeKeysButton extends StatefulWidget {
   @override
   State<_DevWipeKeysButton> createState() => _DevWipeKeysButtonState();
@@ -335,7 +350,7 @@ class _DevWipeKeysButtonState extends State<_DevWipeKeysButton> {
       onPressed: () async {
         final navigator = Navigator.of(context);
         final goRouter = GoRouter.of(context);
-        
+
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (c) => QuanityaConfirmationDialog(
@@ -348,7 +363,7 @@ class _DevWipeKeysButtonState extends State<_DevWipeKeysButton> {
         );
 
         if (confirmed != true || !mounted) return;
-        
+
         setState(() => _isLoading = true);
         try {
           final keyRepo = GetIt.instance<ICryptoKeyRepository>();
@@ -357,284 +372,6 @@ class _DevWipeKeysButtonState extends State<_DevWipeKeysButton> {
           if (mounted) {
             navigator.pop();
             goRouter.goNamed(RouteNames.onboarding);
-          }
-        } finally {
-          if (mounted) setState(() => _isLoading = false);
-        }
-      },
-    );
-  }
-}
-class _DevConnectCloudButton extends StatefulWidget {
-  @override
-  State<_DevConnectCloudButton> createState() => _DevConnectCloudButtonState();
-}
-
-class _DevConnectCloudButtonState extends State<_DevConnectCloudButton> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return SizedBox(
-        width: AppSizes.iconMedium,
-        height: AppSizes.iconMedium,
-        child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
-      );
-    }
-
-    final l10n = context.l10n;
-    return QuanityaTextButton(
-      text: l10n.devConnect,
-      onPressed: () async {
-        setState(() => _isLoading = true);
-        try {
-          final appOperatingCubit = GetIt.instance<AppOperatingCubit>();
-          await appOperatingCubit.switchToCloud();
-          
-          // Let the cubit's UI flow system handle success/error messages
-          // Don't manually show success - the AppOperatingMessageMapper will handle it
-        } catch (e) {
-          // The cubit already emits failure state, so UI flow will show error
-          // No need for manual error handling here
-        } finally {
-          if (mounted) setState(() => _isLoading = false);
-        }
-      },
-    );
-  }
-}
-class _DevCreateAccountButton extends StatefulWidget {
-  @override
-  State<_DevCreateAccountButton> createState() => _DevCreateAccountButtonState();
-}
-
-class _DevCreateAccountButtonState extends State<_DevCreateAccountButton> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return SizedBox(
-        width: AppSizes.iconMedium,
-        height: AppSizes.iconMedium,
-        child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
-      );
-    }
-
-    final l10n = context.l10n;
-    return QuanityaTextButton(
-      text: l10n.devCreate,
-      onPressed: () async {
-        setState(() => _isLoading = true);
-        try {
-          print('🔐 Starting account creation...');
-          
-          final authService = GetIt.instance<AuthService>();
-          final result = await authService.createAccount(
-            deviceLabel: 'Dev Test Device',
-          );
-          
-          print('🔐 Account creation result: ${result.toString()}');
-          
-          if (mounted) {
-            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
-            feedbackService.show(
-              cubit_ui_flow.FeedbackMessage(
-                message: l10n.devAccountCreated,
-                type: cubit_ui_flow.MessageType.success,
-              ),
-            );
-          }
-        } catch (e, stackTrace) {
-          print('🔐 Account creation failed with error: $e');
-          print('🔐 Stack trace: $stackTrace');
-          print('🔐 Error type: ${e.runtimeType}');
-          
-          if (mounted) {
-            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
-            feedbackService.show(
-              cubit_ui_flow.FeedbackMessage(
-                message: '${l10n.devAccountCreationFailed}: $e',
-                type: cubit_ui_flow.MessageType.error,
-              ),
-            );
-          }
-        } finally {
-          if (mounted) setState(() => _isLoading = false);
-        }
-      },
-    );
-  }
-}
-class _DevRegisterAccountButton extends StatefulWidget {
-  @override
-  State<_DevRegisterAccountButton> createState() => _DevRegisterAccountButtonState();
-}
-
-class _DevRegisterAccountButtonState extends State<_DevRegisterAccountButton> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return SizedBox(
-        width: AppSizes.iconMedium,
-        height: AppSizes.iconMedium,
-        child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
-      );
-    }
-
-    final l10n = context.l10n;
-    return QuanityaTextButton(
-      text: l10n.devRegister,
-      onPressed: () async {
-        setState(() => _isLoading = true);
-        try {
-          print('🔐 Starting account registration with server...');
-          
-          final authService = GetIt.instance<AuthService>();
-          await authService.registerAccountWithServer(
-            deviceLabel: 'Dev Test Device',
-          );
-          
-          print('🔐 Account registration completed successfully');
-          
-          if (mounted) {
-            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
-            feedbackService.show(
-              cubit_ui_flow.FeedbackMessage(
-                message: l10n.devAccountRegistered,
-                type: cubit_ui_flow.MessageType.success,
-              ),
-            );
-          }
-        } catch (e, stackTrace) {
-          print('🔐 Account registration failed with error: $e');
-          print('🔐 Stack trace: $stackTrace');
-          print('🔐 Error type: ${e.runtimeType}');
-          
-          if (mounted) {
-            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
-            feedbackService.show(
-              cubit_ui_flow.FeedbackMessage(
-                message: '${l10n.devAccountRegistrationFailed}: $e',
-                type: cubit_ui_flow.MessageType.error,
-              ),
-            );
-          }
-        } finally {
-          if (mounted) setState(() => _isLoading = false);
-        }
-      },
-    );
-  }
-}
-
-class _DevSeedAnalysisButton extends StatefulWidget {
-  @override
-  State<_DevSeedAnalysisButton> createState() => _DevSeedAnalysisButtonState();
-}
-
-class _DevSeedAnalysisButtonState extends State<_DevSeedAnalysisButton> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return SizedBox(
-        width: AppSizes.iconMedium,
-        height: AppSizes.iconMedium,
-        child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
-      );
-    }
-
-    return QuanityaTextButton(
-      text: 'Seed',
-      onPressed: () async {
-        setState(() => _isLoading = true);
-        try {
-          await _seedTestAnalysisScripts();
-          
-          if (mounted) {
-            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
-            feedbackService.show(
-              cubit_ui_flow.FeedbackMessage(
-                message: 'Seeded 3 test JS analysis scripts',
-                type: cubit_ui_flow.MessageType.success,
-              ),
-            );
-          }
-        } catch (e) {
-          if (mounted) {
-            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
-            feedbackService.show(
-              cubit_ui_flow.FeedbackMessage(
-                message: 'Failed to seed analysis: $e',
-                type: cubit_ui_flow.MessageType.error,
-              ),
-            );
-          }
-        } finally {
-          if (mounted) setState(() => _isLoading = false);
-        }
-      },
-    );
-  }
-
-  Future<void> _seedTestAnalysisScripts() async {
-    final seeder = GetIt.instance<DevSeederService>();
-    await seeder.seedAnalysisScripts();
-  }
-}
-
-class _DevTestNotificationButton extends StatefulWidget {
-  @override
-  State<_DevTestNotificationButton> createState() => _DevTestNotificationButtonState();
-}
-
-class _DevTestNotificationButtonState extends State<_DevTestNotificationButton> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return SizedBox(
-        width: AppSizes.iconMedium,
-        height: AppSizes.iconMedium,
-        child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
-      );
-    }
-
-    return QuanityaTextButton(
-      text: 'Send',
-      onPressed: () async {
-        setState(() => _isLoading = true);
-        try {
-          final notificationService = GetIt.instance<NotificationService>();
-          await notificationService.showNow(
-            id: 9999,
-            title: 'Quanitya Test',
-            body: 'This is a test notification from dev tools',
-          );
-          if (mounted) {
-            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
-            feedbackService.show(
-              cubit_ui_flow.FeedbackMessage(
-                message: 'Notification sent',
-                type: cubit_ui_flow.MessageType.success,
-              ),
-            );
-          }
-        } catch (e) {
-          if (mounted) {
-            final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
-            feedbackService.show(
-              cubit_ui_flow.FeedbackMessage(
-                message: 'Failed: $e',
-                type: cubit_ui_flow.MessageType.error,
-              ),
-            );
           }
         } finally {
           if (mounted) setState(() => _isLoading = false);

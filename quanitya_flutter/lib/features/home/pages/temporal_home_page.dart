@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/bootstrap.dart';
@@ -206,12 +207,12 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                 ),
               ),
 
-              // Dev button (temporary, will be removed)
-              const Positioned(
-                bottom: 0,
-                right: 0,
-                child: SafeArea(child: DevFab()),
-              ),
+              if (kDebugMode)
+                const Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: SafeArea(child: DevFab()),
+                ),
             ],
           ),
       ),

@@ -31,7 +31,6 @@ import 'features/onboarding/cubits/onboarding_cubit.dart';
 import 'features/templates/pages/template_import_page.dart';
 import 'features/health/pages/health_sync_page.dart';
 import 'features/purchase/pages/purchase_page.dart';
-import 'features/visualization/pages/visualization_page.dart';
 import 'features/device_pairing/pages/show_pairing_qr_page.dart';
 import 'features/device_pairing/pages/scan_pairing_qr_page.dart';
 import 'features/onboarding/pages/connect_device_page.dart';
@@ -249,14 +248,6 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: AppRoutes.visualization,
-            name: RouteNames.visualization,
-            builder: (context, state) {
-              final templateId = state.extra as String?;
-              return VisualizationPage(templateId: templateId);
-            },
-          ),
-          GoRoute(
             path: AppRoutes.editEntry,
             name: RouteNames.editEntry,
             builder: (context, state) {
@@ -309,7 +300,6 @@ class AppRoutes {
   static const String logHistory = '/log-history/:templateId';
   static const String entryDetail = '/entry-detail';
   static const String editEntry = '/edit-entry';
-  static const String visualization = '/visualization';
   static const String settings = '/settings';
   static const String appInfo = '/app-info';
   static const String errorBox = '/error-box';
@@ -338,7 +328,6 @@ class RouteNames {
   static const String logHistory = 'logHistory';
   static const String entryDetail = 'entryDetail';
   static const String editEntry = 'editEntry';
-  static const String visualization = 'visualization';
   static const String settings = 'settings';
   static const String appInfo = 'appInfo';
   static const String errorBox = 'errorBox';
@@ -419,10 +408,6 @@ class AppNavigation {
 
   static void toLoggedEntry(BuildContext context, dynamic entryWithContext) {
     context.pushNamed(RouteNames.entryDetail, extra: entryWithContext);
-  }
-
-  static void toVisualization(BuildContext context, [String? templateId]) {
-    context.pushNamed(RouteNames.visualization, extra: templateId);
   }
 
   static void toLoggedEntryEditor(BuildContext context, LogEntryWithContext entryWithContext) {

@@ -105,6 +105,9 @@ class DevSeederService {
     // Create some future todos
     await _seedFutureTodos(moodTemplateId);
     await _seedFutureTodos(workoutTemplateId);
+
+    // Seed analysis scripts for templates with numeric fields
+    await seedAnalysisScripts();
   }
 
   // ─────────────────────────────────────────────────────────────────────────
