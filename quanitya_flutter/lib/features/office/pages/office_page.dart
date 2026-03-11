@@ -45,11 +45,23 @@ class OfficePage extends StatefulWidget {
 class _OfficePageState extends State<OfficePage> {
   int _currentIndex = 0;
   final PageController _pageController = PageController();
+  bool _purchasesLoaded = false;
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _onPageChanged(BuildContext context, int index) {
+    setState(() => _currentIndex = index);
+    if (index == 1 && !_purchasesLoaded) {
+      _purchasesLoaded = true;
+      context.read<PurchaseCubit>().loadProducts();
+      context.read<EntitlementCubit>()
+        ..loadEntitlements()
+        ..checkSyncAccess();
+    }
   }
 
   @override
@@ -64,12 +76,8 @@ class _OfficePageState extends State<OfficePage> {
         BlocProvider(create: (_) => GetIt.instance<WebhookCubit>()..load()),
         BlocProvider(create: (_) => GetIt.instance<LlmProviderCubit>()..load()),
         BlocProvider.value(value: GetIt.instance<AppOperatingCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<PurchaseCubit>()..loadProducts()),
-        BlocProvider(
-          create: (_) => GetIt.instance<EntitlementCubit>()
-            ..loadEntitlements()
-            ..checkSyncAccess(),
-        ),
+        BlocProvider(create: (_) => GetIt.instance<PurchaseCubit>()),
+        BlocProvider(create: (_) => GetIt.instance<EntitlementCubit>()),
       ],
       child: UiFlowListener<LlmProviderCubit, LlmProviderState>(
         mapper: GetIt.instance<LlmProviderMessageMapper>(),
@@ -85,14 +93,15 @@ class _OfficePageState extends State<OfficePage> {
                   mapper: GetIt.instance<EntitlementMessageMapper>(),
                   child: SafeArea(
                     bottom: false,
-                    child: Column(
+                    child: Builder(
+                      builder: (innerContext) => Column(
                       children: [
                         Expanded(
                           child: PageView(
                             controller: _pageController,
                             physics: const ClampingScrollPhysics(),
                             onPageChanged: (index) =>
-                                setState(() => _currentIndex = index),
+                                _onPageChanged(innerContext, index),
                             children: const [
                               SettingsContent(),
                               PurchaseTabContent(),
@@ -131,6 +140,7 @@ class _OfficePageState extends State<OfficePage> {
                           ),
                         ),
                       ],
+                    ),
                     ),
                   ),
                 ),
