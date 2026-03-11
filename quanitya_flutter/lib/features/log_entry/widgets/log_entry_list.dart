@@ -11,12 +11,14 @@ class LogEntryList extends StatelessWidget {
   final List<LogEntryModel> entries;
   final TrackerTemplateModel? template;
   final Future<void> Function() onRefresh;
+  final void Function(LogEntryModel entry)? onEntryTap;
 
   const LogEntryList({
     super.key,
     required this.entries,
     required this.onRefresh,
     this.template,
+    this.onEntryTap,
   });
 
   @override
@@ -43,7 +45,11 @@ class LogEntryList extends StatelessWidget {
         separatorBuilder: (_, _) => VSpace.x3,
         itemBuilder: (context, index) {
           final entry = entries[index];
-          return LogEntryItem(entry: entry, template: template);
+          return GestureDetector(
+            onTap: onEntryTap != null ? () => onEntryTap!(entry) : null,
+            behavior: HitTestBehavior.opaque,
+            child: LogEntryItem(entry: entry, template: template),
+          );
         },
       ),
     );
