@@ -15,22 +15,7 @@ abstract final class NotificationCategories {
   static const reminder = 'reminder';
 }
 
-/// Top-level background handler for notification actions.
-///
-/// Required by flutter_local_notifications for iOS actions that don't
-/// bring the app to foreground. Runs in the same isolate on iOS,
-/// so GetIt is available if the app was already initialized.
-@pragma('vm:entry-point')
-void _onBackgroundNotificationResponse(NotificationResponse response) {
-  debugPrint('NotificationService [background]: Response received - '
-      'id=${response.id}, '
-      'actionId=${response.actionId ?? "(none)"}, '
-      'payload=${response.payload ?? "(none)"}');
-
-  _dispatchResponse(response);
-}
-
-/// Shared dispatch logic for both foreground and background handlers.
+/// Dispatch logic for notification responses (taps and action buttons).
 void _dispatchResponse(NotificationResponse response) {
   final actionId = response.actionId;
   final payload = response.payload;
@@ -150,8 +135,9 @@ class NotificationService {
             AndroidInitializationSettings('@mipmap/ic_launcher');
 
         // iOS categories with action buttons.
-        // Quick Log runs without opening the app (no foreground option).
-        // Log Entry opens the app (foreground option).
+        // Both use foreground option — iOS background engine startup is
+        // unreliable without native AppDelegate plugin registration.
+        // Quick Log opens the app briefly but completes instantly.
         final darwinSettings = DarwinInitializationSettings(
           requestAlertPermission: false,
           requestBadgePermission: false,
@@ -163,6 +149,7 @@ class NotificationService {
                 DarwinNotificationAction.plain(
                   NotificationActionIds.quickLog,
                   'Quick Log',
+                  options: {DarwinNotificationActionOption.foreground},
                 ),
                 DarwinNotificationAction.plain(
                   NotificationActionIds.openEntry,
@@ -186,8 +173,6 @@ class NotificationService {
         final result = await _plugin.initialize(
           initSettings,
           onDidReceiveNotificationResponse: _onForegroundResponse,
-          onDidReceiveBackgroundNotificationResponse:
-              _onBackgroundNotificationResponse,
         );
 
         debugPrint('NotificationService: Initialized = $result');
