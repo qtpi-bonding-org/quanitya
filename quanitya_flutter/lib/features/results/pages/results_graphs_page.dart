@@ -37,12 +37,14 @@ class ResultsGraphsPage extends StatelessWidget {
           return _EmptyResultsState();
         }
 
-        return ListView(
+        return SingleChildScrollView(
           padding: AppPadding.page,
-          children: [
-            for (final item in state.templates)
-              _TemplateGraphsFold(item: item),
-          ],
+          child: Column(
+            children: [
+              for (final item in state.templates)
+                _TemplateGraphsFold(item: item),
+            ],
+          ),
         );
       },
     );
