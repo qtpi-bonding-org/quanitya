@@ -11,12 +11,12 @@ import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/structures/column.dart';
 import '../../../../design_system/widgets/styled_field_container.dart';
 import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
+import '../../../../support/extensions/color_extensions.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../support/utils/icon_resolver.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../infrastructure/fonts/font_preloader_service.dart';
 import '../../../../logic/templates/enums/ai/template_preset.dart';
-import '../../../../logic/templates/models/shared/template_aesthetics.dart';
 import '../../cubits/editor/template_editor_cubit.dart';
 import '../../cubits/editor/template_editor_state.dart';
 import '../../../../design_system/widgets/quanitya_text_field.dart';
@@ -137,7 +137,10 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
         final iconData = _parseIconFromString(iconString);
         
         // Get accent color from aesthetics
-        final accentColor = _resolveAccentColor(state.aesthetics);
+        final accentHexStr = state.aesthetics?.palette.accents.firstOrNull;
+        final accentColor = accentHexStr != null
+            ? HexColorExtension(accentHexStr).toColor()
+            : context.colors.primaryColor;
         
         // Get title font from aesthetics
         final titleFont = state.aesthetics?.fontConfig.titleFontFamily;
@@ -209,17 +212,6 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
         );
       },
     );
-  }
-  
-  /// Resolve accent color from aesthetics palette
-  Color _resolveAccentColor(TemplateAestheticsModel? aesthetics) {
-    if (aesthetics == null) return context.colors.primaryColor;
-    
-    final accents = aesthetics.palette.accents;
-    if (accents.isEmpty) return context.colors.primaryColor;
-    
-    final hex = accents.first.replaceFirst('#', '');
-    return Color(int.parse(hex, radix: 16) + 0xFF000000);
   }
   
   /// Get title style with Google Font if specified
@@ -416,8 +408,7 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
               state.aesthetics?.palette.accents.length ?? 0,
               (index) {
                 final hexColor = state.aesthetics!.palette.accents[index];
-                final cleanHex = hexColor.replaceFirst('#', '');
-                final color = Color(int.parse(cleanHex, radix: 16) + 0xFF000000);
+                final color = HexColorExtension(hexColor).toColor();
 
                 return Padding(
                   padding:
@@ -457,8 +448,7 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
               state.aesthetics?.palette.tones.length ?? 0,
               (index) {
                 final hexColor = state.aesthetics!.palette.tones[index];
-                final cleanHex = hexColor.replaceFirst('#', '');
-                final color = Color(int.parse(cleanHex, radix: 16) + 0xFF000000);
+                final color = HexColorExtension(hexColor).toColor();
 
                 return Padding(
                   padding:
@@ -534,8 +524,7 @@ class _TemplateBasicInfoEditorState extends State<TemplateBasicInfoEditor> {
         
         // Get accent color for preview
         final accentHex = state.aesthetics?.palette.accents.firstOrNull ?? '#006280';
-        final cleanHex = accentHex.replaceFirst('#', '');
-        final accentColor = Color(int.parse(cleanHex, radix: 16) + 0xFF000000);
+        final accentColor = HexColorExtension(accentHex).toColor();
         
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

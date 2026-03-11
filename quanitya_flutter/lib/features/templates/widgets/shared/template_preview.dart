@@ -169,15 +169,10 @@ class _TemplatePreviewState extends State<TemplatePreview> {
     final accents = widget.aesthetics!.palette.accents;
     final tones = widget.aesthetics!.palette.tones;
 
-    if (accents.isNotEmpty) _accent1 = _hexToColor(accents[0]);
-    if (accents.length > 1) _accent2 = _hexToColor(accents[1]);
-    if (tones.isNotEmpty) _tone1 = _hexToColor(tones[0]);
-    if (tones.length > 1) _tone2 = _hexToColor(tones[1]);
-  }
-
-  Color _hexToColor(String hex) {
-    final cleanHex = hex.replaceFirst('#', '');
-    return Color(int.parse(cleanHex, radix: 16) + 0xFF000000);
+    if (accents.isNotEmpty) _accent1 = accents[0].toColor();
+    if (accents.length > 1) _accent2 = accents[1].toColor();
+    if (tones.isNotEmpty) _tone1 = tones[0].toColor();
+    if (tones.length > 1) _tone2 = tones[1].toColor();
   }
 
   IColorPalette _getDefaultPalette() {
@@ -234,7 +229,7 @@ class _TemplatePreviewState extends State<TemplatePreview> {
     mapping.forEach((property, slot) {
       final hexColor = widget.aesthetics!.palette.getColor(slot);
       if (hexColor != null) {
-        resolved[property] = _hexToColor(hexColor);
+        resolved[property] = hexColor.toColor();
       }
     });
 

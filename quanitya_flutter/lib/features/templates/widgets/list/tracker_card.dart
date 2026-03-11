@@ -3,6 +3,7 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../../support/extensions/color_extensions.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../support/utils/icon_resolver.dart';
 import '../../../../logic/templates/models/shared/tracker_template.dart';
@@ -111,8 +112,7 @@ class TrackerCard extends StatelessWidget {
     // Parse the color from hex string if provided, fallback to Quanitya primary
     Color iconColor;
     if (color != null && color!.isNotEmpty) {
-      final cleanHex = color!.replaceFirst('#', '');
-      iconColor = Color(int.parse(cleanHex, radix: 16) + 0xFF000000);
+      iconColor = color!.toColor();
     } else {
       // Fallback to Quanitya's primary color
       iconColor = QuanityaPalette.primary.primaryColor;
