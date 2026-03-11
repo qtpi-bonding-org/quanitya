@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -14,6 +15,52 @@ abstract final class NotificationCategories {
   static const reminder = 'reminder';
 }
 
+/// Top-level background handler for notification actions.
+///
+/// Required by flutter_local_notifications for iOS actions that don't
+/// bring the app to foreground. Runs in the same isolate on iOS,
+/// so GetIt is available if the app was already initialized.
+@pragma('vm:entry-point')
+void _onBackgroundNotificationResponse(NotificationResponse response) {
+  debugPrint('NotificationService [background]: Response received - '
+      'id=${response.id}, '
+      'actionId=${response.actionId ?? "(none)"}, '
+      'payload=${response.payload ?? "(none)"}');
+
+  _dispatchResponse(response);
+}
+
+/// Shared dispatch logic for both foreground and background handlers.
+void _dispatchResponse(NotificationResponse response) {
+  final actionId = response.actionId;
+  final payload = response.payload;
+  final input = response.input;
+
+  // Try to get the action handler from GetIt
+  if (!GetIt.instance.isRegistered<INotificationActionHandler>()) {
+    debugPrint('NotificationService: INotificationActionHandler not registered, '
+        'cannot handle action');
+    return;
+  }
+
+  final handler = GetIt.instance<INotificationActionHandler>();
+
+  if (actionId != null && actionId.isNotEmpty) {
+    debugPrint('NotificationService: Dispatching action "$actionId" to handler');
+    handler.handle(
+      actionId: actionId,
+      payload: payload,
+      inputText: input,
+    );
+  } else {
+    debugPrint('NotificationService: Plain tap, dispatching as open_entry');
+    handler.handle(
+      actionId: NotificationActionIds.openEntry,
+      payload: payload,
+    );
+  }
+}
+
 /// General-purpose notification service for local push notifications.
 ///
 /// Provides a simple API for:
@@ -24,7 +71,6 @@ abstract final class NotificationCategories {
 @lazySingleton
 class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin;
-  final INotificationActionHandler _actionHandler;
 
   /// Android notification channel configuration.
   static const _androidChannel = AndroidNotificationDetails(
@@ -85,7 +131,7 @@ class NotificationService {
     macOS: _darwinReminderDetails,
   );
 
-  NotificationService(this._actionHandler)
+  NotificationService(INotificationActionHandler _)
       : _plugin = FlutterLocalNotificationsPlugin();
 
   /// Initialize the notification plugin.
@@ -103,9 +149,9 @@ class NotificationService {
         const androidSettings =
             AndroidInitializationSettings('@mipmap/ic_launcher');
 
-        // iOS categories with action buttons
-        // Both actions use foreground option so the callback fires reliably.
-        // Quick Log opens the app briefly but completes instantly.
+        // iOS categories with action buttons.
+        // Quick Log runs without opening the app (no foreground option).
+        // Log Entry opens the app (foreground option).
         final darwinSettings = DarwinInitializationSettings(
           requestAlertPermission: false,
           requestBadgePermission: false,
@@ -117,7 +163,6 @@ class NotificationService {
                 DarwinNotificationAction.plain(
                   NotificationActionIds.quickLog,
                   'Quick Log',
-                  options: {DarwinNotificationActionOption.foreground},
                 ),
                 DarwinNotificationAction.plain(
                   NotificationActionIds.openEntry,
@@ -129,7 +174,8 @@ class NotificationService {
           ],
         );
         debugPrint('NotificationService: Registered reminder category with '
-            '${NotificationActionIds.quickLog} and ${NotificationActionIds.openEntry} actions');
+            '${NotificationActionIds.quickLog} and '
+            '${NotificationActionIds.openEntry} actions');
 
         final initSettings = InitializationSettings(
           android: androidSettings,
@@ -139,7 +185,9 @@ class NotificationService {
 
         final result = await _plugin.initialize(
           initSettings,
-          onDidReceiveNotificationResponse: _onNotificationResponse,
+          onDidReceiveNotificationResponse: _onForegroundResponse,
+          onDidReceiveBackgroundNotificationResponse:
+              _onBackgroundNotificationResponse,
         );
 
         debugPrint('NotificationService: Initialized = $result');
@@ -310,33 +358,14 @@ class NotificationService {
     );
   }
 
-  /// Callback when a notification is tapped or an action button is pressed.
-  void _onNotificationResponse(NotificationResponse response) {
-    final actionId = response.actionId;
-    final payload = response.payload;
-    final input = response.input;
-
-    debugPrint('NotificationService: Response received - '
+  /// Foreground callback when a notification is tapped or action is pressed
+  /// while the app is open.
+  static void _onForegroundResponse(NotificationResponse response) {
+    debugPrint('NotificationService [foreground]: Response received - '
         'id=${response.id}, '
-        'actionId=${actionId ?? "(none)"}, '
-        'payload=${payload ?? "(none)"}, '
-        'notificationResponseType=${response.notificationResponseType}');
+        'actionId=${response.actionId ?? "(none)"}, '
+        'payload=${response.payload ?? "(none)"}');
 
-    if (actionId != null && actionId.isNotEmpty) {
-      // Action button pressed
-      debugPrint('NotificationService: Dispatching action "$actionId" to handler');
-      _actionHandler.handle(
-        actionId: actionId,
-        payload: payload,
-        inputText: input,
-      );
-    } else {
-      // Plain notification tap — treat as "open entry"
-      debugPrint('NotificationService: Plain tap, dispatching as open_entry');
-      _actionHandler.handle(
-        actionId: NotificationActionIds.openEntry,
-        payload: payload,
-      );
-    }
+    _dispatchResponse(response);
   }
 }
