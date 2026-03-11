@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../app_router.dart';
+import '../../log_entry/widgets/log_entry_sheet.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/timeline_data_cubit.dart';
@@ -44,10 +44,12 @@ class TemporalPastPanel extends StatelessWidget {
               right: AppSizes.space * 2,
             ),
             onItemTap: (item) {
-              // Navigate to entry detail page (read-only view)
               item.whenOrNull(
                 entry: (entryWithContext, _, _, _, _, _, _, _, _) {
-                  AppNavigation.toLoggedEntry(context, entryWithContext);
+                  LogEntrySheet.showView(
+                    context: context,
+                    entryWithContext: entryWithContext,
+                  );
                 },
               );
             },
