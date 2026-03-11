@@ -92,11 +92,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
             },
           ),
         ],
-        child: Scaffold(
-          backgroundColor: palette.backgroundPrimary,
-          floatingActionButton: const DevFab(),
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          body: Stack(
+        child: Stack(
             children: [
               // Layer 0: Washi Paper Background
               TemporalZenPaper(
@@ -107,6 +103,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
 
               // Layer 1: Content + Indicator in a Column
               SafeArea(
+                bottom: false,
                 child: Column(
                   children: [
                     Expanded(
@@ -216,9 +213,15 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                   ),
                 ),
               ),
+
+              // Dev button (temporary, will be removed)
+              const Positioned(
+                bottom: 0,
+                right: 0,
+                child: SafeArea(child: DevFab()),
+              ),
             ],
           ),
-        ),
       ),
     );
   }

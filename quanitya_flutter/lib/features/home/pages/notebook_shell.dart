@@ -12,6 +12,7 @@ import '../../settings/cubits/data_export/data_export_cubit.dart';
 import '../../settings/cubits/recovery_key/recovery_key_cubit.dart';
 import '../../settings/cubits/device_management/device_management_cubit.dart';
 import '../../settings/cubits/webhook/webhook_cubit.dart';
+import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../app_operating_mode/cubits/app_operating_cubit.dart';
 import '../../results/pages/results_section.dart';
 import '../../settings/pages/settings_page.dart';
@@ -66,6 +67,7 @@ class _NotebookShellState extends State<NotebookShell> {
                     BlocProvider(create: (_) => GetIt.instance<RecoveryKeyCubit>()),
                     BlocProvider(create: (_) => GetIt.instance<DeviceManagementCubit>()),
                     BlocProvider(create: (_) => GetIt.instance<WebhookCubit>()..load()),
+                    BlocProvider(create: (_) => GetIt.instance<LlmProviderCubit>()..load()),
                     BlocProvider.value(value: GetIt.instance<AppOperatingCubit>()),
                   ],
                   child: const SettingsContent(),

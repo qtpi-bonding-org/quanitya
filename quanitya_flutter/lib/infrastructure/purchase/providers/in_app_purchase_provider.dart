@@ -138,6 +138,8 @@ class InAppPurchaseProvider implements IPurchaseProvider {
             priceUsd: detail.rawPrice,
             rail: rail,
             productType: _detectProductType(detail),
+            subscriptionPeriod: _detectSubscriptionPeriod(detail) ??
+                _periodFromProductId(detail.id),
             localizedPrice: detail.price,
             currencyCode: detail.currencyCode,
           );
@@ -321,6 +323,48 @@ class InAppPurchaseProvider implements IPurchaseProvider {
       debugPrint('InAppPurchaseProvider: Failed to detect product type: $e');
     }
     return StoreProductType.unknown;
+  }
+
+  /// Detect subscription billing period from platform-specific metadata.
+  SubscriptionPeriod? _detectSubscriptionPeriod(iap.ProductDetails detail) {
+    try {
+      if (Platform.isIOS || Platform.isMacOS) {
+        if (detail is AppStoreProduct2Details) {
+          final period = detail.sk2Product.subscription?.subscriptionPeriod;
+          if (period == null) return null;
+          return switch (period.unit) {
+            SK2SubscriptionPeriodUnit.month => SubscriptionPeriod.monthly,
+            SK2SubscriptionPeriodUnit.year => SubscriptionPeriod.yearly,
+            _ => null,
+          };
+        }
+      } else if (Platform.isAndroid) {
+        if (detail is GooglePlayProductDetails) {
+          final offers = detail.productDetails.subscriptionOfferDetails;
+          if (offers != null && offers.isNotEmpty) {
+            final phases = offers.first.pricingPhases;
+            if (phases.isNotEmpty) {
+              final billingPeriod = phases.first.billingPeriod;
+              if (billingPeriod.contains('Y')) return SubscriptionPeriod.yearly;
+              if (billingPeriod.contains('M')) return SubscriptionPeriod.monthly;
+              return null;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('InAppPurchaseProvider: Failed to detect subscription period: $e');
+    }
+    return null;
+  }
+
+  /// Fallback: parse period from product ID naming convention.
+  /// Schema: q_{date}_{category}_{tier}_{period}
+  /// e.g. q_20260308_sync_500mb_month → monthly
+  static SubscriptionPeriod? _periodFromProductId(String productId) {
+    if (productId.endsWith('_month')) return SubscriptionPeriod.monthly;
+    if (productId.endsWith('_year')) return SubscriptionPeriod.yearly;
+    return null;
   }
 
   void _handlePurchaseUpdates(List<iap.PurchaseDetails> purchaseDetailsList) {

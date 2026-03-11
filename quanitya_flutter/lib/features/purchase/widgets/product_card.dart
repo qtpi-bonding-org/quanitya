@@ -31,35 +31,47 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(product.title, style: context.text.titleMedium),
+            Text(
+              product.title,
+              style: context.text.titleMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
             VSpace.x05,
             Text(
               product.description,
               style: context.text.bodyMedium?.copyWith(
                 color: context.colors.textSecondary,
               ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
             VSpace.x2,
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  product.localizedPrice ?? '\$${product.priceUsd.toStringAsFixed(2)}',
-                  style: context.text.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    product.localizedPrice ?? '\$${product.priceUsd.toStringAsFixed(2)}',
+                    style: context.text.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                FilledButton(
-                  onPressed: isLoading ? null : onBuy,
-                  child: isLoading
-                      ? SizedBox(
-                          width: AppSizes.iconSmall,
-                          height: AppSizes.iconSmall,
-                          child: const CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(_isSubscription
-                          ? context.l10n.purchaseSubscribe
-                          : context.l10n.purchaseBuy),
+                HSpace.x1,
+                SizedBox(
+                  height: AppSizes.buttonHeight,
+                  child: FilledButton(
+                    onPressed: isLoading ? null : onBuy,
+                    child: isLoading
+                        ? SizedBox(
+                            width: AppSizes.iconSmall,
+                            height: AppSizes.iconSmall,
+                            child: const CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(_isSubscription
+                            ? context.l10n.purchaseSubscribe
+                            : context.l10n.purchaseBuy),
+                  ),
                 ),
               ],
             ),

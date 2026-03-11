@@ -35,11 +35,14 @@ class BalanceDisplay extends StatelessWidget {
                       : context.colors.errorColor,
                 ),
                 HSpace.x1,
-                Text(
-                  hasSyncAccess
-                      ? context.l10n.syncActive
-                      : context.l10n.syncInactive,
-                  style: context.text.titleMedium,
+                Expanded(
+                  child: Text(
+                    hasSyncAccess
+                        ? context.l10n.syncActive
+                        : context.l10n.syncInactive,
+                    style: context.text.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -50,12 +53,15 @@ class BalanceDisplay extends StatelessWidget {
               ...entitlements.map((e) => Padding(
                     padding: AppPadding.verticalSingle,
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          context.l10n.entitlementLabel(e.entitlementId),
-                          style: context.text.bodyMedium,
+                        Expanded(
+                          child: Text(
+                            context.l10n.entitlementLabel(e.entitlementId),
+                            style: context.text.bodyMedium,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
+                        HSpace.x1,
                         Text(
                           e.balance.toStringAsFixed(1),
                           style: context.text.bodyMedium?.copyWith(

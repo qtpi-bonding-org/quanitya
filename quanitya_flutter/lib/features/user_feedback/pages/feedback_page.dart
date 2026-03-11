@@ -81,14 +81,11 @@ class _FeedbackTabContentState extends State<FeedbackTabContent> {
     return BlocBuilder<FeedbackCubit, FeedbackState>(
       builder: (context, state) {
         return OutboxTabContent(
-          content: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              left: AppSizes.space * 2,
-              right: AppSizes.space * 2,
-              top: AppSizes.space * 2,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          content: Center(
+            child: SingleChildScrollView(
+              padding: AppPadding.page,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -159,6 +156,7 @@ class _FeedbackTabContentState extends State<FeedbackTabContent> {
                 ),
               ],
             ),
+          ),
           ),
         );
       },
