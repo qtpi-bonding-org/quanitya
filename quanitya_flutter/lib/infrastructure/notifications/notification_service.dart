@@ -104,6 +104,8 @@ class NotificationService {
             AndroidInitializationSettings('@mipmap/ic_launcher');
 
         // iOS categories with action buttons
+        // Both actions use foreground option so the callback fires reliably.
+        // Quick Log opens the app briefly but completes instantly.
         final darwinSettings = DarwinInitializationSettings(
           requestAlertPermission: false,
           requestBadgePermission: false,
@@ -115,7 +117,7 @@ class NotificationService {
                 DarwinNotificationAction.plain(
                   NotificationActionIds.quickLog,
                   'Quick Log',
-                  options: {DarwinNotificationActionOption.destructive},
+                  options: {DarwinNotificationActionOption.foreground},
                 ),
                 DarwinNotificationAction.plain(
                   NotificationActionIds.openEntry,
@@ -126,6 +128,8 @@ class NotificationService {
             ),
           ],
         );
+        debugPrint('NotificationService: Registered reminder category with '
+            '${NotificationActionIds.quickLog} and ${NotificationActionIds.openEntry} actions');
 
         final initSettings = InitializationSettings(
           android: androidSettings,
@@ -312,11 +316,15 @@ class NotificationService {
     final payload = response.payload;
     final input = response.input;
 
-    debugPrint('NotificationService: Response - '
-        'id=${response.id}, actionId=$actionId, payload=$payload');
+    debugPrint('NotificationService: Response received - '
+        'id=${response.id}, '
+        'actionId=${actionId ?? "(none)"}, '
+        'payload=${payload ?? "(none)"}, '
+        'notificationResponseType=${response.notificationResponseType}');
 
     if (actionId != null && actionId.isNotEmpty) {
       // Action button pressed
+      debugPrint('NotificationService: Dispatching action "$actionId" to handler');
       _actionHandler.handle(
         actionId: actionId,
         payload: payload,
@@ -324,6 +332,7 @@ class NotificationService {
       );
     } else {
       // Plain notification tap — treat as "open entry"
+      debugPrint('NotificationService: Plain tap, dispatching as open_entry');
       _actionHandler.handle(
         actionId: NotificationActionIds.openEntry,
         payload: payload,
