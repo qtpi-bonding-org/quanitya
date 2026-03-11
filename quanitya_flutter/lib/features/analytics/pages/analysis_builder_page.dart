@@ -12,6 +12,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/widgets/ai/ai_prompt_widget.dart';
+import '../../../design_system/widgets/analysis_output/analysis_output.dart';
 import '../../../design_system/widgets/quanitya_text_field.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
@@ -351,39 +352,10 @@ class _AnalysisResultDisplay extends StatelessWidget {
       scalar: (scalars) => LayoutGroup.grid(
         minItemWidth: 15,
         children: scalars
-            .map((s) => Container(
-                  padding: AppPadding.allDouble,
-                  decoration: BoxDecoration(
-                    color: palette.successColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        s.label,
-                        style: context.text.bodySmall?.copyWith(
-                          color: palette.textSecondary,
-                        ),
-                      ),
-                      VSpace.x05,
-                      Text(
-                        s.value.toStringAsFixed(2),
-                        style: context.text.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: palette.textPrimary,
-                        ),
-                      ),
-                      if (s.unit != null)
-                        Text(
-                          s.unit!,
-                          style: context.text.bodySmall?.copyWith(
-                            color: palette.textSecondary,
-                          ),
-                        ),
-                    ],
-                  ),
+            .map((s) => ScalarCard(
+                  label: s.label,
+                  value: s.value,
+                  unit: s.unit,
                 ))
             .toList(),
       ),
@@ -402,7 +374,7 @@ class _AnalysisResultDisplay extends StatelessWidget {
             children: vectors.map((v) {
               return Padding(
                 padding: EdgeInsets.only(right: AppSizes.space * 2),
-                child: _buildMathVector(context, v.label, v.values),
+                child: MathVector(label: v.label, values: v.values),
               );
             }).toList(),
           ),
@@ -426,7 +398,7 @@ class _AnalysisResultDisplay extends StatelessWidget {
                   : 'Matrix';
               return Padding(
                 padding: EdgeInsets.only(right: AppSizes.space * 2),
-                child: _buildMathMatrix(context, name, m.data, m.data.length),
+                child: MathMatrix(label: name, data: m.data, rows: m.data.length),
               );
             }).toList(),
           ),
@@ -435,143 +407,6 @@ class _AnalysisResultDisplay extends StatelessWidget {
     );
   }
 
-  Widget _buildMathVector(
-      BuildContext context, String label, List<double> values) {
-    final palette = QuanityaPalette.primary;
-    final monoStyle = context.text.bodySmall?.copyWith(
-      fontFamily: 'monospace',
-      color: palette.textPrimary,
-    );
-    const previewCount = 3;
-    final preview = values.take(previewCount).toList();
-    final hasMore = values.length > previewCount;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: context.text.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: palette.textPrimary,
-          ),
-        ),
-        VSpace.x05,
-        IntrinsicWidth(
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.symmetric(
-                vertical: BorderSide(
-                  color: palette.textSecondary.withValues(alpha: 0.4),
-                  width: 1.5,
-                ),
-              ),
-            ),
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSizes.space,
-              vertical: AppSizes.space * 0.5,
-            ),
-            child: Column(
-              children: [
-                ...preview.map((v) => Padding(
-                      padding: EdgeInsets.symmetric(
-                          vertical: AppSizes.space * 0.25),
-                      child: Text(
-                        v.toStringAsFixed(2),
-                        style: monoStyle,
-                        textAlign: TextAlign.right,
-                      ),
-                    )),
-                if (hasMore)
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: AppSizes.space * 0.25),
-                    child: Text('⋮', style: monoStyle),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        VSpace.x05,
-        Text(
-          '${values.length}',
-          style: context.text.bodySmall?.copyWith(
-            color: palette.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMathMatrix(
-      BuildContext context, String label, List<dynamic> data, int rows) {
-    final palette = QuanityaPalette.primary;
-    final monoStyle = context.text.bodySmall?.copyWith(
-      fontFamily: 'monospace',
-      color: palette.textPrimary,
-    );
-    const previewCount = 3;
-    final preview = data.take(previewCount).toList();
-    final hasMore = rows > previewCount;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: context.text.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: palette.textPrimary,
-          ),
-        ),
-        VSpace.x05,
-        IntrinsicWidth(
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.symmetric(
-                vertical: BorderSide(
-                  color: palette.textSecondary.withValues(alpha: 0.4),
-                  width: 1.5,
-                ),
-              ),
-            ),
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSizes.space,
-              vertical: AppSizes.space * 0.5,
-            ),
-            child: Column(
-              children: [
-                ...preview.map((row) {
-                  final cells = (row as List)
-                      .map((v) => (v as num).toStringAsFixed(2));
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: AppSizes.space * 0.25),
-                    child: Text(cells.join('  '), style: monoStyle),
-                  );
-                }),
-                if (hasMore)
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: AppSizes.space * 0.25),
-                    child: Text('⋮', style: monoStyle),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        VSpace.x05,
-        Text(
-          '$rows',
-          style: context.text.bodySmall?.copyWith(
-            color: palette.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class _SavePipelineForm extends StatefulWidget {

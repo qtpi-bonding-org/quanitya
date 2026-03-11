@@ -116,6 +116,7 @@ class MultiSeriesChart extends StatelessWidget {
             },
             marks: [
               LineMark(
+                position: Varset('date') * Varset('value') / Varset('series'),
                 shape: ShapeEncode(value: BasicLineShape(smooth: true)),
                 color: ColorEncode(
                   variable: 'series',

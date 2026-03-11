@@ -10,7 +10,11 @@ import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
+import '../../../design_system/widgets/analysis_output/analysis_output.dart';
+import '../../../design_system/widgets/charts/multi_series_chart.dart';
+import '../../../design_system/widgets/charts/time_series_chart.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
+import '../../../logic/analytics/models/matrix_vector_scalar/time_series_matrix.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../visualization/cubits/visualization_cubit.dart';
 
@@ -226,19 +230,12 @@ class _AnalysisResultCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  pipeline.name,
-                  style: context.text.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: palette.textPrimary,
-                  ),
-                ),
-              ),
-              _OutputModeChip(mode: pipeline.outputMode),
-            ],
+          Text(
+            pipeline.name,
+            style: context.text.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: palette.textPrimary,
+            ),
           ),
           if (pipeline.reasoning != null) ...[
             VSpace.x05,
@@ -265,51 +262,13 @@ class _AnalysisResultCard extends StatelessWidget {
   }
 
   Widget _buildScalarDisplay(BuildContext context, List<dynamic> scalars) {
-    final palette = QuanityaPalette.primary;
-
     return LayoutGroup.grid(
       minItemWidth: 15,
       children: scalars.map((scalar) {
-        return Container(
-          padding: AppPadding.allDouble,
-          decoration: BoxDecoration(
-            color: palette.primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                scalar.label,
-                style: context.text.bodySmall?.copyWith(
-                  color: palette.textSecondary,
-                ),
-              ),
-              VSpace.x05,
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    scalar.value.toStringAsFixed(2),
-                    style: context.text.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: palette.textPrimary,
-                    ),
-                  ),
-                  if (scalar.unit != null) ...[
-                    HSpace.x05,
-                    Text(
-                      scalar.unit,
-                      style: context.text.bodyMedium?.copyWith(
-                        color: palette.textSecondary,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
+        return ScalarCard(
+          label: scalar.label,
+          value: scalar.value,
+          unit: scalar.unit,
         );
       }).toList(),
     );
@@ -332,7 +291,7 @@ class _AnalysisResultCard extends StatelessWidget {
         children: vectors.map((vector) {
           return Padding(
             padding: EdgeInsets.only(right: AppSizes.space * 2),
-            child: _MathVector(
+            child: MathVector(
               label: vector.label ?? 'Vector',
               values: (vector.values as List).cast<double>(),
             ),
@@ -352,85 +311,55 @@ class _AnalysisResultCard extends StatelessWidget {
       );
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: matrices.map((matrix) {
-          final data = matrix.data as List;
-          final cols = matrix.columnNames as List<String>;
-          // Use first non-timestamp column name, or fallback
-          final name = cols.length > 1 ? cols[1] : 'Matrix';
-          return Padding(
-            padding: EdgeInsets.only(right: AppSizes.space * 2),
-            child: _MathMatrix(
-              label: name,
-              data: data,
-              rows: data.length,
-            ),
-          );
-        }).toList(),
-      ),
-    );
+    // Distinct chart colors — standard data visualization palette
+    const chartColors = [
+      Color(0xFF1F77B4), // blue
+      Color(0xFFFF7F0E), // orange
+      Color(0xFF2CA02C), // green
+      Color(0xFFD62728), // red
+      Color(0xFF9467BD), // purple
+      Color(0xFF8C564B), // brown
+      Color(0xFFE377C2), // pink
+      Color(0xFF7F7F7F), // gray
+    ];
+
+    final series = <ChartSeries>[];
+    for (var i = 0; i < matrices.length; i++) {
+      final matrix = matrices[i] as TimeSeriesMatrix;
+      if (matrix.data.isEmpty) continue;
+
+      final timestamps = matrix.timestampVector.timestamps;
+      final valueCol = matrix.fieldNames.isNotEmpty
+          ? matrix.getColumnByName(matrix.fieldNames.first).values
+          : <num>[];
+
+      final points = <({DateTime date, num value})>[];
+      for (var j = 0; j < timestamps.length && j < valueCol.length; j++) {
+        points.add((date: timestamps[j], value: valueCol[j]));
+      }
+
+      series.add(ChartSeries(
+        label: matrix.fieldNames.isNotEmpty ? matrix.fieldNames.first : 'Series ${i + 1}',
+        points: points,
+        color: chartColors[i % chartColors.length],
+      ));
+    }
+
+    // Single series: use TimeSeriesChart (graphic lib needs >= 2 for ColorEncode)
+    if (series.length == 1) {
+      final s = series.first;
+      return TimeSeriesChart(
+        data: s.points.map((p) => {'date': p.date, 'value': p.value}).toList(),
+        valueLabel: s.label,
+        lineColor: s.color,
+      );
+    }
+
+    return MultiSeriesChart(series: series);
   }
 }
 
 /// Chip showing the output mode of a pipeline.
-class _OutputModeChip extends StatelessWidget {
-  final dynamic mode;
-
-  const _OutputModeChip({required this.mode});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    final (label, icon) = _getModeInfo();
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSizes.space,
-        vertical: AppSizes.space * 0.5,
-      ),
-      decoration: BoxDecoration(
-        color: palette.primaryColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: AppSizes.iconSmall,
-            color: palette.primaryColor,
-          ),
-          HSpace.x05,
-          Text(
-            label,
-            style: context.text.bodySmall?.copyWith(
-              color: palette.primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  (String, IconData) _getModeInfo() {
-    final modeStr = mode.toString().split('.').last;
-    switch (modeStr) {
-      case 'scalar':
-        return ('Scalar', Icons.tag);
-      case 'vector':
-        return ('Vector', Icons.show_chart);
-      case 'matrix':
-        return ('Matrix', Icons.grid_on);
-      default:
-        return (modeStr, Icons.help_outline);
-    }
-  }
-}
-
 /// Card for selecting a numeric field to run analysis on.
 class _FieldAnalysisCard extends StatelessWidget {
   final NumericFieldData fieldData;
@@ -538,171 +467,6 @@ class _NoAnalysisPlaceholder extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Math-style vertical vector with bracket notation.
-///
-/// Shows first 3 values + vertical ellipsis, with label and count.
-class _MathVector extends StatelessWidget {
-  final String label;
-  final List<double> values;
-  static const _previewCount = 3;
-
-  const _MathVector({required this.label, required this.values});
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    final monoStyle = context.text.bodySmall?.copyWith(
-      fontFamily: 'monospace',
-      color: palette.textPrimary,
-    );
-    final preview = values.take(_previewCount).toList();
-    final hasMore = values.length > _previewCount;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: context.text.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: palette.textPrimary,
-          ),
-        ),
-        VSpace.x05,
-        // Bracket + values
-        IntrinsicWidth(
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.symmetric(
-                vertical: BorderSide(
-                  color: palette.textSecondary.withValues(alpha: 0.4),
-                  width: 1.5,
-                ),
-              ),
-            ),
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSizes.space,
-              vertical: AppSizes.space * 0.5,
-            ),
-            child: Column(
-              children: [
-                ...preview.map((v) => Padding(
-                      padding: EdgeInsets.symmetric(
-                          vertical: AppSizes.space * 0.25),
-                      child: Text(
-                        v.toStringAsFixed(2),
-                        style: monoStyle,
-                        textAlign: TextAlign.right,
-                      ),
-                    )),
-                if (hasMore)
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: AppSizes.space * 0.25),
-                    child: Text('⋮', style: monoStyle),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        VSpace.x05,
-        Text(
-          '${values.length}',
-          style: context.text.bodySmall?.copyWith(
-            color: palette.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Math-style matrix with bracket notation.
-///
-/// Shows first 3 row pairs vertically with ellipsis, label and row count.
-class _MathMatrix extends StatelessWidget {
-  final String label;
-  final List<dynamic> data;
-  final int rows;
-  static const _previewCount = 3;
-
-  const _MathMatrix({
-    required this.label,
-    required this.data,
-    required this.rows,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    final monoStyle = context.text.bodySmall?.copyWith(
-      fontFamily: 'monospace',
-      color: palette.textPrimary,
-    );
-
-    final preview = data.take(_previewCount).toList();
-    final hasMore = rows > _previewCount;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: context.text.bodySmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: palette.textPrimary,
-          ),
-        ),
-        VSpace.x05,
-        IntrinsicWidth(
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.symmetric(
-                vertical: BorderSide(
-                  color: palette.textSecondary.withValues(alpha: 0.4),
-                  width: 1.5,
-                ),
-              ),
-            ),
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSizes.space,
-              vertical: AppSizes.space * 0.5,
-            ),
-            child: Column(
-              children: [
-                ...preview.map((row) {
-                  final cells = (row as List)
-                      .map((v) => (v as num).toStringAsFixed(2));
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: AppSizes.space * 0.25),
-                    child: Text(cells.join('  '), style: monoStyle),
-                  );
-                }),
-                if (hasMore)
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: AppSizes.space * 0.25),
-                    child: Text('⋮', style: monoStyle),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        VSpace.x05,
-        Text(
-          '$rows',
-          style: context.text.bodySmall?.copyWith(
-            color: palette.textSecondary,
-          ),
-        ),
-      ],
     );
   }
 }
