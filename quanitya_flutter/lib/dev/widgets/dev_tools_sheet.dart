@@ -212,7 +212,7 @@ class _NavChip extends StatelessWidget {
       case AppRoutes.settings:
         AppNavigation.toSettings(context);
       case AppRoutes.templateEditor:
-        AppNavigation.toTemplateGenerator(context);
+        AppNavigation.toTemplateDesigner(context);
       case AppRoutes.visualization:
         AppNavigation.toVisualization(context);
       case AppRoutes.scriptBuilder:

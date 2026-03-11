@@ -29,7 +29,7 @@ class TemporalPresentPanel extends StatelessWidget {
               iconSize: AppSizes.iconMedium,
               color: palette.interactableColor,
               tooltip: context.l10n.createTemplateTitle,
-              onPressed: () => AppNavigation.toTemplateGenerator(context),
+              onPressed: () => AppNavigation.toTemplateDesigner(context),
             ),
           ),
           VSpace.x2,

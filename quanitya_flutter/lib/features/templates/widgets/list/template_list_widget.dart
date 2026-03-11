@@ -70,7 +70,7 @@ class TemplateListWidget extends StatelessWidget {
                               color: item.aesthetics.palette.accents.firstOrNull,
                               template: item.template,
                               onIconTap: () {
-                                AppNavigation.toTemplateGenerator(context, item);
+                                AppNavigation.toTemplateDesigner(context, item);
                               },
                               onEdit: () {
                                 AppNavigation.toLogEntry(context, item.template.id);
