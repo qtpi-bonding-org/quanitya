@@ -47,21 +47,6 @@ class QuanityaPalette {
   /// Automatic dark mode via luminance inversion
   static IColorPalette get dark => primary.symmetricPalette;
   
-  /// Zen Data Palette - 10 harmonious colors for charts and data visualization
-  /// Inspired by traditional Japanese colors with good contrast
-  static const List<Color> zenDataPalette = [
-    Color(0xFF006280), // 1. Tetsu (Iron Teal) - Primary
-    Color(0xFFBC4B41), // 2. Shu (Vermilion) - Destructive
-    Color(0xFFD4A017), // 3. Karashi (Mustard) - Earthy Yellow
-    Color(0xFF4A5D23), // 4. Matsu (Pine) - Deep Green
-    Color(0xFF374F6B), // 5. Ai (Indigo) - Deep Blue
-    Color(0xFFCC5D2B), // 6. Kaki (Persimmon) - Burnt Orange
-    Color(0xFF7A6B8E), // 7. Fuji (Wisteria) - Dusty Purple
-    Color(0xFF5C6F7C), // 8. Sora (Slate) - Storm Grey
-    Color(0xFF8D5B4C), // 9. Kurumi (Walnut) - Red-Brown
-    Color(0xFF7C9473), // 10. Take (Bamboo) - Soft Green
-  ];
-
   /// D3 / Mathematica category10 — standard data visualization palette
   static const List<Color> category10 = [
     Color(0xFF1F77B4), // blue
