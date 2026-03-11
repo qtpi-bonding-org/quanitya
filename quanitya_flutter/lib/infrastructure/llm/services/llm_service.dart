@@ -49,8 +49,13 @@ class LlmService {
              debugPrint('☁️☁️☁️ CLOUD PROXY SUCCESS ☁️☁️☁️\n');
           }
 
+          // Decode the JSON data from ApiResponse envelope
+          final data = result.jsonData != null
+              ? jsonDecode(result.jsonData!) as Map<String, dynamic>
+              : <String, dynamic>{};
+
           return LlmResponse(
-            data: result,
+            data: data,
             model: config.model,
             tokensUsed: 0, // Server doesn't return usage yet, can add later
           );

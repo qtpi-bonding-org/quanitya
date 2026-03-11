@@ -253,3 +253,13 @@ context.text.metadata // Noto Sans Mono Light — whispers
 ## Responsive Scaling
 
 All sizes scale via `UiScaler` (`.px()` / `.sp()`). Design baseline: iPhone 16 (393dp). Scale factor: 0.85x–1.15x. Called once from `MaterialApp.builder`. All `AppSizes` tokens are pre-scaled.
+
+## Serverpod Endpoint Rules
+
+**NEVER return `Map<String, dynamic>` from Serverpod endpoints.** Serverpod cannot deserialize `dynamic` — the client will get "No deserialization found for type dynamic" at runtime.
+
+Instead:
+- **Typed protocol models** (YAML in `quanitya_cloud_server/lib/src/protocol/`) for responses with stable, known fields
+- **`ApiResponse`** with `jsonData` (JSON-encoded String) for responses with dynamic/nested/variable shapes (e.g., LLM output, pricing structures)
+
+The same rule applies to endpoint parameters — no `Map<String, dynamic>` params either.

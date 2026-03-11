@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
@@ -28,14 +30,14 @@ class FakeClient extends Fake implements Client {
 
 // Fake endpoint classes that we can control
 class FakeEndpointErrorReport extends Fake implements EndpointErrorReport {
-  Future<Map<String, dynamic>> Function()? _getChallengeImpl;
-  
-  void setChallengeResponse(Future<Map<String, dynamic>> Function() impl) {
+  Future<PublicChallengeResponse> Function()? _getChallengeImpl;
+
+  void setChallengeResponse(Future<PublicChallengeResponse> Function() impl) {
     _getChallengeImpl = impl;
   }
-  
+
   @override
-  Future<Map<String, dynamic>> getChallenge() async {
+  Future<PublicChallengeResponse> getChallenge() async {
     if (_getChallengeImpl != null) {
       return _getChallengeImpl!();
     }
@@ -44,14 +46,14 @@ class FakeEndpointErrorReport extends Fake implements EndpointErrorReport {
 }
 
 class FakeEndpointFeedback extends Fake implements EndpointFeedback {
-  Future<Map<String, dynamic>> Function()? _getChallengeImpl;
-  
-  void setChallengeResponse(Future<Map<String, dynamic>> Function() impl) {
+  Future<PublicChallengeResponse> Function()? _getChallengeImpl;
+
+  void setChallengeResponse(Future<PublicChallengeResponse> Function() impl) {
     _getChallengeImpl = impl;
   }
-  
+
   @override
-  Future<Map<String, dynamic>> getChallenge() async {
+  Future<PublicChallengeResponse> getChallenge() async {
     if (_getChallengeImpl != null) {
       return _getChallengeImpl!();
     }
@@ -76,11 +78,11 @@ void main() {
   group('PublicSubmissionService', () {
     test('submitWithVerification completes full flow successfully', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 16, // Lower difficulty for faster test
-        'expiresAt': 1234567890,
-      });
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 16, // Lower difficulty for faster test
+        expiresAt: 1234567890,
+      ));
       
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => 'a' * 128, // 128 hex chars
@@ -100,14 +102,14 @@ void main() {
         endpoint: 'errorReport',
         payload: 'test:payload',
         submitCallback: (challenge, pow, pubKey, sig) async {
-          return {
-            'success': true,
-            'message': 'Success',
-            'data': {'reportId': 123},
-          };
+          return ApiResponse(
+            success: true,
+            message: 'Success',
+            jsonData: jsonEncode({'reportId': 123}),
+          );
         },
       );
-      
+
       // Assert
       expect(response.success, true);
       expect(response.message, 'Success');
@@ -121,11 +123,11 @@ void main() {
     
     test('throws exception when device key not found', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 16,
-        'expiresAt': 1234567890,
-      });
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 16,
+        expiresAt: 1234567890,
+      ));
       
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => null, // Key not found
@@ -136,7 +138,7 @@ void main() {
         () => service.submitWithVerification(
           endpoint: 'errorReport',
           payload: 'test:payload',
-          submitCallback: (_, __, ___, _) async => {},
+          submitCallback: (_, __, ___, ____) async => ApiResponse(success: true),
         ),
         throwsA(isA<PublicSubmissionException>()),
       );
@@ -155,7 +157,7 @@ void main() {
         () => service.submitWithVerification(
           endpoint: 'errorReport',
           payload: 'test:payload',
-          submitCallback: (_, __, ___, _) async => {},
+          submitCallback: (_, __, ___, ____) async => ApiResponse(success: true),
         ),
         throwsA(isA<PublicSubmissionException>()),
       );
@@ -163,11 +165,11 @@ void main() {
     
     test('throws exception when proof-of-work fails', () async {
       // Arrange - Use impossibly high difficulty to force failure
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 256, // Impossibly high difficulty
-        'expiresAt': 1234567890,
-      });
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 256, // Impossibly high difficulty
+        expiresAt: 1234567890,
+      ));
       
       // Act & Assert
       // Note: This test may take a while or timeout, which is expected behavior
@@ -175,7 +177,7 @@ void main() {
         () => service.submitWithVerification(
           endpoint: 'errorReport',
           payload: 'test:payload',
-          submitCallback: (_, __, ___, _) async => {},
+          submitCallback: (_, __, ___, ____) async => ApiResponse(success: true),
         ),
         throwsA(isA<PublicSubmissionException>()),
       );
@@ -183,11 +185,11 @@ void main() {
     
     test('throws exception when signature fails', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 16,
-        'expiresAt': 1234567890,
-      });
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 16,
+        expiresAt: 1234567890,
+      ));
       
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => 'a' * 128,
@@ -202,7 +204,7 @@ void main() {
         () => service.submitWithVerification(
           endpoint: 'errorReport',
           payload: 'test:payload',
-          submitCallback: (_, __, ___, _) async => {},
+          submitCallback: (_, __, ___, ____) async => ApiResponse(success: true),
         ),
         throwsA(isA<PublicSubmissionException>()),
       );
@@ -212,11 +214,11 @@ void main() {
     
     test('handles rate limit exceeded (429 error)', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 16,
-        'expiresAt': 1234567890,
-      });
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 16,
+        expiresAt: 1234567890,
+      ));
       
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => 'a' * 128,
@@ -235,11 +237,10 @@ void main() {
         endpoint: 'errorReport',
         payload: 'test:payload',
         submitCallback: (challenge, pow, pubKey, sig) async {
-          return {
-            'success': false,
-            'message': 'Rate limit exceeded',
-            'data': null,
-          };
+          return ApiResponse(
+            success: false,
+            message: 'Rate limit exceeded',
+          );
         },
       );
       
@@ -250,11 +251,11 @@ void main() {
     
     test('handles network errors gracefully', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 16,
-        'expiresAt': 1234567890,
-      });
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 16,
+        expiresAt: 1234567890,
+      ));
       
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => 'a' * 128,
@@ -283,11 +284,11 @@ void main() {
     
     test('works with feedback endpoint', () async {
       // Arrange
-      fakeClient.feedback.setChallengeResponse(() async => {
-        'challenge': 'feedback-challenge',
-        'difficulty': 16,
-        'expiresAt': 1234567890,
-      });
+      fakeClient.feedback.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'feedback-challenge',
+        difficulty: 16,
+        expiresAt: 1234567890,
+      ));
       
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => 'b' * 128,
@@ -306,11 +307,11 @@ void main() {
         endpoint: 'feedback',
         payload: 'general:100',
         submitCallback: (challenge, pow, pubKey, sig) async {
-          return {
-            'success': true,
-            'message': 'Feedback received',
-            'data': {'feedbackId': 456},
-          };
+          return ApiResponse(
+            success: true,
+            message: 'Feedback received',
+            jsonData: jsonEncode({'feedbackId': 456}),
+          );
         },
       );
       
@@ -325,7 +326,7 @@ void main() {
         () => service.submitWithVerification(
           endpoint: 'unknown',
           payload: 'test:payload',
-          submitCallback: (_, __, ___, _) async => {},
+          submitCallback: (_, __, ___, ____) async => ApiResponse(success: true),
         ),
         throwsA(isA<PublicSubmissionException>()),
       );

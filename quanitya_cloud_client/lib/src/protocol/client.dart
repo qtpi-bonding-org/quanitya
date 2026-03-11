@@ -14,17 +14,26 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
 import 'package:quanitya_cloud_client/src/protocol/admin_signing_key.dart'
     as _i3;
-import 'package:quanitya_cloud_client/src/models/admin_role.dart' as _i4;
-import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_request.dart'
-    as _i5;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:quanitya_cloud_client/src/protocol/api_response.dart' as _i4;
+import 'package:quanitya_cloud_client/src/models/admin_role.dart' as _i5;
+import 'package:quanitya_cloud_client/src/protocol/public_challenge_response.dart'
     as _i6;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_request.dart'
     as _i7;
-import 'package:quanitya_client/quanitya_client.dart' as _i8;
-import 'package:anonaccount_client/anonaccount_client.dart' as _i9;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i10;
-import 'protocol.dart' as _i11;
+import 'package:quanitya_cloud_client/src/protocol/feature_access_response.dart'
+    as _i8;
+import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
+    as _i9;
+import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
+    as _i10;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _i11;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i12;
+import 'package:quanitya_client/quanitya_client.dart' as _i13;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i14;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i15;
+import 'protocol.dart' as _i16;
 
 /// A simple cloud-specific endpoint to verify the cloud server is working.
 /// {@category Endpoint}
@@ -190,6 +199,245 @@ class EndpointAdminKeyManagement extends _i1.EndpointRef {
   );
 }
 
+/// Admin endpoint for managing analytics events
+///
+/// Provides admin and support staff with tools to:
+/// - List analytics events with filtering and pagination
+/// - View detailed event information
+/// - Get analytics statistics (by event name, platform)
+/// - Delete analytics events
+///
+/// Authentication: ECDSA P-256 signature (same as other admin endpoints)
+///
+/// Access Levels:
+/// - Support: Can view events and statistics
+/// - Admin: Can view, get statistics, and delete events
+/// {@category Endpoint}
+class EndpointAnalyticsAdmin extends EndpointAdminManagement {
+  EndpointAnalyticsAdmin(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'analyticsAdmin';
+
+  /// List analytics events with filtering and pagination
+  ///
+  /// Access: Support or Admin
+  ///
+  /// Parameters:
+  /// - [adminPublicKeyHex]: Admin's ECDSA public key
+  /// - [adminSignature]: Signature of request
+  /// - [limit]: Max results per page (default: 50)
+  /// - [offset]: Number of results to skip (default: 0)
+  /// - [eventNameFilter]: Filter by event name (optional)
+  /// - [platformFilter]: Filter by platform (optional)
+  /// - [startDate]: Filter by date range start (optional)
+  /// - [endDate]: Filter by date range end (optional)
+  ///
+  /// Returns:
+  /// - items: List of analytics events
+  /// - total: Total count matching filters
+  /// - limit: Page size used
+  /// - offset: Offset used
+  _i2.Future<_i4.ApiResponse> listEvents(
+    String adminPublicKeyHex,
+    String adminSignature, {
+    required int limit,
+    required int offset,
+    String? eventNameFilter,
+    String? platformFilter,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
+    'analyticsAdmin',
+    'listEvents',
+    {
+      'adminPublicKeyHex': adminPublicKeyHex,
+      'adminSignature': adminSignature,
+      'limit': limit,
+      'offset': offset,
+      'eventNameFilter': eventNameFilter,
+      'platformFilter': platformFilter,
+      'startDate': startDate,
+      'endDate': endDate,
+    },
+  );
+
+  /// Get specific analytics event details
+  ///
+  /// Access: Support or Admin
+  ///
+  /// Parameters:
+  /// - [adminPublicKeyHex]: Admin's ECDSA public key
+  /// - [adminSignature]: Signature of request
+  /// - [eventId]: ID of analytics event to retrieve
+  ///
+  /// Returns:
+  /// - data: Full analytics event details
+  _i2.Future<_i4.ApiResponse> getEventDetails(
+    String adminPublicKeyHex,
+    String adminSignature,
+    int eventId,
+  ) => caller.callServerEndpoint<_i4.ApiResponse>(
+    'analyticsAdmin',
+    'getEventDetails',
+    {
+      'adminPublicKeyHex': adminPublicKeyHex,
+      'adminSignature': adminSignature,
+      'eventId': eventId,
+    },
+  );
+
+  /// Get analytics statistics
+  ///
+  /// Access: Support or Admin
+  ///
+  /// Parameters:
+  /// - [adminPublicKeyHex]: Admin's ECDSA public key
+  /// - [adminSignature]: Signature of request
+  /// - [startDate]: Start of date range (optional)
+  /// - [endDate]: End of date range (optional)
+  ///
+  /// Returns:
+  /// - totalEvents: Total event count
+  /// - byEventName: Count by event name
+  /// - byPlatform: Count by platform
+  /// - recentEvents: Recent events (last 7 days, limit 10)
+  _i2.Future<_i4.ApiResponse> getStatistics(
+    String adminPublicKeyHex,
+    String adminSignature, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
+    'analyticsAdmin',
+    'getStatistics',
+    {
+      'adminPublicKeyHex': adminPublicKeyHex,
+      'adminSignature': adminSignature,
+      'startDate': startDate,
+      'endDate': endDate,
+    },
+  );
+
+  /// Delete analytics event
+  ///
+  /// Access: Admin only
+  ///
+  /// Parameters:
+  /// - [adminPublicKeyHex]: Admin's ECDSA public key
+  /// - [adminSignature]: Signature of request
+  /// - [eventId]: ID of analytics event to delete
+  ///
+  /// Returns:
+  /// - success: true if deleted
+  /// - message: Success message
+  _i2.Future<_i4.ApiResponse> deleteEvent(
+    String adminPublicKeyHex,
+    String adminSignature,
+    int eventId,
+  ) => caller.callServerEndpoint<_i4.ApiResponse>(
+    'analyticsAdmin',
+    'deleteEvent',
+    {
+      'adminPublicKeyHex': adminPublicKeyHex,
+      'adminSignature': adminSignature,
+      'eventId': eventId,
+    },
+  );
+
+  /// Validate admin signature and check permission.
+  ///
+  /// This method performs ECDSA signature verification and returns
+  /// the associated admin role if valid.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature (128 hex chars)
+  /// - [requestBody]: JSON string of request body (excluding signature fields)
+  ///
+  /// Returns:
+  /// - AdminRole if signature is valid and key is active
+  /// - null if signature is invalid or key is inactive
+  ///
+  /// Example:
+  /// ```dart
+  /// final role = await validateAdmin(
+  ///   session,
+  ///   publicKeyHex,
+  ///   signature,
+  ///   requestBody,
+  /// );
+  ///
+  /// if (role == null) {
+  ///   return ResponseBuilder.authError(
+  ///     message: 'Invalid signature or inactive key',
+  ///   );
+  /// }
+  ///
+  /// if (!role.canSendNotifications()) {
+  ///   return ResponseBuilder.permissionError(
+  ///     message: 'Insufficient permissions',
+  ///   );
+  /// }
+  /// ```
+  @override
+  _i2.Future<_i5.AdminRole?> validateAdmin(
+    String publicKeyHex,
+    String signature,
+    String requestBody,
+  ) => caller.callServerEndpoint<_i5.AdminRole?>(
+    'analyticsAdmin',
+    'validateAdmin',
+    {
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'requestBody': requestBody,
+    },
+  );
+
+  /// Require admin authentication or throw exception.
+  ///
+  /// Convenience method that validates the signature and throws
+  /// an exception if authentication fails.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [publicKeyHex]: ECDSA P-256 public key
+  /// - [signature]: ECDSA signature
+  /// - [requestBody]: JSON string of request body
+  ///
+  /// Returns:
+  /// - AdminRole if authentication successful
+  ///
+  /// Throws:
+  /// - Exception if authentication fails
+  ///
+  /// Example:
+  /// ```dart
+  /// final role = await requireAdmin(
+  ///   session,
+  ///   publicKeyHex,
+  ///   signature,
+  ///   requestBody,
+  /// );
+  /// // If we get here, authentication succeeded
+  /// ```
+  @override
+  _i2.Future<_i5.AdminRole> requireAdmin(
+    String publicKeyHex,
+    String signature,
+    String requestBody,
+  ) => caller.callServerEndpoint<_i5.AdminRole>(
+    'analyticsAdmin',
+    'requireAdmin',
+    {
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'requestBody': requestBody,
+    },
+  );
+}
+
 /// Analytics Event Endpoint for privacy-first usage analytics.
 ///
 /// Accepts lightweight, PII-free event names (e.g. "template_created")
@@ -221,13 +469,13 @@ class EndpointAnalyticsEvent extends EndpointPublicSubmission {
   /// - success: true if events were stored
   /// - data: Contains insertedCount
   /// - message: Success or error message
-  _i2.Future<Map<String, dynamic>> submitEvents({
+  _i2.Future<_i4.ApiResponse> submitEvents({
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
     required String eventsJson,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
     'analyticsEvent',
     'submitEvents',
     {
@@ -262,8 +510,8 @@ class EndpointAnalyticsEvent extends EndpointPublicSubmission {
   /// // }
   /// ```
   @override
-  _i2.Future<Map<String, dynamic>> getChallenge() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i6.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i6.PublicChallengeResponse>(
         'analyticsEvent',
         'getChallenge',
         {},
@@ -347,30 +595,17 @@ class EndpointAnalyticsEvent extends EndpointPublicSubmission {
 /// Usage:
 /// ```dart
 /// class NotificationAdminEndpoint extends AdminManagementEndpoint {
-///   Future<Map<String, dynamic>> createNotification(
+///   Future<ApiResponse> createNotification(
 ///     Session session,
 ///     String publicKeyHex,
-///     String signature,
-///     String requestBody,
-///     Map<String, dynamic> notificationData,
-///   ) async {
-///     // Validate admin signature and get role
-///     final role = await validateAdmin(
-///       session,
-///       publicKeyHex,
-///       signature,
-///       requestBody,
-///     );
+///     String signature, {
+///     required String title,
+///   }) async {
+///     final role = await validateAdmin(session, publicKeyHex, signature, body);
 ///
 ///     if (role == null) {
 ///       return ResponseBuilder.authError(
 ///         message: 'Invalid signature or inactive key',
-///       );
-///     }
-///
-///     if (!role.canSendNotifications()) {
-///       return ResponseBuilder.permissionError(
-///         message: 'Insufficient permissions',
 ///       );
 ///     }
 ///
@@ -379,6 +614,10 @@ class EndpointAnalyticsEvent extends EndpointPublicSubmission {
 ///   }
 /// }
 /// ```
+///
+/// **IMPORTANT**: Never return `Map<String, dynamic>` from Serverpod endpoints.
+/// Serverpod cannot deserialize `dynamic`. Use typed protocol models or
+/// `ApiResponse` with JSON-encoded `jsonData` for complex responses.
 /// {@category Endpoint}
 abstract class EndpointAdminManagement extends _i1.EndpointRef {
   EndpointAdminManagement(_i1.EndpointCaller caller) : super(caller);
@@ -419,7 +658,7 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
   ///   );
   /// }
   /// ```
-  _i2.Future<_i4.AdminRole?> validateAdmin(
+  _i2.Future<_i5.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
@@ -452,7 +691,7 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
   /// );
   /// // If we get here, authentication succeeded
   /// ```
-  _i2.Future<_i4.AdminRole> requireAdmin(
+  _i2.Future<_i5.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
@@ -477,7 +716,7 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
 ///   @override
 ///   String get endpointType => 'error_report';
 ///
-///   Future<Map<String, dynamic>> submitReport(
+///   Future<ApiResponse> submitReport(
 ///     Session session,
 ///     String challenge,
 ///     String proofOfWork,
@@ -485,14 +724,8 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
 ///     String signature,
 ///     String payload,
 ///   ) async {
-///     // Verify submission (PoW + signature + rate limit)
 ///     await verifySubmission(
-///       session,
-///       challenge,
-///       proofOfWork,
-///       publicKeyHex,
-///       signature,
-///       payload,
+///       session, challenge, proofOfWork, publicKeyHex, signature, payload,
 ///     );
 ///
 ///     // Process the submission...
@@ -500,6 +733,10 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
 ///   }
 /// }
 /// ```
+///
+/// **IMPORTANT**: Never return `Map<String, dynamic>` from Serverpod endpoints.
+/// Serverpod cannot deserialize `dynamic`. Use typed protocol models or
+/// `ApiResponse` with JSON-encoded `jsonData` for complex responses.
 /// {@category Endpoint}
 abstract class EndpointPublicSubmission extends _i1.EndpointRef {
   EndpointPublicSubmission(_i1.EndpointCaller caller) : super(caller);
@@ -526,7 +763,7 @@ abstract class EndpointPublicSubmission extends _i1.EndpointRef {
   /// //   'expiresAt': 1234567890
   /// // }
   /// ```
-  _i2.Future<Map<String, dynamic>> getChallenge();
+  _i2.Future<_i6.PublicChallengeResponse> getChallenge();
 
   /// Verify submission (PoW + signature + rate limit).
   ///
@@ -598,24 +835,17 @@ class EndpointCloudAnalysis extends _i1.EndpointRef {
 
   /// Request statistical analysis
   ///
-  /// MVP: This feature is disabled. Returns 503 error.
-  _i2.Future<Map<String, dynamic>> requestAnalysis(
-    String analysisType,
-    Map<String, dynamic> data, {
-    Map<String, String>? headers,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'cloudAnalysis',
-    'requestAnalysis',
-    {
-      'analysisType': analysisType,
-      'data': data,
-      'headers': headers,
-    },
-  );
+  /// MVP: This feature is disabled. Returns error response.
+  _i2.Future<_i4.ApiResponse> requestAnalysis(String analysisType) =>
+      caller.callServerEndpoint<_i4.ApiResponse>(
+        'cloudAnalysis',
+        'requestAnalysis',
+        {'analysisType': analysisType},
+      );
 
   /// Get AnonAccount configuration status
-  _i2.Future<Map<String, dynamic>> getAnonAccountConfig() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i4.ApiResponse> getAnonAccountConfig() =>
+      caller.callServerEndpoint<_i4.ApiResponse>(
         'cloudAnalysis',
         'getAnonAccountConfig',
         {},
@@ -637,9 +867,12 @@ class EndpointCloudLlm extends _i1.EndpointRef {
   ///
   /// This endpoint acts as a proxy for paid users to access OpenRouter
   /// without needing their own API key (BYOK).
-  _i2.Future<Map<String, dynamic>> generateStructured(
-    _i5.CloudLlmStructuredRequest request,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ///
+  /// Returns ApiResponse with jsonData containing the LLM's
+  /// structured JSON output (shape defined by caller's schema).
+  _i2.Future<_i4.ApiResponse> generateStructured(
+    _i7.CloudLlmStructuredRequest request,
+  ) => caller.callServerEndpoint<_i4.ApiResponse>(
     'cloudLlm',
     'generateStructured',
     {'request': request},
@@ -673,13 +906,12 @@ class EndpointConsumable extends _i1.EndpointRef {
   /// Returns comprehensive feature access information including:
   /// - hasSync: boolean sync access
   /// - hasIntegrations: boolean integration access
-  /// - syncDaysRemaining: days of sync left
+  /// - syncDaysRemaining: days of sync left per tier
   /// - integrationDaysRemaining: days of integrations left
   /// - analysisCredits: analysis credits available
   /// - llmCalls: LLM call credits available
-  /// - balances: raw balance map
-  _i2.Future<Map<String, dynamic>> getFeatureAccess() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i8.FeatureAccessResponse> getFeatureAccess() =>
+      caller.callServerEndpoint<_i8.FeatureAccessResponse>(
         'consumable',
         'getFeatureAccess',
         {},
@@ -859,7 +1091,7 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// - total: Total count matching filters
   /// - limit: Page size used
   /// - offset: Offset used
-  _i2.Future<Map<String, dynamic>> listErrorReports(
+  _i2.Future<_i4.ApiResponse> listErrorReports(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -868,7 +1100,7 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
     String? errorCodeFilter,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
     'errorReportAdmin',
     'listErrorReports',
     {
@@ -894,11 +1126,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - data: Full error report details
-  _i2.Future<Map<String, dynamic>> getErrorReportDetails(
+  _i2.Future<_i4.ApiResponse> getErrorReportDetails(
     String adminPublicKeyHex,
     String adminSignature,
     int errorReportId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i4.ApiResponse>(
     'errorReportAdmin',
     'getErrorReportDetails',
     {
@@ -920,12 +1152,12 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - data: Statistics including totalErrors, errorsByType, errorsByCode, errorsByPlatform, recentErrors
-  _i2.Future<Map<String, dynamic>> getErrorStatistics(
+  _i2.Future<_i4.ApiResponse> getErrorStatistics(
     String adminPublicKeyHex,
     String adminSignature, {
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
     'errorReportAdmin',
     'getErrorStatistics',
     {
@@ -948,11 +1180,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// Returns:
   /// - success: true if deleted
   /// - message: Success message
-  _i2.Future<Map<String, dynamic>> deleteErrorReport(
+  _i2.Future<_i4.ApiResponse> deleteErrorReport(
     String adminPublicKeyHex,
     String adminSignature,
     int errorReportId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i4.ApiResponse>(
     'errorReportAdmin',
     'deleteErrorReport',
     {
@@ -999,11 +1231,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i4.AdminRole?> validateAdmin(
+  _i2.Future<_i5.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+  ) => caller.callServerEndpoint<_i5.AdminRole?>(
     'errorReportAdmin',
     'validateAdmin',
     {
@@ -1041,11 +1273,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i4.AdminRole> requireAdmin(
+  _i2.Future<_i5.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole>(
+  ) => caller.callServerEndpoint<_i5.AdminRole>(
     'errorReportAdmin',
     'requireAdmin',
     {
@@ -1110,7 +1342,7 @@ class EndpointErrorReport extends EndpointPublicSubmission {
   /// - success: true if report was stored
   /// - data: Contains reportId and timestamp
   /// - message: Success or error message
-  _i2.Future<Map<String, dynamic>> submitErrorReport({
+  _i2.Future<_i4.ApiResponse> submitErrorReport({
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
@@ -1124,7 +1356,7 @@ class EndpointErrorReport extends EndpointPublicSubmission {
     String? appVersion,
     String? platform,
     String? deviceInfo,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
     'errorReport',
     'submitErrorReport',
     {
@@ -1167,8 +1399,8 @@ class EndpointErrorReport extends EndpointPublicSubmission {
   /// // }
   /// ```
   @override
-  _i2.Future<Map<String, dynamic>> getChallenge() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i6.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i6.PublicChallengeResponse>(
         'errorReport',
         'getChallenge',
         {},
@@ -1271,7 +1503,7 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Paginated response with feedback reports
-  _i2.Future<Map<String, dynamic>> listFeedback(
+  _i2.Future<_i4.ApiResponse> listFeedback(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -1279,7 +1511,7 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
     String? feedbackTypeFilter,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
     'feedbackAdmin',
     'listFeedback',
     {
@@ -1304,11 +1536,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Feedback report details
-  _i2.Future<Map<String, dynamic>> getFeedbackDetails(
+  _i2.Future<_i4.ApiResponse> getFeedbackDetails(
     String adminPublicKeyHex,
     String adminSignature,
     int feedbackId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i4.ApiResponse>(
     'feedbackAdmin',
     'getFeedbackDetails',
     {
@@ -1332,12 +1564,12 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   /// - totalFeedback: Total feedback count
   /// - byType: Count by feedback type
   /// - recentFeedback: Recent feedback (last 7 days, limit 10)
-  _i2.Future<Map<String, dynamic>> getFeedbackStatistics(
+  _i2.Future<_i4.ApiResponse> getFeedbackStatistics(
     String adminPublicKeyHex,
     String adminSignature, {
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
     'feedbackAdmin',
     'getFeedbackStatistics',
     {
@@ -1359,11 +1591,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Success message
-  _i2.Future<Map<String, dynamic>> deleteFeedback(
+  _i2.Future<_i4.ApiResponse> deleteFeedback(
     String adminPublicKeyHex,
     String adminSignature,
     int feedbackId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i4.ApiResponse>(
     'feedbackAdmin',
     'deleteFeedback',
     {
@@ -1410,11 +1642,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i4.AdminRole?> validateAdmin(
+  _i2.Future<_i5.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+  ) => caller.callServerEndpoint<_i5.AdminRole?>(
     'feedbackAdmin',
     'validateAdmin',
     {
@@ -1452,11 +1684,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i4.AdminRole> requireAdmin(
+  _i2.Future<_i5.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole>(
+  ) => caller.callServerEndpoint<_i5.AdminRole>(
     'feedbackAdmin',
     'requireAdmin',
     {
@@ -1505,7 +1737,7 @@ class EndpointFeedback extends EndpointPublicSubmission {
   /// - success: true if feedback was stored
   /// - data: Contains feedbackId and timestamp
   /// - message: Success or error message
-  _i2.Future<Map<String, dynamic>> submitFeedback({
+  _i2.Future<_i4.ApiResponse> submitFeedback({
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
@@ -1513,7 +1745,7 @@ class EndpointFeedback extends EndpointPublicSubmission {
     required String feedbackText,
     required String feedbackType,
     String? metadata,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
     'feedback',
     'submitFeedback',
     {
@@ -1550,8 +1782,8 @@ class EndpointFeedback extends EndpointPublicSubmission {
   /// // }
   /// ```
   @override
-  _i2.Future<Map<String, dynamic>> getChallenge() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i6.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i6.PublicChallengeResponse>(
         'feedback',
         'getChallenge',
         {},
@@ -1651,7 +1883,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - List of created notification IDs
-  _i2.Future<Map<String, dynamic>> createNotifications(
+  _i2.Future<_i4.ApiResponse> createNotifications(
     String adminPublicKeyHex,
     String adminSignature, {
     List<int>? accountIds,
@@ -1661,7 +1893,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
     required int expiresInDays,
     String? actionUrl,
     String? actionLabel,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
     'notificationAdmin',
     'createNotifications',
     {
@@ -1689,10 +1921,10 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// - total: Total notification count
   /// - marked: Count of marked notifications
   /// - unmarked: Count of unmarked notifications
-  _i2.Future<Map<String, dynamic>> getStatistics(
+  _i2.Future<_i4.ApiResponse> getStatistics(
     String adminPublicKeyHex,
     String adminSignature,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i4.ApiResponse>(
     'notificationAdmin',
     'getStatistics',
     {
@@ -1717,7 +1949,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Paginated response with notifications
-  _i2.Future<Map<String, dynamic>> listNotifications(
+  _i2.Future<_i4.ApiResponse> listNotifications(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -1726,7 +1958,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
     bool? isExpired,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
     'notificationAdmin',
     'listNotifications',
     {
@@ -1754,11 +1986,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// - notification: Notification details
   /// - receiptCount: Number of receipts
   /// - receipts: List of receipts (who acknowledged)
-  _i2.Future<Map<String, dynamic>> getNotificationDetails(
+  _i2.Future<_i4.ApiResponse> getNotificationDetails(
     String adminPublicKeyHex,
     String adminSignature,
     String notificationId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i4.ApiResponse>(
     'notificationAdmin',
     'getNotificationDetails',
     {
@@ -1779,11 +2011,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Success message
-  _i2.Future<Map<String, dynamic>> deleteNotification(
+  _i2.Future<_i4.ApiResponse> deleteNotification(
     String adminPublicKeyHex,
     String adminSignature,
     String notificationId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i4.ApiResponse>(
     'notificationAdmin',
     'deleteNotification',
     {
@@ -1830,11 +2062,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i4.AdminRole?> validateAdmin(
+  _i2.Future<_i5.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+  ) => caller.callServerEndpoint<_i5.AdminRole?>(
     'notificationAdmin',
     'validateAdmin',
     {
@@ -1872,11 +2104,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i4.AdminRole> requireAdmin(
+  _i2.Future<_i5.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole>(
+  ) => caller.callServerEndpoint<_i5.AdminRole>(
     'notificationAdmin',
     'requireAdmin',
     {
@@ -1954,8 +2186,8 @@ class EndpointProductCatalog extends EndpointPublicSubmission {
   /// // }
   /// ```
   @override
-  _i2.Future<Map<String, dynamic>> getChallenge() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i6.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i6.PublicChallengeResponse>(
         'productCatalog',
         'getChallenge',
         {},
@@ -2056,8 +2288,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// - syncDaysRemaining: days of sync remaining
   /// - accessExpiry: estimated expiry date
   /// - needsTopUp: whether user needs to purchase more sync days
-  _i2.Future<Map<String, dynamic>> checkSyncAccess() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i9.SyncAccessStatus> checkSyncAccess() =>
+      caller.callServerEndpoint<_i9.SyncAccessStatus>(
         'syncAccess',
         'checkSyncAccess',
         {},
@@ -2078,9 +2310,10 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// Get sync access requirements and pricing
   ///
   /// Returns information about sync access pricing and requirements
-  /// for display in the client app.
-  _i2.Future<Map<String, dynamic>> getSyncAccessInfo() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  /// for display in the client app. Uses ApiResponse with jsonData
+  /// because the response contains deeply nested pricing structures.
+  _i2.Future<_i4.ApiResponse> getSyncAccessInfo() =>
+      caller.callServerEndpoint<_i4.ApiResponse>(
         'syncAccess',
         'getSyncAccessInfo',
         {},
@@ -2100,8 +2333,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// Get sync usage statistics for authenticated user
   ///
   /// Returns usage information and consumption history
-  _i2.Future<Map<String, dynamic>> getSyncUsageStats() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i10.SyncUsageStats> getSyncUsageStats() =>
+      caller.callServerEndpoint<_i10.SyncUsageStats>(
         'syncAccess',
         'getSyncUsageStats',
         {},
@@ -2110,22 +2343,22 @@ class EndpointSyncAccess extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i6.Caller(client);
-    serverpod_auth_core = _i7.Caller(client);
-    community = _i8.Caller(client);
-    anonaccount = _i9.Caller(client);
-    anonaccred = _i10.Caller(client);
+    serverpod_auth_idp = _i11.Caller(client);
+    serverpod_auth_core = _i12.Caller(client);
+    community = _i13.Caller(client);
+    anonaccount = _i14.Caller(client);
+    anonaccred = _i15.Caller(client);
   }
 
-  late final _i6.Caller serverpod_auth_idp;
+  late final _i11.Caller serverpod_auth_idp;
 
-  late final _i7.Caller serverpod_auth_core;
+  late final _i12.Caller serverpod_auth_core;
 
-  late final _i8.Caller community;
+  late final _i13.Caller community;
 
-  late final _i9.Caller anonaccount;
+  late final _i14.Caller anonaccount;
 
-  late final _i10.Caller anonaccred;
+  late final _i15.Caller anonaccred;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -2148,7 +2381,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i11.Protocol(),
+         _i16.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -2160,6 +2393,7 @@ class Client extends _i1.ServerpodClientShared {
     cloudHealth = EndpointCloudHealth(this);
     accountDeletion = EndpointAccountDeletion(this);
     adminKeyManagement = EndpointAdminKeyManagement(this);
+    analyticsAdmin = EndpointAnalyticsAdmin(this);
     analyticsEvent = EndpointAnalyticsEvent(this);
     cloudAnalysis = EndpointCloudAnalysis(this);
     cloudLlm = EndpointCloudLlm(this);
@@ -2179,6 +2413,8 @@ class Client extends _i1.ServerpodClientShared {
   late final EndpointAccountDeletion accountDeletion;
 
   late final EndpointAdminKeyManagement adminKeyManagement;
+
+  late final EndpointAnalyticsAdmin analyticsAdmin;
 
   late final EndpointAnalyticsEvent analyticsEvent;
 
@@ -2209,6 +2445,7 @@ class Client extends _i1.ServerpodClientShared {
     'cloudHealth': cloudHealth,
     'accountDeletion': accountDeletion,
     'adminKeyManagement': adminKeyManagement,
+    'analyticsAdmin': analyticsAdmin,
     'analyticsEvent': analyticsEvent,
     'cloudAnalysis': cloudAnalysis,
     'cloudLlm': cloudLlm,
