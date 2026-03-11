@@ -266,11 +266,10 @@ class TemplateAesthetics extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// AnalysisPipelines table - stores dynamic WASM-based analysis scripts
+/// AnalysisScripts table - stores dynamic WASM-based analysis scripts
 ///
 /// E2EE enabled - contains user-defined logic that may reveal patterns.
-/// Replaces the legacy step-based pipeline with a script-based model.
-class AnalysisPipelines extends Table {
+class AnalysisScripts extends Table {
   /// Primary key - UUID format string
   TextColumn get id => text()();
 
@@ -303,13 +302,13 @@ class AnalysisPipelines extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// EncryptedAnalysisPipelines shadow table - PowerSync sync target for encrypted pipeline data
+/// EncryptedAnalysisScripts shadow table - PowerSync sync target for encrypted script data
 /// Contains only essential columns for E2EE synchronization
-class EncryptedAnalysisPipelines extends Table {
-  /// UUID only - matches AnalysisPipelines.id
+class EncryptedAnalysisScripts extends Table {
+  /// UUID only - matches AnalysisScripts.id
   TextColumn get id => text()();
 
-  /// E2EE encrypted pipeline data blob
+  /// E2EE encrypted script data blob
   TextColumn get encryptedData => text().named('encrypted_data')();
 
   /// Timestamp only for sync ordering

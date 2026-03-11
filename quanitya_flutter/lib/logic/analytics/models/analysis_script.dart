@@ -3,12 +3,12 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../enums/analysis_output_mode.dart';
 import 'analysis_enums.dart';
 
-part 'analysis_pipeline.freezed.dart';
-part 'analysis_pipeline.g.dart';
+part 'analysis_script.freezed.dart';
+part 'analysis_script.g.dart';
 
 @freezed
-class AnalysisPipelineModel with _$AnalysisPipelineModel {
-  const factory AnalysisPipelineModel({
+class AnalysisScriptModel with _$AnalysisScriptModel {
+  const factory AnalysisScriptModel({
     required String id,
     required String name,
     required String fieldId,
@@ -18,8 +18,8 @@ class AnalysisPipelineModel with _$AnalysisPipelineModel {
     String? reasoning,
     String? metadataJson,
     required DateTime updatedAt,
-  }) = _AnalysisPipelineModel;
+  }) = _AnalysisScriptModel;
 
-  factory AnalysisPipelineModel.fromJson(Map<String, dynamic> json) =>
-      _$AnalysisPipelineModelFromJson(json);
+  factory AnalysisScriptModel.fromJson(Map<String, dynamic> json) =>
+      _$AnalysisScriptModelFromJson(json);
 }

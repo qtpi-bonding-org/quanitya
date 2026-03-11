@@ -229,7 +229,7 @@ class _AnalyzeFieldsSection extends StatelessWidget {
         ),
         VSpace.x1,
         Text(
-          'Select a numeric field to create or view analysis pipelines',
+          'Select a numeric field to create or view analysis scripts',
           style:
               context.text.bodyMedium?.copyWith(color: palette.textSecondary),
         ),
@@ -265,7 +265,7 @@ class _AnalysisResultsSection extends StatelessWidget {
             ),
             HSpace.x1,
             Text(
-              'Pipeline Results',
+              'Analysis Results',
               style: context.text.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: palette.textPrimary,
@@ -275,19 +275,19 @@ class _AnalysisResultsSection extends StatelessWidget {
         ),
         VSpace.x1,
         Text(
-          'Results from executed analysis pipelines',
+          'Results from executed analysis scripts',
           style: context.text.bodyMedium?.copyWith(
             color: palette.textSecondary,
           ),
         ),
         VSpace.x3,
         ...analysisResults.entries.map((entry) {
-          final pipelineData = entry.value as Map<String, dynamic>;
-          final pipeline = pipelineData['pipeline'];
-          final result = pipelineData['result'];
+          final scriptData = entry.value as Map<String, dynamic>;
+          final script = scriptData['script'];
+          final result = scriptData['result'];
 
           return _AnalysisResultCard(
-            pipeline: pipeline,
+            script: script,
             result: result,
           );
         }),
@@ -298,11 +298,11 @@ class _AnalysisResultsSection extends StatelessWidget {
 
 /// Individual analysis result card.
 class _AnalysisResultCard extends StatelessWidget {
-  final dynamic pipeline;
+  final dynamic script;
   final dynamic result;
 
   const _AnalysisResultCard({
-    required this.pipeline,
+    required this.script,
     required this.result,
   });
 
@@ -324,16 +324,16 @@ class _AnalysisResultCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            pipeline.name,
+            script.name,
             style: context.text.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: palette.textPrimary,
             ),
           ),
-          if (pipeline.reasoning != null) ...[
+          if (script.reasoning != null) ...[
             VSpace.x05,
             Text(
-              pipeline.reasoning,
+              script.reasoning,
               style: context.text.bodySmall?.copyWith(
                 color: palette.textSecondary,
               ),
@@ -478,7 +478,7 @@ class _NoAnalysisPlaceholder extends StatelessWidget {
             ),
             VSpace.x1,
             Text(
-              'Add numeric fields to your template to enable analysis pipelines.',
+              'Add numeric fields to your template to enable analysis scripts.',
               textAlign: TextAlign.center,
               style: context.text.bodyMedium?.copyWith(
                 color: palette.textSecondary,

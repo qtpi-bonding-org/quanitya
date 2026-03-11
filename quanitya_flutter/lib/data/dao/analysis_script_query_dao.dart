@@ -2,36 +2,34 @@ import 'package:drift/drift.dart';
 import 'package:injectable/injectable.dart';
 
 import '../db/app_database.dart';
-import '../../logic/analytics/models/analysis_pipeline.dart';
-import '../../logic/analytics/models/analysis_enums.dart';
-import '../../logic/analytics/enums/analysis_output_mode.dart';
+import '../../logic/analytics/models/analysis_script.dart';
 
-/// Read-only DAO for analysis pipeline queries.
+/// Read-only DAO for analysis script queries.
 ///
-/// Provides efficient queries for analysis pipelines.
-/// For write operations, use AnalysisPipelineDualDao.
+/// Provides efficient queries for analysis scripts.
+/// For write operations, use AnalysisScriptDualDao.
 @lazySingleton
-class AnalysisPipelineQueryDao {
+class AnalysisScriptQueryDao {
   final AppDatabase _db;
 
-  AnalysisPipelineQueryDao(this._db);
+  AnalysisScriptQueryDao(this._db);
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Single Pipeline Queries
+  // Single Script Queries
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Get a pipeline by ID
-  Future<AnalysisPipelineModel?> findById(String id) async {
+  /// Get a script by ID
+  Future<AnalysisScriptModel?> findById(String id) async {
     final entity = await (_db.select(
-      _db.analysisPipelines,
+      _db.analysisScripts,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     return entity != null ? _entityToModel(entity) : null;
   }
 
-  /// Get a pipeline by name
-  Future<AnalysisPipelineModel?> findByName(String name) async {
+  /// Get a script by name
+  Future<AnalysisScriptModel?> findByName(String name) async {
     final entity = await (_db.select(
-      _db.analysisPipelines,
+      _db.analysisScripts,
     )..where((t) => t.name.equals(name))).getSingleOrNull();
     return entity != null ? _entityToModel(entity) : null;
   }
@@ -40,9 +38,9 @@ class AnalysisPipelineQueryDao {
   // List Queries
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Find all pipelines, ordered by updatedAt descending
-  Future<List<AnalysisPipelineModel>> findAll() async {
-    final query = _db.select(_db.analysisPipelines)
+  /// Find all scripts, ordered by updatedAt descending
+  Future<List<AnalysisScriptModel>> findAll() async {
+    final query = _db.select(_db.analysisScripts)
       ..orderBy([
         (t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc),
       ]);
@@ -51,9 +49,9 @@ class AnalysisPipelineQueryDao {
     return entities.map(_entityToModel).toList();
   }
 
-  /// Find pipelines for a specific field
-  Future<List<AnalysisPipelineModel>> findByFieldId(String fieldId) async {
-    final query = _db.select(_db.analysisPipelines)
+  /// Find scripts for a specific field
+  Future<List<AnalysisScriptModel>> findByFieldId(String fieldId) async {
+    final query = _db.select(_db.analysisScripts)
       ..where((t) => t.fieldId.equals(fieldId))
       ..orderBy([
         (t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc),
@@ -67,16 +65,16 @@ class AnalysisPipelineQueryDao {
   // Stream Queries (Reactive UI)
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Watch a single pipeline by ID
-  Stream<AnalysisPipelineModel?> watchById(String id) {
-    return (_db.select(_db.analysisPipelines)..where((t) => t.id.equals(id)))
+  /// Watch a single script by ID
+  Stream<AnalysisScriptModel?> watchById(String id) {
+    return (_db.select(_db.analysisScripts)..where((t) => t.id.equals(id)))
         .watchSingleOrNull()
         .map((entity) => entity != null ? _entityToModel(entity) : null);
   }
 
-  /// Watch all pipelines
-  Stream<List<AnalysisPipelineModel>> watchAll() {
-    final query = _db.select(_db.analysisPipelines)
+  /// Watch all scripts
+  Stream<List<AnalysisScriptModel>> watchAll() {
+    final query = _db.select(_db.analysisScripts)
       ..orderBy([
         (t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc),
       ]);
@@ -84,9 +82,9 @@ class AnalysisPipelineQueryDao {
     return query.watch().map((rows) => rows.map(_entityToModel).toList());
   }
 
-  /// Watch pipelines for a specific field
-  Stream<List<AnalysisPipelineModel>> watchByFieldId(String fieldId) {
-    final query = _db.select(_db.analysisPipelines)
+  /// Watch scripts for a specific field
+  Stream<List<AnalysisScriptModel>> watchByFieldId(String fieldId) {
+    final query = _db.select(_db.analysisScripts)
       ..where((t) => t.fieldId.equals(fieldId))
       ..orderBy([
         (t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc),
@@ -99,20 +97,20 @@ class AnalysisPipelineQueryDao {
   // Count Queries
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Count all pipelines
+  /// Count all scripts
   Future<int> count() async {
-    final countExp = _db.analysisPipelines.id.count();
-    final query = _db.selectOnly(_db.analysisPipelines)..addColumns([countExp]);
+    final countExp = _db.analysisScripts.id.count();
+    final query = _db.selectOnly(_db.analysisScripts)..addColumns([countExp]);
     final result = await query.getSingle();
     return result.read(countExp) ?? 0;
   }
 
-  /// Count pipelines for a specific field
+  /// Count scripts for a specific field
   Future<int> countByFieldId(String fieldId) async {
-    final countExp = _db.analysisPipelines.id.count();
-    final query = _db.selectOnly(_db.analysisPipelines)
+    final countExp = _db.analysisScripts.id.count();
+    final query = _db.selectOnly(_db.analysisScripts)
       ..addColumns([countExp])
-      ..where(_db.analysisPipelines.fieldId.equals(fieldId));
+      ..where(_db.analysisScripts.fieldId.equals(fieldId));
     final result = await query.getSingle();
     return result.read(countExp) ?? 0;
   }
@@ -121,8 +119,8 @@ class AnalysisPipelineQueryDao {
   // Private Helpers
   // ─────────────────────────────────────────────────────────────────────────
 
-  AnalysisPipelineModel _entityToModel(AnalysisPipeline entity) {
-    return AnalysisPipelineModel(
+  AnalysisScriptModel _entityToModel(AnalysisScript entity) {
+    return AnalysisScriptModel(
       id: entity.id,
       name: entity.name,
       fieldId: entity.fieldId,

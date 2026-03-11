@@ -3,9 +3,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-// Simple standalone pipeline tester
+// Simple standalone script tester
 void main() async {
-  print('🚀 SCHEMA TRANSLATION PIPELINE TESTER');
+  print('🚀 SCHEMA TRANSLATION SCRIPT TESTER');
   print('=' * 60);
   
   // Load API key

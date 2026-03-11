@@ -2,7 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import '../models/analysis_output.dart';
 import '../models/analysis_enums.dart';
-import '../models/analysis_pipeline.dart';
+import '../models/analysis_script.dart';
 import '../models/matrix_vector_scalar/mvs_union.dart';
 import '../models/matrix_vector_scalar/analysis_data_type.dart';
 import '../enums/time_resolution.dart';
@@ -10,37 +10,37 @@ import '../enums/analysis_output_mode.dart';
 
 part 'analysis_builder_state.freezed.dart';
 
-enum PipelineBuilderOperation {
+enum ScriptBuilderOperation {
   addStep,
   removeStep,
   updateStep,
-  savePipeline,
+  saveScript,
   loadPreview,
   applyAiSuggestion,
 }
 
-/// UI presentation layer for pipeline slots
+/// UI presentation layer for script slots
 enum SlotPosition { leftBranch, rightBranch, combiner }
 
 @freezed
-class PipelineSlot with _$PipelineSlot {
-  const factory PipelineSlot({
+class ScriptSlot with _$ScriptSlot {
+  const factory ScriptSlot({
     required SlotPosition position,
     required int slotIndex, // 0, 1, 2 (which slot in that position)
     required int stepIndex, // Which step from the steps list
     required String stepId, // Unique identifier for the step
-  }) = _PipelineSlot;
+  }) = _ScriptSlot;
 }
 
-/// Represents a branch in the parallel pipeline
+/// Represents a branch in the parallel analysis
 @freezed
-class PipelineBranch with _$PipelineBranch {
-  const factory PipelineBranch({
+class ScriptBranch with _$ScriptBranch {
+  const factory ScriptBranch({
     required SlotPosition position,
-    required List<PipelineSlot> slots,
+    required List<ScriptSlot> slots,
     required String outputKey, // Final output key for this branch
     required AnalysisDataType outputType, // Final output type for this branch
-  }) = _PipelineBranch;
+  }) = _ScriptBranch;
 }
 
 @freezed
@@ -50,19 +50,19 @@ class AnalysisBuilderState
   const factory AnalysisBuilderState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,
-    PipelineBuilderOperation? lastOperation,
+    ScriptBuilderOperation? lastOperation,
 
-    // Pipeline data (execution model - JavaScript-based)
+    // Script data (execution model - JavaScript-based)
     String? fieldId,
     String? templateId,
     TimeResolution? timeResolution,
 
-    // Presentation layer (UI layout) - Legacy visual pipeline (unused)
-    @Default([]) List<PipelineSlot> slots,
+    // Presentation layer (UI layout) - Legacy visual (unused)
+    @Default([]) List<ScriptSlot> slots,
     @Default([])
-    List<PipelineBranch> branches, // Track branch outputs for combining
+    List<ScriptBranch> branches, // Track branch outputs for combining
     @Default(0) int nextStepId, // For generating unique step IDs
-    
+
     // Script-based data (WASM runtime - actively used)
     @Default('') String snippet,
     @Default('') String reasoning,
@@ -92,9 +92,9 @@ class AnalysisBuilderState
     // AI field selection
     String? selectedFieldForAi,
 
-    // Available pipelines for this field
-    @Default([]) List<AnalysisPipelineModel> availablePipelines,
-    String? selectedPipelineId,
+    // Available scripts for this field
+    @Default([]) List<AnalysisScriptModel> availableScripts,
+    String? selectedScriptId,
   }) = _AnalysisBuilderState;
 
   const AnalysisBuilderState._();

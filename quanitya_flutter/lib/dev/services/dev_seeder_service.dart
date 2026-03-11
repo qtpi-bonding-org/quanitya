@@ -10,10 +10,10 @@ import '../../data/db/app_database.dart';
 import '../../data/dao/log_entry_dual_dao.dart';
 import '../../data/dao/tracker_template_dual_dao.dart';
 import '../../infrastructure/crypto/crypto_key_repository.dart';
-import '../../data/interfaces/analysis_pipeline_interface.dart';
+import '../../data/interfaces/analysis_script_interface.dart';
 import '../../logic/analytics/enums/analysis_output_mode.dart';
 import '../../logic/analytics/models/analysis_enums.dart';
-import '../../logic/analytics/models/analysis_pipeline.dart';
+import '../../logic/analytics/models/analysis_script.dart';
 import '../../logic/templates/enums/field_enum.dart';
 import '../../logic/templates/enums/ui_element_enum.dart';
 import '../../logic/templates/models/shared/template_field.dart';
@@ -29,7 +29,7 @@ class DevSeederService {
   final ICryptoKeyRepository _cryptoKeyRepo;
   final LogEntryDualDao _logEntryDao;
   final TrackerTemplateDualDao _templateDao;
-  final IAnalysisPipelineRepository _pipelineRepo;
+  final IAnalysisScriptRepository _pipelineRepo;
   final _uuid = const Uuid();
   final _random = Random();
 
@@ -67,10 +67,10 @@ class DevSeederService {
 
   /// Clear all tables.
   Future<void> clearAll() async {
-    // Clear analysis pipelines via repository
-    final pipelines = await _pipelineRepo.getAllPipelines();
+    // Clear analysis scripts via repository
+    final pipelines = await _pipelineRepo.getAllScripts();
     for (final p in pipelines) {
-      await _pipelineRepo.deletePipeline(p.id);
+      await _pipelineRepo.deleteScript(p.id);
     }
 
     await _db.delete(_db.logEntries).go();
@@ -532,16 +532,16 @@ class DevSeederService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Analysis Pipeline Seeders
+  // Analysis Script Seeders
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Seeds analysis pipelines for all templates with numeric fields.
+  /// Seeds analysis scripts for all templates with numeric fields.
   /// Call from dev tools button only.
-  Future<void> seedAnalysisPipelines() async {
-    // Clear any existing pipelines first (removes stale test data)
-    final existing = await _pipelineRepo.getAllPipelines();
+  Future<void> seedAnalysisScripts() async {
+    // Clear any existing scripts first (removes stale test data)
+    final existing = await _pipelineRepo.getAllScripts();
     for (final p in existing) {
-      await _pipelineRepo.deletePipeline(p.id);
+      await _pipelineRepo.deleteScript(p.id);
     }
 
     final templates = await _db.select(_db.trackerTemplates).get();
@@ -561,7 +561,7 @@ class DevSeederService {
 
       if (numericField != null) {
         final fieldLabel = numericField['label'] as String;
-        await _seedAnalysisPipelinesForField(template.id, fieldLabel);
+        await _seedAnalysisScriptsForField(template.id, fieldLabel);
         seeded = true;
       }
     }
@@ -571,14 +571,14 @@ class DevSeederService {
     }
   }
 
-  Future<void> _seedAnalysisPipelinesForField(
+  Future<void> _seedAnalysisScriptsForField(
     String templateId,
     String fieldLabel,
   ) async {
     final now = DateTime.now();
     final fieldId = '$templateId:$fieldLabel';
 
-    await _pipelineRepo.savePipeline(AnalysisPipelineModel(
+    await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Mood Statistics',
       fieldId: fieldId,
@@ -595,7 +595,7 @@ return [
       updatedAt: now,
     ));
 
-    await _pipelineRepo.savePipeline(AnalysisPipelineModel(
+    await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Smoothed + Residuals',
       fieldId: fieldId,
@@ -624,7 +624,7 @@ return [
       updatedAt: now,
     ));
 
-    await _pipelineRepo.savePipeline(AnalysisPipelineModel(
+    await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Smoothed Time Series',
       fieldId: fieldId,
@@ -641,7 +641,7 @@ return { values: smoothed };''',
       updatedAt: now,
     ));
 
-    await _pipelineRepo.savePipeline(AnalysisPipelineModel(
+    await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Rolling Statistics',
       fieldId: fieldId,

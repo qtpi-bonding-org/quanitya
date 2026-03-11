@@ -4,9 +4,9 @@ import 'matrix_vector_scalar/analysis_data_type.dart';
 
 part 'analysis_input.freezed.dart';
 
-/// Input model for AI analysis pipeline generation.
+/// Input model for AI analysis script generation.
 ///
-/// This model encapsulates all the parameters needed for analysis pipeline generation,
+/// This model encapsulates all the parameters needed for analysis script generation,
 /// providing type safety and clear structure for the orchestrator.
 @freezed
 class AnalysisInput with _$AnalysisInput {
@@ -14,7 +14,7 @@ class AnalysisInput with _$AnalysisInput {
     /// User's natural language description of what they want to analyze
     required String intent,
     
-    /// The starting data type for the analysis pipeline
+    /// The starting data type for the analysis script
     required AnalysisDataType startType,
     
     /// Context about the field being analyzed (type, characteristics, etc.)

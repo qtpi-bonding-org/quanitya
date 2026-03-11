@@ -3,7 +3,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:javascript_flutter/javascript_flutter.dart';
 import 'package:injectable/injectable.dart';
 import 'package:jinja/jinja.dart' as jinja;
-import '../models/analysis_pipeline.dart';
+import '../models/analysis_script.dart';
 import '../models/analysis_output.dart';
 import '../models/matrix_vector_scalar/time_series_matrix.dart';
 import '../models/matrix_vector_scalar/field_value.dart';
@@ -18,7 +18,7 @@ import '../exceptions/analysis_exceptions.dart';
 /// - Aggregation support (output timestamps)
 /// - Argument shadowing security (prevents scope chain attacks)
 abstract class IWasmAnalysisService {
-  Future<AnalysisOutput> execute(AnalysisPipelineModel pipeline);
+  Future<AnalysisOutput> execute(AnalysisScriptModel script);
 }
 
 @Injectable(as: IWasmAnalysisService)
@@ -32,10 +32,10 @@ class WasmAnalysisService implements IWasmAnalysisService {
   WasmAnalysisService(this._logEntryDao);
 
   @override
-  Future<AnalysisOutput> execute(AnalysisPipelineModel pipeline) async {
+  Future<AnalysisOutput> execute(AnalysisScriptModel script) async {
     try {
       // 1. Parallel: Fetch data + ensure assets loaded
-      final dataFuture = _fetchFieldData(pipeline.fieldId);
+      final dataFuture = _fetchFieldData(script.fieldId);
       await _ensureAssetsLoaded();
 
       final data = await dataFuture;
@@ -51,12 +51,12 @@ class WasmAnalysisService implements IWasmAnalysisService {
         simpleStats: _cachedStatsLib!,
         values: data.values,
         timestampsEpoch: data.timestamps.map((e) => e.millisecondsSinceEpoch).toList(),
-        snippet: pipeline.snippet,
-        outputMode: pipeline.outputMode,
+        snippet: script.snippet,
+        outputMode: script.outputMode,
       );
 
       // 3. Box into AnalysisOutput (main thread)
-      return _boxResult(pipeline, resultData, data.timestamps);
+      return _boxResult(script, resultData, data.timestamps);
     } catch (e, stack) {
       if (e is AnalysisException) rethrow;
       // ignore: avoid_print
@@ -193,26 +193,26 @@ class WasmAnalysisService implements IWasmAnalysisService {
   }
 
   AnalysisOutput _boxResult(
-    AnalysisPipelineModel pipeline,
+    AnalysisScriptModel script,
     dynamic resultData,
     List<DateTime> inputTimestamps,
   ) {
     if (resultData is! List) resultData = [resultData];
     final listData = resultData;
 
-    switch (pipeline.outputMode) {
+    switch (script.outputMode) {
       case AnalysisOutputMode.scalar:
         final scalars = listData.map((item) {
           if (item is Map) {
             return AnalysisScalar(
-              label: item['label']?.toString() ?? pipeline.name,
+              label: item['label']?.toString() ?? script.name,
               value: _parseSafeDouble(item['value']),
               unit: item['unit']?.toString(),
             );
           } else if (item is num || item is String) {
             // Handle raw numbers or special strings ("Infinity", "NaN")
             return AnalysisScalar(
-              label: pipeline.name,
+              label: script.name,
               value: _parseSafeDouble(item),
             );
           }
@@ -225,7 +225,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
           if (item is Map) {
             final rawValues = item['values'] as List;
             return AnalysisVector(
-              label: item['label']?.toString() ?? pipeline.name,
+              label: item['label']?.toString() ?? script.name,
               values: rawValues.map((v) => _parseSafeDouble(v)).toList(),
             );
           }
@@ -243,7 +243,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
                   ?.map((v) => _parseSafeDouble(v))
                   .toList() ??
               [];
-          final label = map['label']?.toString() ?? pipeline.name;
+          final label = map['label']?.toString() ?? script.name;
 
           List<DateTime> outputTimestamps;
           if (map.containsKey('timestamps')) {

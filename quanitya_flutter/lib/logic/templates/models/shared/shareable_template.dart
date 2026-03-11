@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'tracker_template.dart';
 import 'template_aesthetics.dart';
-import '../../../analytics/models/analysis_pipeline.dart';
+import '../../../analytics/models/analysis_script.dart';
 
 part 'shareable_template.freezed.dart';
 part 'shareable_template.g.dart';
@@ -9,7 +9,7 @@ part 'shareable_template.g.dart';
 /// Shareable template format for decentralized template sharing.
 ///
 /// This model wraps a TrackerTemplate with optional aesthetics and analysis
-/// pipelines for sharing via GitHub Gists, repositories, or direct URLs.
+/// scripts for sharing via GitHub Gists, repositories, or direct URLs.
 /// 
 /// All templates are MIT licensed by default.
 @freezed
@@ -28,7 +28,7 @@ class ShareableTemplate with _$ShareableTemplate {
     TemplateAestheticsModel? aesthetics,
     
     /// Analysis configurations (OPTIONAL - charts, insights, aggregations)
-    List<AnalysisPipelineModel>? analysisPipelines,
+    List<AnalysisScriptModel>? analysisScripts,
     
     /// Optional template description for sharing
     String? description,
@@ -46,7 +46,7 @@ class ShareableTemplate with _$ShareableTemplate {
     required AuthorCredit author,
     required TrackerTemplateModel template,
     TemplateAestheticsModel? aesthetics,
-    List<AnalysisPipelineModel>? analysisPipelines,
+    List<AnalysisScriptModel>? analysisScripts,
     String? description,
   }) {
     return ShareableTemplate(
@@ -54,7 +54,7 @@ class ShareableTemplate with _$ShareableTemplate {
       author: author,
       template: template,
       aesthetics: aesthetics,
-      analysisPipelines: analysisPipelines,
+      analysisScripts: analysisScripts,
       description: description,
       createdAt: DateTime.now(),
     );

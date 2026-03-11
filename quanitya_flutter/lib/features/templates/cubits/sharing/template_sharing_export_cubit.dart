@@ -19,14 +19,14 @@ class TemplateSharingExportCubit
   TemplateSharingExportCubit(this._exportService)
       : super(const TemplateSharingExportState());
 
-  /// Load available analysis pipelines for a template field.
-  Future<void> loadAvailablePipelines(String fieldId) async {
+  /// Load available analysis scripts for a template field.
+  Future<void> loadAvailableScripts(String fieldId) async {
     await tryOperation(() async {
-      final pipelines = await _exportService.getAvailablePipelines(fieldId);
+      final scripts = await _exportService.getAvailableScripts(fieldId);
       return state.copyWith(
         status: UiFlowStatus.success,
-        lastOperation: TemplateSharingExportOperation.loadPipelines,
-        availablePipelines: pipelines,
+        lastOperation: TemplateSharingExportOperation.loadScripts,
+        availableScripts: scripts,
       );
     }, emitLoading: true);
   }
@@ -36,7 +36,7 @@ class TemplateSharingExportCubit
     required TemplateWithAesthetics templateWithAesthetics,
     required AuthorCredit author,
     String? description,
-    List<String>? pipelineIds,
+    List<String>? scriptIds,
   }) async {
     // Phase 1: Prepare export data under loading overlay
     late final String jsonString;
@@ -46,7 +46,7 @@ class TemplateSharingExportCubit
         templateWithAesthetics: templateWithAesthetics,
         author: author,
         description: description,
-        includedPipelineIds: pipelineIds,
+        includedScriptIds: scriptIds,
       );
 
       filename =

@@ -106,7 +106,7 @@ void main() {
 
     group('Property 8: Repository bulkInsert persists entries', () {
       test(
-        '**Feature: data-ingestion-pipeline, Property 8: Repository bulkInsert persists entries** - '
+        '**Feature: data-ingestion-script, Property 8: Repository bulkInsert persists entries** - '
         '**Validates: Requirements 9.2**',
         () async {
           for (int i = 0; i < kPropertyTestIterations; i++) {

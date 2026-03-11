@@ -8,7 +8,7 @@ part 'template_sharing_export_state.freezed.dart';
 /// Operations for template sharing export
 enum TemplateSharingExportOperation {
   export,
-  loadPipelines,
+  loadScripts,
 }
 
 /// Result of a share sheet interaction
@@ -28,7 +28,7 @@ class TemplateSharingExportState
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,
     TemplateSharingExportOperation? lastOperation,
-    @Default([]) List<AnalysisPipelineInfo> availablePipelines,
+    @Default([]) List<AnalysisScriptInfo> availableScripts,
     TemplateShareResult? shareResult,
     String? exportedJson,
   }) = _TemplateSharingExportState;

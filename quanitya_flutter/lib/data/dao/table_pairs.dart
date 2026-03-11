@@ -35,13 +35,13 @@ class TablePairs {
       encryptedTableName: 'encrypted_schedules',
     );
   
-  /// AnalysisPipeline table pairing
-  /// Links analysis_pipelines ↔ encrypted_analysis_pipelines
-  static TablePair<AnalysisPipeline, EncryptedAnalysisPipeline> analysisPipeline(AppDatabase db) =>
-    TablePair<AnalysisPipeline, EncryptedAnalysisPipeline>(
-      localTable: db.analysisPipelines,
-      encryptedTable: db.encryptedAnalysisPipelines,
-      encryptedTableName: 'encrypted_analysis_pipelines',
+  /// AnalysisScript table pairing
+  /// Links analysis_scripts ↔ encrypted_analysis_scripts
+  static TablePair<AnalysisScript, EncryptedAnalysisScript> analysisScript(AppDatabase db) =>
+    TablePair<AnalysisScript, EncryptedAnalysisScript>(
+      localTable: db.analysisScripts,
+      encryptedTable: db.encryptedAnalysisScripts,
+      encryptedTableName: 'encrypted_analysis_scripts',
     );
   
   // Private constructor to prevent instantiation

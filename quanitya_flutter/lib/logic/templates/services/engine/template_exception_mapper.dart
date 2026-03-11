@@ -85,7 +85,7 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
         },
       ),
 
-      // Integration pipeline specific stages
+      // Integration script specific stages
       GenerationStage.combinationGeneration => MessageKey.error(
         L10nKeys.templateIntegrationCombinationGenerationFailed,
         {
@@ -110,8 +110,8 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
         },
       ),
 
-      GenerationStage.pipelineOrchestration => MessageKey.error(
-        L10nKeys.templateIntegrationPipelineOrchestrationFailed,
+      GenerationStage.scriptOrchestration => MessageKey.error(
+        L10nKeys.templateIntegrationScriptOrchestrationFailed,
         {
           'reason': exception.message,
           'suggestions': [

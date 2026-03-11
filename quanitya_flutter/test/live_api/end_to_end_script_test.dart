@@ -9,10 +9,10 @@ import 'package:quanitya_flutter/logic/templates/services/engine/unified_schema_
 
 import 'live_api_test_helper.dart';
 
-/// End-to-End Pipeline Test.
+/// End-to-End Script Test.
 /// Skipped automatically if GEMINI_API_KEY is not found in .env
 void main() {
-  group('End-to-End Pipeline Test', () {
+  group('End-to-End Script Test', () {
     String? geminiApiKey;
     AiTemplateGenerator? aiGenerator;
     LlmService? llmService;
@@ -28,14 +28,14 @@ void main() {
       
       // geminiApiKey = LiveApiTestHelper.geminiApiKey;
       
-      // Initialize the complete pipeline (simplified - no WidgetTemplateGenerator)
+      // Initialize the complete script (simplified - no WidgetTemplateGenerator)
       final combinationGenerator = SymbolicCombinationGenerator();
       final unifiedSchemaGenerator = UnifiedSchemaGenerator();
       aiGenerator = AiTemplateGenerator(combinationGenerator, unifiedSchemaGenerator);
       llmService = LlmService(http.Client(), Client('http://localhost:8080/'));
     });
 
-    test('Pipeline Test - Multiple User Prompts', () async {
+    test('Script Test - Multiple User Prompts', () async {
       if (shouldSkip || aiGenerator == null) {
         markTestSkipped(LiveApiTestHelper.skipGeminiMessage);
         return;

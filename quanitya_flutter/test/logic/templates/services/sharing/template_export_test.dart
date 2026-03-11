@@ -13,7 +13,7 @@ void main() {
     late TemplateExportService exportService;
 
     setUp(() {
-      exportService = TemplateExportService(null); // No analysis pipeline repository for basic test
+      exportService = TemplateExportService(null); // No analysis script repository for basic test
     });
 
     test('should create shareable template model', () {

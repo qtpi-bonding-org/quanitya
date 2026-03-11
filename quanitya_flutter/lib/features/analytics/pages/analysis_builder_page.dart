@@ -30,7 +30,7 @@ import '../../../support/extensions/context_extensions.dart';
 import '../../app_operating_mode/cubits/app_operating_cubit.dart';
 import '../../app_operating_mode/models/app_operating_mode.dart';
 
-/// Analysis pipeline builder — write or AI-generate JavaScript analysis code.
+/// Analysis script builder — write or AI-generate JavaScript analysis code.
 class AnalysisBuilderPage extends StatefulWidget {
   final String fieldId;
   final String? templateId;
@@ -124,12 +124,12 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
             ),
           ),
 
-          // New pipeline button
+          // New script button
           Padding(
             padding: AppPadding.pageHorizontal,
             child: QuanityaTextButton(
               text: '+ New',
-              onPressed: () => cubit.newPipeline(),
+              onPressed: () => cubit.newScript(),
             ),
           ),
           VSpace.x1,
@@ -148,24 +148,24 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
           ),
           VSpace.x2,
 
-          // Pipeline selector — PenCircledChips in a wrapping row
-          if (state.availablePipelines.isNotEmpty) ...[
+          // Script selector — PenCircledChips in a wrapping row
+          if (state.availableScripts.isNotEmpty) ...[
             Padding(
               padding: AppPadding.pageHorizontal,
               child: Wrap(
                 spacing: AppSizes.space,
                 runSpacing: AppSizes.space,
-                children: state.availablePipelines.map((p) => PenCircledChip(
+                children: state.availableScripts.map((p) => PenCircledChip(
                       label: p.name,
-                      isSelected: p.id == state.selectedPipelineId,
-                      onTap: () => cubit.selectPipeline(p.id),
+                      isSelected: p.id == state.selectedScriptId,
+                      onTap: () => cubit.selectScript(p.id),
                     )).toList(),
               ),
             ),
             VSpace.x2,
           ],
 
-          // Reasoning (from AI or saved pipeline)
+          // Reasoning (from AI or saved script)
           if (state.reasoning.isNotEmpty) ...[
             Padding(
               padding: AppPadding.pageHorizontal,
@@ -225,7 +225,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
                 if (state.snippet.isNotEmpty) ...[
                   QuanityaTextButton(
                     text: 'Run',
-                    onPressed: () => cubit.runPipeline(),
+                    onPressed: () => cubit.runScript(),
                   ),
                   HSpace.x2,
                   QuanityaTextButton(
@@ -306,7 +306,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
     setState(() => _isGenerating = true);
 
     try {
-      await cubit.generateAndApplyAiPipeline(
+      await cubit.generateAndApplyAiScript(
         fieldId: state.fieldId ?? widget.fieldId,
         userIntent: prompt,
         llmConfig: config,
@@ -324,11 +324,11 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
   ) {
     LooseInsertSheet.show<String>(
       context: context,
-      title: 'Save Pipeline',
-      builder: (_) => _SavePipelineForm(
+      title: 'Save Script',
+      builder: (_) => _SaveScriptForm(
         onSave: (name) {
           Navigator.of(context).pop();
-          cubit.savePipeline(name);
+          cubit.saveScript(name);
         },
       ),
     );
@@ -409,15 +409,15 @@ class _AnalysisResultDisplay extends StatelessWidget {
 
 }
 
-class _SavePipelineForm extends StatefulWidget {
+class _SaveScriptForm extends StatefulWidget {
   final ValueChanged<String> onSave;
-  const _SavePipelineForm({required this.onSave});
+  const _SaveScriptForm({required this.onSave});
 
   @override
-  State<_SavePipelineForm> createState() => _SavePipelineFormState();
+  State<_SaveScriptForm> createState() => _SaveScriptFormState();
 }
 
-class _SavePipelineFormState extends State<_SavePipelineForm> {
+class _SaveScriptFormState extends State<_SaveScriptForm> {
   final _controller = TextEditingController();
 
   @override
@@ -440,7 +440,7 @@ class _SavePipelineFormState extends State<_SavePipelineForm> {
       children: [
         QuanityaTextField(
           controller: _controller,
-          hintText: 'Pipeline name...',
+          hintText: 'Script name...',
           autofocus: true,
           onSubmitted: (_) => _submit(),
         ),

@@ -3,9 +3,9 @@
 import 'dart:convert';
 
 void main() {
-  print('🔍 Showing the translated schema from standalone pipeline...');
+  print('🔍 Showing the translated schema from standalone script...');
   
-  // This is the simplified schema from the standalone pipeline
+  // This is the simplified schema from the standalone script
   final originalSchema = {
     '\$schema': 'http://json-schema.org/draft-07/schema#',
     'type': 'object',

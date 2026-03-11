@@ -34,7 +34,7 @@ void main() {
       expect(names, contains('log_entries'));
       expect(names, contains('schedules'));
       expect(names, contains('template_aesthetics'));
-      expect(names, contains('analysis_pipelines'));
+      expect(names, contains('analysis_scripts'));
       expect(names, contains('api_keys'));
       expect(names, contains('webhooks'));
       expect(names, contains('notifications'));

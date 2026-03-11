@@ -40,7 +40,7 @@ void main() {
       testGetIt.reset();
     });
 
-    group('Schema Generation Pipeline', () {
+    group('Schema Generation Script', () {
       test('generateSchema() produces valid JSON Schema', () {
         final schema = generator.generateSchema();
         

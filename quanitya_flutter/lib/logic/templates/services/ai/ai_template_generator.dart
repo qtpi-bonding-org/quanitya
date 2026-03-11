@@ -7,13 +7,13 @@ import '../../exceptions/template_generation_exception.dart';
 import '../engine/unified_schema_generator.dart';
 import '../engine/symbolic_combination_generator.dart';
 
-/// Main service that orchestrates the complete AI template generation pipeline.
+/// Main service that orchestrates the complete AI template generation script.
 ///
 /// Provides a simple public API for generating AI constraint schemas.
 /// Uses the simplified direct enum processing approach that eliminates
 /// intermediate WidgetTemplateGenerator objects.
 ///
-/// SIMPLIFIED PIPELINE:
+/// SIMPLIFIED SCRIPT:
 /// ```
 /// SymbolicCombinationGenerator → UnifiedSchemaGenerator
 ///         ↓                              ↓
@@ -37,9 +37,9 @@ class AiTemplateGenerator {
     this._unifiedSchemaGenerator,
   );
 
-  /// Generates complete JSON Schema for AI constraints using simplified pipeline.
+  /// Generates complete JSON Schema for AI constraints using simplified script.
   ///
-  /// Orchestrates the enum combination → schema pipeline to create
+  /// Orchestrates the enum combination → schema script to create
   /// a comprehensive JSON Schema that includes field schemas, color palette
   /// constraints, and font configuration constraints.
   ///
@@ -49,7 +49,7 @@ class AiTemplateGenerator {
   ///
   /// Returns a complete JSON Schema suitable for AI template generation.
   ///
-  /// Throws [TemplateGenerationException] if any step in the pipeline fails.
+  /// Throws [TemplateGenerationException] if any step in the script fails.
   ///
   /// Example:
   /// ```dart
@@ -67,7 +67,7 @@ class AiTemplateGenerator {
 
       return schema;
     } catch (e, stackTrace) {
-      throw TemplateGenerationException.pipelineOrchestration(
+      throw TemplateGenerationException.scriptOrchestration(
         'Failed to generate complete schema: ${e.toString()}',
         originalException: e,
         context: {

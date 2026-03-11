@@ -1,7 +1,7 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
 
-import '../../../data/interfaces/analysis_pipeline_interface.dart';
+import '../../../data/interfaces/analysis_script_interface.dart';
 import '../../../data/repositories/data_retrieval_service.dart';
 import '../../../logic/analytics/services/analysis_engine.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
@@ -13,12 +13,12 @@ export 'visualization_state.dart';
 @injectable
 class VisualizationCubit extends QuanityaCubit<VisualizationState> {
   final DataRetrievalService _dataRepo;
-  final IAnalysisPipelineRepository _pipelineRepo;
+  final IAnalysisScriptRepository _scriptRepo;
   final AnalysisEngine _analysisEngine;
 
   VisualizationCubit(
     this._dataRepo,
-    this._pipelineRepo,
+    this._scriptRepo,
     this._analysisEngine,
   ) : super(const VisualizationState());
 
@@ -36,26 +36,24 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
       final loggedDays = data.loggedDates.length;
       final consistencyRate = totalDays > 0 ? loggedDays / totalDays : 0.0;
 
-      // Load and execute analysis pipelines for this template's fields
-      // Pipeline fieldIds use "templateId:fieldLabel" format
-      // Load pipelines for this template
-      // Pipeline fieldIds use "templateId:fieldLabel" format
-      final pipelines = await _pipelineRepo.getAllPipelines();
-      final relevantPipelines = pipelines.where(
-        (p) => p.fieldId.startsWith('$templateId:'),
+      // Load and execute analysis scripts for this template's fields
+      // Script fieldIds use "templateId:fieldLabel" format
+      final scripts = await _scriptRepo.getAllScripts();
+      final relevantScripts = scripts.where(
+        (s) => s.fieldId.startsWith('$templateId:'),
       ).toList();
 
       final analysisResults = <String, dynamic>{};
-      for (final pipeline in relevantPipelines) {
+      for (final script in relevantScripts) {
         try {
-          final result = await _analysisEngine.execute(pipeline);
-          analysisResults[pipeline.id] = {
-            'pipeline': pipeline,
+          final result = await _analysisEngine.execute(script);
+          analysisResults[script.id] = {
+            'script': script,
             'result': result,
           };
         } catch (e) {
-          // Log error but continue with other pipelines
-          print('Failed to execute pipeline ${pipeline.name}: $e');
+          // Log error but continue with other scripts
+          print('Failed to execute script ${script.name}: $e');
         }
       }
 

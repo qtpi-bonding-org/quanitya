@@ -102,12 +102,12 @@ class TemplateGenerationException implements Exception {
     );
   }
   
-  /// Creates a generation exception for pipeline orchestration failures
-  factory TemplateGenerationException.pipelineOrchestration(String reason, {Object? originalException, Map<String, dynamic>? context}) {
+  /// Creates a generation exception for script orchestration failures
+  factory TemplateGenerationException.scriptOrchestration(String reason, {Object? originalException, Map<String, dynamic>? context}) {
     return TemplateGenerationException(
-      'Pipeline orchestration failed: $reason',
+      'Script orchestration failed: $reason',
       originalException: originalException,
-      stage: GenerationStage.pipelineOrchestration,
+      stage: GenerationStage.scriptOrchestration,
       context: context ?? {},
     );
   }
@@ -143,9 +143,9 @@ enum GenerationStage {
   schemaValidation,
   optimization,
   postProcessing,
-  // Integration pipeline specific stages
+  // Integration script specific stages
   combinationGeneration,
   widgetGeneration,
   schemaConversion,
-  pipelineOrchestration,
+  scriptOrchestration,
 }

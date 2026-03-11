@@ -477,7 +477,7 @@ class _AnalysisFieldSelector extends StatelessWidget {
             ),
             VSpace.x1,
             Text(
-              'Select a numeric field to create analysis pipelines',
+              'Select a numeric field to create analysis scripts',
               style: context.text.bodyMedium?.copyWith(
                 color: palette.textSecondary,
               ),
@@ -543,7 +543,7 @@ class _FieldAnalysisOption extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
           onTap: () {
             Navigator.pop(context);
-            // Navigate to pipeline builder with this field
+            // Navigate to script builder with this field
             AppNavigation.toAnalysisBuilder(
               context,
               fieldId: fieldData.field.id,
@@ -634,19 +634,19 @@ class _AnalysisResultsSection extends StatelessWidget {
         ),
         VSpace.x1,
         Text(
-          'WASM-powered JavaScript analysis pipelines',
+          'WASM-powered JavaScript analysis scripts',
           style: context.text.bodyMedium?.copyWith(
             color: palette.textSecondary,
           ),
         ),
         VSpace.x3,
         ...analysisResults.entries.map((entry) {
-          final pipelineData = entry.value as Map<String, dynamic>;
-          final pipeline = pipelineData['pipeline'];
-          final result = pipelineData['result'];
-          
+          final scriptData = entry.value as Map<String, dynamic>;
+          final script = scriptData['script'];
+          final result = scriptData['result'];
+
           return _AnalysisResultCard(
-            pipeline: pipeline,
+            script: script,
             result: result,
           );
         }),
@@ -657,11 +657,11 @@ class _AnalysisResultsSection extends StatelessWidget {
 
 /// Individual analysis result card
 class _AnalysisResultCard extends StatelessWidget {
-  final dynamic pipeline;
+  final dynamic script;
   final dynamic result;
 
   const _AnalysisResultCard({
-    required this.pipeline,
+    required this.script,
     required this.result,
   });
 
@@ -687,20 +687,20 @@ class _AnalysisResultCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  pipeline.name,
+                  script.name,
                   style: context.text.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: palette.textPrimary,
                   ),
                 ),
               ),
-              _OutputModeChip(mode: pipeline.outputMode),
+              _OutputModeChip(mode: script.outputMode),
             ],
           ),
-          if (pipeline.reasoning != null) ...[
+          if (script.reasoning != null) ...[
             VSpace.x05,
             Text(
-              pipeline.reasoning,
+              script.reasoning,
               style: context.text.bodySmall?.copyWith(
                 color: palette.textSecondary,
               ),

@@ -28,7 +28,7 @@ void main() {
       
       geminiApiKey = LiveApiTestHelper.geminiApiKey;
       
-      // Set up dependency injection (simplified pipeline)
+      // Set up dependency injection (simplified script)
       testGetIt = GetIt.asNewInstance();
       
       // Register core services

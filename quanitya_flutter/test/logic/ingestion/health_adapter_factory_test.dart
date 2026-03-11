@@ -15,7 +15,7 @@ void main() {
 
     group('Property 7: HealthAdapterFactory generates valid adapters', () {
       test(
-        '**Feature: data-ingestion-pipeline, Property 7: HealthAdapterFactory generates valid adapters** - '
+        '**Feature: data-ingestion-script, Property 7: HealthAdapterFactory generates valid adapters** - '
         '**Validates: Requirements 8.1, 8.2, 8.3**',
         () {
           // Test all HealthDataType values

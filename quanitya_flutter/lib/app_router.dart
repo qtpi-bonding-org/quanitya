@@ -307,8 +307,8 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: AppRoutes.pipelineBuilder,
-            name: RouteNames.pipelineBuilder,
+            path: AppRoutes.scriptBuilder,
+            name: RouteNames.scriptBuilder,
             builder: (context, state) {
               final params = state.extra as Map<String, dynamic>?;
               final fieldId = params?['fieldId'] as String? ?? 'demo-field';
@@ -362,7 +362,7 @@ class AppRoutes {
   static const String outbox = '/outbox';
   static const String notificationInbox = '/notification-inbox';
   static const String connectDevice = '/connect-device';
-  static const String pipelineBuilder = '/pipeline-builder';
+  static const String scriptBuilder = '/script-builder';
   static const String purchase = '/purchase';
   static const String templateList = '/templates';
   static const String templateImport = '/template-import';
@@ -394,7 +394,7 @@ class RouteNames {
   static const String outbox = 'outbox';
   static const String notificationInbox = 'notificationInbox';
   static const String connectDevice = 'connectDevice';
-  static const String pipelineBuilder = 'pipelineBuilder';
+  static const String scriptBuilder = 'scriptBuilder';
   static const String purchase = 'purchase';
   static const String templateList = 'templateList';
   static const String templateImport = 'templateImport';
@@ -523,7 +523,7 @@ class AppNavigation {
 
   static void toAnalysisBuilder(BuildContext context, {String? fieldId, String? templateId}) {
     context.pushNamed(
-      RouteNames.pipelineBuilder,
+      RouteNames.scriptBuilder,
       extra: {
         'fieldId': fieldId ?? 'demo-field',
         'templateId': templateId,

@@ -5,7 +5,7 @@ import '../models/matrix_vector_scalar/analysis_data_type.dart';
 import '../../../infrastructure/core/try_operation.dart';
 import '../exceptions/analysis_exceptions.dart';
 
-/// Service for gathering field context for AI pipeline suggestions
+/// Service for gathering field context for AI script suggestions
 @injectable
 class FieldContextService {
   const FieldContextService();
@@ -17,7 +17,7 @@ class FieldContextService {
   }) {
     return tryMethod(
       () async {
-        // Using mock data for AI pipeline suggestions
+        // Using mock data for AI script suggestions
         // This provides field context to help AI suggest relevant operations
         final field = await _getFieldInfo(templateId, fieldId);
         final sampleData = await _getSampleData(templateId, fieldId, limit: 3);

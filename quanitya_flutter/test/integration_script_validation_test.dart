@@ -5,7 +5,7 @@ import 'package:quanitya_flutter/logic/templates/services/ai/ai_template_generat
 import 'package:quanitya_flutter/logic/templates/services/engine/unified_schema_generator.dart';
 
 void main() {
-  group('Integration Pipeline Validation', () {
+  group('Integration Script Validation', () {
     test('End-to-end validation: SymbolicCombinationGenerator → UnifiedSchemaGenerator → AiTemplateGenerator', () {
       // Step 1: Generate all valid combinations from the source of truth
       final symbolGenerator = SymbolicCombinationGenerator();
@@ -27,12 +27,12 @@ void main() {
       expect(completeSchema['\$schema'], equals('http://json-schema.org/draft-07/schema#'));
       expect(completeSchema['properties'], isA<Map<String, dynamic>>());
       
-      // Step 3: Verify AiTemplateGenerator orchestrates the entire pipeline
+      // Step 3: Verify AiTemplateGenerator orchestrates the entire script
       final aiTemplateGenerator = AiTemplateGenerator(symbolGenerator, unifiedSchemaGenerator);
       expect(
         () => aiTemplateGenerator.generateSchema(),
         returnsNormally,
-        reason: 'AiTemplateGenerator should orchestrate the complete pipeline',
+        reason: 'AiTemplateGenerator should orchestrate the complete script',
       );
       
       final finalSchema = aiTemplateGenerator.generateSchema();

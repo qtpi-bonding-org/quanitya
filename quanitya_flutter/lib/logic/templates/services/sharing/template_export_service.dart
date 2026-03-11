@@ -2,40 +2,40 @@ import 'dart:convert';
 import 'package:injectable/injectable.dart';
 
 import '../../models/shared/shareable_template.dart';
-import '../../../analytics/models/analysis_pipeline.dart';
+import '../../../analytics/models/analysis_script.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
-import '../../../../data/interfaces/analysis_pipeline_interface.dart';
+import '../../../../data/interfaces/analysis_script_interface.dart';
 
 /// Service for exporting templates to shareable JSON format.
 ///
-/// Converts TemplateWithAesthetics + analysis pipelines to ShareableTemplate
+/// Converts TemplateWithAesthetics + analysis scripts to ShareableTemplate
 /// format suitable for sharing via GitHub Gists, repositories, or direct URLs.
 @injectable
 class TemplateExportService {
-  final IAnalysisPipelineRepository? _pipelineRepository;
+  final IAnalysisScriptRepository? _scriptRepository;
 
-  TemplateExportService(this._pipelineRepository);
+  TemplateExportService(this._scriptRepository);
 
-  /// Export a template with optional aesthetics and analysis pipelines.
+  /// Export a template with optional aesthetics and analysis scripts.
   ///
   /// [templateWithAesthetics] - The template and aesthetics to export
   /// [author] - Author attribution information
   /// [description] - Optional description for the shared template
-  /// [includedPipelineIds] - Optional list of analysis pipeline IDs to include
+  /// [includedScriptIds] - Optional list of analysis script IDs to include
   ///
   /// Returns JSON string ready for sharing.
   Future<String> exportTemplate({
     required TemplateWithAesthetics templateWithAesthetics,
     required AuthorCredit author,
     String? description,
-    List<String>? includedPipelineIds,
+    List<String>? includedScriptIds,
   }) async {
-    // Load analysis pipelines if requested and repository is available
-    List<AnalysisPipelineModel>? analysisPipelines;
-    if (includedPipelineIds != null &&
-        includedPipelineIds.isNotEmpty &&
-        _pipelineRepository != null) {
-      analysisPipelines = await _loadAnalysisPipelines(includedPipelineIds);
+    // Load analysis scripts if requested and repository is available
+    List<AnalysisScriptModel>? analysisScripts;
+    if (includedScriptIds != null &&
+        includedScriptIds.isNotEmpty &&
+        _scriptRepository != null) {
+      analysisScripts = await _loadAnalysisScripts(includedScriptIds);
     }
 
     // Create shareable template - no sanitization needed, data is already valid
@@ -44,7 +44,7 @@ class TemplateExportService {
       template: templateWithAesthetics.template,
       aesthetics: templateWithAesthetics
           .aesthetics, // Always present in TemplateWithAesthetics
-      analysisPipelines: analysisPipelines,
+      analysisScripts: analysisScripts,
       description: description?.trim(),
     );
 
@@ -53,45 +53,45 @@ class TemplateExportService {
     return const JsonEncoder.withIndent('  ').convert(jsonMap);
   }
 
-  /// Load analysis pipelines by IDs.
-  Future<List<AnalysisPipelineModel>> _loadAnalysisPipelines(
-    List<String> pipelineIds,
+  /// Load analysis scripts by IDs.
+  Future<List<AnalysisScriptModel>> _loadAnalysisScripts(
+    List<String> scriptIds,
   ) async {
-    if (_pipelineRepository == null) return [];
+    if (_scriptRepository == null) return [];
 
-    final pipelines = <AnalysisPipelineModel>[];
+    final scripts = <AnalysisScriptModel>[];
 
-    for (final pipelineId in pipelineIds) {
+    for (final scriptId in scriptIds) {
       try {
-        final pipeline = await _pipelineRepository.getPipeline(pipelineId);
-        if (pipeline != null) {
-          pipelines.add(pipeline);
+        final script = await _scriptRepository.getScript(scriptId);
+        if (script != null) {
+          scripts.add(script);
         }
       } catch (e) {
-        // Skip invalid pipelines, don't fail the entire export
+        // Skip invalid scripts, don't fail the entire export
         continue;
       }
     }
 
-    return pipelines;
+    return scripts;
   }
 
-  /// Get available analysis pipelines for a template.
+  /// Get available analysis scripts for a template.
   ///
-  /// Returns list of pipeline IDs and names for selection UI.
-  Future<List<AnalysisPipelineInfo>> getAvailablePipelines(
+  /// Returns list of script IDs and names for selection UI.
+  Future<List<AnalysisScriptInfo>> getAvailableScripts(
     String fieldId,
   ) async {
-    if (_pipelineRepository == null) return [];
+    if (_scriptRepository == null) return [];
 
     try {
-      final pipelines = await _pipelineRepository.getPipelinesForField(fieldId);
-      return pipelines
+      final scripts = await _scriptRepository.getScriptsForField(fieldId);
+      return scripts
           .map(
-            (p) => AnalysisPipelineInfo(
+            (p) => AnalysisScriptInfo(
               id: p.id,
               name: p.name,
-              description: 'Analysis pipeline for ${p.fieldId}',
+              description: 'Analysis script for ${p.fieldId}',
             ),
           )
           .toList();
@@ -101,13 +101,13 @@ class TemplateExportService {
   }
 }
 
-/// Information about an available analysis pipeline for export selection.
-class AnalysisPipelineInfo {
+/// Information about an available analysis script for export selection.
+class AnalysisScriptInfo {
   final String id;
   final String name;
   final String? description;
 
-  const AnalysisPipelineInfo({
+  const AnalysisScriptInfo({
     required this.id,
     required this.name,
     this.description,

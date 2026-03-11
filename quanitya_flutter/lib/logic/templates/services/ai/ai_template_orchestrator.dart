@@ -9,7 +9,7 @@ import 'ai_template_generator.dart';
 
 /// AI orchestrator for generating tracker templates using structured output.
 ///
-/// This orchestrator manages the complete template generation pipeline:
+/// This orchestrator manages the complete template generation script:
 /// 1. Generates JSON schema for template structure
 /// 2. Builds system prompt with template creation guidelines
 /// 3. Calls LLM with user's description

@@ -6,7 +6,7 @@ import 'package:quanitya_flutter/infrastructure/llm/services/schema_translator.d
 import 'live_api_test_helper.dart';
 
 void main() {
-  group('Simplified Pipeline: Schema Translation → Gemini API', () {
+  group('Simplified Script: Schema Translation → Gemini API', () {
     String? geminiApiKey;
     bool hasApiKey = false;
 
@@ -19,7 +19,7 @@ void main() {
       geminiApiKey = LiveApiTestHelper.geminiApiKey;
     });
 
-    test('Core Pipeline with Real Schema Features', () async {
+    test('Core Script with Real Schema Features', () async {
       // STEP 1: Create a realistic schema with unsupported Gemini features
       final originalSchema = {
         'type': 'object',

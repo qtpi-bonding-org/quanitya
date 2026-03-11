@@ -81,7 +81,7 @@ class DevToolsSheet extends StatelessWidget {
             ),
             VSpace.x2,
 
-            // Seed test analysis pipelines
+            // Seed test analysis scripts
             _DevToolRow(
               label: 'Seed Test JS Analysis',
               child: _DevSeedAnalysisButton(),
@@ -149,7 +149,7 @@ class DevToolsSheet extends StatelessWidget {
                 _NavChip(label: 'Settings', route: AppRoutes.settings),
                 _NavChip(label: 'Template Editor', route: AppRoutes.templateEditor),
                 _NavChip(label: 'Visualization', route: AppRoutes.visualization),
-                _NavChip(label: 'Pipeline Builder', route: AppRoutes.pipelineBuilder),
+                _NavChip(label: 'Script Builder', route: AppRoutes.scriptBuilder),
               ],
             ),
             VSpace.x4,
@@ -215,7 +215,7 @@ class _NavChip extends StatelessWidget {
         AppNavigation.toTemplateGenerator(context);
       case AppRoutes.visualization:
         AppNavigation.toVisualization(context);
-      case AppRoutes.pipelineBuilder:
+      case AppRoutes.scriptBuilder:
         AppNavigation.toAnalysisBuilder(context);
       default:
         context.go(route);
@@ -554,13 +554,13 @@ class _DevSeedAnalysisButtonState extends State<_DevSeedAnalysisButton> {
       onPressed: () async {
         setState(() => _isLoading = true);
         try {
-          await _seedTestAnalysisPipelines();
+          await _seedTestAnalysisScripts();
           
           if (mounted) {
             final feedbackService = GetIt.instance<cubit_ui_flow.IFeedbackService>();
             feedbackService.show(
               cubit_ui_flow.FeedbackMessage(
-                message: 'Seeded 3 test JS analysis pipelines',
+                message: 'Seeded 3 test JS analysis scripts',
                 type: cubit_ui_flow.MessageType.success,
               ),
             );
@@ -582,9 +582,9 @@ class _DevSeedAnalysisButtonState extends State<_DevSeedAnalysisButton> {
     );
   }
 
-  Future<void> _seedTestAnalysisPipelines() async {
+  Future<void> _seedTestAnalysisScripts() async {
     final seeder = GetIt.instance<DevSeederService>();
-    await seeder.seedAnalysisPipelines();
+    await seeder.seedAnalysisScripts();
   }
 }
 

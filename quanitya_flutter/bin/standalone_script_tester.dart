@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 void main() async {
-  print('🚀 COMPLETE PIPELINE TESTER: Foundation Enums → Schema → Translation → Gemini');
+  print('🚀 COMPLETE SCRIPT TESTER: Foundation Enums → Schema → Translation → Gemini');
   print('=' * 80);
   
   try {
@@ -65,16 +65,16 @@ void main() async {
     // STEP 3: Interactive testing
     print('\n🎮 STEP 3: Interactive Testing Mode');
     print('-' * 60);
-    print('🚀 Complete Pipeline Ready: Foundation Enums → Schema → Translation → Gemini API');
-    print('\nTest the full pipeline with your prompts!');
-    print('The pipeline will:');
+    print('🚀 Complete Script Ready: Foundation Enums → Schema → Translation → Gemini API');
+    print('\nTest the full script with your prompts!');
+    print('The script will:');
     print('  📋 Use schema generated from your foundation enums');
     print('  🔄 Automatically translate unsupported features for Gemini');
     print('  🌐 Call Gemini API with translated schema');
     print('  ✅ Validate that Gemini respects field combinations and constraints');
     
     print('\nCommands:');
-    print('  - Enter your prompt to test the complete pipeline');
+    print('  - Enter your prompt to test the complete script');
     print('  - "schema" to see the original schema from foundation enums');
     print('  - "translated" to see the Gemini-translated schema');
     print('  - "quit" to exit');
@@ -111,30 +111,30 @@ void main() async {
       }
       
       try {
-        print('\n🚀 EXECUTING COMPLETE PIPELINE...');
+        print('\n🚀 EXECUTING COMPLETE SCRIPT...');
         print('  📋 Foundation Enums → Schema Generation ✅');
         print('  🔄 Schema Translation for Gemini ✅');
         print('  🌐 Calling Gemini API with translated schema...');
         
-        final response = await _callCompleteGeminiPipeline(
+        final response = await _callCompleteGeminiScript(
           geminiApiKey,
           userInput,
           translatedSchema,
         );
         
-        print('\n📥 GEMINI RESPONSE (Complete Pipeline):');
+        print('\n📥 GEMINI RESPONSE (Complete Script):');
         print('=' * 80);
         print(JsonEncoder.withIndent('  ').convert(response));
         print('=' * 80);
         
-        print('\n📊 PIPELINE VALIDATION:');
+        print('\n📊 SCRIPT VALIDATION:');
         _validateCompleteResponse(response, originalSchema);
         
-        print('\n✅ Complete pipeline executed successfully!');
+        print('\n✅ Complete script executed successfully!');
         print('🔗 Foundation Enums → Schema → Translation → Gemini API ✅');
         
       } catch (e) {
-        print('❌ Pipeline Error: $e');
+        print('❌ Script Error: $e');
         print('🔧 Check your .env file and internet connection');
       }
     }
@@ -373,7 +373,7 @@ String _enhanceDescriptionWithOneOf(String? description, List oneOfList) {
 }
 
 /// Call Gemini API with the complete translated schema
-Future<Map<String, dynamic>> _callCompleteGeminiPipeline(
+Future<Map<String, dynamic>> _callCompleteGeminiScript(
   String apiKey,
   String userPrompt,
   Map<String, dynamic> translatedSchema,
@@ -556,7 +556,7 @@ void _validateCompleteResponse(Map<String, dynamic> response, Map<String, dynami
   
   final allPassed = checks.values.every((passed) => passed);
   if (allPassed) {
-    print('  🎉 ALL PIPELINE CONSTRAINTS ENFORCED!');
+    print('  🎉 ALL SCRIPT CONSTRAINTS ENFORCED!');
     print('  🔗 Foundation Enums → Schema → Translation → Gemini API ✅');
   } else {
     print('  ⚠️  Some constraints not fully enforced');

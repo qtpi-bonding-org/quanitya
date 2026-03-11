@@ -21,7 +21,7 @@ const powerSyncSchema = Schema([
     Column.text('encrypted_data'),
     Column.text('updated_at'),
   ]),
-  Table('encrypted_analysis_pipelines', [
+  Table('encrypted_analysis_scripts', [
     Column.text('encrypted_data'),
     Column.text('updated_at'),
   ]),
