@@ -4,7 +4,6 @@ import '../../../logic/analytics/models/analysis_output.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../primitives/quanitya_palette.dart';
 import '../charts/indexed_multi_series_chart.dart';
-import 'matrix_chart.dart';
 
 /// Renders a list of [AnalysisVector] as an overlaid indexed line chart.
 class VectorChart extends StatelessWidget {
@@ -29,7 +28,7 @@ class VectorChart extends StatelessWidget {
       return IndexedChartSeries(
         label: v.label,
         values: v.values,
-        color: chartColors[i % chartColors.length],
+        color: QuanityaPalette.category10[i % QuanityaPalette.category10.length],
       );
     }).toList();
 

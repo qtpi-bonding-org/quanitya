@@ -61,6 +61,20 @@ class QuanityaPalette {
     Color(0xFF8D5B4C), // 9. Kurumi (Walnut) - Red-Brown
     Color(0xFF7C9473), // 10. Take (Bamboo) - Soft Green
   ];
+
+  /// D3 / Mathematica category10 — standard data visualization palette
+  static const List<Color> category10 = [
+    Color(0xFF1F77B4), // blue
+    Color(0xFFFF7F0E), // orange
+    Color(0xFF2CA02C), // green
+    Color(0xFFD62728), // red
+    Color(0xFF9467BD), // purple
+    Color(0xFF8C564B), // brown
+    Color(0xFFE377C2), // pink
+    Color(0xFF7F7F7F), // gray
+    Color(0xFFBCBD22), // olive
+    Color(0xFF17BECF), // cyan
+  ];
 }
 
 /// Extension for semantic color access

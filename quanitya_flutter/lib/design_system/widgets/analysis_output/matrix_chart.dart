@@ -6,18 +6,6 @@ import '../../primitives/quanitya_palette.dart';
 import '../charts/multi_series_chart.dart';
 import '../charts/time_series_chart.dart';
 
-/// D3-style data visualization color palette.
-const chartColors = [
-  Color(0xFF1F77B4), // blue
-  Color(0xFFFF7F0E), // orange
-  Color(0xFF2CA02C), // green
-  Color(0xFFD62728), // red
-  Color(0xFF9467BD), // purple
-  Color(0xFF8C564B), // brown
-  Color(0xFFE377C2), // pink
-  Color(0xFF7F7F7F), // gray
-];
-
 /// Renders a list of [TimeSeriesMatrix] as an overlaid time series chart.
 ///
 /// Single matrix uses [TimeSeriesChart], multiple uses [MultiSeriesChart].
@@ -58,7 +46,7 @@ class MatrixChart extends StatelessWidget {
             ? matrix.fieldNames.first
             : 'Series ${i + 1}',
         points: points,
-        color: chartColors[i % chartColors.length],
+        color: QuanityaPalette.category10[i % QuanityaPalette.category10.length],
       ));
     }
 
