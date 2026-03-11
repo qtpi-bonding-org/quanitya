@@ -289,7 +289,7 @@ class _BottomActions extends StatelessWidget {
         title: context.l10n.analyticsInboxClearSentTitle,
         message: context.l10n.analyticsInboxClearSentMessage(state.lastSentCount),
         confirmText: context.l10n.analyticsInboxClearSent,
-        onConfirm: () => cubit.clearSent(),
+        onConfirm: () => cubit.clearAll(),
       );
     }
   }

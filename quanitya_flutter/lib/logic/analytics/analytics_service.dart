@@ -76,11 +76,17 @@ class AnalyticsService {
   /// PoW + ECDSA verification for spam prevention.
   /// Returns the number of events successfully sent.
   Future<int> sendAllUnsent() async {
+    final allEvents = await _inbox.getUnsentEvents();
+    if (allEvents.isEmpty) return 0;
+
     var totalSent = 0;
 
-    while (true) {
-      final batch = await _inbox.getUnsentEvents(limit: 100);
-      if (batch.isEmpty) break;
+    // Send in chunks of 100
+    for (var i = 0; i < allEvents.length; i += 100) {
+      final batch = allEvents.sublist(
+        i,
+        i + 100 > allEvents.length ? allEvents.length : i + 100,
+      );
 
       try {
         // Serialize batch to JSON
@@ -113,8 +119,6 @@ class AnalyticsService {
 
         if (response.success) {
           final insertedCount = response.data?['insertedCount'] as int? ?? 0;
-          final sentIds = batch.map((e) => e.id).toList();
-          await _inbox.markAsSent(sentIds);
           totalSent += insertedCount;
         } else {
           debugPrint('Analytics batch send failed: ${response.message}');
