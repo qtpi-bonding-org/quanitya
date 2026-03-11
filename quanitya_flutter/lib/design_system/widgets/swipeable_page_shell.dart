@@ -39,12 +39,15 @@ class _SlidingZenPaper extends StatelessWidget {
               children: List.generate(pageCount, (i) {
                 final scrollOffset =
                     i < scrollOffsets.length ? scrollOffsets[i] : 0.0;
+                final totalWidth = screenWidth * pageCount;
                 return SizedBox(
                   width: screenWidth,
                   height: double.infinity,
                   child: ZenPaperBackground(
                     baseColor: backgroundColor,
                     scrollOffset: scrollOffset,
+                    stripOriginX: i * screenWidth,
+                    totalStripWidth: totalWidth,
                     child: const SizedBox.expand(),
                   ),
                 );
