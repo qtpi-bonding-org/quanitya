@@ -238,14 +238,10 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   void updateTemplateIcon(String icon) {
     if (state.aesthetics == null) return;
 
-    debugPrint('🎨 updateTemplateIcon: $icon');
-
     final updatedAesthetics = state.aesthetics!.copyWith(
       icon: icon,
       emoji: null, // Clear emoji if setting icon
     );
-
-    debugPrint('🎨 Updated aesthetics icon: ${updatedAesthetics.icon}');
 
     emit(
       state.copyWith(
@@ -395,12 +391,6 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
       if (completeTemplate == null) {
         throw StateError('Cannot save incomplete template');
       }
-
-      debugPrint('💾 Saving template: ${completeTemplate.template.id}');
-      debugPrint('💾 Aesthetics icon: ${completeTemplate.aesthetics.icon}');
-      debugPrint('💾 Aesthetics emoji: ${completeTemplate.aesthetics.emoji}');
-      debugPrint('💾 Aesthetics id: ${completeTemplate.aesthetics.id}');
-      debugPrint('💾 Aesthetics templateId: ${completeTemplate.aesthetics.templateId}');
 
       await _repository.save(completeTemplate);
       
