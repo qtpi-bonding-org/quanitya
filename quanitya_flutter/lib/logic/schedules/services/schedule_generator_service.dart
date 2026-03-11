@@ -272,7 +272,8 @@ class ScheduleGeneratorService {
       title: templateName,
       body: 'Time to log your $templateName',
       scheduledAt: notifyAt,
-      payload: todo.id, // Pass todo ID for navigation
+      payload: todo.id,
+      category: NotificationCategories.reminder,
     );
   }
 

@@ -6,17 +6,25 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../core/try_operation.dart';
 import 'exceptions/notification_exception.dart';
+import 'notification_action_handler.dart';
+
+/// Notification category IDs.
+abstract final class NotificationCategories {
+  /// Category for schedule reminder notifications with Quick Log + Open Entry actions.
+  static const reminder = 'reminder';
+}
 
 /// General-purpose notification service for local push notifications.
 ///
 /// Provides a simple API for:
 /// - Showing immediate notifications
-/// - Scheduling future notifications
+/// - Scheduling future notifications (with optional action categories)
 /// - Canceling notifications
 /// - Listing pending notifications
 @lazySingleton
 class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin;
+  final INotificationActionHandler _actionHandler;
 
   /// Android notification channel configuration.
   static const _androidChannel = AndroidNotificationDetails(
@@ -27,6 +35,27 @@ class NotificationService {
     priority: Priority.high,
   );
 
+  /// Android notification details with action buttons for reminders.
+  static const _androidReminderChannel = AndroidNotificationDetails(
+    'quanitya_reminders',
+    'Reminders',
+    channelDescription: 'Scheduled reminders for your trackers',
+    importance: Importance.high,
+    priority: Priority.high,
+    actions: [
+      AndroidNotificationAction(
+        NotificationActionIds.quickLog,
+        'Quick Log',
+        showsUserInterface: false,
+      ),
+      AndroidNotificationAction(
+        NotificationActionIds.openEntry,
+        'Log Entry',
+        showsUserInterface: true,
+      ),
+    ],
+  );
+
   /// iOS/macOS notification configuration.
   static const _darwinDetails = DarwinNotificationDetails(
     presentAlert: true,
@@ -34,14 +63,30 @@ class NotificationService {
     presentSound: true,
   );
 
-  /// Default notification details for all platforms.
+  /// iOS/macOS notification configuration for reminders (with category).
+  static const _darwinReminderDetails = DarwinNotificationDetails(
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+    categoryIdentifier: NotificationCategories.reminder,
+  );
+
+  /// Default notification details for all platforms (no actions).
   static const _notificationDetails = NotificationDetails(
     android: _androidChannel,
     iOS: _darwinDetails,
     macOS: _darwinDetails,
   );
 
-  NotificationService() : _plugin = FlutterLocalNotificationsPlugin();
+  /// Notification details with action buttons for reminders.
+  static const _reminderNotificationDetails = NotificationDetails(
+    android: _androidReminderChannel,
+    iOS: _darwinReminderDetails,
+    macOS: _darwinReminderDetails,
+  );
+
+  NotificationService(this._actionHandler)
+      : _plugin = FlutterLocalNotificationsPlugin();
 
   /// Initialize the notification plugin.
   ///
@@ -58,13 +103,31 @@ class NotificationService {
         const androidSettings =
             AndroidInitializationSettings('@mipmap/ic_launcher');
 
-        const darwinSettings = DarwinInitializationSettings(
+        // iOS categories with action buttons
+        final darwinSettings = DarwinInitializationSettings(
           requestAlertPermission: false,
           requestBadgePermission: false,
           requestSoundPermission: false,
+          notificationCategories: [
+            DarwinNotificationCategory(
+              NotificationCategories.reminder,
+              actions: [
+                DarwinNotificationAction.plain(
+                  NotificationActionIds.quickLog,
+                  'Quick Log',
+                  options: {DarwinNotificationActionOption.destructive},
+                ),
+                DarwinNotificationAction.plain(
+                  NotificationActionIds.openEntry,
+                  'Log Entry',
+                  options: {DarwinNotificationActionOption.foreground},
+                ),
+              ],
+            ),
+          ],
         );
 
-        const initSettings = InitializationSettings(
+        final initSettings = InitializationSettings(
           android: androidSettings,
           iOS: darwinSettings,
           macOS: darwinSettings,
@@ -72,7 +135,7 @@ class NotificationService {
 
         final result = await _plugin.initialize(
           initSettings,
-          onDidReceiveNotificationResponse: _onNotificationTapped,
+          onDidReceiveNotificationResponse: _onNotificationResponse,
         );
 
         debugPrint('NotificationService: Initialized = $result');
@@ -165,12 +228,14 @@ class NotificationService {
   /// [body] - Notification body text
   /// [scheduledAt] - When to show the notification
   /// [payload] - Optional data to pass when notification is tapped
+  /// [category] - Optional category for action buttons (e.g., [NotificationCategories.reminder])
   Future<void> schedule({
     required int id,
     required String title,
     required String body,
     required DateTime scheduledAt,
     String? payload,
+    String? category,
   }) {
     return tryMethod(
       () async {
@@ -182,15 +247,21 @@ class NotificationService {
 
         final tzScheduledAt = tz.TZDateTime.from(scheduledAt, tz.local);
 
+        // Use reminder details if category matches, otherwise default
+        final details = category == NotificationCategories.reminder
+            ? _reminderNotificationDetails
+            : _notificationDetails;
+
         debugPrint(
-            'NotificationService: Scheduling notification $id for $scheduledAt');
+            'NotificationService: Scheduling notification $id for $scheduledAt'
+            '${category != null ? ' (category: $category)' : ''}');
 
         await _plugin.zonedSchedule(
           id,
           title,
           body,
           tzScheduledAt,
-          _notificationDetails,
+          details,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           payload: payload,
         );
@@ -235,14 +306,28 @@ class NotificationService {
     );
   }
 
-  /// Callback when a notification is tapped.
-  /// 
-  /// Currently logs the tap event. Deep linking to specific screens
-  /// will be implemented when navigation infrastructure is ready.
-  void _onNotificationTapped(NotificationResponse response) {
-    debugPrint('NotificationService: Notification tapped - '
-        'id=${response.id}, payload=${response.payload}');
-    // Deep linking: payload contains entry ID for navigation
-    // Implementation pending navigation service integration
+  /// Callback when a notification is tapped or an action button is pressed.
+  void _onNotificationResponse(NotificationResponse response) {
+    final actionId = response.actionId;
+    final payload = response.payload;
+    final input = response.input;
+
+    debugPrint('NotificationService: Response - '
+        'id=${response.id}, actionId=$actionId, payload=$payload');
+
+    if (actionId != null && actionId.isNotEmpty) {
+      // Action button pressed
+      _actionHandler.handle(
+        actionId: actionId,
+        payload: payload,
+        inputText: input,
+      );
+    } else {
+      // Plain notification tap — treat as "open entry"
+      _actionHandler.handle(
+        actionId: NotificationActionIds.openEntry,
+        payload: payload,
+      );
+    }
   }
 }

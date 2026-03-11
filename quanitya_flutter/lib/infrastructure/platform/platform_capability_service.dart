@@ -48,8 +48,17 @@ class PlatformCapabilityService {
   /// Not supported on: Web
   bool get supportsLocalNotifications {
     if (kIsWeb) return false;
-    return Platform.isIOS || Platform.isAndroid || Platform.isMacOS || 
+    return Platform.isIOS || Platform.isAndroid || Platform.isMacOS ||
            Platform.isWindows || Platform.isLinux;
+  }
+
+  /// Whether notification action buttons are supported.
+  ///
+  /// Supported on: Android, iOS
+  /// Not supported on: Web, macOS, Windows, Linux
+  bool get supportsNotificationActions {
+    if (kIsWeb) return false;
+    return Platform.isIOS || Platform.isAndroid;
   }
   
   // ─────────────────────────────────────────────────────────────────────────
