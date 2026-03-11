@@ -4,9 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:get_it/get_it.dart';
 
 import 'app/root_navigator_key.dart';
-import 'features/templates/pages/template_generator_page.dart';
-import 'features/templates/pages/template_editor_page.dart';
-import 'features/templates/pages/template_preview_page.dart';
+import 'features/templates/pages/template_designer_page.dart';
 import 'features/analytics/pages/analysis_builder_page.dart';
 import 'features/settings/pages/settings_page.dart';
 import 'features/settings/pages/app_info_page.dart';
@@ -30,7 +28,6 @@ import 'features/onboarding/pages/about_page.dart';
 import 'features/onboarding/pages/recovery_key_backup_page.dart';
 import 'features/onboarding/pages/account_recovery_page.dart';
 import 'features/onboarding/cubits/onboarding_cubit.dart';
-import 'features/templates/pages/template_list_page.dart';
 import 'features/templates/pages/template_import_page.dart';
 import 'features/health/pages/health_sync_page.dart';
 import 'features/purchase/pages/purchase_page.dart';
@@ -39,19 +36,6 @@ import 'features/device_pairing/pages/show_pairing_qr_page.dart';
 import 'features/device_pairing/pages/scan_pairing_qr_page.dart';
 import 'features/onboarding/pages/connect_device_page.dart';
 import 'infrastructure/crypto/crypto_key_repository.dart';
-
-/// Arguments for TemplatePreviewPage navigation
-class TemplatePreviewPageArgs {
-  final TemplateWithAesthetics templateWithAesthetics;
-  final Map<String, dynamic>? initialValues;
-  final dynamic editorCubit; // TemplateEditorCubit but avoiding import
-
-  const TemplatePreviewPageArgs({
-    required this.templateWithAesthetics,
-    this.initialValues,
-    this.editorCubit,
-  });
-}
 
 class AppRouter {
   AppRouter._();
@@ -183,23 +167,10 @@ class AppRouter {
             path: AppRoutes.templateEditor,
             name: RouteNames.templateEditor,
             builder: (context, state) {
-              // Simple: pass TemplateWithAesthetics or null
               final templateWithAesthetics =
                   state.extra as TemplateWithAesthetics?;
-              return TemplateGeneratorPage(
+              return TemplateDesignerPage(
                 templateWithAesthetics: templateWithAesthetics,
-              );
-            },
-          ),
-          GoRoute(
-            path: AppRoutes.templatePreview,
-            name: RouteNames.templatePreview,
-            builder: (context, state) {
-              final args = state.extra as TemplatePreviewPageArgs;
-              return TemplatePreviewPage(
-                templateWithAesthetics: args.templateWithAesthetics,
-                initialValues: args.initialValues,
-                editorCubit: args.editorCubit,
               );
             },
           ),
@@ -217,14 +188,6 @@ class AppRouter {
             builder: (context, state) {
               final templateId = state.pathParameters['templateId']!;
               return LoggedEntriesTemplatePage(templateId: templateId);
-            },
-          ),
-          GoRoute(
-            path: AppRoutes.templateDetail,
-            name: RouteNames.templateDetail,
-            builder: (context, state) {
-              final templateId = state.pathParameters['templateId']!;
-              return TemplateEditorPage(templateId: templateId);
             },
           ),
           GoRoute(
@@ -266,11 +229,6 @@ class AppRouter {
             path: AppRoutes.purchase,
             name: RouteNames.purchase,
             builder: (context, state) => const PurchasePage(),
-          ),
-          GoRoute(
-            path: AppRoutes.templateList,
-            name: RouteNames.templateList,
-            builder: (context, state) => const TemplateListPage(),
           ),
           GoRoute(
             path: AppRoutes.templateImport,
@@ -347,10 +305,8 @@ class AppRoutes {
   static const String scanPairingQr = '/scan-pairing-qr';
   static const String about = '/about';
   static const String templateEditor = '/template-editor';
-  static const String templatePreview = '/template-preview';
   static const String logEntry = '/log-entry';
   static const String logHistory = '/log-history/:templateId';
-  static const String templateDetail = '/template/:templateId';
   static const String entryDetail = '/entry-detail';
   static const String editEntry = '/edit-entry';
   static const String visualization = '/visualization';
@@ -364,7 +320,6 @@ class AppRoutes {
   static const String connectDevice = '/connect-device';
   static const String scriptBuilder = '/script-builder';
   static const String purchase = '/purchase';
-  static const String templateList = '/templates';
   static const String templateImport = '/template-import';
   static const String healthSync = '/health-sync';
 }
@@ -379,10 +334,8 @@ class RouteNames {
   static const String scanPairingQr = 'scanPairingQr';
   static const String about = 'about';
   static const String templateEditor = 'templateEditor';
-  static const String templatePreview = 'templatePreview';
   static const String logEntry = 'logEntry';
   static const String logHistory = 'logHistory';
-  static const String templateDetail = 'templateDetail';
   static const String entryDetail = 'entryDetail';
   static const String editEntry = 'editEntry';
   static const String visualization = 'visualization';
@@ -396,7 +349,6 @@ class RouteNames {
   static const String connectDevice = 'connectDevice';
   static const String scriptBuilder = 'scriptBuilder';
   static const String purchase = 'purchase';
-  static const String templateList = 'templateList';
   static const String templateImport = 'templateImport';
   static const String healthSync = 'healthSync';
 }
@@ -406,8 +358,8 @@ class AppNavigation {
 
   static void toHome(BuildContext context) => context.goNamed(RouteNames.home);
 
-  /// Navigate to template generator for new/edit template
-  static void toTemplateGenerator(
+  /// Navigate to template designer for new/edit template
+  static void toTemplateDesigner(
     BuildContext context, [
     TemplateWithAesthetics? template,
   ]) {
@@ -421,14 +373,6 @@ class AppNavigation {
   static void toLogHistory(BuildContext context, String templateId) {
     context.pushNamed(
       RouteNames.logHistory,
-      pathParameters: {'templateId': templateId},
-    );
-  }
-
-  /// Navigate to template editor (detail view) for existing template
-  static void toTemplateEditor(BuildContext context, String templateId) {
-    context.pushNamed(
-      RouteNames.templateDetail,
       pathParameters: {'templateId': templateId},
     );
   }
@@ -509,10 +453,6 @@ class AppNavigation {
     context.pushNamed(RouteNames.recoveryKeyBackup, extra: cubit);
   }
 
-  static void toTemplateList(BuildContext context) {
-    context.pushNamed(RouteNames.templateList);
-  }
-
   static void toTemplateImport(BuildContext context) {
     context.pushNamed(RouteNames.templateImport);
   }
@@ -531,19 +471,4 @@ class AppNavigation {
     );
   }
 
-  static void toTemplatePreview(
-    BuildContext context,
-    TemplateWithAesthetics templateWithAesthetics, {
-    Map<String, dynamic>? initialValues,
-    dynamic editorCubit,
-  }) {
-    context.pushNamed(
-      RouteNames.templatePreview,
-      extra: TemplatePreviewPageArgs(
-        templateWithAesthetics: templateWithAesthetics,
-        initialValues: initialValues,
-        editorCubit: editorCubit,
-      ),
-    );
-  }
 }
