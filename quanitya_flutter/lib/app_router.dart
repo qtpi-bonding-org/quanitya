@@ -29,7 +29,6 @@ import 'features/onboarding/pages/recovery_key_backup_page.dart';
 import 'features/onboarding/pages/account_recovery_page.dart';
 import 'features/onboarding/cubits/onboarding_cubit.dart';
 import 'features/templates/pages/template_import_page.dart';
-import 'features/health/pages/health_sync_page.dart';
 import 'features/purchase/pages/purchase_page.dart';
 import 'features/device_pairing/pages/show_pairing_qr_page.dart';
 import 'features/device_pairing/pages/scan_pairing_qr_page.dart';
@@ -235,11 +234,6 @@ class AppRouter {
             builder: (context, state) => const TemplateImportPage(),
           ),
           GoRoute(
-            path: AppRoutes.healthSync,
-            name: RouteNames.healthSync,
-            builder: (context, state) => const HealthSyncPage(),
-          ),
-          GoRoute(
             path: AppRoutes.entryDetail,
             name: RouteNames.entryDetail,
             builder: (context, state) {
@@ -311,7 +305,6 @@ class AppRoutes {
   static const String scriptBuilder = '/script-builder';
   static const String purchase = '/purchase';
   static const String templateImport = '/template-import';
-  static const String healthSync = '/health-sync';
 }
 
 class RouteNames {
@@ -339,7 +332,6 @@ class RouteNames {
   static const String scriptBuilder = 'scriptBuilder';
   static const String purchase = 'purchase';
   static const String templateImport = 'templateImport';
-  static const String healthSync = 'healthSync';
 }
 
 class AppNavigation {
@@ -440,10 +432,6 @@ class AppNavigation {
 
   static void toTemplateImport(BuildContext context) {
     context.pushNamed(RouteNames.templateImport);
-  }
-
-  static void toHealthSync(BuildContext context) {
-    context.pushNamed(RouteNames.healthSync);
   }
 
   static void toAnalysisBuilder(BuildContext context, {String? fieldId, String? templateId}) {

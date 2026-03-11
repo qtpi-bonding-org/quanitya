@@ -164,6 +164,8 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
       ServerErrorCode.invalidProofOfWork => const MessageKey.error(L10nKeys.errorProofOfWorkFailed),
       ServerErrorCode.invalidSignature => const MessageKey.error(L10nKeys.errorSignatureFailed),
       ServerErrorCode.internalError => const MessageKey.error(L10nKeys.errorGeneric),
+      ServerErrorCode.jwtSigningKeyMissing => const MessageKey.error(L10nKeys.errorAuthFailed),
+      ServerErrorCode.jwtGenerationFailed => const MessageKey.error(L10nKeys.errorAuthFailed),
     };
   }
 

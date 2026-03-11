@@ -188,6 +188,11 @@ class LogEntryRepository implements ILogEntryRepository {
     return _queryDao.getTemplateSummaries();
   }
 
+  @override
+  Stream<List<TemplateSummary>> watchTemplateSummaries() {
+    return _queryDao.watchTemplateSummaries();
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // Write Methods (with validation)
   // ─────────────────────────────────────────────────────────────────────────

@@ -525,15 +525,30 @@ class LogEntryQueryDao {
 
   /// Get entry count and last logged date for all templates in one query.
   Future<List<TemplateSummary>> getTemplateSummaries() async {
+    final results = await _templateSummariesQuery().get();
+    return _mapTemplateSummaries(results);
+  }
+
+  /// Watch entry count and last logged date for all templates.
+  Stream<List<TemplateSummary>> watchTemplateSummaries() {
+    return _templateSummariesQuery().watch().map(_mapTemplateSummaries);
+  }
+
+  JoinedSelectStatement _templateSummariesQuery() {
     final templateId = _db.logEntries.templateId;
     final countExp = _db.logEntries.id.count();
     final maxDateExp = coalesce([_db.logEntries.occurredAt, _db.logEntries.scheduledFor]).max();
 
-    final query = _db.selectOnly(_db.logEntries)
+    return _db.selectOnly(_db.logEntries)
       ..addColumns([templateId, countExp, maxDateExp])
       ..groupBy([templateId]);
+  }
 
-    final results = await query.get();
+  List<TemplateSummary> _mapTemplateSummaries(List<TypedResult> results) {
+    final templateId = _db.logEntries.templateId;
+    final countExp = _db.logEntries.id.count();
+    final maxDateExp = coalesce([_db.logEntries.occurredAt, _db.logEntries.scheduledFor]).max();
+
     return results.map((row) {
       return TemplateSummary(
         templateId: row.read(templateId)!,

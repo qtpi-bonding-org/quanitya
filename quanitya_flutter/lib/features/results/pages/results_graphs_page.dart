@@ -92,13 +92,11 @@ class _TemplateGraphsFold extends StatefulWidget {
 
 class _TemplateGraphsFoldState extends State<_TemplateGraphsFold> {
   VisualizationCubit? _cubit;
-  bool _loaded = false;
 
   void _onExpansionChanged(bool expanded) {
-    if (expanded && !_loaded) {
-      _loaded = true;
-      _cubit = GetIt.I<VisualizationCubit>()
-        ..loadForTemplate(widget.item.templateId);
+    if (expanded) {
+      _cubit ??= GetIt.I<VisualizationCubit>();
+      _cubit!.loadForTemplate(widget.item.templateId);
       setState(() {});
     }
   }

@@ -8,6 +8,9 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/swipeable_page_shell.dart';
 import '../../../dev/dev_module.dart';
+import '../../../infrastructure/notifications/notification_service.dart';
+import '../../../integrations/flutter/health/health_sync_service.dart';
+import 'package:health/health.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/temporal_timeline_cubit.dart';
 import '../cubits/temporal_timeline_state.dart';
@@ -40,6 +43,22 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 1);
+    _requestPermissions();
+  }
+
+  void _requestPermissions() {
+    if (getIt.isRegistered<NotificationService>()) {
+      getIt<NotificationService>().requestPermissions();
+    }
+    if (getIt.isRegistered<HealthSyncService>()) {
+      getIt<HealthSyncService>().requestPermissions([
+        HealthDataType.STEPS,
+        HealthDataType.HEART_RATE,
+        HealthDataType.BLOOD_OXYGEN,
+        HealthDataType.BODY_TEMPERATURE,
+        HealthDataType.WEIGHT,
+      ]);
+    }
   }
 
   @override

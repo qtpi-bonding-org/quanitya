@@ -154,6 +154,7 @@ class HealthSyncService {
     final template = adapter.deriveTemplate();
     final aesthetics = TemplateAestheticsModel.defaults(
       templateId: template.id,
+      icon: 'material:monitor_heart',
     );
     await _templateRepo.save(
       TemplateWithAesthetics(template: template, aesthetics: aesthetics),

@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -41,6 +44,12 @@ import '../cubits/llm_provider/llm_provider_message_mapper.dart';
 import '../widgets/llm_provider_section.dart';
 import '../widgets/api_key_sheet.dart';
 import '../widgets/table_selection_sheet.dart';
+import 'package:health/health.dart';
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import '../../../integrations/flutter/health/health_sync_cubit.dart';
+import '../../../integrations/flutter/health/health_sync_state.dart';
+
+bool get _supportsHealthData => !kIsWeb && (Platform.isIOS || Platform.isAndroid);
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -138,6 +147,18 @@ class SettingsContent extends StatelessWidget {
           ),
           VSpace.x3,
 
+          if (_supportsHealthData) ...[
+            NotebookFold(
+              header: Row(children: [
+                Icon(Icons.monitor_heart, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+                HSpace.x2,
+                Text('Health Metrics', style: context.text.titleMedium),
+              ]),
+              child: const _HealthConnectSection(),
+            ),
+            VSpace.x3,
+          ],
+
           NotebookFold(
             header: Row(children: [
               Icon(Icons.vpn_key, size: AppSizes.iconMedium, color: context.colors.textPrimary),
@@ -170,6 +191,86 @@ class SettingsContent extends StatelessWidget {
           ),
           VSpace.x2,
         ],
+      ),
+    );
+  }
+}
+
+/// Default health data types to sync.
+const _defaultHealthTypes = [
+  HealthDataType.STEPS,
+  HealthDataType.HEART_RATE,
+  HealthDataType.BLOOD_OXYGEN,
+  HealthDataType.BODY_TEMPERATURE,
+  HealthDataType.WEIGHT,
+];
+
+class _HealthConnectSection extends StatelessWidget {
+  const _HealthConnectSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => GetIt.instance<HealthSyncCubit>(),
+      child: BlocBuilder<HealthSyncCubit, HealthSyncState>(
+      builder: (context, state) {
+        final cubit = context.read<HealthSyncCubit>();
+        final isLoading = state.status == UiFlowStatus.loading;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              state.permissionsGranted
+                  ? 'Health data access granted'
+                  : 'Health data access not yet requested',
+              style: context.text.bodyMedium?.copyWith(
+                color: state.permissionsGranted
+                    ? context.colors.successColor
+                    : context.colors.textSecondary,
+              ),
+            ),
+            VSpace.x3,
+            if (!state.permissionsGranted)
+              QuanityaTextButton(
+                text: 'Request Permissions',
+                onPressed: isLoading
+                    ? null
+                    : () => cubit.requestPermissions(_defaultHealthTypes),
+              ),
+            if (state.permissionsGranted) ...[
+              QuanityaTextButton(
+                text: 'Sync Health Data',
+                onPressed: isLoading
+                    ? null
+                    : () => cubit.sync(_defaultHealthTypes),
+              ),
+              if (state.lastImportCount > 0) ...[
+                VSpace.x2,
+                Text(
+                  '${state.lastImportCount} entries imported',
+                  style: context.text.bodySmall?.copyWith(
+                    color: context.colors.textSecondary,
+                  ),
+                ),
+              ],
+            ],
+            if (isLoading) ...[
+              VSpace.x2,
+              const Center(child: CircularProgressIndicator()),
+            ],
+            if (state.status == UiFlowStatus.failure && state.error != null) ...[
+              VSpace.x2,
+              Text(
+                state.error.toString(),
+                style: context.text.bodySmall?.copyWith(
+                  color: context.colors.errorColor,
+                ),
+              ),
+            ],
+          ],
+        );
+      },
       ),
     );
   }

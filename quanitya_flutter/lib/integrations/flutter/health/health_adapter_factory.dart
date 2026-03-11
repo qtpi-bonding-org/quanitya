@@ -79,7 +79,7 @@ class _DerivedHealthAdapter extends FlutterDataSourceAdapter<HealthDataPoint> {
       scheduledFor: null, // Health imports are always "logged"
       occurredAt: sourceData.dateTo,
       data: {
-        'value': _extractValue(sourceData.value),
+        'Value': _extractValue(sourceData.value),
         '_sourceAdapter': adapterId,
         '_dedupKey': extractDedupKey(sourceData),
         '_healthUuid': sourceData.uuid,
