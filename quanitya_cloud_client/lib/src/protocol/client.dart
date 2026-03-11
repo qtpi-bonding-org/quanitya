@@ -1376,6 +1376,36 @@ class EndpointErrorReport extends EndpointPublicSubmission {
     },
   );
 
+  /// Submit a batch of error reports with a single proof-of-work and signature.
+  ///
+  /// Parameters:
+  /// - [challenge]: Challenge string from getChallenge()
+  /// - [proofOfWork]: Hashcash stamp
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature of "challenge:errorReports:{count}"
+  /// - [reportsJson]: JSON-encoded list of error report objects
+  ///
+  /// Returns:
+  /// - success: true if reports were stored
+  /// - data: Contains insertedCount
+  _i2.Future<_i4.ApiResponse> submitErrorReports({
+    required String challenge,
+    required String proofOfWork,
+    required String publicKeyHex,
+    required String signature,
+    required String reportsJson,
+  }) => caller.callServerEndpoint<_i4.ApiResponse>(
+    'errorReport',
+    'submitErrorReports',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'reportsJson': reportsJson,
+    },
+  );
+
   /// Get challenge for proof-of-work.
   ///
   /// This method is inherited by all public endpoints and provides

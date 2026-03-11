@@ -10,6 +10,7 @@ enum ErrorBoxOperation {
   markAsSent,
   markAllAsSent,
   delete,
+  deleteAll,
 }
 
 @freezed
@@ -22,5 +23,6 @@ class ErrorBoxState with _$ErrorBoxState, UiFlowStateMixin implements IUiFlowSta
     ErrorBoxOperation? lastOperation,
     @Default([]) List<ErrorBoxEntry> unsentErrors,
     @Default([]) List<String> lastSentIds,
+    @Default(0) int lastSentCount,
   }) = _ErrorBoxState;
 }

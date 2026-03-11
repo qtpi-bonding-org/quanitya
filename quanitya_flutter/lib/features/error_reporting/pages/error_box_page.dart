@@ -111,7 +111,7 @@ class ErrorsTabContent extends StatelessWidget {
         title: context.l10n.errorBoxClearSentTitle,
         message: context.l10n.errorBoxClearSentMessage,
         confirmText: context.l10n.errorBoxClearAction,
-        onConfirm: () => cubit.markAsSent(errorId),
+        onConfirm: () => cubit.deleteError(errorId),
       );
     }
   }
@@ -164,7 +164,7 @@ class _BottomActions extends StatelessWidget {
         title: context.l10n.errorBoxClearAllSentTitle,
         message: context.l10n.errorBoxClearAllSentMessage(sentIds.length),
         confirmText: context.l10n.errorBoxClearAction,
-        onConfirm: () => cubit.markAllAsSent(sentIds),
+        onConfirm: () => cubit.deleteErrors(sentIds),
       );
     }
   }

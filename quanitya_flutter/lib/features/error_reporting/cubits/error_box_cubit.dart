@@ -44,31 +44,33 @@ class ErrorBoxCubit extends QuanityaCubit<ErrorBoxState> {
     }, emitLoading: true);
   }
 
-  /// Send all unsent errors to the server.
+  /// Send all unsent errors to the server in a single batch.
   ///
-  /// Does NOT mark as sent — the UI should prompt the user to clear.
+  /// Does NOT delete — the UI should prompt the user to clear.
   Future<void> sendAll() async {
     await tryOperation(() async {
-      final sentIds = <String>[];
+      final errors = state.unsentErrors;
+      final entries = <ErrorEntry>[];
+      final ids = <String>[];
 
-      for (final error in state.unsentErrors) {
+      for (final error in errors) {
         final entry = await _repo.getErrorById(error.id);
-        if (entry == null) continue;
-
-        final success = await _reporter.sendErrorReport(entry.errorData);
-        if (success) {
-          sentIds.add(error.id);
-        } else {
-          break;
+        if (entry != null) {
+          entries.add(entry.errorData);
+          ids.add(error.id);
         }
       }
 
-      if (sentIds.isEmpty) throw Exception('Failed to send error reports');
+      if (entries.isEmpty) throw Exception('No error reports to send');
+
+      final sentCount = await _reporter.sendErrorReports(entries);
+      if (sentCount == 0) throw Exception('Failed to send error reports');
 
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: ErrorBoxOperation.sendAll,
-        lastSentIds: sentIds,
+        lastSentIds: ids,
+        lastSentCount: sentCount,
       );
     }, emitLoading: true);
   }
@@ -104,6 +106,19 @@ class ErrorBoxCubit extends QuanityaCubit<ErrorBoxState> {
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: ErrorBoxOperation.delete,
+      );
+    });
+  }
+
+  /// Delete multiple errors from storage.
+  Future<void> deleteErrors(List<String> errorIds) async {
+    await tryOperation(() async {
+      for (final id in errorIds) {
+        await _repo.deleteError(id);
+      }
+      return state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: ErrorBoxOperation.deleteAll,
       );
     });
   }
