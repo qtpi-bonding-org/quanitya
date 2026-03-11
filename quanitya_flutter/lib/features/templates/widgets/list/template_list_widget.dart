@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../../app_router.dart';
+import '../../../log_entry/widgets/log_entry_sheet.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/widgets/quanitya_empty_or.dart';
 import '../../../../support/extensions/context_extensions.dart';
@@ -73,7 +74,10 @@ class TemplateListWidget extends StatelessWidget {
                                 AppNavigation.toTemplateDesigner(context, item);
                               },
                               onEdit: () {
-                                AppNavigation.toLogEntry(context, item.template.id);
+                                LogEntrySheet.showCreate(
+                                  context: context,
+                                  templateId: item.template.id,
+                                );
                               },
                               onQuickAction: () {
                                 cubit.instantLog(item.template);
