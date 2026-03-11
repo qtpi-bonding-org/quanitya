@@ -85,12 +85,6 @@ class SettingsView extends StatelessWidget {
                   icon: Icons.arrow_back,
                   onPressed: () => AppNavigation.back(context),
                 ),
-                actions: [
-                  QuanityaIconButton(
-                    icon: Icons.info,
-                    onPressed: () => AppNavigation.toAppInfo(context),
-                  ),
-                ],
               ),
               body: const SettingsContent(),
             ),
@@ -161,21 +155,6 @@ class SettingsContent extends StatelessWidget {
               Text(context.l10n.webhooksTitle, style: context.text.titleMedium),
             ]),
             child: const _WebhooksSection(),
-          ),
-          VSpace.x3,
-
-          NotebookFold(
-            header: Row(children: [
-              Icon(Icons.shopping_bag, size: AppSizes.iconMedium, color: context.colors.textPrimary),
-              HSpace.x2,
-              Text(context.l10n.settingsPurchase, style: context.text.titleMedium),
-            ]),
-            child: Center(
-              child: QuanityaTextButton(
-                text: context.l10n.settingsPurchase,
-                onPressed: () => AppNavigation.toPurchase(context),
-              ),
-            ),
           ),
           VSpace.x3,
 

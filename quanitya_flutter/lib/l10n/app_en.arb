@@ -613,6 +613,9 @@
   "outboxTabAnalytics": "Analytics",
   "outboxTabErrors": "Errors",
   "postageTabNotices": "Notices",
+  "officeTabPreferences": "Preferences",
+  "officeTabPurchases": "Purchases",
+  "officeTabInfo": "Info",
   "noticesEmpty": "No Notices",
   "noticesEmptyDescription": "Notifications will appear here when there's something to review.",
   "@entitlementLabel": {

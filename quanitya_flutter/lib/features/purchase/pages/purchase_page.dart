@@ -52,136 +52,150 @@ class _PurchaseView extends StatelessWidget {
         mapper: GetIt.instance<EntitlementMessageMapper>(),
         child: Scaffold(
           appBar: AppBar(title: Text(context.l10n.purchaseTitle)),
-          body: RefreshIndicator(
-            onRefresh: () async {
-              context.read<PurchaseCubit>().loadProducts();
-              context.read<EntitlementCubit>()
-                ..loadEntitlements()
-                ..checkSyncAccess();
+          body: const PurchaseTabContent(),
+        ),
+      ),
+    );
+  }
+}
+
+/// Embeddable purchase content — used in both standalone PurchasePage
+/// and the unified OfficePage tab.
+///
+/// Expects [PurchaseCubit] and [EntitlementCubit] to be available via
+/// [BlocProvider] above.
+class PurchaseTabContent extends StatelessWidget {
+  const PurchaseTabContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<PurchaseCubit>().loadProducts();
+        context.read<EntitlementCubit>()
+          ..loadEntitlements()
+          ..checkSyncAccess();
+      },
+      child: ListView(
+        padding: AppPadding.verticalSingle,
+        children: [
+          // Entitlement balance section
+          BlocBuilder<EntitlementCubit, EntitlementState>(
+            builder: (context, state) {
+              return BalanceDisplay(
+                entitlements: state.entitlements,
+                hasSyncAccess: state.hasSyncAccess,
+              );
             },
-            child: ListView(
-              padding: AppPadding.verticalSingle,
-              children: [
-                // Entitlement balance section
-                BlocBuilder<EntitlementCubit, EntitlementState>(
-                  builder: (context, state) {
-                    return BalanceDisplay(
-                      entitlements: state.entitlements,
-                      hasSyncAccess: state.hasSyncAccess,
-                    );
-                  },
-                ),
+          ),
 
-                VSpace.x2,
+          VSpace.x2,
 
-                // Products section
-                BlocBuilder<PurchaseCubit, PurchaseState>(
-                  builder: (context, state) {
-                    if (state.status == UiFlowStatus.loading &&
-                        state.lastOperation == PurchaseOperation.loadProducts) {
-                      return Center(
-                        child: Padding(
-                          padding: AppPadding.allTriple,
-                          child: const CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-
-                    if (state.status == UiFlowStatus.failure &&
-                        state.lastOperation == PurchaseOperation.loadProducts) {
-                      return Center(
-                        child: Padding(
-                          padding: AppPadding.allTriple,
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                color: context.colors.errorColor,
-                              ),
-                              VSpace.x1,
-                              Text(
-                                context.l10n.purchaseLoadFailed,
-                                style: context.text.bodyMedium?.copyWith(
-                                  color: context.colors.errorColor,
-                                ),
-                              ),
-                              VSpace.x2,
-                              QuanityaTextButton(
-                                text: context.l10n.actionRetry,
-                                onPressed: () =>
-                                    context.read<PurchaseCubit>().loadProducts(),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-
-                    if (state.products.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: AppPadding.allTriple,
-                          child: Text(context.l10n.purchaseNoProducts),
-                        ),
-                      );
-                    }
-
-                    final isPurchasing =
-                        state.status == UiFlowStatus.loading &&
-                            state.lastOperation == PurchaseOperation.purchase;
-
-                    return _ProductSections(
-                      products: state.products,
-                      isPurchasing: isPurchasing,
-                      onBuy: (product) => _onBuy(context, product),
-                    );
-                  },
-                ),
-
-                VSpace.x2,
-
-                // Restore purchases
-                Center(
-                  child: QuanityaTextButton(
-                    text: context.l10n.restorePurchases,
-                    onPressed: () =>
-                        context.read<PurchaseCubit>().recoverPurchases(),
+          // Products section
+          BlocBuilder<PurchaseCubit, PurchaseState>(
+            builder: (context, state) {
+              if (state.status == UiFlowStatus.loading &&
+                  state.lastOperation == PurchaseOperation.loadProducts) {
+                return Center(
+                  child: Padding(
+                    padding: AppPadding.allTriple,
+                    child: const CircularProgressIndicator(),
                   ),
-                ),
+                );
+              }
 
-                // Validation result feedback
-                BlocBuilder<PurchaseCubit, PurchaseState>(
-                  builder: (context, state) {
-                    final validation = state.lastValidation;
-                    if (validation == null) return const SizedBox.shrink();
-
-                    return Padding(
-                      padding: AppPadding.allDouble,
-                      child: Card(
-                        color: validation.success
-                            ? context.colors.successColor.withValues(alpha: 0.1)
-                            : context.colors.errorColor.withValues(alpha: 0.1),
-                        child: Padding(
-                          padding: AppPadding.allDouble,
-                          child: Text(
-                            validation.success
-                                ? context.l10n.purchaseSuccessful
-                                : validation.errorMessage ?? context.l10n.purchaseFailed,
-                            style: context.text.bodyMedium?.copyWith(
-                              color: validation.success
-                                  ? context.colors.successColor
-                                  : context.colors.errorColor,
-                            ),
+              if (state.status == UiFlowStatus.failure &&
+                  state.lastOperation == PurchaseOperation.loadProducts) {
+                return Center(
+                  child: Padding(
+                    padding: AppPadding.allTriple,
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: context.colors.errorColor,
+                        ),
+                        VSpace.x1,
+                        Text(
+                          context.l10n.purchaseLoadFailed,
+                          style: context.text.bodyMedium?.copyWith(
+                            color: context.colors.errorColor,
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                        VSpace.x2,
+                        QuanityaTextButton(
+                          text: context.l10n.actionRetry,
+                          onPressed: () =>
+                              context.read<PurchaseCubit>().loadProducts(),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if (state.products.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: AppPadding.allTriple,
+                    child: Text(context.l10n.purchaseNoProducts),
+                  ),
+                );
+              }
+
+              final isPurchasing =
+                  state.status == UiFlowStatus.loading &&
+                      state.lastOperation == PurchaseOperation.purchase;
+
+              return _ProductSections(
+                products: state.products,
+                isPurchasing: isPurchasing,
+                onBuy: (product) => _onBuy(context, product),
+              );
+            },
+          ),
+
+          VSpace.x2,
+
+          // Restore purchases
+          Center(
+            child: QuanityaTextButton(
+              text: context.l10n.restorePurchases,
+              onPressed: () =>
+                  context.read<PurchaseCubit>().recoverPurchases(),
             ),
           ),
-        ),
+
+          // Validation result feedback
+          BlocBuilder<PurchaseCubit, PurchaseState>(
+            builder: (context, state) {
+              final validation = state.lastValidation;
+              if (validation == null) return const SizedBox.shrink();
+
+              return Padding(
+                padding: AppPadding.allDouble,
+                child: Card(
+                  color: validation.success
+                      ? context.colors.successColor.withValues(alpha: 0.1)
+                      : context.colors.errorColor.withValues(alpha: 0.1),
+                  child: Padding(
+                    padding: AppPadding.allDouble,
+                    child: Text(
+                      validation.success
+                          ? context.l10n.purchaseSuccessful
+                          : validation.errorMessage ?? context.l10n.purchaseFailed,
+                      style: context.text.bodyMedium?.copyWith(
+                        color: validation.success
+                            ? context.colors.successColor
+                            : context.colors.errorColor,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

@@ -9,6 +9,13 @@ import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../support/extensions/context_extensions.dart';
 
+Future<void> _launchUrl(String url) async {
+  final uri = Uri.parse(url);
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
+
 class AppInfoPage extends StatelessWidget {
   const AppInfoPage({super.key});
 
@@ -25,39 +32,43 @@ class AppInfoPage extends StatelessWidget {
           onPressed: () => AppNavigation.back(context),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: AppPadding.page,
-        child: QuanityaColumn(
-          crossAlignment: CrossAxisAlignment.start,
-          spacing: VSpace.x3,
-          children: [
-            _InfoLinkItem(
-              icon: Icons.privacy_tip_outlined,
-              title: context.l10n.privacyPolicy,
-              onTap: () => _launchUrl('https://quanitya.com/#privacy'),
-            ),
-            _InfoLinkItem(
-              icon: Icons.description_outlined,
-              title: context.l10n.termsOfService,
-              onTap: () => _launchUrl('https://quanitya.com/#terms'),
-            ),
-            _InfoLinkItem(
-              icon: Icons.code,
-              title: context.l10n.sourceCode,
-              subtitle: context.l10n.sourceCodeSubtitle,
-              onTap: () => _launchUrl('https://github.com/qtpi-bonding-org/quanitya'),
-            ),
-          ],
-        ),
-      ),
+      body: const AppInfoTabContent(),
     );
   }
+}
 
-  Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+/// Embeddable app info content — used in both standalone AppInfoPage
+/// and the unified OfficePage tab.
+class AppInfoTabContent extends StatelessWidget {
+  const AppInfoTabContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: AppPadding.page,
+      child: QuanityaColumn(
+        crossAlignment: CrossAxisAlignment.start,
+        spacing: VSpace.x3,
+        children: [
+          _InfoLinkItem(
+            icon: Icons.privacy_tip_outlined,
+            title: context.l10n.privacyPolicy,
+            onTap: () => _launchUrl('https://quanitya.com/#privacy'),
+          ),
+          _InfoLinkItem(
+            icon: Icons.description_outlined,
+            title: context.l10n.termsOfService,
+            onTap: () => _launchUrl('https://quanitya.com/#terms'),
+          ),
+          _InfoLinkItem(
+            icon: Icons.code,
+            title: context.l10n.sourceCode,
+            subtitle: context.l10n.sourceCodeSubtitle,
+            onTap: () => _launchUrl('https://github.com/qtpi-bonding-org/quanitya'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
