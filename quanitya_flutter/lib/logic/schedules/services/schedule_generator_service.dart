@@ -91,10 +91,11 @@ class ScheduleGeneratorService {
         
         // Get all active schedules needing generation
         final cutoff = DateTime.now().subtract(horizon);
+        debugPrint('ScheduleGeneratorService: Looking for schedules needing generation since $cutoff');
         final activeSchedules = await _scheduleRepo.getSchedulesNeedingGeneration(cutoff);
-        
+
         if (activeSchedules.isEmpty) {
-          debugPrint('ScheduleGeneratorService: No active schedules');
+          debugPrint('ScheduleGeneratorService: No active schedules found');
           return const GenerationResult(
             todosCreated: 0,
             schedulesProcessed: 0,
@@ -106,7 +107,14 @@ class ScheduleGeneratorService {
         int totalSkipped = 0;
         final failedIds = <String>[];
 
+        debugPrint('ScheduleGeneratorService: Found ${activeSchedules.length} active schedule(s)');
         for (final schedule in activeSchedules) {
+          debugPrint('ScheduleGeneratorService: Processing schedule ${schedule.id} '
+              'for template ${schedule.templateId}, '
+              'rule=${schedule.recurrenceRule}, '
+              'hasReminder=${schedule.hasReminder}, '
+              'reminderOffset=${schedule.reminderOffsetMinutes}, '
+              'lastGenerated=${schedule.lastGeneratedAt}');
           try {
             final result = await _generateForSchedule(schedule, horizon);
             totalCreated += result.created;
@@ -166,6 +174,8 @@ class ScheduleGeneratorService {
     final startFrom = schedule.lastGeneratedAt ?? schedule.updatedAt;
     final endAt = DateTime.now().add(horizon);
 
+    debugPrint('ScheduleGeneratorService: Generation window: $startFrom → $endAt');
+
     // Get occurrences from RRULE
     final occurrences = _recurrenceService.getOccurrences(
       rruleString: schedule.recurrenceRule,
@@ -174,9 +184,12 @@ class ScheduleGeneratorService {
       before: endAt,
     );
 
+    debugPrint('ScheduleGeneratorService: RRULE produced ${occurrences.length} occurrence(s)');
+
     if (occurrences.isEmpty) {
       // Still update lastGeneratedAt to avoid re-processing
       await _scheduleRepo.markGenerated(schedule.id, DateTime.now());
+      debugPrint('ScheduleGeneratorService: No occurrences, marking as generated');
       return const _SingleScheduleResult(created: 0, skipped: 0);
     }
 
@@ -219,7 +232,8 @@ class ScheduleGeneratorService {
 
       await _logEntryRepo.saveLogEntry(todo);
       created++;
-      
+      debugPrint('ScheduleGeneratorService: Created todo ${todo.id} for $occurrence');
+
       // Schedule notification if reminder is configured
       if (schedule.hasReminder && templateName != null) {
         await _scheduleNotification(
@@ -227,6 +241,9 @@ class ScheduleGeneratorService {
           schedule: schedule,
           templateName: templateName,
         );
+      } else {
+        debugPrint('ScheduleGeneratorService: No notification - '
+            'hasReminder=${schedule.hasReminder}, templateName=$templateName');
       }
       
       // Add to set to prevent duplicates within same batch
@@ -251,6 +268,8 @@ class ScheduleGeneratorService {
     final scheduledFor = todo.scheduledFor;
     final reminderOffset = schedule.reminderOffsetMinutes;
     if (scheduledFor == null || reminderOffset == null) {
+      debugPrint('ScheduleGeneratorService: Skipping notification - '
+          'scheduledFor=$scheduledFor, reminderOffset=$reminderOffset');
       return;
     }
 
@@ -261,11 +280,16 @@ class ScheduleGeneratorService {
 
     // Don't schedule notifications in the past
     if (notifyAt.isBefore(DateTime.now())) {
+      debugPrint('ScheduleGeneratorService: Skipping past notification - '
+          'notifyAt=$notifyAt is before now=${DateTime.now()}');
       return;
     }
 
     // Use todo ID hash as notification ID (stable, unique per todo)
     final notificationId = todo.id.hashCode;
+
+    debugPrint('ScheduleGeneratorService: Scheduling notification $notificationId '
+        'for "$templateName" at $notifyAt (todo=${todo.id})');
 
     await _notificationService.schedule(
       id: notificationId,
