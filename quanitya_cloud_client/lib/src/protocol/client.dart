@@ -872,44 +872,23 @@ class EndpointCloudLlm extends _i1.EndpointRef {
   );
 }
 
-/// Consumable management endpoint for Quanitya Cloud
+/// Admin endpoint for managing account entitlements (credits, sync days, etc.)
 ///
-/// User-facing balance/access queries are now handled by the enriched
-/// anonaccred commerce.getEntitlements() endpoint.
-///
-/// This endpoint retains:
-/// - getAnalysisCost: Quanitya-specific business logic
-/// - addCredits / consumeCredits: Admin operations
+/// Requires ECDSA P-256 admin signature for all operations.
 /// {@category Endpoint}
-class EndpointConsumable extends _i1.EndpointRef {
-  EndpointConsumable(_i1.EndpointCaller caller) : super(caller);
+class EndpointEntitlementAdmin extends EndpointAdminManagement {
+  EndpointEntitlementAdmin(_i1.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'consumable';
+  String get name => 'entitlementAdmin';
 
-  /// Get analysis cost for a specific analysis type
-  ///
-  /// [analysisType] - Type of analysis to get cost for
-  ///
-  /// Returns credit cost for the analysis type
-  _i2.Future<double> getAnalysisCost(String analysisType) =>
-      caller.callServerEndpoint<double>(
-        'consumable',
-        'getAnalysisCost',
-        {'analysisType': analysisType},
-      );
-
-  /// Add credits to user inventory (for purchases/top-ups)
-  ///
-  /// Requires admin or support role.
+  /// Add credits to an account's entitlement balance.
   ///
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
   /// [accountId] - Target account ID
-  /// [consumableType] - Type of consumable to add (int)
+  /// [consumableType] - Entitlement ID to add to
   /// [amount] - Amount to add (must be positive)
-  ///
-  /// Returns success message
   _i2.Future<String> addCredits(
     String adminPublicKeyHex,
     String adminSignature,
@@ -917,7 +896,7 @@ class EndpointConsumable extends _i1.EndpointRef {
     int consumableType,
     double amount,
   ) => caller.callServerEndpoint<String>(
-    'consumable',
+    'entitlementAdmin',
     'addCredits',
     {
       'adminPublicKeyHex': adminPublicKeyHex,
@@ -928,17 +907,13 @@ class EndpointConsumable extends _i1.EndpointRef {
     },
   );
 
-  /// Manual credit consumption (for testing/admin purposes)
-  ///
-  /// Requires admin or support role.
+  /// Consume credits from an account's entitlement balance.
   ///
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
   /// [accountId] - Target account ID
-  /// [consumableType] - Type of consumable to consume (int)
+  /// [consumableType] - Entitlement ID to consume from
   /// [amount] - Amount to consume (must be positive)
-  ///
-  /// Returns success message
   _i2.Future<String> consumeCredits(
     String adminPublicKeyHex,
     String adminSignature,
@@ -946,7 +921,7 @@ class EndpointConsumable extends _i1.EndpointRef {
     int consumableType,
     double amount,
   ) => caller.callServerEndpoint<String>(
-    'consumable',
+    'entitlementAdmin',
     'consumeCredits',
     {
       'adminPublicKeyHex': adminPublicKeyHex,
@@ -954,6 +929,101 @@ class EndpointConsumable extends _i1.EndpointRef {
       'accountId': accountId,
       'consumableType': consumableType,
       'amount': amount,
+    },
+  );
+
+  /// Validate admin signature and check permission.
+  ///
+  /// This method performs ECDSA signature verification and returns
+  /// the associated admin role if valid.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature (128 hex chars)
+  /// - [requestBody]: JSON string of request body (excluding signature fields)
+  ///
+  /// Returns:
+  /// - AdminRole if signature is valid and key is active
+  /// - null if signature is invalid or key is inactive
+  ///
+  /// Example:
+  /// ```dart
+  /// final role = await validateAdmin(
+  ///   session,
+  ///   publicKeyHex,
+  ///   signature,
+  ///   requestBody,
+  /// );
+  ///
+  /// if (role == null) {
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
+  ///     message: 'Invalid signature or inactive key',
+  ///   );
+  /// }
+  ///
+  /// if (!role.canSendNotifications()) {
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.insufficientPermissions,
+  ///     message: 'Insufficient permissions',
+  ///   );
+  /// }
+  /// ```
+  @override
+  _i2.Future<_i4.AdminRole?> validateAdmin(
+    String publicKeyHex,
+    String signature,
+    String requestBody,
+  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+    'entitlementAdmin',
+    'validateAdmin',
+    {
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'requestBody': requestBody,
+    },
+  );
+
+  /// Require admin authentication or throw exception.
+  ///
+  /// Convenience method that validates the signature and throws
+  /// an exception if authentication fails.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [publicKeyHex]: ECDSA P-256 public key
+  /// - [signature]: ECDSA signature
+  /// - [requestBody]: JSON string of request body
+  ///
+  /// Returns:
+  /// - AdminRole if authentication successful
+  ///
+  /// Throws:
+  /// - Exception if authentication fails
+  ///
+  /// Example:
+  /// ```dart
+  /// final role = await requireAdmin(
+  ///   session,
+  ///   publicKeyHex,
+  ///   signature,
+  ///   requestBody,
+  /// );
+  /// // If we get here, authentication succeeded
+  /// ```
+  @override
+  _i2.Future<_i4.AdminRole> requireAdmin(
+    String publicKeyHex,
+    String signature,
+    String requestBody,
+  ) => caller.callServerEndpoint<_i4.AdminRole>(
+    'entitlementAdmin',
+    'requireAdmin',
+    {
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'requestBody': requestBody,
     },
   );
 }
@@ -2329,7 +2399,7 @@ class Client extends _i1.ServerpodClientShared {
     analyticsEvent = EndpointAnalyticsEvent(this);
     cloudAnalysis = EndpointCloudAnalysis(this);
     cloudLlm = EndpointCloudLlm(this);
-    consumable = EndpointConsumable(this);
+    entitlementAdmin = EndpointEntitlementAdmin(this);
     errorReportAdmin = EndpointErrorReportAdmin(this);
     errorReport = EndpointErrorReport(this);
     feedbackAdmin = EndpointFeedbackAdmin(this);
@@ -2354,7 +2424,7 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointCloudLlm cloudLlm;
 
-  late final EndpointConsumable consumable;
+  late final EndpointEntitlementAdmin entitlementAdmin;
 
   late final EndpointErrorReportAdmin errorReportAdmin;
 
@@ -2381,7 +2451,7 @@ class Client extends _i1.ServerpodClientShared {
     'analyticsEvent': analyticsEvent,
     'cloudAnalysis': cloudAnalysis,
     'cloudLlm': cloudLlm,
-    'consumable': consumable,
+    'entitlementAdmin': entitlementAdmin,
     'errorReportAdmin': errorReportAdmin,
     'errorReport': errorReport,
     'feedbackAdmin': feedbackAdmin,
