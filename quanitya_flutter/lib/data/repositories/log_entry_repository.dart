@@ -202,10 +202,13 @@ class LogEntryRepository implements ILogEntryRepository {
     // 1. Fetch and validate template exists
     final template = await _getTemplateOrThrow(entry.templateId);
 
-    // 2. Validate entry data against template schema
-    final errors = _validateDataAgainstTemplate(entry.data, template);
-    if (errors.isNotEmpty) {
-      throw LogEntryValidationException(errors);
+    // 2. Validate entry data against template schema (skip for todos —
+    //    they're placeholders with empty data, filled when logged)
+    if (entry.occurredAt != null) {
+      final errors = _validateDataAgainstTemplate(entry.data, template);
+      if (errors.isNotEmpty) {
+        throw LogEntryValidationException(errors);
+      }
     }
 
     // 3. Save via dual DAO (handles E2EE)
