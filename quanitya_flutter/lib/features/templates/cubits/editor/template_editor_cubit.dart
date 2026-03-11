@@ -445,6 +445,38 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Visibility Management
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Toggle the hidden state of the template.
+  /// Hidden templates require biometric auth to view.
+  Future<void> toggleHidden() async {
+    final templateId = state.template?.id;
+    if (templateId == null) return;
+
+    await tryOperation(() async {
+      if (state.template!.isHidden) {
+        await _repository.unhide(templateId);
+      } else {
+        await _repository.hide(templateId);
+      }
+
+      final updated = await _repository.findById(templateId);
+      if (updated != null) {
+        return state.copyWith(
+          template: updated.template,
+          status: UiFlowStatus.success,
+          lastOperation: TemplateEditorOperation.toggleHidden,
+        );
+      }
+      return state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: TemplateEditorOperation.toggleHidden,
+      );
+    }, emitLoading: false);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Helpers
   // ─────────────────────────────────────────────────────────────────────────
 
