@@ -13,7 +13,10 @@ import '../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../support/extensions/context_extensions.dart';
 import '../../features/app_operating_mode/cubits/app_operating_cubit.dart';
 import '../../infrastructure/auth/auth_service.dart';
+import '../../data/dao/template_query_dao.dart';
+import '../../data/interfaces/log_entry_interface.dart';
 import '../../infrastructure/notifications/notification_service.dart';
+import '../../logic/log_entries/models/log_entry.dart';
 import '../services/dev_seeder_service.dart';
 
 /// Shows a bottom sheet with dev tools
@@ -167,6 +170,43 @@ class DevToolsSheet extends StatelessWidget {
                     );
                   },
                   successMessage: 'Notification sent',
+                ),
+              ),
+              VSpace.x2,
+
+              // Test actionable notification (Quick Log)
+              _DevToolRow(
+                label: 'Test Quick Log Notification',
+                child: _DevActionButton(
+                  text: 'Send',
+                  onPressed: () async {
+                    // Find the Sleep Log template
+                    final templateDao = GetIt.instance<TemplateQueryDao>();
+                    final template = await templateDao.findByName('Sleep Log');
+                    if (template == null) {
+                      throw Exception('Seed data first — Sleep Log template not found');
+                    }
+
+                    // Create a todo entry for it
+                    final logEntryRepo = GetIt.instance<ILogEntryRepository>();
+                    final todo = LogEntryModel.createTodo(
+                      templateId: template.id,
+                      scheduledFor: DateTime.now().add(const Duration(seconds: 10)),
+                    );
+                    await logEntryRepo.saveLogEntry(todo);
+
+                    // Schedule reminder notification in 5 seconds with action buttons
+                    final notificationService = GetIt.instance<NotificationService>();
+                    await notificationService.schedule(
+                      id: todo.id.hashCode,
+                      title: 'Sleep Log',
+                      body: 'Time to log your Sleep Log',
+                      scheduledAt: DateTime.now().add(const Duration(seconds: 5)),
+                      payload: todo.id,
+                      category: NotificationCategories.reminder,
+                    );
+                  },
+                  successMessage: 'Reminder in 5s with Quick Log action',
                 ),
               ),
               VSpace.x2,
