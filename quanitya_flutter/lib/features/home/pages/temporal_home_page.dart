@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/bootstrap.dart';
 import '../../../design_system/primitives/app_sizes.dart';
+import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../design_system/widgets/swipeable_page_shell.dart';
 import '../../../dev/dev_module.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/temporal_timeline_cubit.dart';
 import '../cubits/temporal_timeline_state.dart';
 import '../cubits/timeline_data_cubit.dart';
 import '../cubits/timeline_data_state.dart';
-import '../widgets/temporal_indicator.dart';
-import '../widgets/temporal_zen_paper.dart';
 import '../widgets/temporal_past_panel.dart';
 import '../widgets/temporal_present_panel.dart';
 import '../widgets/temporal_future_panel.dart';
@@ -45,6 +45,23 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Widget _buildTemporalLabel(BuildContext context, String text) {
+    final palette = QuanityaPalette.primary;
+    final labels = ['-t', 't', '+t'];
+    final index = labels.indexOf(text);
+    final isActive = _currentIndex == index;
+
+    return Text(
+      text,
+      style: context.text.bodyLarge?.copyWith(
+        fontWeight: isActive ? FontWeight.w900 : FontWeight.w500,
+        color: isActive ? palette.textPrimary : palette.interactableColor,
+        fontFamily: QuanityaFonts.headerFamily,
+        fontSize: AppSizes.fontLarge,
+      ),
+    );
   }
 
   @override
@@ -92,59 +109,34 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
             },
           ),
         ],
-        child: Stack(
-            children: [
-              // Layer 0: Washi Paper Background
-              TemporalZenPaper(
-                controller: _pageController,
-                pastScrollOffset: _pastScrollOffset,
-                futureScrollOffset: _futureScrollOffset,
+        child: SwipeablePageShell(
+            controller: _pageController,
+            initialPage: 1,
+            onPageChanged: (index) {
+              setState(() => _currentIndex = index);
+              _timelineCubit?.setCurrentPage(index);
+            },
+            scrollOffsets: [_pastScrollOffset, 0.0, _futureScrollOffset],
+            pages: [
+              TemporalPastPanel(
+                onScrollOffsetChanged: (offset) {
+                  setState(() => _pastScrollOffset = offset);
+                },
               ),
-
-              // Layer 1: Content + Indicator in a Column
-              SafeArea(
-                bottom: false,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: PageView(
-                        controller: _pageController,
-                        onPageChanged: (index) {
-                          setState(() => _currentIndex = index);
-                          _timelineCubit?.setCurrentPage(index);
-                        },
-                        physics: const ClampingScrollPhysics(),
-                        children: [
-                          TemporalPastPanel(
-                            onScrollOffsetChanged: (offset) {
-                              setState(() => _pastScrollOffset = offset);
-                            },
-                          ),
-                          const TemporalPresentPanel(),
-                          TemporalFuturePanel(
-                            onScrollOffsetChanged: (offset) {
-                              setState(() => _futureScrollOffset = offset);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Indicator sits at bottom, in the layout flow
-                    TemporalIndicator(
-                      controller: _pageController,
-                      onTabSelected: (index) {
-                        _pageController.animateToPage(
-                          index,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                    ),
-                  ],
-                ),
+              const TemporalPresentPanel(),
+              TemporalFuturePanel(
+                onScrollOffsetChanged: (offset) {
+                  setState(() => _futureScrollOffset = offset);
+                },
               ),
-
-              // Layer 2: Filter Buttons (Top Right) - Past page only
+            ],
+            labels: [
+              _buildTemporalLabel(context, '-t'),
+              _buildTemporalLabel(context, 't'),
+              _buildTemporalLabel(context, '+t'),
+            ],
+            overlays: [
+              // Filter Buttons (Top Right) - Past page only
               Positioned(
                 top: 0,
                 right: 0,
@@ -193,7 +185,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                 ),
               ),
 
-              // Layer 3: Lock Icon (top-left)
+              // Lock Icon (top-left)
               Positioned(
                 top: 0,
                 left: 0,
