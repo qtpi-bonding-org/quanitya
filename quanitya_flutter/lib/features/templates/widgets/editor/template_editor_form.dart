@@ -9,6 +9,7 @@ import '../../../../design_system/structures/group.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
+import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../../support/extensions/context_extensions.dart';
@@ -21,10 +22,14 @@ import '../../../../design_system/widgets/ai/ai_prompt_widget.dart';
 import '../../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../../app_operating_mode/cubits/app_operating_cubit.dart';
 import '../../../app_operating_mode/models/app_operating_mode.dart';
+import 'color_palette_editor.dart';
+import 'container_style_editor.dart';
 import 'field_editor_list.dart';
-import 'template_basic_info_editor.dart';
-import 'schedule_section.dart';
 import 'inline_field_editor.dart';
+import 'schedule_section.dart';
+import 'template_basic_info_editor.dart';
+import 'template_icon_editor.dart';
+import 'typography_editor.dart';
 
 /// Main form for editing template structure and fields
 class TemplateEditorForm extends StatefulWidget {
@@ -43,7 +48,7 @@ class TemplateEditorForm extends StatefulWidget {
 
 class _TemplateEditorFormState extends State<TemplateEditorForm> {
   bool _isGenerating = false;
-  
+
   /// Field type currently being added (null if not adding)
   FieldEnum? _addingFieldType;
 
@@ -56,6 +61,8 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   Widget build(BuildContext context) {
     return BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
       builder: (context, state) {
+        final isEditing = state.template != null;
+
         return Column(
           children: [
             // Scrollable content
@@ -65,60 +72,106 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                 child: QuanityaColumn(
                   crossAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // AI Generation Section (at the top)
-                    AiPromptWidget(
-                      title: context.l10n.aiGeneratorTitle,
-                      hintText: context.l10n.aiGeneratorHint,
-                      isLoading: _isGenerating,
-                      onGenerate: (prompt) => _generateFromAi(context, prompt),
-                    ),
+                    // AI Assistant fold — only shown when creating
+                    if (!isEditing)
+                      NotebookFold(
+                        initiallyExpanded: true,
+                        header: Text(
+                          context.l10n.aiGeneratorTitle,
+                          style: context.text.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: context.colors.textPrimary,
+                          ),
+                        ),
+                        child: AiPromptWidget(
+                          title: context.l10n.aiGeneratorTitle,
+                          hintText: context.l10n.aiGeneratorHint,
+                          isLoading: _isGenerating,
+                          onGenerate: (prompt) =>
+                              _generateFromAi(context, prompt),
+                        ),
+                      ),
 
-                    VSpace.x4,
-
-                    // Basic Info Section (Now includes detailed theme editor)
-                    const TemplateBasicInfoEditor(),
-
-                    VSpace.x3,
-
-                    // Fields Section Header - title font, bigger, black
-                    QuanityaRow(
-                      alignment: CrossAxisAlignment.center,
-                      start: Text(
-                        context.l10n.templateFieldsSection,
+                    // Identity fold — always expanded
+                    NotebookFold(
+                      initiallyExpanded: true,
+                      header: Text(
+                        context.l10n.templateNameLabel,
                         style: context.text.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: context.colors.textPrimary,
                         ),
                       ),
-                      end: Text(
-                        context.l10n.fieldsCount(state.fields.length),
-                        style: context.text.bodyMedium?.copyWith(
-                          color: context.colors.textSecondary,
-                        ),
+                      child: QuanityaColumn(
+                        crossAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const TemplateIconEditor(),
+                          VSpace.x3,
+                          const TemplateBasicInfoEditor(),
+                        ],
                       ),
                     ),
 
-                    // Fields List
-                    const FieldEditorList(),
+                    // Fields fold — always expanded
+                    NotebookFold(
+                      initiallyExpanded: true,
+                      header: _buildFieldsHeader(context, state),
+                      child: QuanityaColumn(
+                        crossAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const FieldEditorList(),
+                          VSpace.x3,
+                          _buildAddFieldList(context),
+                        ],
+                      ),
+                    ),
 
-                    VSpace.x3,
+                    // Appearance fold — collapsed by default
+                    NotebookFold(
+                      initiallyExpanded: false,
+                      header: Text(
+                        context.l10n.colorThemeSection,
+                        style: context.text.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: context.colors.textPrimary,
+                        ),
+                      ),
+                      child: QuanityaColumn(
+                        crossAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const ColorPaletteEditor(),
+                          VSpace.x3,
+                          const TypographyEditor(),
+                          VSpace.x3,
+                          const ContainerStyleEditor(),
+                        ],
+                      ),
+                    ),
 
-                    // Add Field List (New Design)
-                    _buildAddFieldList(context),
-
-                    VSpace.x4,
-                    
-                    // Schedule/Reminder Section
-                    ScheduleSection(
-                      frequency: state.scheduleFrequency,
-                      reminderTime: state.scheduleTime,
-                      weeklyDays: state.scheduleWeeklyDays,
-                      onFrequencyChanged: (freq) => 
-                          context.read<TemplateEditorCubit>().updateScheduleFrequency(freq),
-                      onTimeChanged: (time) => 
-                          context.read<TemplateEditorCubit>().updateScheduleTime(time),
-                      onWeeklyDaysChanged: (days) => 
-                          context.read<TemplateEditorCubit>().updateScheduleWeeklyDays(days),
+                    // Schedule fold — collapsed by default
+                    NotebookFold(
+                      initiallyExpanded: false,
+                      header: Text(
+                        context.l10n.scheduleTitle,
+                        style: context.text.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: context.colors.textPrimary,
+                        ),
+                      ),
+                      child: ScheduleSection(
+                        frequency: state.scheduleFrequency,
+                        reminderTime: state.scheduleTime,
+                        weeklyDays: state.scheduleWeeklyDays,
+                        onFrequencyChanged: (freq) => context
+                            .read<TemplateEditorCubit>()
+                            .updateScheduleFrequency(freq),
+                        onTimeChanged: (time) => context
+                            .read<TemplateEditorCubit>()
+                            .updateScheduleTime(time),
+                        onWeeklyDaysChanged: (days) => context
+                            .read<TemplateEditorCubit>()
+                            .updateScheduleWeeklyDays(days),
+                      ),
                     ),
 
                     // Extra space at bottom so content isn't hidden behind sticky bar
@@ -127,7 +180,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                 ),
               ),
             ),
-            
+
             // Sticky bottom action bar
             _buildStickyBottomBar(context, state),
           ],
@@ -136,7 +189,27 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     );
   }
 
-  Widget _buildStickyBottomBar(BuildContext context, TemplateEditorState state) {
+  Widget _buildFieldsHeader(BuildContext context, TemplateEditorState state) {
+    return QuanityaRow(
+      alignment: CrossAxisAlignment.center,
+      start: Text(
+        context.l10n.templateFieldsSection,
+        style: context.text.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: context.colors.textPrimary,
+        ),
+      ),
+      end: Text(
+        context.l10n.fieldsCount(state.fields.length),
+        style: context.text.bodyMedium?.copyWith(
+          color: context.colors.textSecondary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStickyBottomBar(
+      BuildContext context, TemplateEditorState state) {
     final isEditing = state.template != null;
 
     return SafeArea(
@@ -210,21 +283,37 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
         onCancel: () => setState(() => _addingFieldType = null),
       );
     }
-    
+
     return QuanityaGroup(
       child: Column(
         children: [
-          _buildAddFieldOption(context, context.l10n.fieldNumber, Icons.numbers, FieldEnum.integer),
-          Divider(height: 1, color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(context, context.l10n.fieldText, Icons.text_fields, FieldEnum.text),
-          Divider(height: 1, color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(context, context.l10n.fieldToggle, Icons.toggle_on, FieldEnum.boolean),
-          Divider(height: 1, color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(context, context.l10n.fieldDate, Icons.calendar_today, FieldEnum.datetime),
-          Divider(height: 1, color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(context, context.l10n.fieldChoice, Icons.list, FieldEnum.enumerated),
-          Divider(height: 1, color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(context, context.l10n.fieldFloat, Icons.numbers, FieldEnum.float),
+          _buildAddFieldOption(
+              context, context.l10n.fieldNumber, Icons.numbers, FieldEnum.integer),
+          Divider(
+              height: 1,
+              color: context.colors.textSecondary.withValues(alpha: 0.1)),
+          _buildAddFieldOption(
+              context, context.l10n.fieldText, Icons.text_fields, FieldEnum.text),
+          Divider(
+              height: 1,
+              color: context.colors.textSecondary.withValues(alpha: 0.1)),
+          _buildAddFieldOption(
+              context, context.l10n.fieldToggle, Icons.toggle_on, FieldEnum.boolean),
+          Divider(
+              height: 1,
+              color: context.colors.textSecondary.withValues(alpha: 0.1)),
+          _buildAddFieldOption(context, context.l10n.fieldDate,
+              Icons.calendar_today, FieldEnum.datetime),
+          Divider(
+              height: 1,
+              color: context.colors.textSecondary.withValues(alpha: 0.1)),
+          _buildAddFieldOption(
+              context, context.l10n.fieldChoice, Icons.list, FieldEnum.enumerated),
+          Divider(
+              height: 1,
+              color: context.colors.textSecondary.withValues(alpha: 0.1)),
+          _buildAddFieldOption(
+              context, context.l10n.fieldFloat, Icons.numbers, FieldEnum.float),
         ],
       ),
     );
@@ -243,14 +332,16 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
         child: QuanityaRow(
           spacing: HSpace.x2,
           alignment: CrossAxisAlignment.center,
-          start: Icon(icon, size: AppSizes.size20, color: context.colors.textSecondary),
+          start: Icon(icon,
+              size: AppSizes.size20, color: context.colors.textSecondary),
           middle: Text(
             label,
             style: context.text.bodyMedium?.copyWith(
               color: context.colors.textSecondary,
             ),
           ),
-          end: Icon(Icons.add, size: AppSizes.size20, color: context.colors.interactableColor),
+          end: Icon(Icons.add,
+              size: AppSizes.size20, color: context.colors.interactableColor),
         ),
       ),
     );
