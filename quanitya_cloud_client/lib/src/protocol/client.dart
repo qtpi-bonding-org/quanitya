@@ -195,36 +195,138 @@ class EndpointAdminKeyManagement extends _i1.EndpointRef {
 /// Accepts lightweight, PII-free event names (e.g. "template_created")
 /// and stores them in Postgres for aggregate usage insights.
 ///
-/// No authentication required — events contain no user content,
-/// just action counters. No proof-of-work overhead since the
-/// payload is fixed-vocabulary event names, not free-form text.
+/// Protected by Hashcash proof-of-work + ECDSA signature for rate limiting.
+/// Events are submitted in batches — one PoW covers the whole batch.
 /// {@category Endpoint}
-class EndpointAnalyticsEvent extends _i1.EndpointRef {
+class EndpointAnalyticsEvent extends EndpointPublicSubmission {
   EndpointAnalyticsEvent(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'analyticsEvent';
 
-  /// Submit a single analytics event.
+  /// Submit a batch of analytics events with proof-of-work and signature.
   ///
   /// Parameters:
-  /// - [eventName]: Action that occurred (e.g. "template_created")
-  /// - [clientTimestamp]: When the event occurred on the client
-  /// - [platform]: Client platform (iOS, Android, macOS, etc.)
-  /// - [props]: Optional JSON-encoded properties
-  _i2.Future<void> submitEvent({
-    required String eventName,
-    required DateTime clientTimestamp,
-    String? platform,
-    String? props,
-  }) => caller.callServerEndpoint<void>(
+  /// - [challenge]: Challenge string from getChallenge()
+  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature of "challenge:analytics:{eventCount}"
+  /// - [eventsJson]: JSON-encoded list of event objects, each with:
+  ///   - eventName: Action that occurred (e.g. "template_created")
+  ///   - clientTimestamp: ISO 8601 timestamp
+  ///   - platform: Client platform (optional)
+  ///   - props: JSON-encoded properties (optional)
+  ///
+  /// Returns:
+  /// - success: true if events were stored
+  /// - data: Contains insertedCount
+  /// - message: Success or error message
+  _i2.Future<Map<String, dynamic>> submitEvents({
+    required String challenge,
+    required String proofOfWork,
+    required String publicKeyHex,
+    required String signature,
+    required String eventsJson,
+  }) => caller.callServerEndpoint<Map<String, dynamic>>(
     'analyticsEvent',
-    'submitEvent',
+    'submitEvents',
     {
-      'eventName': eventName,
-      'clientTimestamp': clientTimestamp,
-      'platform': platform,
-      'props': props,
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'eventsJson': eventsJson,
+    },
+  );
+
+  /// Get challenge for proof-of-work.
+  ///
+  /// This method is inherited by all public endpoints and provides
+  /// a consistent way to generate challenges.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  ///
+  /// Returns a map with:
+  /// - challenge: Random challenge string (32 hex chars)
+  /// - difficulty: Number of leading zero bits required (20)
+  /// - expiresAt: Unix timestamp when challenge expires
+  ///
+  /// Example:
+  /// ```dart
+  /// final challenge = await getChallenge(session);
+  /// // Returns: {
+  /// //   'challenge': 'abc123...',
+  /// //   'difficulty': 20,
+  /// //   'expiresAt': 1234567890
+  /// // }
+  /// ```
+  @override
+  _i2.Future<Map<String, dynamic>> getChallenge() =>
+      caller.callServerEndpoint<Map<String, dynamic>>(
+        'analyticsEvent',
+        'getChallenge',
+        {},
+      );
+
+  /// Verify submission (PoW + signature + rate limit).
+  ///
+  /// This method performs all verification steps:
+  /// 1. Verifies proof-of-work solution
+  /// 2. Verifies ECDSA signature
+  /// 3. Checks and enforces rate limits
+  ///
+  /// Throws an exception if any verification step fails.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [challenge]: Challenge string from getChallenge()
+  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature (128 hex chars)
+  /// - [payload]: Original payload that was signed
+  ///
+  /// Throws:
+  /// - Exception if proof-of-work is invalid
+  /// - Exception if signature is invalid
+  /// - RateLimitExceededException if rate limit exceeded
+  ///
+  /// Example:
+  /// ```dart
+  /// try {
+  ///   await verifySubmission(
+  ///     session,
+  ///     challenge,
+  ///     proofOfWork,
+  ///     publicKeyHex,
+  ///     signature,
+  ///     payload,
+  ///   );
+  ///   // Verification successful, process submission
+  /// } catch (e) {
+  ///   // Handle verification failure
+  ///   return ResponseBuilder.error(
+  ///     code: ResponseBuilder.errorAuthFailed,
+  ///     message: e.toString(),
+  ///   );
+  /// }
+  /// ```
+  @override
+  _i2.Future<void> verifySubmission(
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) => caller.callServerEndpoint<void>(
+    'analyticsEvent',
+    'verifySubmission',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'payload': payload,
     },
   );
 }

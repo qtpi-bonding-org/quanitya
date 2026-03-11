@@ -3,6 +3,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:quanitya_flutter/logic/analytics/analytics_service.dart';
 import 'package:quanitya_flutter/data/repositories/analytics_inbox_repository.dart';
+import 'package:quanitya_flutter/infrastructure/public_submission/public_submission_service.dart';
 
 class _MockClient extends Mock implements Client {}
 
@@ -12,24 +13,23 @@ class _MockEndpointAnalyticsEvent extends Mock
 class _MockAnalyticsInboxRepository extends Mock
     implements AnalyticsInboxRepository {}
 
+class _MockPublicSubmissionService extends Mock
+    implements PublicSubmissionService {}
+
 void main() {
   group('AnalyticsService', () {
     late AnalyticsService service;
     late _MockClient mockClient;
     late _MockEndpointAnalyticsEvent mockEndpoint;
     late _MockAnalyticsInboxRepository mockInbox;
+    late _MockPublicSubmissionService mockSubmission;
 
     setUp(() {
       mockClient = _MockClient();
       mockEndpoint = _MockEndpointAnalyticsEvent();
       mockInbox = _MockAnalyticsInboxRepository();
+      mockSubmission = _MockPublicSubmissionService();
       when(() => mockClient.analyticsEvent).thenReturn(mockEndpoint);
-      when(() => mockEndpoint.submitEvent(
-            eventName: any(named: 'eventName'),
-            clientTimestamp: any(named: 'clientTimestamp'),
-            platform: any(named: 'platform'),
-            props: any(named: 'props'),
-          )).thenAnswer((_) async {});
       when(() => mockInbox.saveEvent(
             eventName: any(named: 'eventName'),
             clientTimestamp: any(named: 'clientTimestamp'),
@@ -37,7 +37,7 @@ void main() {
             props: any(named: 'props'),
           )).thenAnswer((_) async {});
 
-      service = AnalyticsService(mockClient, mockInbox);
+      service = AnalyticsService(mockClient, mockInbox, mockSubmission);
     });
 
     test('all typed methods save to inbox without throwing', () {

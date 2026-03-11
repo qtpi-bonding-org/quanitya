@@ -98,6 +98,9 @@ class PublicSubmissionService implements IPublicSubmissionService {
         case 'feedback':
           response = await _client.feedback.getChallenge();
           break;
+        case 'analyticsEvent':
+          response = await _client.analyticsEvent.getChallenge();
+          break;
         default:
           throw PublicSubmissionException('Unknown endpoint: $endpoint');
       }
