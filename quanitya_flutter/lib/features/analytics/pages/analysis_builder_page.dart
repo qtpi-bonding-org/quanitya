@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_code_editor/flutter_code_editor.dart';
+import 'package:flutter_highlight/themes/vs2015.dart';
+import 'package:highlight/languages/javascript.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
 
@@ -45,8 +48,14 @@ class AnalysisBuilderPage extends StatefulWidget {
 
 class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
   bool _isGenerating = false;
-  final _codeController = TextEditingController();
+  late final CodeController _codeController;
   String _lastSnippet = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _codeController = CodeController(language: javascript);
+  }
 
   @override
   void dispose() {
@@ -239,59 +248,37 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
   ) {
     if (state.snippet != _lastSnippet) {
       _lastSnippet = state.snippet;
-      final selection = _codeController.selection;
       _codeController.text = state.snippet;
-      if (selection.isValid && selection.end <= state.snippet.length) {
-        _codeController.selection = selection;
-      } else {
-        _codeController.selection = TextSelection.collapsed(
-          offset: state.snippet.length,
-        );
-      }
     }
 
-    final lineCount = state.snippet.isEmpty
-        ? 8
-        : state.snippet.split('\n').length.clamp(8, 40);
-    final lineHeight = AppSizes.fontSmall * 1.6;
-
-    return Container(
-      constraints: BoxConstraints(minHeight: lineCount * lineHeight),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E).withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      ),
-      padding: AppPadding.allDouble,
-      child: TextField(
-        controller: _codeController,
-        onChanged: (value) {
-          _lastSnippet = value;
-          cubit.updateSnippet(value);
-        },
-        maxLines: null,
-        textAlignVertical: TextAlignVertical.top,
-        style: TextStyle(
-          fontFamily: 'monospace',
-          fontSize: AppSizes.fontSmall,
-          height: 1.6,
-          color: const Color(0xFFD4D4D4),
-          letterSpacing: 0.5,
-        ),
-        cursorColor: const Color(0xFFD4D4D4),
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.zero,
-          isDense: true,
-          hintText: '// Write your JavaScript analysis here...\n'
-              '// Available: data.values, data.timestamps, ss (simple-statistics)',
-          hintStyle: TextStyle(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+      child: CodeTheme(
+        data: CodeThemeData(styles: vs2015Theme),
+        child: CodeField(
+          controller: _codeController,
+          minLines: 8,
+          maxLines: null,
+          onChanged: (value) {
+            _lastSnippet = value;
+            cubit.updateSnippet(value);
+          },
+          textStyle: TextStyle(
             fontFamily: 'monospace',
             fontSize: AppSizes.fontSmall,
-            color: const Color(0xFFD4D4D4).withValues(alpha: 0.3),
             height: 1.6,
           ),
+          gutterStyle: GutterStyle(
+            showLineNumbers: true,
+            showFoldingHandles: false,
+            showErrors: false,
+            textStyle: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: AppSizes.fontMini,
+              color: const Color(0xFF858585),
+            ),
+          ),
         ),
-        keyboardType: TextInputType.multiline,
       ),
     );
   }
