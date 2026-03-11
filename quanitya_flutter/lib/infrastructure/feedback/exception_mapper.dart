@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' show ServerException, ServerErrorCode;
 import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import '../../data/repositories/analytics_inbox_repository.dart' show AnalyticsInboxException;
@@ -69,11 +70,8 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
       // PowerSync exceptions
       PowerSyncException() => const MessageKey.error(L10nKeys.errorSyncFailed),
 
-      // Serverpod exceptions
-      ServerpodException e => MessageKey.error(
-          'error.server.${e.errorCode}',
-          {'code': e.errorCode},
-        ),
+      // Server exceptions (typed from quanitya_cloud_client)
+      ServerException e => _mapServerException(e),
 
       // Crypto subtypes (most specific first, before base CryptoException types)
       KeyStorageException() => const MessageKey.error(L10nKeys.errorKeysFailed),
@@ -158,6 +156,22 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
     return const MessageKey.error(L10nKeys.errorAuthFailed);
   }
 
+  /// Maps ServerException to specific error message keys.
+  MessageKey _mapServerException(ServerException e) {
+    return switch (e.code) {
+      ServerErrorCode.rateLimitExceeded => const MessageKey.error(L10nKeys.errorRateLimitExceeded),
+      ServerErrorCode.validationFailed => const MessageKey.error(L10nKeys.errorFormatInvalid),
+      ServerErrorCode.notFound => const MessageKey.error(L10nKeys.errorTemplateNotFound),
+      ServerErrorCode.insufficientCredits => const MessageKey.error(L10nKeys.errorPurchaseFailed),
+      ServerErrorCode.authenticationFailed => const MessageKey.error(L10nKeys.errorAuthFailed),
+      ServerErrorCode.insufficientPermissions => const MessageKey.error(L10nKeys.errorAuthUnauthorized),
+      ServerErrorCode.challengeExpired => const MessageKey.error(L10nKeys.errorChallengeRequestFailed),
+      ServerErrorCode.invalidProofOfWork => const MessageKey.error(L10nKeys.errorProofOfWorkFailed),
+      ServerErrorCode.invalidSignature => const MessageKey.error(L10nKeys.errorSignatureFailed),
+      ServerErrorCode.internalError => const MessageKey.error(L10nKeys.errorGeneric),
+    };
+  }
+
   /// Maps FeedbackException to specific error messages
   MessageKey _mapFeedbackException(FeedbackException e) {
     if (e.message.contains('at least 10 characters')) {
@@ -216,16 +230,6 @@ class DatabaseException implements Exception {
 class PowerSyncException implements Exception {
   final String message;
   const PowerSyncException(this.message);
-}
-
-class ServerpodException implements Exception {
-  final String errorCode;
-  final String message;
-  
-  const ServerpodException({
-    required this.errorCode,
-    required this.message,
-  });
 }
 
 class EncryptionException implements Exception {

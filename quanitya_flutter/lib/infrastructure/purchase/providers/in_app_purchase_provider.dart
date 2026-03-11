@@ -116,6 +116,8 @@ class InAppPurchaseProvider implements IPurchaseProvider {
       );
       _cachedProductIds = ids.toSet();
       return _cachedProductIds!;
+    } on ServerException catch (e) {
+      throw PurchaseException('Product catalog: ${e.message}');
     } on PurchaseException {
       rethrow;
     } catch (e) {

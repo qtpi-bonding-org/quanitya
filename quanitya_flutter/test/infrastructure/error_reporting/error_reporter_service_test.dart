@@ -5,7 +5,6 @@ import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 
 import 'package:quanitya_flutter/infrastructure/error_reporting/error_reporter_service.dart';
 import 'package:quanitya_flutter/infrastructure/public_submission/public_submission_service.dart';
-import 'package:quanitya_flutter/infrastructure/public_submission/models/submission_response.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 @GenerateMocks([Client, PublicSubmissionService])
@@ -16,11 +15,11 @@ void main() {
     late ErrorReporterService service;
     late MockClient mockClient;
     late MockPublicSubmissionService mockSubmissionService;
-    
+
     setUp(() {
       mockClient = MockClient();
       mockSubmissionService = MockPublicSubmissionService();
-      
+
       service = ErrorReporterService(mockClient, mockSubmissionService);
     });
 
@@ -34,33 +33,27 @@ void main() {
         timestamp: DateTime.now(),
         userMessage: 'Test error message',
       );
-      
+
       when(mockSubmissionService.submitWithVerification(
         endpoint: anyNamed('endpoint'),
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
-      )).thenAnswer((_) async {
-        return const SubmissionResponse(
-          success: true,
-          message: 'Error report received',
-          data: {'reportId': 123},
-        );
-      });
-      
+      )).thenAnswer((_) async {});
+
       // Act
       final result = await service.sendErrorReport(errorEntry);
-      
+
       // Assert
       expect(result, true);
-      
+
       verify(mockSubmissionService.submitWithVerification(
         endpoint: 'errorReport',
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
       )).called(1);
     });
-    
-    test('returns false on failure (never throws)', () async {
+
+    test('returns false on failure (exception caught)', () async {
       // Arrange
       final errorEntry = ErrorEntry(
         source: 'FailCubit',
@@ -69,33 +62,26 @@ void main() {
         stackTrace: 'Fail stack trace',
         timestamp: DateTime.now(),
       );
-      
+
       when(mockSubmissionService.submitWithVerification(
         endpoint: anyNamed('endpoint'),
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
-      )).thenAnswer((_) async {
-        return const SubmissionResponse(
-          success: false,
-          message: 'Server error',
-          data: null,
-        );
-      });
-      
+      )).thenThrow(Exception('Server error'));
+
       // Act
       final result = await service.sendErrorReport(errorEntry);
-      
+
       // Assert
       expect(result, false);
-      
-      // Verify it didn't throw
+
       verify(mockSubmissionService.submitWithVerification(
         endpoint: 'errorReport',
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
       )).called(1);
     });
-    
+
     test('handles network errors gracefully', () async {
       // Arrange
       final errorEntry = ErrorEntry(
@@ -105,27 +91,26 @@ void main() {
         stackTrace: 'Network stack trace',
         timestamp: DateTime.now(),
       );
-      
+
       when(mockSubmissionService.submitWithVerification(
         endpoint: anyNamed('endpoint'),
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
       )).thenThrow(Exception('Network error'));
-      
+
       // Act
       final result = await service.sendErrorReport(errorEntry);
-      
+
       // Assert
       expect(result, false);
-      
-      // Verify it caught the exception and returned false
+
       verify(mockSubmissionService.submitWithVerification(
         endpoint: 'errorReport',
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
       )).called(1);
     });
-    
+
     test('integrates with PublicSubmissionService correctly', () async {
       // Arrange
       final timestamp = DateTime.now();
@@ -137,7 +122,7 @@ void main() {
         timestamp: timestamp,
         userMessage: 'Integration test message',
       );
-      
+
       // Capture the payload to verify format
       String? capturedPayload;
       when(mockSubmissionService.submitWithVerification(
@@ -146,16 +131,11 @@ void main() {
         submitCallback: anyNamed('submitCallback'),
       )).thenAnswer((invocation) async {
         capturedPayload = invocation.namedArguments[const Symbol('payload')] as String;
-        return const SubmissionResponse(
-          success: true,
-          message: 'Success',
-          data: {'reportId': 456},
-        );
       });
-      
+
       // Act
       final result = await service.sendErrorReport(errorEntry);
-      
+
       // Assert
       expect(result, true);
       expect(capturedPayload, isNotNull);
@@ -163,14 +143,14 @@ void main() {
       expect(capturedPayload, contains('IntegrationException'));
       expect(capturedPayload, contains('INT_001'));
       expect(capturedPayload, contains(timestamp.toIso8601String()));
-      
+
       verify(mockSubmissionService.submitWithVerification(
         endpoint: 'errorReport',
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
       )).called(1);
     });
-    
+
     test('builds correct payload format', () async {
       // Arrange
       final timestamp = DateTime(2024, 1, 15, 10, 30, 0);
@@ -181,7 +161,7 @@ void main() {
         stackTrace: 'Payload stack trace',
         timestamp: timestamp,
       );
-      
+
       String? capturedPayload;
       when(mockSubmissionService.submitWithVerification(
         endpoint: anyNamed('endpoint'),
@@ -189,24 +169,19 @@ void main() {
         submitCallback: anyNamed('submitCallback'),
       )).thenAnswer((invocation) async {
         capturedPayload = invocation.namedArguments[const Symbol('payload')] as String;
-        return const SubmissionResponse(
-          success: true,
-          message: 'Success',
-          data: {'reportId': 789},
-        );
       });
-      
+
       // Act
       await service.sendErrorReport(errorEntry);
-      
+
       // Assert
       expect(capturedPayload, isNotNull);
-      
+
       // Verify format: "source:errorType:errorCode:timestamp"
       final expectedPayload = 'PayloadCubit:PayloadException:PAY_001:${timestamp.toIso8601String()}';
       expect(capturedPayload, expectedPayload);
     });
-    
+
     test('handles error entry with null userMessage', () async {
       // Arrange
       final errorEntry = ErrorEntry(
@@ -217,26 +192,20 @@ void main() {
         timestamp: DateTime.now(),
         userMessage: null, // Null user message
       );
-      
+
       when(mockSubmissionService.submitWithVerification(
         endpoint: anyNamed('endpoint'),
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
-      )).thenAnswer((_) async {
-        return const SubmissionResponse(
-          success: true,
-          message: 'Success',
-          data: {'reportId': 999},
-        );
-      });
-      
+      )).thenAnswer((_) async {});
+
       // Act
       final result = await service.sendErrorReport(errorEntry);
-      
+
       // Assert
       expect(result, true);
     });
-    
+
     test('handles multiple error reports sequentially', () async {
       // Arrange
       final errors = List.generate(3, (i) => ErrorEntry(
@@ -246,35 +215,29 @@ void main() {
         stackTrace: 'Multi stack trace $i',
         timestamp: DateTime.now(),
       ));
-      
+
       when(mockSubmissionService.submitWithVerification(
         endpoint: anyNamed('endpoint'),
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
-      )).thenAnswer((_) async {
-        return const SubmissionResponse(
-          success: true,
-          message: 'Success',
-          data: {'reportId': 100},
-        );
-      });
-      
+      )).thenAnswer((_) async {});
+
       // Act
       final results = <bool>[];
       for (final error in errors) {
         results.add(await service.sendErrorReport(error));
       }
-      
+
       // Assert
       expect(results, [true, true, true]);
-      
+
       verify(mockSubmissionService.submitWithVerification(
         endpoint: 'errorReport',
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
       )).called(3);
     });
-    
+
     test('never throws even on unexpected errors', () async {
       // Arrange
       final errorEntry = ErrorEntry(
@@ -284,20 +247,18 @@ void main() {
         stackTrace: 'Unexpected stack trace',
         timestamp: DateTime.now(),
       );
-      
+
       when(mockSubmissionService.submitWithVerification(
         endpoint: anyNamed('endpoint'),
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
       )).thenThrow(StateError('Unexpected state error'));
-      
+
       // Act
       final result = await service.sendErrorReport(errorEntry);
-      
+
       // Assert
       expect(result, false);
-      
-      // Verify it didn't throw and returned false
     });
   });
 }

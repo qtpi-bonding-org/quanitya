@@ -34,11 +34,11 @@ class ErrorReporterService {
       final payloadSuffix = '${errorEntry.source}:${errorEntry.errorType}:'
           '${errorEntry.errorCode}:$timestamp';
 
-      final response = await _submissionService.submitWithVerification(
+      await _submissionService.submitWithVerification(
         endpoint: 'errorReport',
         payload: payloadSuffix,
         submitCallback: (challenge, proofOfWork, publicKeyHex, signature) async {
-          return await _client.errorReport.submitErrorReport(
+          await _client.errorReport.submitErrorReport(
             challenge: challenge,
             proofOfWork: proofOfWork,
             publicKeyHex: publicKeyHex,
@@ -54,13 +54,8 @@ class ErrorReporterService {
         },
       );
 
-      if (response.success) {
-        debugPrint('📤 Error report sent successfully: ${errorEntry.errorCode}');
-        return true;
-      } else {
-        debugPrint('📤 Failed to send error report: ${response.message}');
-        return false;
-      }
+      debugPrint('📤 Error report sent successfully: ${errorEntry.errorCode}');
+      return true;
     } catch (e) {
       debugPrint('📤 Error sending report: $e');
       return false;
@@ -90,11 +85,11 @@ class ErrorReporterService {
 
       final payloadSuffix = 'errorReports:${entries.length}';
 
-      final response = await _submissionService.submitWithVerification(
+      await _submissionService.submitWithVerification(
         endpoint: 'errorReport',
         payload: payloadSuffix,
         submitCallback: (challenge, proofOfWork, publicKeyHex, signature) async {
-          return await _client.errorReport.submitErrorReports(
+          await _client.errorReport.submitErrorReports(
             challenge: challenge,
             proofOfWork: proofOfWork,
             publicKeyHex: publicKeyHex,
@@ -104,14 +99,8 @@ class ErrorReporterService {
         },
       );
 
-      if (response.success) {
-        final insertedCount = response.data?['insertedCount'] as int? ?? 0;
-        debugPrint('📤 Error reports batch sent: $insertedCount/${entries.length}');
-        return insertedCount;
-      } else {
-        debugPrint('📤 Failed to send error reports batch: ${response.message}');
-        return 0;
-      }
+      debugPrint('📤 Error reports batch sent: ${entries.length}');
+      return entries.length;
     } catch (e) {
       debugPrint('📤 Error sending reports batch: $e');
       return 0;

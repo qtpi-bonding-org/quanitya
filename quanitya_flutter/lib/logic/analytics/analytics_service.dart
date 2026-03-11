@@ -103,11 +103,11 @@ class AnalyticsService {
         final payloadSuffix = 'analytics:${batch.length}';
 
         // Submit via PublicSubmissionService (challenge + PoW + signature)
-        final response = await _submissionService.submitWithVerification(
+        await _submissionService.submitWithVerification(
           endpoint: 'analyticsEvent',
           payload: payloadSuffix,
           submitCallback: (challenge, proofOfWork, publicKeyHex, signature) async {
-            return await _client.analyticsEvent.submitEvents(
+            await _client.analyticsEvent.submitEvents(
               challenge: challenge,
               proofOfWork: proofOfWork,
               publicKeyHex: publicKeyHex,
@@ -117,13 +117,7 @@ class AnalyticsService {
           },
         );
 
-        if (response.success) {
-          final insertedCount = response.data?['insertedCount'] as int? ?? 0;
-          totalSent += insertedCount;
-        } else {
-          debugPrint('Analytics batch send failed: ${response.message}');
-          break;
-        }
+        totalSent += batch.length;
       } catch (e) {
         debugPrint('Analytics batch send error: $e');
         break;

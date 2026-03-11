@@ -3,7 +3,6 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 import '../public_submission/public_submission_service.dart';
 import '../core/try_operation.dart';
-import 'models/feedback_submission.dart';
 import 'exceptions/feedback_exceptions.dart';
 
 /// Service for submitting user feedback to the server.
@@ -11,12 +10,12 @@ import 'exceptions/feedback_exceptions.dart';
 class FeedbackSubmissionService {
   final Client _client;
   final PublicSubmissionService _submissionService;
-  
+
   FeedbackSubmissionService(
     this._client,
     this._submissionService,
   );
-  
+
   /// Submit feedback to server.
   ///
   /// Parameters:
@@ -24,10 +23,8 @@ class FeedbackSubmissionService {
   /// - [feedbackType]: Type of feedback ('feature_request', 'bug', 'general')
   /// - [metadata]: Optional JSON metadata
   ///
-  /// Returns: FeedbackSubmission with server response
-  ///
-  /// Throws: FeedbackException on failure
-  Future<FeedbackSubmission> submitFeedback({
+  /// Completes normally on success. Throws FeedbackException on failure.
+  Future<void> submitFeedback({
     required String feedbackText,
     required String feedbackType,
     String? metadata,
@@ -36,17 +33,17 @@ class FeedbackSubmissionService {
       () async {
         // Validate input
         _validateFeedback(feedbackText, feedbackType);
-        
+
         // Build payload for signing
         // Format: "challenge:feedbackType:feedbackText"
         final payloadSuffix = '$feedbackType:$feedbackText';
-        
+
         // Submit via PublicSubmissionService
-        final response = await _submissionService.submitWithVerification(
+        await _submissionService.submitWithVerification(
           endpoint: 'feedback',
           payload: payloadSuffix,
           submitCallback: (challenge, proofOfWork, publicKeyHex, signature) async {
-            return await _client.feedback.submitFeedback(
+            await _client.feedback.submitFeedback(
               challenge: challenge,
               proofOfWork: proofOfWork,
               publicKeyHex: publicKeyHex,
@@ -56,17 +53,6 @@ class FeedbackSubmissionService {
               metadata: metadata,
             );
           },
-        );
-        
-        if (!response.success) {
-          throw FeedbackException('Failed to submit feedback: ${response.message}');
-        }
-        
-        return FeedbackSubmission(
-          feedbackId: response.data?['feedbackId'] as int,
-          timestamp: DateTime.parse(response.data?['timestamp'] as String),
-          feedbackText: feedbackText,
-          feedbackType: feedbackType,
         );
       },
       (message, [cause]) => FeedbackException(message),

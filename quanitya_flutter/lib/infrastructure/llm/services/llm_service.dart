@@ -43,20 +43,14 @@ class LlmService {
           );
 
           // Execute via Serverpod Endpoint
-          final result = await _serverpodClient.cloudLlm.generateStructured(cloudRequest);
-
-          if (!result.success) {
-            throw LlmException(result.message ?? 'Cloud LLM request failed');
-          }
+          final jsonString = await _serverpodClient.cloudLlm.generateStructured(cloudRequest);
 
           if (kDebugMode) {
              debugPrint('☁️☁️☁️ CLOUD PROXY SUCCESS ☁️☁️☁️\n');
           }
 
-          // Decode the JSON data from ApiResponse envelope
-          final data = result.jsonData != null
-              ? jsonDecode(result.jsonData!) as Map<String, dynamic>
-              : <String, dynamic>{};
+          // Decode the JSON string returned directly by the endpoint
+          final data = jsonDecode(jsonString) as Map<String, dynamic>;
 
           return LlmResponse(
             data: data,

@@ -1,13 +1,13 @@
 import 'dart:convert';
 
 import 'package:injectable/injectable.dart';
-import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
+    show Client, PublicChallengeResponse, ServerException, ServerErrorCode;
 import 'package:flutter/foundation.dart' show Uint8List, debugPrint;
 
 import '../crypto/crypto_key_repository.dart';
 import '../crypto/utils/hashcash.dart';
 import '../core/try_operation.dart';
-import 'models/submission_response.dart';
 import 'exceptions/public_submission_exceptions.dart';
 import 'interfaces/i_public_submission_service.dart';
 
@@ -39,14 +39,12 @@ class PublicSubmissionService implements IPublicSubmissionService {
   /// - [payload]: Data to sign (format: 'challenge:field1:field2:...')
   /// - [submitCallback]: Function that submits to server with credentials
   ///
-  /// Returns: SubmissionResponse with success status and data
-  ///
-  /// Throws: PublicSubmissionException on any failure
+  /// Completes normally on success. Throws domain exceptions on failure.
   @override
-  Future<SubmissionResponse> submitWithVerification({
+  Future<void> submitWithVerification({
     required String endpoint,
     required String payload,
-    required Future<ApiResponse> Function(
+    required Future<void> Function(
       String challenge,
       String proofOfWork,
       String publicKeyHex,
@@ -81,37 +79,28 @@ class PublicSubmissionService implements IPublicSubmissionService {
 
         // Step 5: Submit to server
         debugPrint('📤 [$endpoint] Step 5: Submitting to server...');
-        final result = await submitCallback(
-          challengeResponse.challenge,
-          proofOfWork,
-          publicKeyHex,
-          signature,
-        );
-        debugPrint('📤 [$endpoint] Step 5: Server response: ${result.success}');
-
-        // Check for server error codes
-        if (!result.success) {
-          switch (result.errorCode) {
-            case 'rate_limit_exceeded':
-              throw RateLimitExceededException(
-                result.message ?? 'Rate limit exceeded',
-              );
-            case 'challenge_expired':
-              throw ChallengeRequestException(
-                result.message ?? 'Challenge expired, please try again',
-              );
-            case 'validation_failed':
-              throw PublicSubmissionException(
-                result.message ?? 'Validation failed',
-              );
-            case 'internal_error':
-              throw PublicSubmissionException(
-                result.message ?? 'Server error',
-              );
+        try {
+          await submitCallback(
+            challengeResponse.challenge,
+            proofOfWork,
+            publicKeyHex,
+            signature,
+          );
+        } on ServerException catch (e) {
+          switch (e.code) {
+            case ServerErrorCode.rateLimitExceeded:
+              throw RateLimitExceededException(e.message);
+            case ServerErrorCode.challengeExpired:
+              throw ChallengeRequestException(e.message);
+            case ServerErrorCode.invalidProofOfWork:
+              throw ProofOfWorkException(e.message);
+            case ServerErrorCode.invalidSignature:
+              throw SignatureException(e.message);
+            default:
+              throw PublicSubmissionException(e.message);
           }
         }
-
-        return SubmissionResponse.fromApiResponse(result);
+        debugPrint('📤 [$endpoint] Step 5: Submission successful');
       },
       PublicSubmissionException.new,
       'submitWithVerification',
