@@ -57,7 +57,7 @@ class _FeedbackPageContent extends StatelessWidget {
 }
 
 /// Reusable feedback form content — used in both standalone FeedbackPage
-/// and the unified OutboxPage tab.
+/// and the unified PostagePage tab.
 class FeedbackTabContent extends StatefulWidget {
   const FeedbackTabContent({super.key});
 

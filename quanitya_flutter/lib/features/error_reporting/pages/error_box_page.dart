@@ -58,7 +58,7 @@ class _ErrorBoxView extends StatelessWidget {
 }
 
 /// Reusable error reports content — used in both standalone ErrorBoxPage
-/// and the unified OutboxPage tab.
+/// and the unified PostagePage tab.
 class ErrorsTabContent extends StatelessWidget {
   const ErrorsTabContent({super.key});
 

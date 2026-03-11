@@ -71,7 +71,9 @@ class NotificationInboxContent extends StatelessWidget {
               );
             },
           ),
-          bottomAction: const _MarkAllAction(),
+          bottomAction: state.notifications.isNotEmpty
+              ? const _MarkAllAction()
+              : null,
         );
       },
     );

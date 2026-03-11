@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
@@ -14,21 +15,24 @@ import '../../error_reporting/cubits/error_box_cubit.dart';
 import '../../error_reporting/cubits/error_box_state.dart';
 import '../../error_reporting/cubits/error_box_message_mapper.dart';
 import '../../error_reporting/pages/error_box_page.dart';
+import '../../notifications/cubits/notification_inbox_cubit.dart';
+import '../../notifications/mappers/notification_message_mapper.dart';
+import '../../notifications/pages/notification_inbox_page.dart';
 import '../../user_feedback/cubits/feedback_cubit.dart';
 import '../../user_feedback/cubits/feedback_state.dart';
 import '../../user_feedback/mappers/feedback_message_mapper.dart';
 import '../../user_feedback/pages/feedback_page.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Unified Outbox page with swipeable pages for Feedback, Analytics, and Errors.
-class OutboxPage extends StatefulWidget {
-  const OutboxPage({super.key});
+/// Unified Postage page with swipeable pages for Notices, Feedback, Analytics, and Errors.
+class PostagePage extends StatefulWidget {
+  const PostagePage({super.key});
 
   @override
-  State<OutboxPage> createState() => _OutboxPageState();
+  State<PostagePage> createState() => _PostagePageState();
 }
 
-class _OutboxPageState extends State<OutboxPage> {
+class _PostagePageState extends State<PostagePage> {
   int _currentIndex = 0;
   final PageController _pageController = PageController();
 
@@ -45,6 +49,9 @@ class _OutboxPageState extends State<OutboxPage> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
+          create: (_) => GetIt.instance<NotificationInboxCubit>()..loadNotifications(),
+        ),
+        BlocProvider(
           create: (_) => GetIt.instance<FeedbackCubit>(),
         ),
         BlocProvider(
@@ -54,55 +61,65 @@ class _OutboxPageState extends State<OutboxPage> {
           create: (_) => GetIt.instance<ErrorBoxCubit>()..load(),
         ),
       ],
-      child: UiFlowListener<AnalyticsInboxCubit, AnalyticsInboxState>(
-        mapper: GetIt.instance<AnalyticsInboxMessageMapper>(),
-        child: UiFlowListener<FeedbackCubit, FeedbackState>(
-          mapper: GetIt.instance<FeedbackMessageMapper>(),
-          child: UiFlowListener<ErrorBoxCubit, ErrorBoxState>(
-            mapper: GetIt.instance<ErrorBoxMessageMapper>(),
-            child: SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    physics: const ClampingScrollPhysics(),
-                    onPageChanged: (index) => setState(() => _currentIndex = index),
-                    children: const [
-                      FeedbackTabContent(),
-                      AnalyticsTabContent(),
-                      ErrorsTabContent(),
-                    ],
+      child: UiFlowStateListener<NotificationInboxCubit, NotificationInboxState>(
+        mapper: GetIt.instance<NotificationMessageMapper>(),
+        uiService: GetIt.instance<IUiFlowService>(),
+        child: UiFlowListener<AnalyticsInboxCubit, AnalyticsInboxState>(
+          mapper: GetIt.instance<AnalyticsInboxMessageMapper>(),
+          child: UiFlowListener<FeedbackCubit, FeedbackState>(
+            mapper: GetIt.instance<FeedbackMessageMapper>(),
+            child: UiFlowListener<ErrorBoxCubit, ErrorBoxState>(
+              mapper: GetIt.instance<ErrorBoxMessageMapper>(),
+              child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: const ClampingScrollPhysics(),
+                      onPageChanged: (index) => setState(() => _currentIndex = index),
+                      children: const [
+                        NotificationInboxContent(),
+                        FeedbackTabContent(),
+                        AnalyticsTabContent(),
+                        ErrorsTabContent(),
+                      ],
+                    ),
                   ),
-                ),
-                // Indicator at bottom, in the layout flow
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.25),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _PageLabel(
-                        label: l10n.outboxTabFeedback,
-                        isActive: _currentIndex == 0,
-                        onTap: () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
-                      ),
-                      _PageLabel(
-                        label: l10n.outboxTabAnalytics,
-                        isActive: _currentIndex == 1,
-                        onTap: () => _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
-                      ),
-                      _PageLabel(
-                        label: l10n.outboxTabErrors,
-                        isActive: _currentIndex == 2,
-                        onTap: () => _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
-                      ),
-                    ],
+                  // Indicator at bottom, in the layout flow
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.25),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _PageLabel(
+                          label: l10n.postageTabNotices,
+                          isActive: _currentIndex == 0,
+                          onTap: () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                        ),
+                        _PageLabel(
+                          label: l10n.outboxTabFeedback,
+                          isActive: _currentIndex == 1,
+                          onTap: () => _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                        ),
+                        _PageLabel(
+                          label: l10n.outboxTabAnalytics,
+                          isActive: _currentIndex == 2,
+                          onTap: () => _pageController.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                        ),
+                        _PageLabel(
+                          label: l10n.outboxTabErrors,
+                          isActive: _currentIndex == 3,
+                          onTap: () => _pageController.animateToPage(3, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            ),
           ),
         ),
       ),

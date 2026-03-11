@@ -61,7 +61,7 @@ class _AnalyticsInboxView extends StatelessWidget {
 }
 
 /// Reusable analytics inbox content — used in both standalone AnalyticsInboxPage
-/// and the unified OutboxPage tab.
+/// and the unified PostagePage tab.
 class AnalyticsTabContent extends StatelessWidget {
   const AnalyticsTabContent({super.key});
 

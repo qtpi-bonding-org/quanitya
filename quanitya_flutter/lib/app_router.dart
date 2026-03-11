@@ -255,7 +255,7 @@ class AppRouter {
           GoRoute(
             path: AppRoutes.outbox,
             name: RouteNames.outbox,
-            builder: (context, state) => const OutboxPage(),
+            builder: (context, state) => const PostagePage(),
           ),
           GoRoute(
             path: AppRoutes.notificationInbox,
