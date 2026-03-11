@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../app_router.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../support/extensions/context_extensions.dart';
@@ -8,6 +7,7 @@ import '../../schedules/cubits/schedule_list_cubit.dart';
 import '../../schedules/cubits/schedule_list_state.dart';
 import '../../schedules/cubits/schedule_list_message_mapper.dart';
 import '../../schedules/widgets/schedule_list_widget.dart';
+import '../../log_entry/widgets/log_entry_sheet.dart';
 import '../../../app/bootstrap.dart';
 
 /// Future Panel - Shows scheduled reminders and upcoming tasks
@@ -49,8 +49,10 @@ class TemporalFuturePanel extends StatelessWidget {
                 right: AppSizes.space * 2,
               ),
               onItemTap: (schedule) {
-                // Navigate to log form for this template
-                AppNavigation.toLogEntry(context, schedule.template.id);
+                LogEntrySheet.showCreate(
+                  context: context,
+                  templateId: schedule.template.id,
+                );
               },
             );
           },

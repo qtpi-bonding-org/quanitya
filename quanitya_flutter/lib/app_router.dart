@@ -14,12 +14,7 @@ import 'features/user_feedback/pages/feedback_page.dart';
 import 'features/outbox/pages/outbox_page.dart';
 import 'l10n/app_localizations.dart';
 import 'features/notifications/pages/notification_inbox_page.dart';
-import 'features/log_entry/pages/log_entry_page.dart';
-import 'features/log_entry/pages/logged_entry_page.dart';
-import 'features/log_entry/pages/logged_entry_editor_page.dart';
-
 import 'data/repositories/template_with_aesthetics_repository.dart';
-import 'data/dao/log_entry_query_dao.dart';
 import 'features/log_entry/pages/logged_entries_template_page.dart';
 import 'features/home/pages/notebook_shell.dart';
 import 'design_system/widgets/quanitya/general/zen_paper_background.dart';
@@ -173,14 +168,6 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: AppRoutes.logEntry,
-            name: RouteNames.logEntry,
-            builder: (context, state) {
-              final templateId = state.extra as String;
-              return LogEntryPage(templateId: templateId);
-            },
-          ),
-          GoRoute(
             path: AppRoutes.logHistory,
             name: RouteNames.logHistory,
             builder: (context, state) {
@@ -234,22 +221,6 @@ class AppRouter {
             builder: (context, state) => const TemplateImportPage(),
           ),
           GoRoute(
-            path: AppRoutes.entryDetail,
-            name: RouteNames.entryDetail,
-            builder: (context, state) {
-              final entryWithContext = state.extra as LogEntryWithContext;
-              return LoggedEntryPage(entryWithContext: entryWithContext);
-            },
-          ),
-          GoRoute(
-            path: AppRoutes.editEntry,
-            name: RouteNames.editEntry,
-            builder: (context, state) {
-              final entryWithContext = state.extra as LogEntryWithContext;
-              return LoggedEntryEditorPage(entryWithContext: entryWithContext);
-            },
-          ),
-          GoRoute(
             path: AppRoutes.scriptBuilder,
             name: RouteNames.scriptBuilder,
             builder: (context, state) {
@@ -290,10 +261,7 @@ class AppRoutes {
   static const String scanPairingQr = '/scan-pairing-qr';
   static const String about = '/about';
   static const String templateEditor = '/template-editor';
-  static const String logEntry = '/log-entry';
   static const String logHistory = '/log-history/:templateId';
-  static const String entryDetail = '/entry-detail';
-  static const String editEntry = '/edit-entry';
   static const String settings = '/settings';
   static const String appInfo = '/app-info';
   static const String errorBox = '/error-box';
@@ -317,10 +285,7 @@ class RouteNames {
   static const String scanPairingQr = 'scanPairingQr';
   static const String about = 'about';
   static const String templateEditor = 'templateEditor';
-  static const String logEntry = 'logEntry';
   static const String logHistory = 'logHistory';
-  static const String entryDetail = 'entryDetail';
-  static const String editEntry = 'editEntry';
   static const String settings = 'settings';
   static const String appInfo = 'appInfo';
   static const String errorBox = 'errorBox';
@@ -345,10 +310,6 @@ class AppNavigation {
     TemplateWithAesthetics? template,
   ]) {
     context.pushNamed(RouteNames.templateEditor, extra: template);
-  }
-
-  static void toLogEntry(BuildContext context, String templateId) {
-    context.pushNamed(RouteNames.logEntry, extra: templateId);
   }
 
   static void toLogHistory(BuildContext context, String templateId) {
@@ -396,14 +357,6 @@ class AppNavigation {
     } else {
       toHome(context);
     }
-  }
-
-  static void toLoggedEntry(BuildContext context, dynamic entryWithContext) {
-    context.pushNamed(RouteNames.entryDetail, extra: entryWithContext);
-  }
-
-  static void toLoggedEntryEditor(BuildContext context, LogEntryWithContext entryWithContext) {
-    context.pushNamed(RouteNames.editEntry, extra: entryWithContext);
   }
 
   static void toShowPairingQr(BuildContext context) {
