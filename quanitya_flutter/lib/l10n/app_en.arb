@@ -612,6 +612,9 @@
   "outboxTabFeedback": "Feedback",
   "outboxTabAnalytics": "Analytics",
   "outboxTabErrors": "Errors",
+  "postageTabNotices": "Notices",
+  "noticesEmpty": "No Notices",
+  "noticesEmptyDescription": "Notifications will appear here when there's something to review.",
   "@entitlementLabel": {
     "placeholders": {
       "id": {
@@ -653,5 +656,17 @@
       }
     }
   },
-  "errorBoxClearAction": "Clear"
+  "errorBoxClearAction": "Clear",
+
+  "errorAnalyticsFailed": "Analytics operation failed",
+  "errorImportFailed": "Import failed",
+  "errorLogEntrySaveFailed": "Failed to save log entry",
+  "errorLogEntryUpdateFailed": "Failed to update log entry",
+  "errorLogEntryDeleteFailed": "Failed to delete log entry",
+  "errorNotificationFailed": "Notification error",
+  "errorLlmFailed": "AI request failed",
+  "errorSettingsFailed": "Settings operation failed",
+  "errorLocationFailed": "Location error",
+  "errorRecoveryFailed": "Account recovery failed",
+  "errorDeviceRevocationFailed": "Device revocation failed"
 }
