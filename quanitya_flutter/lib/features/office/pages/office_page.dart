@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
-import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/swipeable_page_shell.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../l10n/app_localizations.dart';
@@ -44,14 +44,7 @@ class OfficePage extends StatefulWidget {
 
 class _OfficePageState extends State<OfficePage> {
   int _currentIndex = 0;
-  final PageController _pageController = PageController();
   bool _purchasesLoaded = false;
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
 
   void _onPageChanged(BuildContext context, int index) {
     setState(() => _currentIndex = index);
@@ -62,6 +55,17 @@ class _OfficePageState extends State<OfficePage> {
         ..loadEntitlements()
         ..checkSyncAccess();
     }
+  }
+
+  Widget _buildLabel(BuildContext context, String label, bool isActive) {
+    final palette = QuanityaPalette.primary;
+    return Text(
+      label,
+      style: context.text.bodySmall?.copyWith(
+        fontWeight: isActive ? FontWeight.w900 : FontWeight.w500,
+        color: isActive ? palette.textPrimary : palette.interactableColor,
+      ),
+    );
   }
 
   @override
@@ -91,95 +95,28 @@ class _OfficePageState extends State<OfficePage> {
                 mapper: GetIt.instance<PurchaseMessageMapper>(),
                 child: UiFlowListener<EntitlementCubit, EntitlementState>(
                   mapper: GetIt.instance<EntitlementMessageMapper>(),
-                  child: SafeArea(
-                    bottom: false,
-                    child: Builder(
-                      builder: (innerContext) => Column(
-                      children: [
-                        Expanded(
-                          child: PageView(
-                            controller: _pageController,
-                            physics: const ClampingScrollPhysics(),
-                            onPageChanged: (index) =>
-                                _onPageChanged(innerContext, index),
-                            children: const [
-                              SettingsContent(),
-                              PurchaseTabContent(),
-                              AppInfoTabContent(),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical: AppSizes.space * 0.25),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _PageLabel(
-                                label: l10n.officeTabPreferences,
-                                isActive: _currentIndex == 0,
-                                onTap: () => _pageController.animateToPage(0,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut),
-                              ),
-                              _PageLabel(
-                                label: l10n.officeTabPurchases,
-                                isActive: _currentIndex == 1,
-                                onTap: () => _pageController.animateToPage(1,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut),
-                              ),
-                              _PageLabel(
-                                label: l10n.officeTabInfo,
-                                isActive: _currentIndex == 2,
-                                onTap: () => _pageController.animateToPage(2,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut),
-                              ),
-                            ],
-                          ),
-                        ),
+                  child: Builder(
+                    builder: (innerContext) => SwipeablePageShell(
+                      onPageChanged: (index) =>
+                          _onPageChanged(innerContext, index),
+                      pages: const [
+                        SettingsContent(),
+                        PurchaseTabContent(),
+                        AppInfoTabContent(),
                       ],
-                    ),
+                      labels: [
+                        _buildLabel(
+                            context, l10n.officeTabPreferences, _currentIndex == 0),
+                        _buildLabel(
+                            context, l10n.officeTabPurchases, _currentIndex == 1),
+                        _buildLabel(
+                            context, l10n.officeTabInfo, _currentIndex == 2),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PageLabel extends StatelessWidget {
-  const _PageLabel({
-    required this.label,
-    required this.isActive,
-    this.onTap,
-  });
-
-  final String label;
-  final bool isActive;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppSizes.space * 1.5,
-          vertical: AppSizes.space * 0.5,
-        ),
-        child: Text(
-          label,
-          style: context.text.bodySmall?.copyWith(
-            fontWeight: isActive ? FontWeight.w900 : FontWeight.w500,
-            color: isActive ? palette.textPrimary : palette.interactableColor,
           ),
         ),
       ),
