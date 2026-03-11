@@ -53,7 +53,7 @@ class ScheduleSection extends StatelessWidget {
             ),
             HSpace.x1,
             Text(
-              context.l10n.reminderOptional,
+              context.l10n.reminderLabel,
               style: context.text.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: context.colors.textPrimary,

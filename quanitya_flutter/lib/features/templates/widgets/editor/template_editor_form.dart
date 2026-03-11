@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../logic/templates/enums/field_enum.dart';
+import '../../../../logic/templates/models/shared/template_field.dart';
 import '../../../../design_system/structures/column.dart';
 import '../../../../design_system/structures/row.dart';
 import '../../../../design_system/structures/group.dart';
@@ -10,6 +11,7 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
+import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../../support/extensions/context_extensions.dart';
@@ -49,9 +51,6 @@ class TemplateEditorForm extends StatefulWidget {
 class _TemplateEditorFormState extends State<TemplateEditorForm> {
   bool _isGenerating = false;
 
-  /// Field type currently being added (null if not adding)
-  FieldEnum? _addingFieldType;
-
   @override
   void dispose() {
     super.dispose();
@@ -72,24 +71,14 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                 child: QuanityaColumn(
                   crossAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // AI Assistant fold — only shown when creating
+                    // AI prompt — only shown when creating, no fold needed
                     if (!isEditing)
-                      NotebookFold(
-                        initiallyExpanded: true,
-                        header: Text(
-                          context.l10n.aiGeneratorTitle,
-                          style: context.text.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: context.colors.textPrimary,
-                          ),
-                        ),
-                        child: AiPromptWidget(
-                          title: context.l10n.aiGeneratorTitle,
-                          hintText: context.l10n.aiGeneratorHint,
-                          isLoading: _isGenerating,
-                          onGenerate: (prompt) =>
-                              _generateFromAi(context, prompt),
-                        ),
+                      AiPromptWidget(
+                        title: context.l10n.aiGeneratorTitle,
+                        hintText: context.l10n.aiGeneratorHint,
+                        isLoading: _isGenerating,
+                        onGenerate: (prompt) =>
+                            _generateFromAi(context, prompt),
                       ),
 
                     // Identity fold — always expanded
@@ -126,11 +115,11 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                       ),
                     ),
 
-                    // Appearance fold — collapsed by default
+                    // Aesthetics fold — collapsed by default (optional)
                     NotebookFold(
                       initiallyExpanded: false,
                       header: Text(
-                        context.l10n.colorThemeSection,
+                        '${context.l10n.aestheticsSection} (${context.l10n.optionalLabel})',
                         style: context.text.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: context.colors.textPrimary,
@@ -148,11 +137,11 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                       ),
                     ),
 
-                    // Schedule fold — collapsed by default
+                    // Schedule fold — collapsed by default (optional)
                     NotebookFold(
                       initiallyExpanded: false,
                       header: Text(
-                        context.l10n.scheduleTitle,
+                        '${context.l10n.scheduleTitle} (${context.l10n.optionalLabel})',
                         style: context.text.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: context.colors.textPrimary,
@@ -272,18 +261,6 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   }
 
   Widget _buildAddFieldList(BuildContext context) {
-    // If adding a field, show inline editor instead of options
-    if (_addingFieldType != null) {
-      return InlineFieldEditor(
-        fieldType: _addingFieldType!,
-        onSave: (field) {
-          context.read<TemplateEditorCubit>().addFieldFromTemplate(field);
-          setState(() => _addingFieldType = null);
-        },
-        onCancel: () => setState(() => _addingFieldType = null),
-      );
-    }
-
     return QuanityaGroup(
       child: Column(
         children: [
@@ -326,7 +303,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     FieldEnum type,
   ) {
     return InkWell(
-      onTap: () => setState(() => _addingFieldType = type),
+      onTap: () => _showFieldEditorSheet(context, type),
       child: Padding(
         padding: EdgeInsets.all(AppSizes.space * 2),
         child: QuanityaRow(
@@ -342,6 +319,24 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
           ),
           end: Icon(Icons.add,
               size: AppSizes.size20, color: context.colors.interactableColor),
+        ),
+      ),
+    );
+  }
+
+  void _showFieldEditorSheet(BuildContext context, FieldEnum type) {
+    final editorCubit = context.read<TemplateEditorCubit>();
+    LooseInsertSheet.show(
+      context: context,
+      title: context.l10n.addFieldTitle,
+      builder: (sheetContext) => SingleChildScrollView(
+        child: InlineFieldEditor(
+          fieldType: type,
+          onSave: (field) {
+            editorCubit.addFieldFromTemplate(field);
+            Navigator.pop(sheetContext);
+          },
+          onCancel: () => Navigator.pop(sheetContext),
         ),
       ),
     );
@@ -382,3 +377,4 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     }
   }
 }
+

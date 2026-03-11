@@ -121,7 +121,7 @@ class _ScheduleItemState extends State<ScheduleItem> {
 
     // Get icon - priority: icon > emoji > default
     final iconString = aesthetics?.icon;
-    final iconEmoji = aesthetics?.emoji ?? '📅';
+    final iconEmoji = aesthetics?.emoji;
 
     // Use neutral1 (blue-grey) for all timeline icons
     final iconColor = palette.textSecondary;
@@ -214,9 +214,9 @@ class _ScheduleItemState extends State<ScheduleItem> {
     );
   }
 
-  /// Build icon widget - priority: icon > emoji > default
-  Widget _buildIcon(String? iconString, String emoji, Color color) {
-    // Try to parse icon from "packname:iconname" format
+  /// Build icon widget - priority: icon > emoji > default icon
+  Widget _buildIcon(String? iconString, String? emoji, Color color) {
+    // Try to resolve icon from "packname:iconname" format
     if (iconString != null && iconString.contains(':')) {
       final iconData = _parseIconFromString(iconString);
       if (iconData != null) {
@@ -229,16 +229,16 @@ class _ScheduleItemState extends State<ScheduleItem> {
     }
 
     // Fallback to emoji if provided
-    if (emoji.isNotEmpty) {
+    if (emoji != null && emoji.isNotEmpty) {
       return Text(
         emoji,
         style: TextStyle(fontSize: AppSizes.iconMedium),
       );
     }
-    
-    // Final fallback to document icon
+
+    // Final fallback to calendar icon
     return Icon(
-      Icons.description,
+      Icons.calendar_today,
       size: AppSizes.iconMedium,
       color: color,
     );
