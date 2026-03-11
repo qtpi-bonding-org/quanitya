@@ -187,13 +187,14 @@ class DevToolsSheet extends StatelessWidget {
                       throw Exception('Seed data first — Sleep Log template not found');
                     }
 
-                    // Create a todo entry for it
+                    // Create a todo entry (use bulkInsert to skip validation —
+                    // todos have empty data which fails required field checks)
                     final logEntryRepo = GetIt.instance<ILogEntryRepository>();
                     final todo = LogEntryModel.createTodo(
                       templateId: template.id,
                       scheduledFor: DateTime.now().add(const Duration(seconds: 10)),
                     );
-                    await logEntryRepo.saveLogEntry(todo);
+                    await logEntryRepo.bulkInsert([todo]);
 
                     // Schedule reminder notification in 5 seconds with action buttons
                     final notificationService = GetIt.instance<NotificationService>();
