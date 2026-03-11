@@ -11,9 +11,8 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/analysis_output/analysis_output.dart';
-import '../../../design_system/widgets/charts/multi_series_chart.dart';
-import '../../../design_system/widgets/charts/time_series_chart.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
+import '../../../logic/analytics/models/analysis_output.dart';
 import '../../../logic/analytics/models/matrix_vector_scalar/time_series_matrix.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../visualization/cubits/visualization_cubit.dart';
@@ -275,87 +274,15 @@ class _AnalysisResultCard extends StatelessWidget {
   }
 
   Widget _buildVectorDisplay(BuildContext context, List<dynamic> vectors) {
-    final palette = QuanityaPalette.primary;
-
-    if (vectors.isEmpty) {
-      return Text(
-        'No vector data',
-        style: context.text.bodyMedium?.copyWith(color: palette.textSecondary),
-      );
-    }
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: vectors.map((vector) {
-          return Padding(
-            padding: EdgeInsets.only(right: AppSizes.space * 2),
-            child: MathVector(
-              label: vector.label ?? 'Vector',
-              values: (vector.values as List).cast<double>(),
-            ),
-          );
-        }).toList(),
-      ),
+    return VectorChart(
+      vectors: vectors.cast<AnalysisVector>(),
     );
   }
 
   Widget _buildMatrixDisplay(BuildContext context, List<dynamic> matrices) {
-    final palette = QuanityaPalette.primary;
-
-    if (matrices.isEmpty) {
-      return Text(
-        'No matrix data',
-        style: context.text.bodyMedium?.copyWith(color: palette.textSecondary),
-      );
-    }
-
-    // Distinct chart colors — standard data visualization palette
-    const chartColors = [
-      Color(0xFF1F77B4), // blue
-      Color(0xFFFF7F0E), // orange
-      Color(0xFF2CA02C), // green
-      Color(0xFFD62728), // red
-      Color(0xFF9467BD), // purple
-      Color(0xFF8C564B), // brown
-      Color(0xFFE377C2), // pink
-      Color(0xFF7F7F7F), // gray
-    ];
-
-    final series = <ChartSeries>[];
-    for (var i = 0; i < matrices.length; i++) {
-      final matrix = matrices[i] as TimeSeriesMatrix;
-      if (matrix.data.isEmpty) continue;
-
-      final timestamps = matrix.timestampVector.timestamps;
-      final valueCol = matrix.fieldNames.isNotEmpty
-          ? matrix.getColumnByName(matrix.fieldNames.first).values
-          : <num>[];
-
-      final points = <({DateTime date, num value})>[];
-      for (var j = 0; j < timestamps.length && j < valueCol.length; j++) {
-        points.add((date: timestamps[j], value: valueCol[j]));
-      }
-
-      series.add(ChartSeries(
-        label: matrix.fieldNames.isNotEmpty ? matrix.fieldNames.first : 'Series ${i + 1}',
-        points: points,
-        color: chartColors[i % chartColors.length],
-      ));
-    }
-
-    // Single series: use TimeSeriesChart (graphic lib needs >= 2 for ColorEncode)
-    if (series.length == 1) {
-      final s = series.first;
-      return TimeSeriesChart(
-        data: s.points.map((p) => {'date': p.date, 'value': p.value}).toList(),
-        valueLabel: s.label,
-        lineColor: s.color,
-      );
-    }
-
-    return MultiSeriesChart(series: series);
+    return MatrixChart(
+      matrices: matrices.cast<TimeSeriesMatrix>(),
+    );
   }
 }
 
