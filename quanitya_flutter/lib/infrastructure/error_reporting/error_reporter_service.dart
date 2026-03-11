@@ -52,7 +52,7 @@ class ErrorReporterService {
             errorType: errorEntry.errorType,
             errorCode: errorEntry.errorCode,
             stackTrace: errorEntry.stackTrace,
-            clientTimestamp: errorEntry.timestamp,
+            clientTimestamp: timestamp,
             userMessage: errorEntry.userMessage,
             appVersion: null, // TODO: Add package_info_plus if needed
             platform: _getPlatformName(),

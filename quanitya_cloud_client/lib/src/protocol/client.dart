@@ -1351,7 +1351,7 @@ class EndpointErrorReport extends EndpointPublicSubmission {
     required String errorType,
     required String errorCode,
     required String stackTrace,
-    required DateTime clientTimestamp,
+    required String clientTimestamp,
     String? userMessage,
     String? appVersion,
     String? platform,
