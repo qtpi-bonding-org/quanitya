@@ -164,6 +164,10 @@ class WebhookCubit extends QuanityaCubit<WebhookState> {
     }, emitLoading: true);
   }
 
+  Future<String?> getApiKeyValue(String apiKeyId) {
+    return _apiKeyRepo.getKeyValue(apiKeyId);
+  }
+
   Future<void> deleteApiKey(String id) async {
     await tryOperation(() async {
       await _apiKeyRepo.delete(id);

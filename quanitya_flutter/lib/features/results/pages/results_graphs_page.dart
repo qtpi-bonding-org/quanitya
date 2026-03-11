@@ -12,7 +12,6 @@ import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/charts/time_series_chart.dart';
 import '../../../design_system/widgets/charts/boolean_heatmap_chart.dart';
 import '../../../design_system/widgets/charts/categorical_scatter_chart.dart';
-import '../../../design_system/widgets/charts/contribution_heatmap.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../visualization/cubits/visualization_cubit.dart';
@@ -146,7 +145,7 @@ class _NumericChartSection extends StatelessWidget {
                   .map((p) => {'date': p.date, 'value': p.value})
                   .toList(),
               valueLabel: fieldData.field.label,
-              lineColor: palette.primaryColor,
+              lineColor: QuanityaPalette.category10[0],
               height: AppSizes.space * 22.5,
             ),
         ],
@@ -227,7 +226,7 @@ class _CategoricalChartSection extends StatelessWidget {
                 categories: fieldData.categories,
                 height: AppSizes.space * 5 +
                     (fieldData.categories.length * AppSizes.space * 4),
-                dotColor: palette.primaryColor,
+                dotColor: QuanityaPalette.category10[0],
               ),
             ),
         ],
@@ -253,12 +252,18 @@ class _StatsSummary extends StatelessWidget {
     final consistencyPercent = (consistencyRate * 100).round();
 
     final dateCounts = <DateTime, int>{};
+    int maxCount = 1;
     for (final date in loggedDates) {
       final dateOnly = DateTime(date.year, date.month, date.day);
       dateCounts[dateOnly] = (dateCounts[dateOnly] ?? 0) + 1;
+      if (dateCounts[dateOnly]! > maxCount) maxCount = dateCounts[dateOnly]!;
     }
     final contributionData = dateCounts.entries
-        .map((e) => ContributionPoint(date: e.key, count: e.value))
+        .map((e) => BooleanPoint(
+              date: e.key,
+              value: true,
+              intensity: e.value / maxCount,
+            ))
         .toList();
 
     return QuanityaColumn(
@@ -298,9 +303,13 @@ class _StatsSummary extends StatelessWidget {
           ],
         ),
         VSpace.x3,
-        ContributionHeatmap(
-          data: contributionData,
-          weeks: 12,
+        Center(
+          child: BooleanHeatmapChart(
+            data: contributionData,
+            height: AppSizes.space * 20,
+            trueColor: QuanityaPalette.category10[0],
+            weeks: 12,
+          ),
         ),
       ],
     );

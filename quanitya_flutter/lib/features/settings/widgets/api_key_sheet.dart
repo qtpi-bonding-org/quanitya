@@ -7,6 +7,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya/generatable/quanitya_dropdown.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../support/extensions/context_extensions.dart';
@@ -49,6 +50,7 @@ class _ApiKeySheetState extends State<ApiKeySheet> {
   late final TextEditingController _headerNameController;
   late final TextEditingController _keyValueController;
   AuthType _authType = AuthType.bearer;
+  bool _obscureKey = true;
 
   bool get _isEditing => widget.apiKey != null;
 
@@ -59,6 +61,18 @@ class _ApiKeySheetState extends State<ApiKeySheet> {
     _headerNameController = TextEditingController(text: widget.apiKey?.headerName ?? 'X-API-Key');
     _keyValueController = TextEditingController();
     _authType = widget.apiKey?.authType ?? AuthType.bearer;
+
+    if (_isEditing) {
+      _loadExistingKeyValue();
+    }
+  }
+
+  Future<void> _loadExistingKeyValue() async {
+    final cubit = context.read<WebhookCubit>();
+    final value = await cubit.getApiKeyValue(widget.apiKey!.id);
+    if (mounted && value != null) {
+      _keyValueController.text = value;
+    }
   }
 
   @override
@@ -100,14 +114,8 @@ class _ApiKeySheetState extends State<ApiKeySheet> {
               ),
             ),
             VSpace.x1,
-            DropdownButtonFormField<AuthType>(
-              initialValue: _authType,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                ),
-                contentPadding: AppPadding.allSingle,
-              ),
+            QuanityaDropdown<AuthType>(
+              value: _authType,
               items: [
                 DropdownMenuItem(
                   value: AuthType.bearer,
@@ -142,26 +150,23 @@ class _ApiKeySheetState extends State<ApiKeySheet> {
             QuanityaTextFormField(
               controller: _keyValueController,
               labelText: context.l10n.apiKeyValue,
-              hintText: _isEditing ? '••••••••' : context.l10n.apiKeyValueHint,
-              obscureText: true,
+              hintText: context.l10n.apiKeyValueHint,
+              obscureText: _obscureKey,
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureKey ? Icons.visibility_off : Icons.visibility,
+                  color: context.colors.interactableColor,
+                  size: AppSizes.iconSmall,
+                ),
+                onPressed: () => setState(() => _obscureKey = !_obscureKey),
+              ),
               validator: (value) {
-                // Only required for new keys
-                if (!_isEditing && (value == null || value.isEmpty)) {
+                if (value == null || value.isEmpty) {
                   return context.l10n.validationRequired;
                 }
                 return null;
               },
             ),
-            if (_isEditing)
-              Padding(
-                padding: EdgeInsets.only(top: AppSizes.space),
-                child: Text(
-                  'Leave empty to keep existing key',
-                  style: context.text.bodySmall?.copyWith(
-                    color: context.colors.textSecondary,
-                  ),
-                ),
-              ),
             VSpace.x4,
 
             // Action buttons
@@ -195,7 +200,7 @@ class _ApiKeySheetState extends State<ApiKeySheet> {
     if (!_formKey.currentState!.validate()) return;
 
     final cubit = context.read<WebhookCubit>();
-    final keyValue = _keyValueController.text.isNotEmpty ? _keyValueController.text : null;
+    final keyValue = _keyValueController.text;
 
     if (_isEditing) {
       cubit.updateApiKey(
@@ -210,7 +215,7 @@ class _ApiKeySheetState extends State<ApiKeySheet> {
         name: _nameController.text,
         authType: _authType,
         headerName: _authType == AuthType.apiKeyHeader ? _headerNameController.text : null,
-        keyValue: keyValue!,
+        keyValue: keyValue,
       );
     }
 

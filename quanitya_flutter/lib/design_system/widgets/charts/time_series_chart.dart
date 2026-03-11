@@ -33,7 +33,7 @@ class TimeSeriesChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = lineColor ?? QuanityaPalette.primary.primaryColor;
+    final color = lineColor ?? QuanityaPalette.category10[0];
     
     if (data.isEmpty) {
       return SizedBox(

@@ -420,6 +420,7 @@
   "webhookApiKey": "Authentication",
   "webhookNoAuth": "No authentication",
   "webhookSelectApiKey": "Select an API key",
+  "webhookNoApiKeys": "No API keys available. Add one in the API Keys section above.",
   "webhookEnabled": "Enabled",
   "webhookLastTriggered": "Last triggered",
   "webhookNeverTriggered": "Never",
@@ -554,6 +555,16 @@
       }
     }
   },
+  "analyticsInboxClearSentTitle": "Clear Sent Events?",
+  "analyticsInboxClearSentMessage": "{count} events were sent successfully. Would you like to clear them from the inbox?",
+  "@analyticsInboxClearSentMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsInboxClearSent": "Clear Sent",
   "analyticsInboxClearAllTitle": "Clear All Events?",
   "analyticsInboxClearAllMessage": "This will permanently delete all unsent analytics events.",
   "analysisBuilderTitle": "Analysis Pipeline",
@@ -623,5 +634,24 @@
   "llmProviderModelTested": "Tested",
   "llmProviderModelUntested": "Untested — may not work with Quanitya",
   "llmProviderConfigureLlm": "Configure LLM in Settings to use AI features",
-  "llmProviderFetchingModels": "Fetching models..."
+  "llmProviderFetchingModels": "Fetching models...",
+
+  "errorBoxSendOneSuccess": "Error report sent",
+  "errorBoxSendAllSuccess": "All error reports sent",
+  "errorBoxClearedSuccess": "Sent reports cleared",
+  "errorBoxDeleteSuccess": "Error report deleted",
+  "errorBoxSendError": "Failed to send error report",
+  "errorBoxOperationError": "Error box operation failed",
+  "errorBoxClearSentTitle": "Clear Sent Report?",
+  "errorBoxClearSentMessage": "This report was sent successfully. Clear it from the inbox?",
+  "errorBoxClearAllSentTitle": "Clear Sent Reports?",
+  "errorBoxClearAllSentMessage": "{count} report(s) sent successfully. Clear them from the inbox?",
+  "@errorBoxClearAllSentMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorBoxClearAction": "Clear"
 }

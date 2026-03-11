@@ -20,6 +20,10 @@ import 'package:flutter_color_palette/flutter_color_palette.dart';
 /// 
 /// Destructive color:
 /// - destructive: #BC4B41 (Dark red - for delete icons/text)
+///
+/// State colors (for toggles/switches - on/off indicators):
+/// - stateOn: #6B8F71 (Sage green - "active/enabled")
+/// - stateOff: #A0978B (Warm stone grey - "inactive/disabled")
 class QuanityaPalette {
   static final IColorPalette primary = AppColorPalette(
     colors: {
@@ -40,6 +44,10 @@ class QuanityaPalette {
       
       // Destructive color (for delete icons/text)
       'destructive': const Color(0xFFBC4B41), // Dark red
+
+      // State colors (for toggles/switches)
+      'stateOn': const Color(0xFF6B8F71),   // Sage green - active/enabled
+      'stateOff': const Color(0xFFA0978B),  // Warm stone grey - inactive/disabled
     },
     name: 'Quanitya Primary',
   );
@@ -87,4 +95,8 @@ extension QuanityaColors on IColorPalette {
   
   // Destructive color (for delete icons/text)
   Color get destructiveColor => getColor('destructive')!;
+
+  // State colors (for toggles/switches)
+  Color get stateOnColor => getColor('stateOn')!;
+  Color get stateOffColor => getColor('stateOff')!;
 }

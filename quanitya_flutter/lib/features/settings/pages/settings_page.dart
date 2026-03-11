@@ -15,6 +15,7 @@ import '../../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../../infrastructure/webhooks/models/api_key_model.dart';
@@ -180,10 +181,10 @@ class SettingsContent extends StatelessWidget {
 
           NotebookFold(
             header: Row(children: [
-              Icon(Icons.delete_forever, size: AppSizes.iconMedium, color: context.colors.errorColor),
+              Icon(Icons.delete_forever, size: AppSizes.iconMedium, color: context.colors.destructiveColor),
               HSpace.x2,
               Text(context.l10n.deleteAccountTitle, style: context.text.titleMedium?.copyWith(
-                color: context.colors.errorColor,
+                color: context.colors.destructiveColor,
               )),
             ]),
             child: const _DeleteAccountButton(),
@@ -353,7 +354,7 @@ class _ApiKeyRow extends StatelessWidget {
             Icon(
               apiKey.authType == AuthType.bearer ? Icons.vpn_key : Icons.code,
               size: AppSizes.iconMedium,
-              color: context.colors.interactableColor,
+              color: context.colors.textPrimary,
             ),
             HSpace.x2,
             Expanded(
@@ -363,7 +364,7 @@ class _ApiKeyRow extends StatelessWidget {
                   Text(
                     apiKey.name,
                     style: context.text.bodyLarge?.copyWith(
-                      color: context.colors.textPrimary,
+                      color: context.colors.interactableColor,
                     ),
                   ),
                   VSpace.x025,
@@ -377,22 +378,9 @@ class _ApiKeyRow extends StatelessWidget {
               ),
             ),
             Icon(
-              Icons.check_circle,
-              size: AppSizes.iconSmall,
-              color: context.colors.successColor,
-            ),
-            HSpace.x1,
-            Text(
-              context.l10n.apiKeyConfigured,
-              style: context.text.bodySmall?.copyWith(
-                color: context.colors.successColor,
-              ),
-            ),
-            HSpace.x1,
-            Icon(
               Icons.chevron_right,
               size: AppSizes.iconSmall,
-              color: context.colors.textSecondary,
+              color: context.colors.interactableColor,
             ),
           ],
         ),
@@ -576,23 +564,22 @@ class _WebhookRow extends StatelessWidget {
                       Text(
                         webhook.name,
                         style: context.text.bodyLarge?.copyWith(
-                          color: context.colors.textPrimary,
+                          color: context.colors.interactableColor,
                         ),
                       ),
                       VSpace.x025,
                       Text(
                         templateName,
                         style: context.text.bodySmall?.copyWith(
-                          color: context.colors.interactableColor,
+                          color: context.colors.textPrimary,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Switch(
+                QuanityaToggle(
                   value: webhook.isEnabled,
                   onChanged: onToggle,
-                  activeThumbColor: context.colors.successColor,
                 ),
               ],
             ),

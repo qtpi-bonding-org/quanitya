@@ -108,7 +108,7 @@ class _NotebookFoldState extends State<NotebookFold>
                           turns: _iconTurns,
                           child: Icon(
                             Icons.expand_more,
-                            color: context.colors.textSecondary,
+                            color: context.colors.interactableColor,
                             size: AppSizes.iconMedium,
                           ),
                         ),

@@ -1,6 +1,6 @@
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../app_router.dart';
@@ -9,11 +9,16 @@ import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
+import '../../../design_system/widgets/ui_flow_listener.dart';
+import '../cubits/error_box_cubit.dart';
+import '../cubits/error_box_state.dart';
+import '../cubits/error_box_message_mapper.dart';
 import '../widgets/error_entry_card.dart';
 import '../../outbox/widgets/outbox_tab_content.dart';
 
 /// Error Box Page - Review and send privacy-preserving error reports
-/// 
+///
 /// Shows all unsent errors captured by ErrorPrivserver with complete
 /// transparency about what data will be sent to developers.
 class ErrorBoxPage extends StatelessWidget {
@@ -22,7 +27,7 @@ class ErrorBoxPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => GetIt.instance<ErrorBoxPageCubit>()..loadErrors(),
+      create: (_) => GetIt.instance<ErrorBoxCubit>()..load(),
       child: const _ErrorBoxView(),
     );
   }
@@ -33,18 +38,21 @@ class _ErrorBoxView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Error Reports',
-          style: context.text.headlineMedium,
+    return UiFlowListener<ErrorBoxCubit, ErrorBoxState>(
+      mapper: GetIt.instance<ErrorBoxMessageMapper>(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Error Reports',
+            style: context.text.headlineMedium,
+          ),
+          leading: QuanityaIconButton(
+            icon: Icons.arrow_back,
+            onPressed: () => AppNavigation.back(context),
+          ),
         ),
-        leading: QuanityaIconButton(
-          icon: Icons.arrow_back,
-          onPressed: () => AppNavigation.back(context),
-        ),
+        body: const ErrorsTabContent(),
       ),
-      body: const ErrorsTabContent(),
     );
   }
 }
@@ -56,16 +64,15 @@ class ErrorsTabContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ErrorBoxPageCubit, ErrorBoxPageState>(
+    return BlocBuilder<ErrorBoxCubit, ErrorBoxState>(
       builder: (context, state) {
         return OutboxTabContent(
-          isLoading: state.isLoading,
+          isLoading: state.status == UiFlowStatus.loading,
           isEmpty: state.unsentErrors.isEmpty,
           emptyState: OutboxEmptyState(
-            icon: Icons.check_circle_outline,
-            iconColor: context.colors.successColor,
+            icon: Icons.bug_report_outlined,
             title: 'No Error Reports',
-            description: 'All errors have been reviewed and sent.\nYour privacy is protected.',
+            description: 'Error reports will appear here as you encounter errors.',
           ),
           banner: OutboxPrivacyBanner(
             text: 'Privacy-first: Only technical error data, no personal information',
@@ -79,40 +86,86 @@ class ErrorsTabContent extends StatelessWidget {
               return ErrorEntryCard(
                 error: error.errorData,
                 occurrenceCount: error.occurrenceCount,
-                onSend: () => context.read<ErrorBoxPageCubit>().sendError(error.id),
-                onDelete: () => context.read<ErrorBoxPageCubit>().deleteError(error.id),
+                onSend: () => _sendAndPromptClear(context, error.id),
+                onDelete: () => context.read<ErrorBoxCubit>().deleteError(error.id),
               );
             },
           ),
-          bottomAction: _SendAllButton(),
+          bottomAction: _BottomActions(),
         );
       },
     );
   }
+
+  Future<void> _sendAndPromptClear(BuildContext context, String errorId) async {
+    final cubit = context.read<ErrorBoxCubit>();
+    await cubit.sendOne(errorId);
+
+    if (!context.mounted) return;
+
+    final state = cubit.state;
+    if (state.status == UiFlowStatus.success &&
+        state.lastOperation == ErrorBoxOperation.sendOne) {
+      QuanityaConfirmationDialog.show(
+        context: context,
+        title: context.l10n.errorBoxClearSentTitle,
+        message: context.l10n.errorBoxClearSentMessage,
+        confirmText: context.l10n.errorBoxClearAction,
+        onConfirm: () => cubit.markAsSent(errorId),
+      );
+    }
+  }
 }
 
-class _SendAllButton extends StatelessWidget {
+class _BottomActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: AppPadding.allDouble,
-      decoration: BoxDecoration(
-        color: context.colors.backgroundPrimary,
-        border: Border(
-          top: BorderSide(
-            color: context.colors.textSecondary.withValues(alpha: 0.2),
-            width: 1,
+    return BlocBuilder<ErrorBoxCubit, ErrorBoxState>(
+      builder: (context, state) {
+        return Container(
+          width: double.infinity,
+          padding: AppPadding.allDouble,
+          decoration: BoxDecoration(
+            color: context.colors.backgroundPrimary,
+            border: Border(
+              top: BorderSide(
+                color: context.colors.textSecondary.withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: QuanityaTextButton(
-          text: 'Send All Reports',
-          onPressed: () => context.read<ErrorBoxPageCubit>().sendAllErrors(),
-        ),
-      ),
+          child: SafeArea(
+            top: false,
+            child: QuanityaTextButton(
+              text: 'Send All Reports',
+              onPressed: state.status == UiFlowStatus.loading
+                  ? null
+                  : () => _sendAllAndPromptClear(context),
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  Future<void> _sendAllAndPromptClear(BuildContext context) async {
+    final cubit = context.read<ErrorBoxCubit>();
+    await cubit.sendAll();
+
+    if (!context.mounted) return;
+
+    final state = cubit.state;
+    if (state.status == UiFlowStatus.success &&
+        state.lastOperation == ErrorBoxOperation.sendAll &&
+        state.lastSentIds.isNotEmpty) {
+      final sentIds = state.lastSentIds;
+      QuanityaConfirmationDialog.show(
+        context: context,
+        title: context.l10n.errorBoxClearAllSentTitle,
+        message: context.l10n.errorBoxClearAllSentMessage(sentIds.length),
+        confirmText: context.l10n.errorBoxClearAction,
+        onConfirm: () => cubit.markAllAsSent(sentIds),
+      );
+    }
   }
 }

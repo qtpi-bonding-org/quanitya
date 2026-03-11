@@ -122,29 +122,10 @@ class _FeedbackTabContentState extends State<FeedbackTabContent> {
                   hintText: l10n.feedbackHint,
                 ),
                 VSpace.x3,
-                Container(
-                  padding: AppPadding.allDouble,
-                  decoration: BoxDecoration(
-                    color: QuanityaPalette.primary.backgroundPrimary,
-                    borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.privacy_tip_outlined,
-                        size: AppSizes.iconMedium,
-                        color: context.colors.interactableColor,
-                      ),
-                      HSpace.x2,
-                      Expanded(
-                        child: Text(
-                          l10n.feedbackPrivacyNotice,
-                          style: context.text.bodySmall?.copyWith(
-                            color: context.colors.textPrimary.withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ),
-                    ],
+                Text(
+                  l10n.feedbackPrivacyNotice,
+                  style: context.text.bodySmall?.copyWith(
+                    color: context.colors.textSecondary,
                   ),
                 ),
                 VSpace.x4,
@@ -197,8 +178,8 @@ class _FeedbackTypeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isSelected
-        ? context.colors.interactableColor
-        : context.colors.textSecondary;
+        ? context.colors.textPrimary
+        : context.colors.interactableColor;
 
     return GestureDetector(
       onTap: onTap,
@@ -211,13 +192,13 @@ class _FeedbackTypeChip extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? context.colors.interactableColor.withValues(alpha: 0.1)
+              ? context.colors.textPrimary.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
           border: Border.all(
             color: isSelected
-                ? context.colors.interactableColor
-                : context.colors.textSecondary.withValues(alpha: 0.3),
+                ? context.colors.textPrimary
+                : context.colors.interactableColor.withValues(alpha: 0.3),
           ),
         ),
         child: Column(

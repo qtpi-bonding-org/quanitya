@@ -70,7 +70,7 @@ class ContributionHeatmap extends StatelessWidget {
               } else if (count == 0) {
                 cellColor = palette.textSecondary.withValues(alpha: 0.1);
               } else {
-                cellColor = palette.primaryColor.withValues(alpha: intensity);
+                cellColor = QuanityaPalette.category10[0].withValues(alpha: intensity);
               }
 
               return Padding(

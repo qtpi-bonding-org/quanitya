@@ -11,6 +11,7 @@ import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../data/dao/analytics_inbox_dao.dart';
@@ -127,11 +128,10 @@ class _AutoSendToggle extends StatelessWidget {
                   ],
                 ),
               ),
-              Switch(
+              QuanityaToggle(
                 value: state.autoSendEnabled,
                 onChanged: (value) =>
                     context.read<AnalyticsInboxCubit>().toggleAutoSend(value),
-                activeThumbColor: context.colors.successColor,
               ),
             ],
           ),
@@ -262,7 +262,7 @@ class _BottomActions extends StatelessWidget {
                     text: context.l10n.analyticsInboxSendAll(state.unsentCount),
                     onPressed: state.status == UiFlowStatus.loading
                         ? null
-                        : () => context.read<AnalyticsInboxCubit>().sendAll(),
+                        : () => _sendAndPromptClear(context),
                   ),
                 ),
               ],
@@ -271,6 +271,27 @@ class _BottomActions extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _sendAndPromptClear(BuildContext context) async {
+    final cubit = context.read<AnalyticsInboxCubit>();
+    await cubit.sendAll();
+
+    if (!context.mounted) return;
+
+    // Only prompt to clear if send was successful
+    final state = cubit.state;
+    if (state.status == UiFlowStatus.success &&
+        state.lastOperation == AnalyticsInboxOperation.sendAll &&
+        state.lastSentCount > 0) {
+      QuanityaConfirmationDialog.show(
+        context: context,
+        title: context.l10n.analyticsInboxClearSentTitle,
+        message: context.l10n.analyticsInboxClearSentMessage(state.lastSentCount),
+        confirmText: context.l10n.analyticsInboxClearSent,
+        onConfirm: () => cubit.clearSent(),
+      );
+    }
   }
 
   void _confirmClearAll(BuildContext context) {

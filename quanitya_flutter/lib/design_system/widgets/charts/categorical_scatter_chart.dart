@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../support/extensions/context_extensions.dart';
+import '../../primitives/quanitya_palette.dart';
 import 'dart:ui' as ui;
 
 /// Data point for categorical scatter chart.
@@ -42,8 +43,8 @@ class CategoricalScatterChart extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
-    final color = dotColor ?? theme.colorScheme.primary;
-    
+    final color = dotColor ?? QuanityaPalette.category10[0];
+
     // Calculate date range
     final dates = data.map((p) => p.date).toList()..sort();
     final minDate = dates.first;
