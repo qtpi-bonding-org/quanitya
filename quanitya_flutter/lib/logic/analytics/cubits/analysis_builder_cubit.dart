@@ -164,6 +164,11 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     }, emitLoading: true);
   }
 
+  /// Update the output mode
+  void setOutputMode(AnalysisOutputMode mode) {
+    emit(state.copyWith(outputMode: mode));
+  }
+
   /// Update the current snippet
   void updateSnippet(String snippet) {
     emit(state.copyWith(snippet: snippet));
@@ -240,14 +245,17 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
   /// Save pipeline
   Future<void> savePipeline(String name) async {
     await tryOperation(() async {
-      if (state.fieldId == null) {
-        throw Exception('Cannot save pipeline without field selection');
-      }
+      // Build the composite fieldId (templateId:fieldName) if possible
+      final effectiveFieldId = state.templateId != null && state.fieldId != null
+          ? '${state.templateId}:${state.fieldId}'
+          : state.fieldId ?? '';
+
+      final pipelineId = state.selectedPipelineId ?? const Uuid().v4();
 
       final pipeline = AnalysisPipelineModel(
-        id: const Uuid().v4(),
+        id: pipelineId,
         name: name,
-        fieldId: state.fieldId!,
+        fieldId: effectiveFieldId,
         outputMode: state.outputMode,
         snippetLanguage: state.snippetLanguage,
         snippet: state.snippet,
@@ -257,7 +265,15 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
 
       await _repository.savePipeline(pipeline);
 
+      // Reload pipelines list so the new/updated one appears in the selector
+      var pipelines = await _repository.getPipelinesForField(effectiveFieldId);
+      if (pipelines.isEmpty) {
+        pipelines = await _repository.getAllPipelines();
+      }
+
       return state.copyWith(
+        availablePipelines: pipelines,
+        selectedPipelineId: pipelineId,
         status: UiFlowStatus.success,
         lastOperation: PipelineBuilderOperation.savePipeline,
       );

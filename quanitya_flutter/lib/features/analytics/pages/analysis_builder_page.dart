@@ -19,6 +19,7 @@ import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../../logic/analytics/cubits/analysis_builder_cubit.dart';
 import '../../../logic/analytics/cubits/analysis_builder_state.dart';
 import '../../../logic/analytics/cubits/analysis_builder_message_mapper.dart';
+import '../../../logic/analytics/enums/analysis_output_mode.dart';
 import '../../../logic/analytics/enums/time_resolution.dart';
 import '../../../logic/analytics/models/analysis_output.dart';
 import '../../../support/extensions/context_extensions.dart';
@@ -121,10 +122,24 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
               onPressed: () => cubit.newPipeline(),
             ),
           ),
+          VSpace.x1,
+
+          // Output mode selector
+          Padding(
+            padding: AppPadding.pageHorizontal,
+            child: LayoutGroup.row(
+              minChildWidth: 10,
+              children: AnalysisOutputMode.values.map((mode) => PenCircledChip(
+                    label: mode.name,
+                    isSelected: state.outputMode == mode,
+                    onTap: () => cubit.setOutputMode(mode),
+                  )).toList(),
+            ),
+          ),
+          VSpace.x2,
 
           // Pipeline selector — PenCircledChips in a wrapping row
           if (state.availablePipelines.isNotEmpty) ...[
-            VSpace.x1,
             Padding(
               padding: AppPadding.pageHorizontal,
               child: Wrap(
@@ -140,43 +155,18 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
             VSpace.x2,
           ],
 
-          // Header with output mode badge
-          if (state.snippet.isNotEmpty) ...[
+          // Reasoning (from AI or saved pipeline)
+          if (state.reasoning.isNotEmpty) ...[
             Padding(
               padding: AppPadding.pageHorizontal,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.code,
-                    color: palette.interactableColor,
-                    size: AppSizes.iconMedium,
-                  ),
-                  HSpace.x1,
-                  Text(
-                    context.l10n.analysisBuilderJsTitle,
-                    style: context.text.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: palette.textPrimary,
-                    ),
-                  ),
-                  const Spacer(),
-                  _OutputModeBadge(mode: state.outputMode.name),
-                ],
-              ),
-            ),
-            if (state.reasoning.isNotEmpty) ...[
-              VSpace.x05,
-              Padding(
-                padding: AppPadding.pageHorizontal,
-                child: Text(
-                  state.reasoning,
-                  style: context.text.bodySmall?.copyWith(
-                    color: palette.textSecondary,
-                    fontStyle: FontStyle.italic,
-                  ),
+              child: Text(
+                state.reasoning,
+                style: context.text.bodySmall?.copyWith(
+                  color: palette.textSecondary,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
-            ],
+            ),
             VSpace.x2,
           ],
 
@@ -360,39 +350,6 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
 // ─────────────────────────────────────────────────────────────────────────
 // Supporting Widgets
 // ─────────────────────────────────────────────────────────────────────────
-
-class _OutputModeBadge extends StatelessWidget {
-  final String mode;
-  const _OutputModeBadge({required this.mode});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = mode == 'scalar'
-        ? QuanityaPalette.primary.successColor
-        : mode == 'vector'
-            ? QuanityaPalette.primary.interactableColor
-            : QuanityaPalette.primary.warningColor;
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSizes.space,
-        vertical: AppSizes.space * 0.25,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-        border: Border.all(color: color, width: 1),
-      ),
-      child: Text(
-        mode.toUpperCase(),
-        style: context.text.bodySmall?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
-}
 
 /// Renders AnalysisOutput inline — scalar cards, vector values, matrix summary.
 class _AnalysisResultDisplay extends StatelessWidget {

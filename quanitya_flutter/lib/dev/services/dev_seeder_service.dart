@@ -67,6 +67,12 @@ class DevSeederService {
 
   /// Clear all tables.
   Future<void> clearAll() async {
+    // Clear analysis pipelines via repository
+    final pipelines = await _pipelineRepo.getAllPipelines();
+    for (final p in pipelines) {
+      await _pipelineRepo.deletePipeline(p.id);
+    }
+
     await _db.delete(_db.logEntries).go();
     await _db.delete(_db.schedules).go();
     await _db.delete(_db.templateAesthetics).go();
@@ -532,6 +538,12 @@ class DevSeederService {
   /// Seeds analysis pipelines for the first numeric-field template found.
   /// Call from dev tools button only.
   Future<void> seedAnalysisPipelines() async {
+    // Clear any existing pipelines first (removes stale test data)
+    final existing = await _pipelineRepo.getAllPipelines();
+    for (final p in existing) {
+      await _pipelineRepo.deletePipeline(p.id);
+    }
+
     // Find the first template with numeric fields (likely Mood Tracker)
     final templates = await _db.select(_db.trackerTemplates).get();
     if (templates.isEmpty) {

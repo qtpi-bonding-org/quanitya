@@ -40,6 +40,11 @@ class WasmAnalysisService implements IWasmAnalysisService {
 
       final data = await dataFuture;
 
+      // Early return if no data — avoid JS errors on empty arrays
+      if (data.values.isEmpty) {
+        throw AnalysisException('No data found for this field. Log some entries first.');
+      }
+
       // 2. Execute JS via platform channel (already native/off-thread)
       final resultData = await _executeInIsolate(
         shellContent: _cachedShell!,
@@ -151,6 +156,9 @@ class WasmAnalysisService implements IWasmAnalysisService {
       startDate,
       endDate,
     );
+
+    // ignore: avoid_print
+    print('WasmAnalysis: fieldId=$fieldId, templateId=$templateId, fieldName=$fieldName, entries=${entries.length}');
 
     if (entries.isEmpty) {
       return (values: <double>[], timestamps: <DateTime>[]);
