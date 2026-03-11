@@ -9,6 +9,19 @@ import '../../logic/templates/models/shared/template_field.dart';
 import '../../logic/templates/models/shared/template_aesthetics.dart';
 import '../../logic/schedules/models/schedule.dart';
 
+/// Summary data for each template's log entries.
+class TemplateSummary {
+  final String templateId;
+  final int entryCount;
+  final DateTime? lastLoggedAt;
+
+  const TemplateSummary({
+    required this.templateId,
+    required this.entryCount,
+    this.lastLoggedAt,
+  });
+}
+
 /// Combined log entry with its related template, aesthetics, and schedule.
 ///
 /// Provides all data needed to display a log entry in the UI without
@@ -508,6 +521,26 @@ class LogEntryQueryDao {
     final query = _db.selectOnly(_db.logEntries)..addColumns([countExp]);
     final result = await query.getSingle();
     return result.read(countExp) ?? 0;
+  }
+
+  /// Get entry count and last logged date for all templates in one query.
+  Future<List<TemplateSummary>> getTemplateSummaries() async {
+    final templateId = _db.logEntries.templateId;
+    final countExp = _db.logEntries.id.count();
+    final maxDateExp = coalesce([_db.logEntries.occurredAt, _db.logEntries.scheduledFor]).max();
+
+    final query = _db.selectOnly(_db.logEntries)
+      ..addColumns([templateId, countExp, maxDateExp])
+      ..groupBy([templateId]);
+
+    final results = await query.get();
+    return results.map((row) {
+      return TemplateSummary(
+        templateId: row.read(templateId)!,
+        entryCount: row.read(countExp) ?? 0,
+        lastLoggedAt: row.read(maxDateExp),
+      );
+    }).toList();
   }
 
   // ─────────────────────────────────────────────────────────────────────────

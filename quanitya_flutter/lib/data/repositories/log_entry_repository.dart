@@ -183,6 +183,11 @@ class LogEntryRepository implements ILogEntryRepository {
     return _queryDao.countAll();
   }
 
+  @override
+  Future<List<TemplateSummary>> getTemplateSummaries() async {
+    return _queryDao.getTemplateSummaries();
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // Write Methods (with validation)
   // ─────────────────────────────────────────────────────────────────────────
