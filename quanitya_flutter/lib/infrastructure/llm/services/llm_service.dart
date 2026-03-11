@@ -45,6 +45,10 @@ class LlmService {
           // Execute via Serverpod Endpoint
           final result = await _serverpodClient.cloudLlm.generateStructured(cloudRequest);
 
+          if (!result.success) {
+            throw LlmException(result.message ?? 'Cloud LLM request failed');
+          }
+
           if (kDebugMode) {
              debugPrint('☁️☁️☁️ CLOUD PROXY SUCCESS ☁️☁️☁️\n');
           }

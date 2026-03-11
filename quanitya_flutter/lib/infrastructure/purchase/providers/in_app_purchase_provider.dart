@@ -82,39 +82,45 @@ class InAppPurchaseProvider implements IPurchaseProvider {
   Future<Set<String>> _getProductIds() async {
     if (_cachedProductIds != null) return _cachedProductIds!;
 
-    final railName = switch (rail) {
-      PurchaseRail.appleIap => 'apple_iap',
-      PurchaseRail.googleIap => 'google_iap',
-      _ => 'apple_iap',
-    };
+    try {
+      final railName = switch (rail) {
+        PurchaseRail.appleIap => 'apple_iap',
+        PurchaseRail.googleIap => 'google_iap',
+        _ => 'apple_iap',
+      };
 
-    // 1. Get challenge from server
-    final challengeResponse = await _client.productCatalog.getChallenge();
-    final challenge = challengeResponse.challenge;
-    final difficulty = challengeResponse.difficulty;
+      // 1. Get challenge from server
+      final challengeResponse = await _client.productCatalog.getChallenge();
+      final challenge = challengeResponse.challenge;
+      final difficulty = challengeResponse.difficulty;
 
-    // 2. Mine proof-of-work
-    final proofOfWork = await Hashcash.mint(challenge, difficulty: difficulty);
+      // 2. Mine proof-of-work
+      final proofOfWork = await Hashcash.mint(challenge, difficulty: difficulty);
 
-    // 3. Sign payload with device key
-    final publicKeyHex =
-        await _keyRepository.getDeviceSigningPublicKeyHex();
-    if (publicKeyHex == null) {
-      throw const PurchaseException('Device key not found');
+      // 3. Sign payload with device key
+      final publicKeyHex =
+          await _keyRepository.getDeviceSigningPublicKeyHex();
+      if (publicKeyHex == null) {
+        throw const PurchaseException('Device key not found');
+      }
+      final payload = '$challenge:$railName';
+      final signature = await _encryption.signWithDeviceKey(payload);
+
+      // 4. Call protected endpoint
+      final ids = await _client.productCatalog.getActiveStoreProductIds(
+        challenge,
+        proofOfWork,
+        publicKeyHex,
+        signature,
+        railName,
+      );
+      _cachedProductIds = ids.toSet();
+      return _cachedProductIds!;
+    } on PurchaseException {
+      rethrow;
+    } catch (e) {
+      throw PurchaseException('Failed to fetch product catalog: $e');
     }
-    final payload = '$challenge:$railName';
-    final signature = await _encryption.signWithDeviceKey(payload);
-
-    // 4. Call protected endpoint
-    final ids = await _client.productCatalog.getActiveStoreProductIds(
-      challenge,
-      proofOfWork,
-      publicKeyHex,
-      signature,
-      railName,
-    );
-    _cachedProductIds = ids.toSet();
-    return _cachedProductIds!;
   }
 
   @override

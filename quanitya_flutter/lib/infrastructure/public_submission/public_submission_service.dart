@@ -89,6 +89,28 @@ class PublicSubmissionService implements IPublicSubmissionService {
         );
         debugPrint('📤 [$endpoint] Step 5: Server response: ${result.success}');
 
+        // Check for server error codes
+        if (!result.success) {
+          switch (result.errorCode) {
+            case 'rate_limit_exceeded':
+              throw RateLimitExceededException(
+                result.message ?? 'Rate limit exceeded',
+              );
+            case 'challenge_expired':
+              throw ChallengeRequestException(
+                result.message ?? 'Challenge expired, please try again',
+              );
+            case 'validation_failed':
+              throw PublicSubmissionException(
+                result.message ?? 'Validation failed',
+              );
+            case 'internal_error':
+              throw PublicSubmissionException(
+                result.message ?? 'Server error',
+              );
+          }
+        }
+
         return SubmissionResponse.fromApiResponse(result);
       },
       PublicSubmissionException.new,

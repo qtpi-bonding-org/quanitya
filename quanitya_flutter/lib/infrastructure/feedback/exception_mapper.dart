@@ -2,11 +2,18 @@ import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
+import '../../data/repositories/analytics_inbox_repository.dart' show AnalyticsInboxException;
+import '../../data/repositories/data_export_repository.dart' show ImportFailedException, ImportCancelledException;
 import '../../data/repositories/log_entry_repository.dart';
 import '../../data/repositories/template_with_aesthetics_repository.dart';
+import '../../features/app_operating_mode/exceptions/app_operating_exceptions.dart' show AppOperatingException;
 import '../../features/device_pairing/services/pairing_service.dart' show PairingException;
+import '../../logic/log_entries/exceptions/log_entry_exceptions.dart';
 import '../auth/auth_service.dart' show AuthException;
 import '../crypto/exceptions/crypto_exceptions.dart';
+import '../llm/services/llm_service.dart' show LlmException;
+import '../location/location_service.dart' show LocationException;
+import '../notifications/exceptions/notification_exception.dart' show NotificationException;
 import '../public_submission/exceptions/public_submission_exceptions.dart';
 import '../purchase/purchase_exception.dart';
 import '../purchase/entitlement_exception.dart';
@@ -37,6 +44,9 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
         ),
 
       // Repository-specific exceptions
+      LogEntrySaveException() => const MessageKey.error(L10nKeys.errorLogEntrySaveFailed),
+      LogEntryUpdateException() => const MessageKey.error(L10nKeys.errorLogEntryUpdateFailed),
+      LogEntryDeleteException() => const MessageKey.error(L10nKeys.errorLogEntryDeleteFailed),
       LogEntryValidationException e => MessageKey.errorFrom(
           L10nKeys.errorLogEntryValidation(e.errors.join(', ')),
         ),
@@ -48,6 +58,9 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
           L10nKeys.errorTemplateSchemaChange,
           {'message': e.message},
         ),
+      AnalyticsInboxException() => const MessageKey.error(L10nKeys.errorAnalyticsFailed),
+      ImportCancelledException() => null, // User-initiated, no toast needed
+      ImportFailedException() => const MessageKey.error(L10nKeys.errorImportFailed),
 
       // Storage/Database exceptions
       StorageException() => const MessageKey.error(L10nKeys.errorStorageFailed),
@@ -62,12 +75,20 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
           {'code': e.errorCode},
         ),
 
-      // Encryption exceptions
-      EncryptionException() => const MessageKey.error(L10nKeys.errorEncryptionFailed),
-      KeyManagementException() => const MessageKey.error(L10nKeys.errorKeysFailed),
+      // Crypto subtypes (most specific first, before base CryptoException types)
+      KeyStorageException() => const MessageKey.error(L10nKeys.errorKeysFailed),
+      KeyRetrievalException() => const MessageKey.error(L10nKeys.errorKeysFailed),
+      CryptoOperationException() => const MessageKey.error(L10nKeys.errorEncryptionFailed),
+      DeviceProvisioningException() => const MessageKey.error(L10nKeys.errorKeysFailed),
+      RecoveryException() => const MessageKey.error(L10nKeys.errorRecoveryFailed),
+      DeviceRevocationException() => const MessageKey.error(L10nKeys.errorDeviceRevocationFailed),
       KeyGenerationException e => e.message.contains('already exist')
           ? const MessageKey.error(L10nKeys.errorKeysAlreadyExist)
           : const MessageKey.error(L10nKeys.errorKeysFailed),
+
+      // Encryption exceptions (local types defined below)
+      EncryptionException() => const MessageKey.error(L10nKeys.errorEncryptionFailed),
+      KeyManagementException() => const MessageKey.error(L10nKeys.errorKeysFailed),
 
       // Pairing exceptions
       PairingException e => e.message.contains('already set up')
@@ -88,8 +109,18 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
       PurchaseException() => const MessageKey.error(L10nKeys.errorPurchaseFailed),
       EntitlementException() => const MessageKey.error(L10nKeys.errorEntitlementFailed),
 
-      // LLM provider exceptions
+      // LLM exceptions
+      LlmException() => const MessageKey.error(L10nKeys.errorLlmFailed),
       LlmProviderException() => const MessageKey.error(L10nKeys.errorLlmProviderFailed),
+
+      // Notification exceptions
+      NotificationException() => const MessageKey.error(L10nKeys.errorNotificationFailed),
+
+      // App settings / operating mode exceptions
+      AppOperatingException() => const MessageKey.error(L10nKeys.errorSettingsFailed),
+
+      // Location exceptions
+      LocationException() => const MessageKey.error(L10nKeys.errorLocationFailed),
 
       // Generic exceptions
       FormatException() => const MessageKey.error(L10nKeys.errorFormatInvalid),
