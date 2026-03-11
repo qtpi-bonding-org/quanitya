@@ -38,13 +38,12 @@ class ResultsAnalysisPage extends StatelessWidget {
           return _EmptyResultsState();
         }
 
-        return ListView.builder(
+        return ListView(
           padding: AppPadding.page,
-          itemCount: state.templates.length,
-          itemBuilder: (context, index) {
-            final item = state.templates[index];
-            return _TemplateAnalysisFold(item: item);
-          },
+          children: [
+            for (final item in state.templates)
+              _TemplateAnalysisFold(item: item),
+          ],
         );
       },
     );
