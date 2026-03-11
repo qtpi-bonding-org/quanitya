@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import '../models/analysis_output.dart';
 import '../models/analysis_enums.dart';
+import '../models/analysis_pipeline.dart';
 import '../models/matrix_vector_scalar/mvs_union.dart';
 import '../models/matrix_vector_scalar/analysis_data_type.dart';
 import '../enums/time_resolution.dart';
@@ -90,6 +91,10 @@ class AnalysisBuilderState
 
     // AI field selection
     String? selectedFieldForAi,
+
+    // Available pipelines for this field
+    @Default([]) List<AnalysisPipelineModel> availablePipelines,
+    String? selectedPipelineId,
   }) = _AnalysisBuilderState;
 
   const AnalysisBuilderState._();

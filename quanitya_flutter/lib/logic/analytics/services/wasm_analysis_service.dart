@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:isolate';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:javascript_flutter/javascript_flutter.dart';
 import 'package:injectable/injectable.dart';
@@ -41,23 +40,22 @@ class WasmAnalysisService implements IWasmAnalysisService {
 
       final data = await dataFuture;
 
-      // 2. Execute in background isolate
-      final resultData = await Isolate.run(
-        () => _executeInIsolate(
-          shellContent: _cachedShell!,
-          simpleStats: _cachedStatsLib!,
-          values: data.values,
-          // Optimization: Pass epoch integers, not ISO strings
-          timestampsEpoch: data.timestamps.map((e) => e.millisecondsSinceEpoch).toList(),
-          snippet: pipeline.snippet,
-          outputMode: pipeline.outputMode,
-        ),
+      // 2. Execute JS via platform channel (already native/off-thread)
+      final resultData = await _executeInIsolate(
+        shellContent: _cachedShell!,
+        simpleStats: _cachedStatsLib!,
+        values: data.values,
+        timestampsEpoch: data.timestamps.map((e) => e.millisecondsSinceEpoch).toList(),
+        snippet: pipeline.snippet,
+        outputMode: pipeline.outputMode,
       );
 
       // 3. Box into AnalysisOutput (main thread)
       return _boxResult(pipeline, resultData, data.timestamps);
-    } catch (e) {
+    } catch (e, stack) {
       if (e is AnalysisException) rethrow;
+      // ignore: avoid_print
+      print('WasmAnalysisService ERROR: $e\n$stack');
       throw AnalysisException('Analysis Engine Error: $e');
     }
   }
@@ -84,7 +82,9 @@ class WasmAnalysisService implements IWasmAnalysisService {
     required String snippet,
     required AnalysisOutputMode outputMode,
   }) async {
-    final env = jinja.Environment();
+    final env = jinja.Environment(filters: {
+      'to_json': (dynamic value) => jsonEncode(value),
+    });
     final template = env.fromString(shellContent);
 
     final fullScript = template.render({
@@ -121,8 +121,10 @@ class WasmAnalysisService implements IWasmAnalysisService {
       }
 
       return jsResult;
-    } catch (e) {
+    } catch (e, stack) {
       if (e is AnalysisException) rethrow;
+      // ignore: avoid_print
+      print('JS Runtime ERROR: $e\n$stack');
       throw AnalysisException('JS Runtime Error: $e');
     } finally {
       await javascript.dispose();

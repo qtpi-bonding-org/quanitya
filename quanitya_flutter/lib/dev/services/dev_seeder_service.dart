@@ -10,6 +10,10 @@ import '../../data/db/app_database.dart';
 import '../../data/dao/log_entry_dual_dao.dart';
 import '../../data/dao/tracker_template_dual_dao.dart';
 import '../../infrastructure/crypto/crypto_key_repository.dart';
+import '../../data/interfaces/analysis_pipeline_interface.dart';
+import '../../logic/analytics/enums/analysis_output_mode.dart';
+import '../../logic/analytics/models/analysis_enums.dart';
+import '../../logic/analytics/models/analysis_pipeline.dart';
 import '../../logic/templates/enums/field_enum.dart';
 import '../../logic/templates/enums/ui_element_enum.dart';
 import '../../logic/templates/models/shared/template_field.dart';
@@ -25,6 +29,7 @@ class DevSeederService {
   final ICryptoKeyRepository _cryptoKeyRepo;
   final LogEntryDualDao _logEntryDao;
   final TrackerTemplateDualDao _templateDao;
+  final IAnalysisPipelineRepository _pipelineRepo;
   final _uuid = const Uuid();
   final _random = Random();
 
@@ -33,6 +38,7 @@ class DevSeederService {
     this._cryptoKeyRepo,
     this._logEntryDao,
     this._templateDao,
+    this._pipelineRepo,
   );
 
   /// Clear all data and seed with fresh fake data.
@@ -516,6 +522,104 @@ class DevSeederService {
       occurredAt: occurredAt,
       dataJson: jsonEncode(data),
       updatedAt: DateTime.now(),
+    ));
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Analysis Pipeline Seeders
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Seeds analysis pipelines for the first numeric-field template found.
+  /// Call from dev tools button only.
+  Future<void> seedAnalysisPipelines() async {
+    // Find the first template with numeric fields (likely Mood Tracker)
+    final templates = await _db.select(_db.trackerTemplates).get();
+    if (templates.isEmpty) {
+      throw Exception('No templates found. Seed fake data first.');
+    }
+
+    // Find a template with numeric fields by parsing fieldsJson
+    for (final template in templates) {
+      final fieldsJson = jsonDecode(template.fieldsJson) as List;
+      final numericField = fieldsJson.cast<Map<String, dynamic>>().where(
+        (f) {
+          final type = f['type'] as String?;
+          return type == 'integer' || type == 'float' || type == 'dimension';
+        },
+      ).firstOrNull;
+
+      if (numericField != null) {
+        final fieldLabel = numericField['label'] as String;
+        await _seedAnalysisPipelinesForField(template.id, fieldLabel);
+        return;
+      }
+    }
+
+    throw Exception('No templates with numeric fields found.');
+  }
+
+  Future<void> _seedAnalysisPipelinesForField(
+    String templateId,
+    String fieldLabel,
+  ) async {
+    final now = DateTime.now();
+    final fieldId = '$templateId:$fieldLabel';
+
+    await _pipelineRepo.savePipeline(AnalysisPipelineModel(
+      id: _uuid.v4(),
+      name: 'Mood Statistics',
+      fieldId: fieldId,
+      outputMode: AnalysisOutputMode.scalar,
+      snippetLanguage: AnalysisSnippetLanguage.js,
+      snippet: '''// Calculate mood statistics
+return [
+  { label: 'Mean', value: ss.mean(data.values), unit: 'pts' },
+  { label: 'Std Dev', value: ss.standardDeviation(data.values), unit: 'pts' },
+  { label: 'Min', value: ss.min(data.values), unit: 'pts' },
+  { label: 'Max', value: ss.max(data.values), unit: 'pts' }
+];''',
+      reasoning: 'Basic descriptive statistics for mood scores',
+      updatedAt: now,
+    ));
+
+    await _pipelineRepo.savePipeline(AnalysisPipelineModel(
+      id: _uuid.v4(),
+      name: '3-Day Moving Average',
+      fieldId: fieldId,
+      outputMode: AnalysisOutputMode.vector,
+      snippetLanguage: AnalysisSnippetLanguage.js,
+      snippet: '''// Calculate 3-day moving average
+const windowSize = 3;
+const movingAvg = [];
+
+for (let i = windowSize - 1; i < data.values.length; i++) {
+  const window = data.values.slice(i - windowSize + 1, i + 1);
+  movingAvg.push(ss.mean(window));
+}
+
+return {
+  label: '3-Day MA',
+  values: movingAvg
+};''',
+      reasoning: 'Smooths daily fluctuations to show mood trend',
+      updatedAt: now,
+    ));
+
+    await _pipelineRepo.savePipeline(AnalysisPipelineModel(
+      id: _uuid.v4(),
+      name: 'Smoothed Time Series',
+      fieldId: fieldId,
+      outputMode: AnalysisOutputMode.matrix,
+      snippetLanguage: AnalysisSnippetLanguage.js,
+      snippet: '''// Apply 3-point smoothing
+const smoothed = data.values.map((v, i) => {
+  if (i === 0 || i === data.values.length - 1) return v;
+  return (data.values[i-1] + v + data.values[i+1]) / 3;
+});
+
+return { values: smoothed };''',
+      reasoning: 'Neighbor-averaged smoothing for visualization',
+      updatedAt: now,
     ));
   }
 

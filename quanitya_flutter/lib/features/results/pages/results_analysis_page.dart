@@ -510,18 +510,10 @@ class _FieldAnalysisCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding: AppPadding.allSingle,
-                  decoration: BoxDecoration(
-                    color: palette.interactableColor.withValues(alpha: 0.1),
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.radiusSmall),
-                  ),
-                  child: Icon(
-                    Icons.trending_up,
-                    color: palette.interactableColor,
-                    size: AppSizes.iconMedium,
-                  ),
+                Icon(
+                  Icons.chevron_right,
+                  color: palette.textSecondary,
+                  size: AppSizes.iconMedium,
                 ),
               ],
             ),

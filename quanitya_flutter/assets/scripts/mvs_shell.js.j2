@@ -20,7 +20,8 @@
 // ============================================================================
 // Library Shims
 // ============================================================================
-const ss = simpleStatistics;
+// ss is already globally defined by simple_statistics.js
+const simpleStatistics = ss;
 const require = (name) => {
     if (name === 'simple-statistics' || name === 'ss') return ss;
     throw new Error('Module ' + name + ' not found');

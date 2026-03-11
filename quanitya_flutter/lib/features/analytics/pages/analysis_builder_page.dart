@@ -9,18 +9,21 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/widgets/ai/ai_prompt_widget.dart';
-import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya_text_field.dart';
+import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
+import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
+import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
+import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
 import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../../logic/analytics/cubits/analysis_builder_cubit.dart';
 import '../../../logic/analytics/cubits/analysis_builder_state.dart';
 import '../../../logic/analytics/cubits/analysis_builder_message_mapper.dart';
 import '../../../logic/analytics/enums/time_resolution.dart';
+import '../../../logic/analytics/models/analysis_output.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../app_operating_mode/cubits/app_operating_cubit.dart';
 import '../../app_operating_mode/models/app_operating_mode.dart';
-import '../widgets/live_results_panel.dart';
 
 /// Analysis pipeline builder — write or AI-generate JavaScript analysis code.
 class AnalysisBuilderPage extends StatefulWidget {
@@ -76,51 +79,10 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
                 ),
                 backgroundColor: palette.backgroundPrimary,
                 elevation: 0,
-                actions: [
-                  if (state.snippet.isNotEmpty)
-                    QuanityaIconButton(
-                      onPressed: () => cubit.toggleLivePreview(),
-                      icon: state.livePreviewEnabled
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: state.livePreviewEnabled
-                          ? palette.successColor
-                          : palette.textSecondary,
-                      tooltip: state.livePreviewEnabled
-                          ? context.l10n.analysisBuilderTooltipHidePreview
-                          : context.l10n.analysisBuilderTooltipShowPreview,
-                    ),
-                  if (state.snippet.isNotEmpty)
-                    QuanityaIconButton(
-                      onPressed: () => _showSaveDialog(context, cubit),
-                      icon: Icons.save_outlined,
-                      color: palette.interactableColor,
-                      tooltip: 'Save Pipeline',
-                    ),
-                ],
               ),
-              body: LayoutGroup.row(
-                minChildWidth: 30,
-                children: [
-                  _buildMainContent(context, state, cubit),
-                  if (state.livePreviewEnabled && state.liveResults != null)
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          left: BorderSide(
-                            color:
-                                palette.textSecondary.withValues(alpha: 0.2),
-                            width: 1,
-                          ),
-                        ),
-                      ),
-                      child: LiveResultsPanel(
-                        results: state.liveResults,
-                        column: 0,
-                        row: 0,
-                      ),
-                    ),
-                ],
+              body: SafeArea(
+                top: false,
+                child: _buildMainContent(context, state, cubit),
               ),
             );
           },
@@ -136,67 +98,147 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
   ) {
     final palette = QuanityaPalette.primary;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // AI Prompt Section
-        Padding(
-          padding: AppPadding.page,
-          child: AiPromptWidget(
-            title: context.l10n.analysisBuilderJsTitle,
-            hintText: 'Describe the analysis you want...',
-            isLoading: _isGenerating,
-            onGenerate: (prompt) => _generateFromAi(context, prompt),
-          ),
-        ),
-
-        // Header with output mode badge
-        if (state.snippet.isNotEmpty) ...[
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // AI Prompt Section
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppSizes.space * 2),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.code,
-                  color: palette.interactableColor,
-                  size: AppSizes.iconMedium,
-                ),
-                HSpace.x1,
-                Text(
-                  context.l10n.analysisBuilderJsTitle,
-                  style: context.text.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: palette.textPrimary,
+            padding: AppPadding.page,
+            child: AiPromptWidget(
+              title: context.l10n.analysisBuilderJsTitle,
+              hintText: 'Describe the analysis you want...',
+              isLoading: _isGenerating,
+              onGenerate: (prompt) => _generateFromAi(context, prompt),
+            ),
+          ),
+
+          // New pipeline button
+          Padding(
+            padding: AppPadding.pageHorizontal,
+            child: QuanityaTextButton(
+              text: '+ New',
+              onPressed: () => cubit.newPipeline(),
+            ),
+          ),
+
+          // Pipeline selector — PenCircledChips in a wrapping row
+          if (state.availablePipelines.isNotEmpty) ...[
+            VSpace.x1,
+            Padding(
+              padding: AppPadding.pageHorizontal,
+              child: Wrap(
+                spacing: AppSizes.space,
+                runSpacing: AppSizes.space,
+                children: state.availablePipelines.map((p) => PenCircledChip(
+                      label: p.name,
+                      isSelected: p.id == state.selectedPipelineId,
+                      onTap: () => cubit.selectPipeline(p.id),
+                    )).toList(),
+              ),
+            ),
+            VSpace.x2,
+          ],
+
+          // Header with output mode badge
+          if (state.snippet.isNotEmpty) ...[
+            Padding(
+              padding: AppPadding.pageHorizontal,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.code,
+                    color: palette.interactableColor,
+                    size: AppSizes.iconMedium,
+                  ),
+                  HSpace.x1,
+                  Text(
+                    context.l10n.analysisBuilderJsTitle,
+                    style: context.text.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: palette.textPrimary,
+                    ),
+                  ),
+                  const Spacer(),
+                  _OutputModeBadge(mode: state.outputMode.name),
+                ],
+              ),
+            ),
+            if (state.reasoning.isNotEmpty) ...[
+              VSpace.x05,
+              Padding(
+                padding: AppPadding.pageHorizontal,
+                child: Text(
+                  state.reasoning,
+                  style: context.text.bodySmall?.copyWith(
+                    color: palette.textSecondary,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
-                const Spacer(),
-                _OutputModeBadge(mode: state.outputMode.name),
+              ),
+            ],
+            VSpace.x2,
+          ],
+
+          // Code editor area
+          Padding(
+            padding: AppPadding.page,
+            child: _buildCodeEditor(context, state, cubit),
+          ),
+          VSpace.x2,
+
+          // Results fold — appears after running
+          if (state.previewResult != null)
+            Padding(
+              padding: AppPadding.pageHorizontal,
+              child: NotebookFold(
+                initiallyExpanded: true,
+                header: Row(
+                  children: [
+                    Icon(
+                      Icons.insights,
+                      size: AppSizes.iconMedium,
+                      color: palette.successColor,
+                    ),
+                    HSpace.x1,
+                    Text(
+                      'Results',
+                      style: context.text.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: palette.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                child: _AnalysisResultDisplay(output: state.previewResult!),
+              ),
+            ),
+
+          VSpace.x2,
+
+          // Action buttons at the bottom
+          Padding(
+            padding: AppPadding.pageHorizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (state.snippet.isNotEmpty) ...[
+                  QuanityaTextButton(
+                    text: 'Run',
+                    onPressed: () => cubit.runPipeline(),
+                  ),
+                  HSpace.x2,
+                  QuanityaTextButton(
+                    text: 'Save',
+                    onPressed: () => _showSaveSheet(context, cubit),
+                  ),
+                ],
               ],
             ),
           ),
-          if (state.reasoning.isNotEmpty) ...[
-            VSpace.x05,
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSizes.space * 2),
-              child: Text(
-                state.reasoning,
-                style: context.text.bodySmall?.copyWith(
-                  color: palette.textSecondary,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-          ],
           VSpace.x2,
         ],
-
-        // Code editor area
-        Expanded(
-          child: state.snippet.isEmpty
-              ? _buildEmptyState(context)
-              : _buildCodeEditor(context, state, cubit),
-        ),
-      ],
+      ),
     );
   }
 
@@ -205,15 +247,11 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
     AnalysisBuilderState state,
     AnalysisBuilderCubit cubit,
   ) {
-    // Sync controller with cubit state (e.g. after AI generation)
-    // without fighting the user's cursor position during manual edits.
     if (state.snippet != _lastSnippet) {
       _lastSnippet = state.snippet;
       final selection = _codeController.selection;
       _codeController.text = state.snippet;
-      // Restore cursor if within bounds, otherwise move to end.
-      if (selection.isValid &&
-          selection.end <= state.snippet.length) {
+      if (selection.isValid && selection.end <= state.snippet.length) {
         _codeController.selection = selection;
       } else {
         _codeController.selection = TextSelection.collapsed(
@@ -222,9 +260,17 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
       }
     }
 
+    final lineCount = state.snippet.isEmpty
+        ? 8
+        : state.snippet.split('\n').length.clamp(8, 40);
+    final lineHeight = AppSizes.fontSmall * 1.6;
+
     return Container(
-      // Dark overlay on paper — 0.85 opacity lets the dot grid bleed through.
-      color: const Color(0xFF1E1E1E).withValues(alpha: 0.85),
+      constraints: BoxConstraints(minHeight: lineCount * lineHeight),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E1E).withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+      ),
       padding: AppPadding.allDouble,
       child: TextField(
         controller: _codeController,
@@ -233,7 +279,6 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
           cubit.updateSnippet(value);
         },
         maxLines: null,
-        expands: true,
         textAlignVertical: TextAlignVertical.top,
         style: TextStyle(
           fontFamily: 'monospace',
@@ -243,42 +288,20 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
           letterSpacing: 0.5,
         ),
         cursorColor: const Color(0xFFD4D4D4),
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           border: InputBorder.none,
           contentPadding: EdgeInsets.zero,
           isDense: true,
+          hintText: '// Write your JavaScript analysis here...\n'
+              '// Available: data.values, data.timestamps, ss (simple-statistics)',
+          hintStyle: TextStyle(
+            fontFamily: 'monospace',
+            fontSize: AppSizes.fontSmall,
+            color: const Color(0xFFD4D4D4).withValues(alpha: 0.3),
+            height: 1.6,
+          ),
         ),
         keyboardType: TextInputType.multiline,
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.code_off,
-            size: AppSizes.iconLarge * 2,
-            color: palette.textSecondary.withValues(alpha: 0.5),
-          ),
-          VSpace.x2,
-          Text(
-            context.l10n.analysisBuilderEmptyTitle,
-            style: context.text.headlineSmall?.copyWith(
-              color: palette.textSecondary,
-            ),
-          ),
-          VSpace.x1,
-          Text(
-            'Use the AI prompt above to generate an analysis pipeline.',
-            style: context.text.bodyMedium?.copyWith(
-              color: palette.textSecondary.withValues(alpha: 0.7),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -317,54 +340,26 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
     }
   }
 
-  Future<void> _showSaveDialog(
+  void _showSaveSheet(
     BuildContext context,
     AnalysisBuilderCubit cubit,
-  ) async {
-    final controller = TextEditingController();
-    final palette = QuanityaPalette.primary;
-
-    final name = await showDialog<String>(
+  ) {
+    LooseInsertSheet.show<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(
-          'Save Pipeline',
-          style: context.text.headlineSmall,
-        ),
-        content: QuanityaTextField(
-          controller: controller,
-          hintText: 'Pipeline name...',
-          autofocus: true,
-          onSubmitted: (_) =>
-              Navigator.of(dialogContext).pop(controller.text.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: palette.textSecondary),
-            ),
-          ),
-          TextButton(
-            onPressed: () =>
-                Navigator.of(dialogContext).pop(controller.text.trim()),
-            child: Text(
-              'Save',
-              style: TextStyle(color: palette.interactableColor),
-            ),
-          ),
-        ],
+      title: 'Save Pipeline',
+      builder: (_) => _SavePipelineForm(
+        onSave: (name) {
+          Navigator.of(context).pop();
+          cubit.savePipeline(name);
+        },
       ),
     );
-
-    controller.dispose();
-
-    if (name != null && name.isNotEmpty) {
-      await cubit.savePipeline(name);
-    }
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// Supporting Widgets
+// ─────────────────────────────────────────────────────────────────────────
 
 class _OutputModeBadge extends StatelessWidget {
   final String mode;
@@ -395,6 +390,185 @@ class _OutputModeBadge extends StatelessWidget {
           color: color,
         ),
       ),
+    );
+  }
+}
+
+/// Renders AnalysisOutput inline — scalar cards, vector values, matrix summary.
+class _AnalysisResultDisplay extends StatelessWidget {
+  final AnalysisOutput output;
+  const _AnalysisResultDisplay({required this.output});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+
+    return output.when(
+      scalar: (scalars) => LayoutGroup.grid(
+        minItemWidth: 15,
+        children: scalars
+            .map((s) => Container(
+                  padding: AppPadding.allDouble,
+                  decoration: BoxDecoration(
+                    color: palette.successColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        s.label,
+                        style: context.text.bodySmall?.copyWith(
+                          color: palette.textSecondary,
+                        ),
+                      ),
+                      VSpace.x05,
+                      Text(
+                        s.value.toStringAsFixed(2),
+                        style: context.text.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: palette.textPrimary,
+                        ),
+                      ),
+                      if (s.unit != null)
+                        Text(
+                          s.unit!,
+                          style: context.text.bodySmall?.copyWith(
+                            color: palette.textSecondary,
+                          ),
+                        ),
+                    ],
+                  ),
+                ))
+            .toList(),
+      ),
+      vector: (vectors) {
+        if (vectors.isEmpty) {
+          return Text(
+            'No vector data',
+            style: context.text.bodyMedium
+                ?.copyWith(color: palette.textSecondary),
+          );
+        }
+        final v = vectors.first;
+        return Container(
+          padding: AppPadding.allDouble,
+          decoration: BoxDecoration(
+            color: palette.interactableColor.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                v.label,
+                style: context.text.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: palette.textPrimary,
+                ),
+              ),
+              VSpace.x1,
+              Text(
+                '[${v.values.take(8).map((x) => x.toStringAsFixed(2)).join(", ")}${v.values.length > 8 ? " ..." : ""}]',
+                style: context.text.bodySmall?.copyWith(
+                  fontFamily: 'monospace',
+                  color: palette.textSecondary,
+                ),
+              ),
+              VSpace.x05,
+              Text(
+                '${v.values.length} values',
+                style: context.text.bodySmall?.copyWith(
+                  color: palette.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      matrix: (matrices) {
+        if (matrices.isEmpty) {
+          return Text(
+            'No matrix data',
+            style: context.text.bodyMedium
+                ?.copyWith(color: palette.textSecondary),
+          );
+        }
+        final m = matrices.first;
+        return Container(
+          padding: AppPadding.allDouble,
+          decoration: BoxDecoration(
+            color: palette.warningColor.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Matrix Output',
+                style: context.text.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: palette.textPrimary,
+                ),
+              ),
+              VSpace.x1,
+              Text(
+                '${m.data.length} rows × ${m.data.isNotEmpty ? m.data.first.length : 0} cols',
+                style: context.text.bodySmall?.copyWith(
+                  fontFamily: 'monospace',
+                  color: palette.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SavePipelineForm extends StatefulWidget {
+  final ValueChanged<String> onSave;
+  const _SavePipelineForm({required this.onSave});
+
+  @override
+  State<_SavePipelineForm> createState() => _SavePipelineFormState();
+}
+
+class _SavePipelineFormState extends State<_SavePipelineForm> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final name = _controller.text.trim();
+    if (name.isNotEmpty) {
+      widget.onSave(name);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        QuanityaTextField(
+          controller: _controller,
+          hintText: 'Pipeline name...',
+          autofocus: true,
+          onSubmitted: (_) => _submit(),
+        ),
+        VSpace.x2,
+        QuanityaTextButton(
+          text: 'Save',
+          onPressed: _submit,
+        ),
+      ],
     );
   }
 }

@@ -17,6 +17,7 @@ import '../models/analysis_pipeline.dart';
 import '../services/field_context_service.dart';
 import '../services/ai/ai_analysis_orchestrator.dart';
 import '../services/streaming_analytics_service.dart';
+import '../services/wasm_analysis_service.dart';
 import '../models/analysis_output.dart';
 import 'analysis_builder_state.dart';
 
@@ -27,6 +28,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
   final AiAnalysisOrchestrator _aiOrchestrator;
   final FieldContextService _fieldContextService;
   final StreamingAnalyticsService _streamingService;
+  final IWasmAnalysisService _wasmService;
 
   AnalysisBuilderCubit(
     this._repository,
@@ -34,6 +36,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     this._aiOrchestrator,
     this._fieldContextService,
     this._streamingService,
+    this._wasmService,
   ) : super(const AnalysisBuilderState());
 
   StreamSubscription<AnalysisOutput>? _liveResultsSubscription;
@@ -59,14 +62,23 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         }
       }
 
+      // Load existing pipelines for this field, or all pipelines as fallback.
+      var existing = await _repository.getPipelinesForField(fieldId);
+      if (existing.isEmpty) {
+        existing = await _repository.getAllPipelines();
+      }
+      final pipeline = existing.isNotEmpty ? existing.first : null;
+
       return state.copyWith(
         fieldId: fieldId,
         templateId: templateId,
         availableFieldNames: availableFields,
-        snippet: '',
-        reasoning: '',
-        outputMode: AnalysisOutputMode.scalar,
-        snippetLanguage: AnalysisSnippetLanguage.js,
+        availablePipelines: existing,
+        selectedPipelineId: pipeline?.id,
+        snippet: pipeline?.snippet ?? '',
+        reasoning: pipeline?.reasoning ?? '',
+        outputMode: pipeline?.outputMode ?? AnalysisOutputMode.scalar,
+        snippetLanguage: pipeline?.snippetLanguage ?? AnalysisSnippetLanguage.js,
         previewResult: null,
         liveResults: null,
         status: UiFlowStatus.success,
@@ -81,6 +93,75 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       FieldEnum.dimension => true,
       _ => false,
     };
+  }
+
+  /// Select a different pipeline to edit
+  void selectPipeline(String pipelineId) {
+    final pipeline = state.availablePipelines
+        .where((p) => p.id == pipelineId)
+        .firstOrNull;
+    if (pipeline == null) return;
+
+    emit(state.copyWith(
+      selectedPipelineId: pipelineId,
+      snippet: pipeline.snippet,
+      reasoning: pipeline.reasoning ?? '',
+      outputMode: pipeline.outputMode,
+      snippetLanguage: pipeline.snippetLanguage,
+    ));
+
+    if (state.livePreviewEnabled) {
+      startLivePreview();
+    }
+  }
+
+  /// Clear editor and start a new pipeline from scratch.
+  void newPipeline() {
+    emit(state.copyWith(
+      selectedPipelineId: null,
+      snippet: '',
+      reasoning: '',
+      outputMode: AnalysisOutputMode.scalar,
+      snippetLanguage: AnalysisSnippetLanguage.js,
+      previewResult: null,
+    ));
+  }
+
+  /// Execute the current snippet and store results.
+  Future<void> runPipeline() async {
+    if (state.snippet.isEmpty) return;
+
+    await tryOperation(() async {
+      // Use selected pipeline's fieldId (already in templateId:fieldName format),
+      // or construct it from state if editing a new pipeline.
+      final selectedPipeline = state.selectedPipelineId != null
+          ? state.availablePipelines
+              .where((p) => p.id == state.selectedPipelineId)
+              .firstOrNull
+          : null;
+      final effectiveFieldId = selectedPipeline?.fieldId ??
+          (state.templateId != null && state.fieldId != null
+              ? '${state.templateId}:${state.fieldId}'
+              : state.fieldId ?? '');
+
+      final pipeline = AnalysisPipelineModel(
+        id: state.selectedPipelineId ?? 'temp-${DateTime.now().millisecondsSinceEpoch}',
+        name: 'Preview',
+        fieldId: effectiveFieldId,
+        outputMode: state.outputMode,
+        snippetLanguage: state.snippetLanguage,
+        snippet: state.snippet,
+        updatedAt: DateTime.now(),
+      );
+
+      final result = await _wasmService.execute(pipeline);
+
+      return state.copyWith(
+        previewResult: result,
+        status: UiFlowStatus.success,
+        lastOperation: PipelineBuilderOperation.loadPreview,
+      );
+    }, emitLoading: true);
   }
 
   /// Update the current snippet
