@@ -440,6 +440,8 @@ class _AnalysisResultDisplay extends StatelessWidget {
           );
         }
         final m = matrices.first;
+        final cols = m.columnNames;
+        final previewRows = m.data.take(5).toList();
         return Container(
           padding: AppPadding.allDouble,
           decoration: BoxDecoration(
@@ -450,7 +452,7 @@ class _AnalysisResultDisplay extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Matrix Output',
+                'Matrix Output (${m.data.length} rows)',
                 style: context.text.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: palette.textPrimary,
@@ -458,12 +460,32 @@ class _AnalysisResultDisplay extends StatelessWidget {
               ),
               VSpace.x1,
               Text(
-                '${m.data.length} rows × ${m.data.isNotEmpty ? m.data.first.length : 0} cols',
+                cols.join(', '),
                 style: context.text.bodySmall?.copyWith(
                   fontFamily: 'monospace',
-                  color: palette.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  color: palette.textPrimary,
                 ),
               ),
+              VSpace.x05,
+              ...previewRows.map((row) => Padding(
+                    padding: EdgeInsets.only(bottom: AppSizes.space * 0.25),
+                    child: Text(
+                      row.map((v) => v.toStringAsFixed(2)).join(', '),
+                      style: context.text.bodySmall?.copyWith(
+                        fontFamily: 'monospace',
+                        color: palette.textSecondary,
+                      ),
+                    ),
+                  )),
+              if (m.data.length > 5)
+                Text(
+                  '... ${m.data.length - 5} more rows',
+                  style: context.text.bodySmall?.copyWith(
+                    color: palette.textSecondary,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
             ],
           ),
         );
