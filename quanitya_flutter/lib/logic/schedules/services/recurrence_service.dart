@@ -14,9 +14,15 @@ import 'package:rrule/rrule.dart';
 class RecurrenceService {
   
   /// Try to parse an RRULE string. Returns null if invalid.
+  ///
+  /// Accepts both `RRULE:FREQ=...` and bare `FREQ=...` formats.
   RecurrenceRule? tryParse(String rruleString) {
     try {
-      return RecurrenceRule.fromString(rruleString);
+      // The rrule package expects the RFC 5545 content line prefix.
+      final normalized = rruleString.startsWith('RRULE:')
+          ? rruleString
+          : 'RRULE:$rruleString';
+      return RecurrenceRule.fromString(normalized);
     } catch (e) {
       debugPrint('RecurrenceService: Invalid RRULE "$rruleString": $e');
       return null;
