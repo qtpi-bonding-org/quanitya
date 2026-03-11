@@ -126,7 +126,7 @@ void main() {
 
     test('includes cause when provided', () {
       final cause = Exception('Root cause');
-      final exception = AccountRecoveryException('Test error', cause);
+      final exception = AccountRecoveryException('Test error', cause: cause);
       
       expect(exception.cause, equals(cause));
       expect(exception.toString(), contains('caused by'));
