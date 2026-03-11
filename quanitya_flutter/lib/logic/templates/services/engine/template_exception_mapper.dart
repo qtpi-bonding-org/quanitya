@@ -138,56 +138,42 @@ class TemplateExceptionMapper implements IExceptionKeyMapper {
 
   /// Maps template parsing exceptions to message keys
   MessageKey _mapParsingException(TemplateParsingException exception) {
-    if (exception.message.contains('Missing required field')) {
-      return MessageKey.error(L10nKeys.templateParsingMissingField, {
+    return switch (exception.kind) {
+      ParsingFailure.missingField => MessageKey.error(L10nKeys.templateParsingMissingField, {
         'field': _extractFieldName(exception.message),
         'jsonPath': exception.jsonPath,
-      });
-    }
-
-    if (exception.message.contains('Invalid value')) {
-      return MessageKey.error(L10nKeys.templateParsingInvalidValue, {
+      }),
+      ParsingFailure.invalidValue => MessageKey.error(L10nKeys.templateParsingInvalidValue, {
         'field': _extractFieldName(exception.message),
         'jsonPath': exception.jsonPath,
-      });
-    }
-
-    if (exception.message.contains('Invalid field-widget combination')) {
-      return MessageKey.error(L10nKeys.templateParsingInvalidCombination, {
+      }),
+      ParsingFailure.invalidCombination => MessageKey.error(L10nKeys.templateParsingInvalidCombination, {
         'reason': exception.message,
         'suggestions': [
           'Try a different UI element for this field type',
           'Simplify your field requirements',
         ],
-      });
-    }
-
-    if (exception.message.contains('Color palette error')) {
-      return MessageKey.error(L10nKeys.templateParsingColorPaletteError, {
+      }),
+      ParsingFailure.colorPalette => MessageKey.error(L10nKeys.templateParsingColorPaletteError, {
         'reason': exception.message,
         'suggestions': [
           'Try a simpler color scheme',
           'Use fewer colors',
           'Choose standard color themes',
         ],
-      });
-    }
-
-    if (exception.message.contains('Color mapping error')) {
-      return MessageKey.error(L10nKeys.templateParsingColorMappingError, {
+      }),
+      ParsingFailure.colorMapping => MessageKey.error(L10nKeys.templateParsingColorMappingError, {
         'reason': exception.message,
         'suggestions': [
           'Simplify color requirements',
           'Use default color mappings',
         ],
-      });
-    }
-
-    // Generic parsing error
-    return MessageKey.error(L10nKeys.templateParsingGenericError, {
-      'reason': exception.message,
-      'jsonPath': exception.jsonPath,
-    });
+      }),
+      ParsingFailure.generic => MessageKey.error(L10nKeys.templateParsingGenericError, {
+        'reason': exception.message,
+        'jsonPath': exception.jsonPath,
+      }),
+    };
   }
 
   /// Maps template rendering exceptions to message keys

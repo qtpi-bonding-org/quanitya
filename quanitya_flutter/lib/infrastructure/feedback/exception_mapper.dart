@@ -8,9 +8,9 @@ import '../../data/repositories/data_export_repository.dart' show ImportFailedEx
 import '../../data/repositories/log_entry_repository.dart';
 import '../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../features/app_operating_mode/exceptions/app_operating_exceptions.dart' show AppOperatingException;
-import '../../features/device_pairing/services/pairing_service.dart' show PairingException;
+import '../../features/device_pairing/services/pairing_service.dart' show PairingException, PairingFailure;
 import '../../logic/log_entries/exceptions/log_entry_exceptions.dart';
-import '../auth/auth_service.dart' show AuthException;
+import '../auth/auth_service.dart' show AuthException, AuthFailure;
 import '../crypto/exceptions/crypto_exceptions.dart';
 import '../llm/services/llm_service.dart' show LlmException;
 import '../location/location_service.dart' show LocationException;
@@ -80,7 +80,7 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
       DeviceProvisioningException() => const MessageKey.error(L10nKeys.errorKeysFailed),
       RecoveryException() => const MessageKey.error(L10nKeys.errorRecoveryFailed),
       DeviceRevocationException() => const MessageKey.error(L10nKeys.errorDeviceRevocationFailed),
-      KeyGenerationException e => e.message.contains('already exist')
+      KeyGenerationException e => e.kind == KeyGenerationFailure.keysAlreadyExist
           ? const MessageKey.error(L10nKeys.errorKeysAlreadyExist)
           : const MessageKey.error(L10nKeys.errorKeysFailed),
 
@@ -89,7 +89,7 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
       KeyManagementException() => const MessageKey.error(L10nKeys.errorKeysFailed),
 
       // Pairing exceptions
-      PairingException e => e.message.contains('already set up')
+      PairingException e => e.kind == PairingFailure.deviceAlreadySetUp
           ? const MessageKey.error(L10nKeys.errorPairingDeviceAlreadySetup)
           : const MessageKey.error(L10nKeys.errorPairingFailed),
 
@@ -133,22 +133,17 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
   /// Maps AuthException, checking cause for more specific errors
   MessageKey _mapAuthException(AuthException e) {
     final cause = e.cause;
-    
-    // Check if cause is a KeyGenerationException with "already exist" message
+
+    // Check if cause is a KeyGenerationException — use its kind
     if (cause is KeyGenerationException) {
-      if (cause.message.contains('already exist')) {
+      if (cause.kind == KeyGenerationFailure.keysAlreadyExist) {
         return const MessageKey.error(L10nKeys.errorKeysAlreadyExist);
       }
       return const MessageKey.error(L10nKeys.errorKeysFailed);
     }
-    
-    // Check for connection/network errors (ServerpodClientException with SocketException)
-    final causeString = cause?.toString() ?? '';
-    final messageString = e.message;
-    if (causeString.contains('Connection refused') || 
-        causeString.contains('SocketException') ||
-        messageString.contains('Connection refused') ||
-        messageString.contains('SocketException')) {
+
+    // Network error detected at wrapping time
+    if (e.kind == AuthFailure.networkError) {
       return const MessageKey.error(L10nKeys.errorOffline);
     }
 
@@ -174,16 +169,12 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
 
   /// Maps FeedbackException to specific error messages
   MessageKey _mapFeedbackException(FeedbackException e) {
-    if (e.message.contains('at least 10 characters')) {
-      return const MessageKey.error(L10nKeys.errorFeedbackTooShort);
-    }
-    if (e.message.contains('less than 5000 characters')) {
-      return const MessageKey.error(L10nKeys.errorFeedbackTooLong);
-    }
-    if (e.message.contains('Invalid feedback type')) {
-      return const MessageKey.error(L10nKeys.errorFeedbackInvalidType);
-    }
-    return const MessageKey.error(L10nKeys.errorPublicSubmissionFailed);
+    return switch (e.kind) {
+      FeedbackFailure.tooShort => const MessageKey.error(L10nKeys.errorFeedbackTooShort),
+      FeedbackFailure.tooLong => const MessageKey.error(L10nKeys.errorFeedbackTooLong),
+      FeedbackFailure.invalidType => const MessageKey.error(L10nKeys.errorFeedbackInvalidType),
+      FeedbackFailure.submissionFailed => const MessageKey.error(L10nKeys.errorPublicSubmissionFailed),
+    };
   }
 }
 

@@ -109,35 +109,7 @@ class AppOperatingCubit extends QuanityaCubit<AppOperatingState> {
     return super.close();
   }
 
-  /// Test connection to a server URL (ping) - does NOT change operating mode
-  Future<void> pingConnection([String? customUrl]) async {
-    emit(state.copyWith(status: UiFlowStatus.loading));
-    try {
-      final url = customUrl ?? _getCurrentModeUrl();
-      if (url == null) {
-        throw const AppOperatingException('No URL configured for current mode');
-      }
-      
-      final isReachable = await _networkService.testConnection(url);
-      await _repository.updateConnectionStatus(isReachable);
-      
-      emit(state.copyWith(
-        status: UiFlowStatus.success,
-        isConnected: isReachable,
-        hasTriedConnection: true,
-        lastTestedUrl: url,
-        lastConnectionTest: DateTime.now(),
-        lastOperation: AppOperatingOperation.testConnection,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: UiFlowStatus.failure,
-        error: e,
-      ));
-    }
-  }
-
-  /// Test connection to a server URL
+  /// Test connection to a server URL — does NOT change operating mode
   Future<void> testConnection([String? customUrl]) async {
     emit(state.copyWith(status: UiFlowStatus.loading));
     try {
@@ -293,7 +265,7 @@ class AppOperatingCubit extends QuanityaCubit<AppOperatingState> {
   Future<void> retryConnection() async {
     final url = _getCurrentModeUrl();
     if (url != null) {
-      await pingConnection(url);
+      await testConnection(url);
     }
   }
 

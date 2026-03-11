@@ -64,16 +64,16 @@ class FeedbackSubmissionService {
   void _validateFeedback(String text, String type) {
     // Validate text length
     if (text.length < 10) {
-      throw FeedbackException('Feedback must be at least 10 characters');
+      throw FeedbackException('Feedback must be at least 10 characters', kind: FeedbackFailure.tooShort);
     }
     if (text.length > 5000) {
-      throw FeedbackException('Feedback must be less than 5000 characters');
+      throw FeedbackException('Feedback must be less than 5000 characters', kind: FeedbackFailure.tooLong);
     }
-    
+
     // Validate type
     const validTypes = ['feature_request', 'bug', 'general'];
     if (!validTypes.contains(type)) {
-      throw FeedbackException('Invalid feedback type: $type');
+      throw FeedbackException('Invalid feedback type: $type', kind: FeedbackFailure.invalidType);
     }
   }
 }

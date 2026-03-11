@@ -1,5 +1,4 @@
 import 'package:injectable/injectable.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../../support/extensions/cubit_ui_flow_extension.dart';
@@ -24,33 +23,26 @@ class DataExportCubit extends QuanityaCubit<DataExportState> {
   /// `Share.shareXFiles` can hang indefinitely on iOS until the share sheet
   /// is fully dismissed by the user.
   Future<void> exportData(Set<String> selectedTables) async {
-    // Step 1: Prepare export file under loading overlay.
-    XFile? file;
     await tryOperation(() async {
-      file = await _exportRepo.prepareExportFile(selectedTables);
-      return state.copyWith(status: UiFlowStatus.idle);
-    }, emitLoading: true);
+      // Phase 1: prepare file (loading overlay is active via emitLoading).
+      final file = await _exportRepo.prepareExportFile(selectedTables);
 
-    // If preparation failed, tryOperation already emitted error state
-    // and file will still be null.
-    if (file == null) return;
+      // Dismiss loading before share sheet (can hang indefinitely on iOS).
+      emit(state.copyWith(status: UiFlowStatus.idle));
 
-    // Step 2: Open share sheet WITHOUT loading overlay.
-    // Share.shareXFiles can block indefinitely on iOS.
-    try {
-      final result = await _exportRepo.shareExportFile(file!);
+      // Phase 2: share sheet — no loading overlay.
+      final result = await _exportRepo.shareExportFile(file);
 
       if (result == DataExportResult.success) {
         analytics?.trackDataExported();
-        emit(state.copyWith(
+        return state.copyWith(
           status: UiFlowStatus.success,
           lastOperation: DataExportOperation.export,
-        ));
+        );
       }
-      // Cancelled/failed — stay idle, no message needed.
-    } catch (e) {
-      emit(createErrorState(e));
-    }
+      // Cancelled — stay idle, no message needed.
+      return state.copyWith(status: UiFlowStatus.idle);
+    }, emitLoading: true);
   }
 
   /// Pick an import file and return the table names found in it.
