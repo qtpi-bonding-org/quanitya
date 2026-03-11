@@ -325,33 +325,20 @@ class _AnalysisResultCard extends StatelessWidget {
       );
     }
 
-    final vector = vectors.first;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          vector.label ?? 'Vector Output',
-          style: context.text.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: palette.textPrimary,
-          ),
-        ),
-        VSpace.x1,
-        Container(
-          padding: AppPadding.allDouble,
-          decoration: BoxDecoration(
-            color: palette.backgroundPrimary,
-            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-          ),
-          child: Text(
-            '${vector.values.length} values: [${vector.values.take(5).map((v) => v.toStringAsFixed(2)).join(", ")}${vector.values.length > 5 ? "..." : ""}]',
-            style: context.text.bodySmall?.copyWith(
-              fontFamily: 'monospace',
-              color: palette.textSecondary,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: vectors.map((vector) {
+          return Padding(
+            padding: EdgeInsets.only(right: AppSizes.space * 2),
+            child: _MathVector(
+              label: vector.label ?? 'Vector',
+              values: (vector.values as List).cast<double>(),
             ),
-          ),
-        ),
-      ],
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -365,57 +352,25 @@ class _AnalysisResultCard extends StatelessWidget {
       );
     }
 
-    final matrix = matrices.first;
-    final cols = matrix.columnNames as List<String>;
-    final previewRows = (matrix.data as List).take(5).toList();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Matrix Output (${(matrix.data as List).length} rows)',
-          style: context.text.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: palette.textPrimary,
-          ),
-        ),
-        VSpace.x1,
-        Container(
-          padding: AppPadding.allDouble,
-          decoration: BoxDecoration(
-            color: palette.backgroundPrimary,
-            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                cols.join(', '),
-                style: context.text.bodySmall?.copyWith(
-                  fontFamily: 'monospace',
-                  fontWeight: FontWeight.w600,
-                  color: palette.textPrimary,
-                ),
-              ),
-              VSpace.x05,
-              ...previewRows.map((row) => Text(
-                    (row as List).map((v) => (v as num).toStringAsFixed(2)).join(', '),
-                    style: context.text.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
-                      color: palette.textSecondary,
-                    ),
-                  )),
-              if ((matrix.data as List).length > 5)
-                Text(
-                  '... ${(matrix.data as List).length - 5} more rows',
-                  style: context.text.bodySmall?.copyWith(
-                    color: palette.textSecondary,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: matrices.map((matrix) {
+          final data = matrix.data as List;
+          final cols = matrix.columnNames as List<String>;
+          // Use first non-timestamp column name, or fallback
+          final name = cols.length > 1 ? cols[1] : 'Matrix';
+          return Padding(
+            padding: EdgeInsets.only(right: AppSizes.space * 2),
+            child: _MathMatrix(
+              label: name,
+              data: data,
+              rows: data.length,
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }
@@ -583,6 +538,171 @@ class _NoAnalysisPlaceholder extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Math-style vertical vector with bracket notation.
+///
+/// Shows first 3 values + vertical ellipsis, with label and count.
+class _MathVector extends StatelessWidget {
+  final String label;
+  final List<double> values;
+  static const _previewCount = 3;
+
+  const _MathVector({required this.label, required this.values});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    final monoStyle = context.text.bodySmall?.copyWith(
+      fontFamily: 'monospace',
+      color: palette.textPrimary,
+    );
+    final preview = values.take(_previewCount).toList();
+    final hasMore = values.length > _previewCount;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: context.text.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: palette.textPrimary,
+          ),
+        ),
+        VSpace.x05,
+        // Bracket + values
+        IntrinsicWidth(
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.symmetric(
+                vertical: BorderSide(
+                  color: palette.textSecondary.withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+              ),
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSizes.space,
+              vertical: AppSizes.space * 0.5,
+            ),
+            child: Column(
+              children: [
+                ...preview.map((v) => Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: AppSizes.space * 0.25),
+                      child: Text(
+                        v.toStringAsFixed(2),
+                        style: monoStyle,
+                        textAlign: TextAlign.right,
+                      ),
+                    )),
+                if (hasMore)
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: AppSizes.space * 0.25),
+                    child: Text('⋮', style: monoStyle),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        VSpace.x05,
+        Text(
+          '${values.length}',
+          style: context.text.bodySmall?.copyWith(
+            color: palette.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Math-style matrix with bracket notation.
+///
+/// Shows first 3 row pairs vertically with ellipsis, label and row count.
+class _MathMatrix extends StatelessWidget {
+  final String label;
+  final List<dynamic> data;
+  final int rows;
+  static const _previewCount = 3;
+
+  const _MathMatrix({
+    required this.label,
+    required this.data,
+    required this.rows,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    final monoStyle = context.text.bodySmall?.copyWith(
+      fontFamily: 'monospace',
+      color: palette.textPrimary,
+    );
+
+    final preview = data.take(_previewCount).toList();
+    final hasMore = rows > _previewCount;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: context.text.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: palette.textPrimary,
+          ),
+        ),
+        VSpace.x05,
+        IntrinsicWidth(
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.symmetric(
+                vertical: BorderSide(
+                  color: palette.textSecondary.withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+              ),
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSizes.space,
+              vertical: AppSizes.space * 0.5,
+            ),
+            child: Column(
+              children: [
+                ...preview.map((row) {
+                  final cells = (row as List)
+                      .map((v) => (v as num).toStringAsFixed(2));
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: AppSizes.space * 0.25),
+                    child: Text(cells.join('  '), style: monoStyle),
+                  );
+                }),
+                if (hasMore)
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: AppSizes.space * 0.25),
+                    child: Text('⋮', style: monoStyle),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        VSpace.x05,
+        Text(
+          '$rows',
+          style: context.text.bodySmall?.copyWith(
+            color: palette.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }

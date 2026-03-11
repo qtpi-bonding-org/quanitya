@@ -62,10 +62,15 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         }
       }
 
-      // Load existing pipelines for this field, or all pipelines as fallback.
-      var existing = await _repository.getPipelinesForField(fieldId);
-      if (existing.isEmpty) {
-        existing = await _repository.getAllPipelines();
+      // Load existing pipelines for this field using composite fieldId
+      final compositeFieldId = templateId != null
+          ? '$templateId:$fieldId'
+          : fieldId;
+      var existing = await _repository.getPipelinesForField(compositeFieldId);
+      if (existing.isEmpty && templateId != null) {
+        // Fallback: show all pipelines for this template
+        final all = await _repository.getAllPipelines();
+        existing = all.where((p) => p.fieldId.startsWith('$templateId:')).toList();
       }
       final pipeline = existing.isNotEmpty ? existing.first : null;
 

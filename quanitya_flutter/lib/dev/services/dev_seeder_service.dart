@@ -597,11 +597,11 @@ return [
 
     await _pipelineRepo.savePipeline(AnalysisPipelineModel(
       id: _uuid.v4(),
-      name: '3-Day Moving Average',
+      name: 'Smoothed + Residuals',
       fieldId: fieldId,
       outputMode: AnalysisOutputMode.vector,
       snippetLanguage: AnalysisSnippetLanguage.js,
-      snippet: '''// Calculate 3-day moving average
+      snippet: '''// 3-day moving average + residuals
 const windowSize = 3;
 const movingAvg = [];
 
@@ -610,11 +610,17 @@ for (let i = windowSize - 1; i < data.values.length; i++) {
   movingAvg.push(ss.mean(window));
 }
 
-return {
-  label: '3-Day MA',
-  values: movingAvg
-};''',
-      reasoning: 'Smooths daily fluctuations to show mood trend',
+// Residuals = original - smoothed (aligned to same window)
+const residuals = [];
+for (let i = 0; i < movingAvg.length; i++) {
+  residuals.push(data.values[i + windowSize - 1] - movingAvg[i]);
+}
+
+return [
+  { label: 'Smoothed', values: movingAvg },
+  { label: 'Residuals', values: residuals }
+];''',
+      reasoning: 'Moving average with residuals showing deviation from trend',
       updatedAt: now,
     ));
 
@@ -632,6 +638,33 @@ const smoothed = data.values.map((v, i) => {
 
 return { values: smoothed };''',
       reasoning: 'Neighbor-averaged smoothing for visualization',
+      updatedAt: now,
+    ));
+
+    await _pipelineRepo.savePipeline(AnalysisPipelineModel(
+      id: _uuid.v4(),
+      name: 'Rolling Statistics',
+      fieldId: fieldId,
+      outputMode: AnalysisOutputMode.matrix,
+      snippetLanguage: AnalysisSnippetLanguage.js,
+      snippet: '''// 5-day rolling mean + std dev
+const windowSize = 5;
+const rollingMean = [];
+const rollingStd = [];
+const ts = [];
+
+for (let i = windowSize - 1; i < data.values.length; i++) {
+  const window = data.values.slice(i - windowSize + 1, i + 1);
+  rollingMean.push(ss.mean(window));
+  rollingStd.push(ss.standardDeviation(window));
+  ts.push(data.timestamps[i]);
+}
+
+return {
+  values: rollingMean,
+  timestamps: ts
+};''',
+      reasoning: '5-day rolling mean for trend detection',
       updatedAt: now,
     ));
   }

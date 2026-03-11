@@ -395,39 +395,16 @@ class _AnalysisResultDisplay extends StatelessWidget {
                 ?.copyWith(color: palette.textSecondary),
           );
         }
-        final v = vectors.first;
-        return Container(
-          padding: AppPadding.allDouble,
-          decoration: BoxDecoration(
-            color: palette.interactableColor.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-          ),
-          child: Column(
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                v.label,
-                style: context.text.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: palette.textPrimary,
-                ),
-              ),
-              VSpace.x1,
-              Text(
-                '[${v.values.take(8).map((x) => x.toStringAsFixed(2)).join(", ")}${v.values.length > 8 ? " ..." : ""}]',
-                style: context.text.bodySmall?.copyWith(
-                  fontFamily: 'monospace',
-                  color: palette.textSecondary,
-                ),
-              ),
-              VSpace.x05,
-              Text(
-                '${v.values.length} values',
-                style: context.text.bodySmall?.copyWith(
-                  color: palette.textSecondary,
-                ),
-              ),
-            ],
+            children: vectors.map((v) {
+              return Padding(
+                padding: EdgeInsets.only(right: AppSizes.space * 2),
+                child: _buildMathVector(context, v.label, v.values),
+              );
+            }).toList(),
           ),
         );
       },
@@ -439,57 +416,160 @@ class _AnalysisResultDisplay extends StatelessWidget {
                 ?.copyWith(color: palette.textSecondary),
           );
         }
-        final m = matrices.first;
-        final cols = m.columnNames;
-        final previewRows = m.data.take(5).toList();
-        return Container(
-          padding: AppPadding.allDouble,
-          decoration: BoxDecoration(
-            color: palette.warningColor.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-          ),
-          child: Column(
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Matrix Output (${m.data.length} rows)',
-                style: context.text.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: palette.textPrimary,
-                ),
-              ),
-              VSpace.x1,
-              Text(
-                cols.join(', '),
-                style: context.text.bodySmall?.copyWith(
-                  fontFamily: 'monospace',
-                  fontWeight: FontWeight.w600,
-                  color: palette.textPrimary,
-                ),
-              ),
-              VSpace.x05,
-              ...previewRows.map((row) => Padding(
-                    padding: EdgeInsets.only(bottom: AppSizes.space * 0.25),
-                    child: Text(
-                      row.map((v) => v.toStringAsFixed(2)).join(', '),
-                      style: context.text.bodySmall?.copyWith(
-                        fontFamily: 'monospace',
-                        color: palette.textSecondary,
-                      ),
-                    ),
-                  )),
-              if (m.data.length > 5)
-                Text(
-                  '... ${m.data.length - 5} more rows',
-                  style: context.text.bodySmall?.copyWith(
-                    color: palette.textSecondary,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-            ],
+            children: matrices.map((m) {
+              final name = m.columnNames.length > 1
+                  ? m.columnNames[1]
+                  : 'Matrix';
+              return Padding(
+                padding: EdgeInsets.only(right: AppSizes.space * 2),
+                child: _buildMathMatrix(context, name, m.data, m.data.length),
+              );
+            }).toList(),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildMathVector(
+      BuildContext context, String label, List<double> values) {
+    final palette = QuanityaPalette.primary;
+    final monoStyle = context.text.bodySmall?.copyWith(
+      fontFamily: 'monospace',
+      color: palette.textPrimary,
+    );
+    const previewCount = 3;
+    final preview = values.take(previewCount).toList();
+    final hasMore = values.length > previewCount;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: context.text.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: palette.textPrimary,
+          ),
+        ),
+        VSpace.x05,
+        IntrinsicWidth(
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.symmetric(
+                vertical: BorderSide(
+                  color: palette.textSecondary.withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+              ),
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSizes.space,
+              vertical: AppSizes.space * 0.5,
+            ),
+            child: Column(
+              children: [
+                ...preview.map((v) => Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: AppSizes.space * 0.25),
+                      child: Text(
+                        v.toStringAsFixed(2),
+                        style: monoStyle,
+                        textAlign: TextAlign.right,
+                      ),
+                    )),
+                if (hasMore)
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: AppSizes.space * 0.25),
+                    child: Text('⋮', style: monoStyle),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        VSpace.x05,
+        Text(
+          '${values.length}',
+          style: context.text.bodySmall?.copyWith(
+            color: palette.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMathMatrix(
+      BuildContext context, String label, List<dynamic> data, int rows) {
+    final palette = QuanityaPalette.primary;
+    final monoStyle = context.text.bodySmall?.copyWith(
+      fontFamily: 'monospace',
+      color: palette.textPrimary,
+    );
+    const previewCount = 3;
+    final preview = data.take(previewCount).toList();
+    final hasMore = rows > previewCount;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: context.text.bodySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: palette.textPrimary,
+          ),
+        ),
+        VSpace.x05,
+        IntrinsicWidth(
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.symmetric(
+                vertical: BorderSide(
+                  color: palette.textSecondary.withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+              ),
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSizes.space,
+              vertical: AppSizes.space * 0.5,
+            ),
+            child: Column(
+              children: [
+                ...preview.map((row) {
+                  final cells = (row as List)
+                      .map((v) => (v as num).toStringAsFixed(2));
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: AppSizes.space * 0.25),
+                    child: Text(cells.join('  '), style: monoStyle),
+                  );
+                }),
+                if (hasMore)
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: AppSizes.space * 0.25),
+                    child: Text('⋮', style: monoStyle),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        VSpace.x05,
+        Text(
+          '$rows',
+          style: context.text.bodySmall?.copyWith(
+            color: palette.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }
