@@ -3,6 +3,7 @@ import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:intl/intl.dart';
 
 import '../../../data/repositories/data_retrieval_service.dart';
 import '../../../design_system/primitives/app_spacings.dart';
@@ -12,105 +13,184 @@ import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/charts/time_series_chart.dart';
 import '../../../design_system/widgets/charts/boolean_heatmap_chart.dart';
 import '../../../design_system/widgets/charts/categorical_scatter_chart.dart';
-import '../../../design_system/widgets/quanitya_empty_state.dart';
+import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../visualization/cubits/visualization_cubit.dart';
+import '../cubits/results_list_cubit.dart';
 
 /// Graphs page for the Results section.
 ///
-/// Receives a [templateId] and displays visualization charts for that template.
-/// When no template is selected, shows an empty state.
+/// Shows a scrollable list of [NotebookFold] widgets, one per template.
+/// Each fold lazily loads its visualization data on first expand.
 class ResultsGraphsPage extends StatelessWidget {
-  final String? templateId;
-
-  const ResultsGraphsPage({super.key, this.templateId});
+  const ResultsGraphsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (templateId == null) {
-      return const _EmptyTemplateState();
-    }
-
-    return BlocProvider(
-      key: ValueKey(templateId),
-      create: (_) => GetIt.I<VisualizationCubit>()..loadForTemplate(templateId!),
-      child: const _GraphsContent(),
-    );
-  }
-}
-
-class _GraphsContent extends StatelessWidget {
-  const _GraphsContent();
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-
-    return BlocBuilder<VisualizationCubit, VisualizationState>(
+    return BlocBuilder<ResultsListCubit, ResultsListState>(
       builder: (context, state) {
         if (state.status == UiFlowStatus.loading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final data = state.data;
-        if (data == null) {
-          return const QuanityaEmptyState();
+        if (state.templates.isEmpty) {
+          return _EmptyResultsState();
         }
 
-        return SingleChildScrollView(
+        return ListView.builder(
           padding: AppPadding.page,
-          child: QuanityaColumn(
-            crossAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.bar_chart,
-                    size: AppSizes.iconMedium,
-                    color: palette.textPrimary,
-                  ),
-                  HSpace.x1,
-                  Expanded(
-                    child: Text(
-                      data.template.name,
-                      style: context.text.headlineSmall,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
+          itemCount: state.templates.length,
+          itemBuilder: (context, index) {
+            final item = state.templates[index];
+            return _TemplateGraphsFold(item: item);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _EmptyResultsState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    return Center(
+      child: Padding(
+        padding: AppPadding.allTriple,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.insights,
+                size: 64,
+                color: palette.textSecondary.withValues(alpha: 0.5)),
+            VSpace.x2,
+            Text('No Results Yet',
+                style: context.text.headlineSmall
+                    ?.copyWith(color: palette.textPrimary)),
+            VSpace.x1,
+            Text(
+              'Log entries to see visualizations here.',
+              textAlign: TextAlign.center,
+              style: context.text.bodyMedium
+                  ?.copyWith(color: palette.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TemplateGraphsFold extends StatefulWidget {
+  final ResultsTemplateItem item;
+  const _TemplateGraphsFold({required this.item});
+
+  @override
+  State<_TemplateGraphsFold> createState() => _TemplateGraphsFoldState();
+}
+
+class _TemplateGraphsFoldState extends State<_TemplateGraphsFold> {
+  VisualizationCubit? _cubit;
+  bool _loaded = false;
+
+  void _onExpansionChanged(bool expanded) {
+    if (expanded && !_loaded) {
+      _loaded = true;
+      _cubit = GetIt.I<VisualizationCubit>()
+        ..loadForTemplate(widget.item.templateId);
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _cubit?.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    final dateFormat = DateFormat.yMMMd();
+
+    return NotebookFold(
+      onExpansionChanged: _onExpansionChanged,
+      header: Row(
+        children: [
+          Expanded(
+            child: Text(
+              widget.item.templateName,
+              style: context.text.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: palette.textPrimary,
               ),
-              VSpace.x1,
-              Text(
-                context.l10n.visualizationLast30Days(data.template.name),
-                style: context.text.bodyMedium?.copyWith(
-                  color: palette.textSecondary,
-                ),
-              ),
-              VSpace.x4,
-              LayoutGroup.grid(
-                minItemWidth: 30,
-                children: [
-                  ...data.numericFields.map(
-                    (field) => _NumericChartSection(fieldData: field),
-                  ),
-                  ...data.booleanFields.map(
-                    (field) => _BooleanChartSection(fieldData: field),
-                  ),
-                  ...data.categoricalFields.map(
-                    (field) => _CategoricalChartSection(fieldData: field),
-                  ),
-                ],
-              ),
-              VSpace.x4,
-              _StatsSummary(
-                totalEntries: data.completedEntries,
-                consistencyRate: state.consistencyRate,
-                loggedDates: data.loggedDates,
-              ),
-              VSpace.x4,
-            ],
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
+          HSpace.x2,
+          Text(
+            '${widget.item.entryCount}',
+            style:
+                context.text.bodySmall?.copyWith(color: palette.textSecondary),
+          ),
+          if (widget.item.lastLoggedAt != null) ...[
+            HSpace.x1,
+            Text(
+              dateFormat.format(widget.item.lastLoggedAt!),
+              style: context.text.bodySmall
+                  ?.copyWith(color: palette.textSecondary),
+            ),
+          ],
+        ],
+      ),
+      child: _cubit == null
+          ? const SizedBox.shrink()
+          : BlocProvider.value(
+              value: _cubit!,
+              child: const _GraphsFoldBody(),
+            ),
+    );
+  }
+}
+
+class _GraphsFoldBody extends StatelessWidget {
+  const _GraphsFoldBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<VisualizationCubit, VisualizationState>(
+      builder: (context, state) {
+        if (state.status == UiFlowStatus.loading) {
+          return Padding(
+            padding: EdgeInsets.all(AppSizes.space * 2),
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final data = state.data;
+        if (data == null) return const SizedBox.shrink();
+
+        return QuanityaColumn(
+          crossAlignment: CrossAxisAlignment.start,
+          children: [
+            LayoutGroup.grid(
+              minItemWidth: 30,
+              children: [
+                ...data.numericFields
+                    .map((field) => _NumericChartSection(fieldData: field)),
+                ...data.booleanFields
+                    .map((field) => _BooleanChartSection(fieldData: field)),
+                ...data.categoricalFields
+                    .map((field) => _CategoricalChartSection(fieldData: field)),
+              ],
+            ),
+            VSpace.x4,
+            _StatsSummary(
+              totalEntries: data.completedEntries,
+              consistencyRate: state.consistencyRate,
+              loggedDates: data.loggedDates,
+            ),
+          ],
         );
       },
     );
@@ -220,7 +300,8 @@ class _CategoricalChartSection extends StatelessWidget {
               child: CategoricalScatterChart(
                 data: fieldData.points
                     .map(
-                      (p) => CategoricalPoint(date: p.date, category: p.category),
+                      (p) =>
+                          CategoricalPoint(date: p.date, category: p.category),
                     )
                     .toList(),
                 categories: fieldData.categories,
@@ -332,15 +413,4 @@ Widget _noDataPlaceholder(BuildContext context) {
       ),
     ),
   );
-}
-
-class _EmptyTemplateState extends StatelessWidget {
-  const _EmptyTemplateState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: QuanityaEmptyState(size: 80, opacity: 0.2),
-    );
-  }
 }

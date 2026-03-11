@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 
 import '../../../app_router.dart';
 import '../../../data/repositories/data_retrieval_service.dart';
@@ -11,140 +12,232 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/analysis_output/analysis_output.dart';
-import '../../../design_system/widgets/quanitya_empty_state.dart';
+import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../logic/analytics/models/analysis_output.dart';
 import '../../../logic/analytics/models/matrix_vector_scalar/time_series_matrix.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../visualization/cubits/visualization_cubit.dart';
+import '../cubits/results_list_cubit.dart';
 
 /// Analysis page for the Results section.
 ///
-/// Receives a [templateId] and displays analysis pipeline results.
-/// When no template is selected, shows an empty state.
+/// Shows a scrollable list of NotebookFold widgets, one per template.
+/// Each fold lazily loads its analysis data on expand.
 class ResultsAnalysisPage extends StatelessWidget {
-  final String? templateId;
-
-  const ResultsAnalysisPage({super.key, this.templateId});
+  const ResultsAnalysisPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (templateId == null) {
-      return const _EmptyTemplateState();
-    }
-
-    return BlocProvider(
-      key: ValueKey(templateId),
-      create: (_) =>
-          GetIt.I<VisualizationCubit>()..loadForTemplate(templateId!),
-      child: const _AnalysisContent(),
-    );
-  }
-}
-
-class _AnalysisContent extends StatelessWidget {
-  const _AnalysisContent();
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-
-    return BlocBuilder<VisualizationCubit, VisualizationState>(
+    return BlocBuilder<ResultsListCubit, ResultsListState>(
       builder: (context, state) {
         if (state.status == UiFlowStatus.loading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final data = state.data;
-        if (data == null) {
-          return const QuanityaEmptyState();
+        if (state.templates.isEmpty) {
+          return _EmptyResultsState();
         }
 
-        return SingleChildScrollView(
+        return ListView.builder(
           padding: AppPadding.page,
-          child: QuanityaColumn(
-            crossAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Icon(
-                    Icons.analytics_outlined,
-                    size: AppSizes.iconMedium,
-                    color: palette.textPrimary,
-                  ),
-                  HSpace.x1,
-                  Expanded(
-                    child: Text(
-                      data.template.name,
-                      style: context.text.headlineSmall,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
-              VSpace.x1,
-              Text(
-                'Analysis pipelines for ${data.template.name}',
-                style: context.text.bodyMedium?.copyWith(
-                  color: palette.textSecondary,
-                ),
-              ),
-              VSpace.x4,
-
-              // Analysis Results Section
-              if (state.analysisResults.isNotEmpty) ...[
-                _AnalysisResultsSection(
-                  analysisResults: state.analysisResults,
-                ),
-                VSpace.x4,
-              ],
-
-              // Numeric Field Selector — launch analysis builder
-              if (data.numericFields.isNotEmpty) ...[
-                Row(
-                  children: [
-                    Icon(
-                      Icons.functions,
-                      size: AppSizes.iconMedium,
-                      color: palette.textPrimary,
-                    ),
-                    HSpace.x1,
-                    Text(
-                      'Analyze Fields',
-                      style: context.text.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: palette.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                VSpace.x1,
-                Text(
-                  'Select a numeric field to create or view analysis pipelines',
-                  style: context.text.bodyMedium?.copyWith(
-                    color: palette.textSecondary,
-                  ),
-                ),
-                VSpace.x2,
-                ...data.numericFields.map(
-                  (fieldData) => _FieldAnalysisCard(
-                    fieldData: fieldData,
-                    templateId: data.template.id,
-                  ),
-                ),
-                VSpace.x4,
-              ],
-
-              // Empty state when no analysis results and no numeric fields
-              if (state.analysisResults.isEmpty &&
-                  data.numericFields.isEmpty) ...[
-                _NoAnalysisPlaceholder(),
-              ],
-            ],
-          ),
+          itemCount: state.templates.length,
+          itemBuilder: (context, index) {
+            final item = state.templates[index];
+            return _TemplateAnalysisFold(item: item);
+          },
         );
       },
+    );
+  }
+}
+
+class _EmptyResultsState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    return Center(
+      child: Padding(
+        padding: AppPadding.allTriple,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.analytics_outlined,
+                size: 64,
+                color: palette.textSecondary.withValues(alpha: 0.5)),
+            VSpace.x2,
+            Text('No Results Yet',
+                style: context.text.headlineSmall
+                    ?.copyWith(color: palette.textPrimary)),
+            VSpace.x1,
+            Text(
+              'Log entries to see analysis here.',
+              textAlign: TextAlign.center,
+              style: context.text.bodyMedium
+                  ?.copyWith(color: palette.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TemplateAnalysisFold extends StatefulWidget {
+  final ResultsTemplateItem item;
+  const _TemplateAnalysisFold({required this.item});
+
+  @override
+  State<_TemplateAnalysisFold> createState() => _TemplateAnalysisFoldState();
+}
+
+class _TemplateAnalysisFoldState extends State<_TemplateAnalysisFold> {
+  VisualizationCubit? _cubit;
+  bool _loaded = false;
+
+  void _onExpansionChanged(bool expanded) {
+    if (expanded && !_loaded) {
+      _loaded = true;
+      _cubit = GetIt.I<VisualizationCubit>()
+        ..loadForTemplate(widget.item.templateId);
+      setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _cubit?.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    final dateFormat = DateFormat.yMMMd();
+
+    return NotebookFold(
+      onExpansionChanged: _onExpansionChanged,
+      header: Row(
+        children: [
+          Expanded(
+            child: Text(
+              widget.item.templateName,
+              style: context.text.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: palette.textPrimary,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          HSpace.x2,
+          Text(
+            '${widget.item.entryCount}',
+            style: context.text.bodySmall
+                ?.copyWith(color: palette.textSecondary),
+          ),
+          if (widget.item.lastLoggedAt != null) ...[
+            HSpace.x1,
+            Text(
+              dateFormat.format(widget.item.lastLoggedAt!),
+              style: context.text.bodySmall
+                  ?.copyWith(color: palette.textSecondary),
+            ),
+          ],
+        ],
+      ),
+      child: _cubit == null
+          ? const SizedBox.shrink()
+          : BlocProvider.value(
+              value: _cubit!,
+              child: const _AnalysisFoldBody(),
+            ),
+    );
+  }
+}
+
+class _AnalysisFoldBody extends StatelessWidget {
+  const _AnalysisFoldBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<VisualizationCubit, VisualizationState>(
+      builder: (context, state) {
+        if (state.status == UiFlowStatus.loading) {
+          return Padding(
+            padding: EdgeInsets.all(AppSizes.space * 2),
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final data = state.data;
+        if (data == null) return const SizedBox.shrink();
+
+        // Show placeholder if no analysis results and no numeric fields
+        if (state.analysisResults.isEmpty && data.numericFields.isEmpty) {
+          return _NoAnalysisPlaceholder();
+        }
+
+        return QuanityaColumn(
+          crossAlignment: CrossAxisAlignment.start,
+          children: [
+            if (state.analysisResults.isNotEmpty) ...[
+              _AnalysisResultsSection(
+                  analysisResults: state.analysisResults),
+              VSpace.x4,
+            ],
+            if (data.numericFields.isNotEmpty) ...[
+              _AnalyzeFieldsSection(
+                numericFields: data.numericFields,
+                templateId: data.template.id,
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AnalyzeFieldsSection extends StatelessWidget {
+  final List<NumericFieldData> numericFields;
+  final String templateId;
+
+  const _AnalyzeFieldsSection({
+    required this.numericFields,
+    required this.templateId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.functions,
+                size: AppSizes.iconMedium, color: palette.textPrimary),
+            HSpace.x1,
+            Text(
+              'Analyze Fields',
+              style: context.text.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: palette.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        VSpace.x1,
+        Text(
+          'Select a numeric field to create or view analysis pipelines',
+          style:
+              context.text.bodyMedium?.copyWith(color: palette.textSecondary),
+        ),
+        VSpace.x2,
+        ...numericFields.map((fieldData) => _FieldAnalysisCard(
+              fieldData: fieldData,
+              templateId: templateId,
+            )),
+      ],
     );
   }
 }
@@ -286,7 +379,6 @@ class _AnalysisResultCard extends StatelessWidget {
   }
 }
 
-/// Chip showing the output mode of a pipeline.
 /// Card for selecting a numeric field to run analysis on.
 class _FieldAnalysisCard extends StatelessWidget {
   final NumericFieldData fieldData;
@@ -394,17 +486,6 @@ class _NoAnalysisPlaceholder extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _EmptyTemplateState extends StatelessWidget {
-  const _EmptyTemplateState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: QuanityaEmptyState(size: 80, opacity: 0.2),
     );
   }
 }
