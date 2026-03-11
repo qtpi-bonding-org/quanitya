@@ -21,7 +21,7 @@ class _NotebookShellState extends State<NotebookShell> {
     FolderTab(icon: Icons.auto_stories, label: 'Logbook'),
     FolderTab(icon: Icons.insights, label: 'Results'),
     FolderTab(icon: Icons.mail_outline, label: 'Postage'),
-    FolderTab(icon: Icons.work_outline, label: 'Office'),
+    FolderTab(icon: Icons.desk, label: 'Office'),
   ];
 
   @override
