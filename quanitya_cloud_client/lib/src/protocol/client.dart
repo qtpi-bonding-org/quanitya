@@ -19,20 +19,18 @@ import 'package:quanitya_cloud_client/src/protocol/public_challenge_response.dar
     as _i5;
 import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_request.dart'
     as _i6;
-import 'package:quanitya_cloud_client/src/protocol/feature_access_response.dart'
-    as _i7;
 import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
-    as _i8;
+    as _i7;
 import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
-    as _i9;
+    as _i8;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i10;
+    as _i9;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i11;
-import 'package:quanitya_client/quanitya_client.dart' as _i12;
-import 'package:anonaccount_client/anonaccount_client.dart' as _i13;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i14;
-import 'protocol.dart' as _i15;
+    as _i10;
+import 'package:quanitya_client/quanitya_client.dart' as _i11;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i12;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i13;
+import 'protocol.dart' as _i14;
 
 /// A simple cloud-specific endpoint to verify the cloud server is working.
 /// {@category Endpoint}
@@ -876,89 +874,18 @@ class EndpointCloudLlm extends _i1.EndpointRef {
 
 /// Consumable management endpoint for Quanitya Cloud
 ///
-/// Provides API access to consumable balances and feature access checking.
-/// User-facing operations require AnonAccred authentication.
-/// Admin operations (addCredits, consumeCredits) require admin API key.
+/// User-facing balance/access queries are now handled by the enriched
+/// anonaccred commerce.getEntitlements() endpoint.
+///
+/// This endpoint retains:
+/// - getAnalysisCost: Quanitya-specific business logic
+/// - addCredits / consumeCredits: Admin operations
 /// {@category Endpoint}
 class EndpointConsumable extends _i1.EndpointRef {
   EndpointConsumable(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'consumable';
-
-  /// Get all consumable balances for the authenticated user
-  ///
-  /// Returns map of consumable types (int) to current balances
-  _i2.Future<Map<int, double>> getBalances() =>
-      caller.callServerEndpoint<Map<int, double>>(
-        'consumable',
-        'getBalances',
-        {},
-      );
-
-  /// Get feature access summary for the authenticated user
-  ///
-  /// Returns comprehensive feature access information including:
-  /// - hasSync: boolean sync access
-  /// - hasIntegrations: boolean integration access
-  /// - syncDaysRemaining: days of sync left per tier
-  /// - integrationDaysRemaining: days of integrations left
-  /// - analysisCredits: analysis credits available
-  /// - llmCalls: LLM call credits available
-  _i2.Future<_i7.FeatureAccessResponse> getFeatureAccess() =>
-      caller.callServerEndpoint<_i7.FeatureAccessResponse>(
-        'consumable',
-        'getFeatureAccess',
-        {},
-      );
-
-  /// Get balance for a specific consumable type
-  ///
-  /// [consumableType] - Type of consumable to check (int)
-  ///
-  /// Returns current balance or 0.0 if none exists
-  _i2.Future<double> getBalance(int consumableType) =>
-      caller.callServerEndpoint<double>(
-        'consumable',
-        'getBalance',
-        {'consumableType': consumableType},
-      );
-
-  /// Check if user has sufficient credits for an operation
-  ///
-  /// [consumableType] - Type of consumable to check (int)
-  /// [requiredAmount] - Amount required for the operation
-  ///
-  /// Returns true if user has sufficient balance
-  _i2.Future<bool> hasSufficientCredits(
-    int consumableType,
-    double requiredAmount,
-  ) => caller.callServerEndpoint<bool>(
-    'consumable',
-    'hasSufficientCredits',
-    {
-      'consumableType': consumableType,
-      'requiredAmount': requiredAmount,
-    },
-  );
-
-  /// Check if user has active sync access
-  ///
-  /// Returns true if user has sync_days > 0
-  _i2.Future<bool> hasActiveSyncAccess() => caller.callServerEndpoint<bool>(
-    'consumable',
-    'hasActiveSyncAccess',
-    {},
-  );
-
-  /// Check if user has integration access
-  ///
-  /// Returns true if user has integration_days > 0
-  _i2.Future<bool> hasIntegrationAccess() => caller.callServerEndpoint<bool>(
-    'consumable',
-    'hasIntegrationAccess',
-    {},
-  );
 
   /// Get analysis cost for a specific analysis type
   ///
@@ -973,9 +900,6 @@ class EndpointConsumable extends _i1.EndpointRef {
       );
 
   /// Add credits to user inventory (for purchases/top-ups)
-  ///
-  /// This endpoint is typically called after successful payment processing
-  /// to add purchased consumables to the user's inventory.
   ///
   /// Requires admin or support role.
   ///
@@ -1006,9 +930,6 @@ class EndpointConsumable extends _i1.EndpointRef {
 
   /// Manual credit consumption (for testing/admin purposes)
   ///
-  /// This endpoint allows manual consumption of credits, typically used
-  /// for testing or administrative operations.
-  ///
   /// Requires admin or support role.
   ///
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key (128 hex chars)
@@ -1035,16 +956,6 @@ class EndpointConsumable extends _i1.EndpointRef {
       'amount': amount,
     },
   );
-
-  /// Get list of valid consumable types
-  ///
-  /// Returns array of supported consumable type IDs (int)
-  _i2.Future<List<int>> getValidConsumableTypes() =>
-      caller.callServerEndpoint<List<int>>(
-        'consumable',
-        'getValidConsumableTypes',
-        {},
-      );
 }
 
 /// Admin endpoint for managing error reports
@@ -2311,8 +2222,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// - syncDaysRemaining: days of sync remaining
   /// - accessExpiry: estimated expiry date
   /// - needsTopUp: whether user needs to purchase more sync days
-  _i2.Future<_i8.SyncAccessStatus> checkSyncAccess() =>
-      caller.callServerEndpoint<_i8.SyncAccessStatus>(
+  _i2.Future<_i7.SyncAccessStatus> checkSyncAccess() =>
+      caller.callServerEndpoint<_i7.SyncAccessStatus>(
         'syncAccess',
         'checkSyncAccess',
         {},
@@ -2354,8 +2265,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// Get sync usage statistics for authenticated user
   ///
   /// Returns usage information and consumption history
-  _i2.Future<_i9.SyncUsageStats> getSyncUsageStats() =>
-      caller.callServerEndpoint<_i9.SyncUsageStats>(
+  _i2.Future<_i8.SyncUsageStats> getSyncUsageStats() =>
+      caller.callServerEndpoint<_i8.SyncUsageStats>(
         'syncAccess',
         'getSyncUsageStats',
         {},
@@ -2364,22 +2275,22 @@ class EndpointSyncAccess extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i10.Caller(client);
-    serverpod_auth_core = _i11.Caller(client);
-    community = _i12.Caller(client);
-    anonaccount = _i13.Caller(client);
-    anonaccred = _i14.Caller(client);
+    serverpod_auth_idp = _i9.Caller(client);
+    serverpod_auth_core = _i10.Caller(client);
+    community = _i11.Caller(client);
+    anonaccount = _i12.Caller(client);
+    anonaccred = _i13.Caller(client);
   }
 
-  late final _i10.Caller serverpod_auth_idp;
+  late final _i9.Caller serverpod_auth_idp;
 
-  late final _i11.Caller serverpod_auth_core;
+  late final _i10.Caller serverpod_auth_core;
 
-  late final _i12.Caller community;
+  late final _i11.Caller community;
 
-  late final _i13.Caller anonaccount;
+  late final _i12.Caller anonaccount;
 
-  late final _i14.Caller anonaccred;
+  late final _i13.Caller anonaccred;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -2402,7 +2313,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i15.Protocol(),
+         _i14.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
