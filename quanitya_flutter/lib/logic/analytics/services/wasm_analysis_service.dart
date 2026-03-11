@@ -198,7 +198,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
     List<DateTime> inputTimestamps,
   ) {
     if (resultData is! List) resultData = [resultData];
-    final listData = resultData as List;
+    final listData = resultData;
 
     switch (pipeline.outputMode) {
       case AnalysisOutputMode.scalar:
@@ -234,18 +234,19 @@ class WasmAnalysisService implements IWasmAnalysisService {
         return AnalysisOutput.vector(vectors);
 
       case AnalysisOutputMode.matrix:
-        if (listData.length == 1 && listData.first is Map) {
-          final map = listData.first as Map;
+        final matrices = listData.map((item) {
+          if (item is! Map) {
+            throw AnalysisException('Invalid matrix format: expected Map, got ${item.runtimeType}');
+          }
+          final map = item;
           final values = (map['values'] as List?)
                   ?.map((v) => _parseSafeDouble(v))
                   .toList() ??
               [];
+          final label = map['label']?.toString() ?? pipeline.name;
 
-          // Support aggregation: Check if JS returned new timestamps
           List<DateTime> outputTimestamps;
-
           if (map.containsKey('timestamps')) {
-            // Parse timestamps returned by JS (epoch or ISO)
             final rawTs = map['timestamps'] as List;
             outputTimestamps = rawTs.map((t) {
               return t is int
@@ -253,7 +254,6 @@ class WasmAnalysisService implements IWasmAnalysisService {
                   : DateTime.parse(t.toString());
             }).toList();
           } else {
-            // Fallback to input timestamps (1:1 mapping)
             if (values.length != inputTimestamps.length) {
               throw AnalysisException(
                 'Output length mismatch: Script modified data length but did not return new timestamps.',
@@ -262,16 +262,14 @@ class WasmAnalysisService implements IWasmAnalysisService {
             outputTimestamps = inputTimestamps;
           }
 
-          return AnalysisOutput.matrix([
-            TimeSeriesMatrix.fromFieldData(
-              timestamps: outputTimestamps,
-              fieldData: {
-                pipeline.name: values.map((v) => FieldValue.numeric(v)).toList(),
-              },
-            ),
-          ]);
-        }
-        throw AnalysisException('Complex Matrix parsing not implemented');
+          return TimeSeriesMatrix.fromFieldData(
+            timestamps: outputTimestamps,
+            fieldData: {
+              label: values.map((v) => FieldValue.numeric(v)).toList(),
+            },
+          );
+        }).toList();
+        return AnalysisOutput.matrix(matrices);
     }
   }
 

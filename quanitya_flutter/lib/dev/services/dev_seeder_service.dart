@@ -660,11 +660,11 @@ for (let i = windowSize - 1; i < data.values.length; i++) {
   ts.push(data.timestamps[i]);
 }
 
-return {
-  values: rollingMean,
-  timestamps: ts
-};''',
-      reasoning: '5-day rolling mean for trend detection',
+return [
+  { label: 'Rolling Mean', values: rollingMean, timestamps: ts },
+  { label: 'Rolling Std', values: rollingStd, timestamps: ts }
+];''',
+      reasoning: '5-day rolling mean and standard deviation for trend detection',
       updatedAt: now,
     ));
   }
