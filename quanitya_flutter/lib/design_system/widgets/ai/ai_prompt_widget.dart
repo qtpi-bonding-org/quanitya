@@ -125,7 +125,7 @@ class _AiPromptWidgetState extends State<AiPromptWidget> {
                   ),
                 )
               : IconButton(
-                  tooltip: 'Send',
+                  tooltip: context.l10n.aiPromptSend,
                   icon: Icon(
                     Icons.send_rounded,
                     color: _controller.text.trim().isEmpty

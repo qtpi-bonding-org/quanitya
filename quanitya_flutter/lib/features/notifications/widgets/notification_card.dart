@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../support/extensions/context_extensions.dart';
@@ -77,7 +78,13 @@ class NotificationCard extends StatelessWidget {
                     child: QuanityaTextButton(
                       text: notification.actionLabel ?? context.l10n.notificationOpen,
                       onPressed: () {
-                        // TODO: Handle deep link navigation
+                        final url = notification.actionUrl;
+                        if (url != null) {
+                          final uri = Uri.tryParse(url);
+                          if (uri != null) {
+                            launchUrl(uri, mode: LaunchMode.externalApplication);
+                          }
+                        }
                         onMark();
                       },
                     ),

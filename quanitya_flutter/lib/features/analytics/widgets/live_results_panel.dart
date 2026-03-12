@@ -102,7 +102,7 @@ class LiveResultsPanel extends StatelessWidget {
             QuanityaIconButton(
               icon: Icons.close,
               iconSize: AppSizes.iconSmall,
-              tooltip: 'Close',
+              tooltip: context.l10n.actionClose,
               onPressed: onClose,
             ),
         ],

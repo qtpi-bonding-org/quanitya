@@ -242,7 +242,9 @@ class DynamicFieldBuilder {
     final uiElement = field.uiElement;
     if (uiElement == null) {
       // Defensive: should be caught by assert in buildField
-      return const Text('No UI element defined');
+      return Builder(
+        builder: (context) => Text(context.l10n.fieldBuilderNoUiElement),
+      );
     }
     return switch (uiElement) {
       UiElementEnum.slider =>
@@ -411,7 +413,10 @@ class DynamicFieldBuilder {
   ) {
     final options = field.options ?? [];
     if (options.isEmpty) {
-      return Text('No options available', style: textStyle);
+      return Builder(
+        builder: (context) =>
+            Text(context.l10n.fieldBuilderNoOptions, style: textStyle),
+      );
     }
 
     return QuanityaDropdown<String>(

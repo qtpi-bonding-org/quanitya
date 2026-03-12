@@ -156,7 +156,7 @@ class _ApiKeySheetState extends State<ApiKeySheet> {
               suffixIcon: QuanityaIconButton(
                 icon: _obscureKey ? Icons.visibility_off : Icons.visibility,
                 iconSize: AppSizes.iconSmall,
-                tooltip: 'Toggle visibility',
+                tooltip: context.l10n.actionToggleVisibility,
                 onPressed: () => setState(() => _obscureKey = !_obscureKey),
               ),
               validator: (value) {

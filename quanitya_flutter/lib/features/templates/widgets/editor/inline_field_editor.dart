@@ -469,7 +469,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             if (hasValue)
               QuanityaIconButtonSizes.small(
                 icon: Icons.close,
-                tooltip: 'Clear',
+                tooltip: context.l10n.actionClear,
                 color: draftColor,
                 onPressed: () => setState(() {
                   _defaultValue = null;
