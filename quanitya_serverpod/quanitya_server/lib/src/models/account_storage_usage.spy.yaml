@@ -1,6 +1,6 @@
-# AccountStorageUsage: per-account storage tracking for quota enforcement
-# Tracks bytes used across all encrypted tables, enforces per-account limits.
-# Seeded on first sync, then updated incrementally.
+# AccountStorageUsage: per-account storage tracking
+# Tracks bytes used across all encrypted tables. No quota enforcement —
+# self-hosted users have unlimited storage.
 class: AccountStorageUsage
 table: account_storage_usage
 fields:
@@ -12,9 +12,6 @@ fields:
 
   # Total row count across all encrypted tables
   rowCount: int
-
-  # Per-account storage limit in bytes (default 1 GB)
-  bytesLimit: int
 
   # Last time usage was updated
   updatedAt: DateTime, default=now

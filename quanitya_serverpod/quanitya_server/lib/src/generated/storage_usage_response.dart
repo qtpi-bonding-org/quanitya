@@ -16,18 +16,12 @@ abstract class StorageUsageResponse
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
   StorageUsageResponse._({
     required this.bytesUsed,
-    required this.bytesLimit,
     required this.rowCount,
-    required this.percentUsed,
-    required this.bytesRemaining,
   });
 
   factory StorageUsageResponse({
     required int bytesUsed,
-    required int bytesLimit,
     required int rowCount,
-    required int percentUsed,
-    required int bytesRemaining,
   }) = _StorageUsageResponseImpl;
 
   factory StorageUsageResponse.fromJson(
@@ -35,42 +29,27 @@ abstract class StorageUsageResponse
   ) {
     return StorageUsageResponse(
       bytesUsed: jsonSerialization['bytesUsed'] as int,
-      bytesLimit: jsonSerialization['bytesLimit'] as int,
       rowCount: jsonSerialization['rowCount'] as int,
-      percentUsed: jsonSerialization['percentUsed'] as int,
-      bytesRemaining: jsonSerialization['bytesRemaining'] as int,
     );
   }
 
   int bytesUsed;
 
-  int bytesLimit;
-
   int rowCount;
-
-  int percentUsed;
-
-  int bytesRemaining;
 
   /// Returns a shallow copy of this [StorageUsageResponse]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   StorageUsageResponse copyWith({
     int? bytesUsed,
-    int? bytesLimit,
     int? rowCount,
-    int? percentUsed,
-    int? bytesRemaining,
   });
   @override
   Map<String, dynamic> toJson() {
     return {
       '__className__': 'quanitya.StorageUsageResponse',
       'bytesUsed': bytesUsed,
-      'bytesLimit': bytesLimit,
       'rowCount': rowCount,
-      'percentUsed': percentUsed,
-      'bytesRemaining': bytesRemaining,
     };
   }
 
@@ -79,10 +58,7 @@ abstract class StorageUsageResponse
     return {
       '__className__': 'quanitya.StorageUsageResponse',
       'bytesUsed': bytesUsed,
-      'bytesLimit': bytesLimit,
       'rowCount': rowCount,
-      'percentUsed': percentUsed,
-      'bytesRemaining': bytesRemaining,
     };
   }
 
@@ -95,16 +71,10 @@ abstract class StorageUsageResponse
 class _StorageUsageResponseImpl extends StorageUsageResponse {
   _StorageUsageResponseImpl({
     required int bytesUsed,
-    required int bytesLimit,
     required int rowCount,
-    required int percentUsed,
-    required int bytesRemaining,
   }) : super._(
          bytesUsed: bytesUsed,
-         bytesLimit: bytesLimit,
          rowCount: rowCount,
-         percentUsed: percentUsed,
-         bytesRemaining: bytesRemaining,
        );
 
   /// Returns a shallow copy of this [StorageUsageResponse]
@@ -113,17 +83,11 @@ class _StorageUsageResponseImpl extends StorageUsageResponse {
   @override
   StorageUsageResponse copyWith({
     int? bytesUsed,
-    int? bytesLimit,
     int? rowCount,
-    int? percentUsed,
-    int? bytesRemaining,
   }) {
     return StorageUsageResponse(
       bytesUsed: bytesUsed ?? this.bytesUsed,
-      bytesLimit: bytesLimit ?? this.bytesLimit,
       rowCount: rowCount ?? this.rowCount,
-      percentUsed: percentUsed ?? this.percentUsed,
-      bytesRemaining: bytesRemaining ?? this.bytesRemaining,
     );
   }
 }

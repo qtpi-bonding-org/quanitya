@@ -94,12 +94,6 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'int',
         ),
         _i2.ColumnDefinition(
-          name: 'bytesLimit',
-          columnType: _i2.ColumnType.bigint,
-          isNullable: false,
-          dartType: 'int',
-        ),
-        _i2.ColumnDefinition(
           name: 'updatedAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: false,

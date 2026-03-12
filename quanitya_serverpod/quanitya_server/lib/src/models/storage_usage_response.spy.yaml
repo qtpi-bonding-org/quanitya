@@ -1,9 +1,6 @@
 # StorageUsageResponse: typed response for getStorageUsage endpoint
-# Avoids returning Map<String, dynamic> which Serverpod cannot serialize.
+# Returns raw storage usage without limits — self-hosted has unlimited storage.
 class: StorageUsageResponse
 fields:
   bytesUsed: int
-  bytesLimit: int
   rowCount: int
-  percentUsed: int
-  bytesRemaining: int

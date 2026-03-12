@@ -1,13 +1,11 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
-import '../exceptions/storage_quota_exception.dart';
 import '../services/storage_quota_service.dart';
 
 /// Sync endpoint for PowerSync data operations
 ///
 /// Handles CRUD operations for E2EE encrypted data and template aesthetics.
 /// All operations require authentication via AnonAccred device key.
-/// New inserts are gated by per-account storage quota.
 class SyncEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
@@ -28,7 +26,6 @@ class SyncEndpoint extends Endpoint {
     final existing = await EncryptedTemplate.db.findById(session, uuidId);
 
     if (existing != null && existing.accountId == accountId) {
-      // UPDATE — always allowed
       final oldSize = existing.encryptedData.length;
       final updated = existing.copyWith(
         encryptedData: encryptedData,
@@ -40,12 +37,6 @@ class SyncEndpoint extends Endpoint {
       );
       return result;
     } else {
-      // INSERT — check quota
-      if (!await StorageQuotaService.canWrite(
-        session, accountId, encryptedData.length,
-      )) {
-        throw StorageQuotaExceededException(accountId: accountId);
-      }
       final template = EncryptedTemplate(
         id: uuidId,
         accountId: accountId,
@@ -105,11 +96,6 @@ class SyncEndpoint extends Endpoint {
       );
       return result;
     } else {
-      if (!await StorageQuotaService.canWrite(
-        session, accountId, encryptedData.length,
-      )) {
-        throw StorageQuotaExceededException(accountId: accountId);
-      }
       final entry = EncryptedEntry(
         id: uuidId,
         accountId: accountId,
@@ -169,11 +155,6 @@ class SyncEndpoint extends Endpoint {
       );
       return result;
     } else {
-      if (!await StorageQuotaService.canWrite(
-        session, accountId, encryptedData.length,
-      )) {
-        throw StorageQuotaExceededException(accountId: accountId);
-      }
       final schedule = EncryptedSchedule(
         id: uuidId,
         accountId: accountId,
@@ -302,11 +283,6 @@ class SyncEndpoint extends Endpoint {
       );
       return result;
     } else {
-      if (!await StorageQuotaService.canWrite(
-        session, accountId, encryptedData.length,
-      )) {
-        throw StorageQuotaExceededException(accountId: accountId);
-      }
       final script = EncryptedAnalysisScript(
         id: uuidId,
         accountId: accountId,
@@ -355,11 +331,7 @@ class SyncEndpoint extends Endpoint {
 
     return StorageUsageResponse(
       bytesUsed: usage.bytesUsed,
-      bytesLimit: usage.bytesLimit,
       rowCount: usage.rowCount,
-      percentUsed: (usage.bytesUsed / usage.bytesLimit * 100).round(),
-      bytesRemaining:
-          (usage.bytesLimit - usage.bytesUsed).clamp(0, usage.bytesLimit),
     );
   }
 

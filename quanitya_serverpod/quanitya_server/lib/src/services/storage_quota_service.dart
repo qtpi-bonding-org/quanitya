@@ -1,15 +1,12 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 
-/// Per-account storage quota tracking and enforcement.
+/// Per-account storage usage tracking.
 ///
-/// Tracks bytes used across all encrypted tables (entries, templates,
-/// schedules, analysis scripts). Gates new inserts when quota exceeded.
-/// Updates and deletes are always allowed.
+/// Tracks bytes used and row count across all encrypted tables (entries,
+/// templates, schedules, analysis scripts). No quota enforcement —
+/// self-hosted users have unlimited storage.
 class StorageQuotaService {
-  /// Default storage limit: 1 GB
-  static const int defaultBytesLimit = 1073741824;
-
   /// Get or create usage record for account.
   static Future<AccountStorageUsage> getUsage(
     Session session,
@@ -23,16 +20,6 @@ class StorageQuotaService {
       usage = await _seedUsage(session, accountId);
     }
     return usage;
-  }
-
-  /// Check if account can accept a new write of given size.
-  static Future<bool> canWrite(
-    Session session,
-    int accountId,
-    int newBytes,
-  ) async {
-    final usage = await getUsage(session, accountId);
-    return (usage.bytesUsed + newBytes) <= usage.bytesLimit;
   }
 
   /// Increment after successful insert.
@@ -81,22 +68,6 @@ class StorageQuotaService {
     await adjustUsage(session, accountId, -bytes, -rows);
   }
 
-  /// Update the storage limit for an account (e.g. after tier change).
-  static Future<void> setLimit(
-    Session session,
-    int accountId,
-    int bytesLimit,
-  ) async {
-    final usage = await getUsage(session, accountId);
-    await AccountStorageUsage.db.updateRow(
-      session,
-      usage.copyWith(
-        bytesLimit: bytesLimit,
-        updatedAt: DateTime.now(),
-      ),
-    );
-  }
-
   /// Seed usage from actual data (one-time per account).
   static Future<AccountStorageUsage> _seedUsage(
     Session session,
@@ -124,7 +95,6 @@ class StorageQuotaService {
       accountId: accountId,
       bytesUsed: (row[0] as num).toInt(),
       rowCount: (row[1] as num).toInt(),
-      bytesLimit: defaultBytesLimit,
       updatedAt: DateTime.now(),
     );
 
@@ -140,18 +110,9 @@ class StorageQuotaService {
       session,
       where: (t) => t.accountId.equals(accountId),
     );
-    // Preserve custom limit if set
-    final limit = existing?.bytesLimit ?? defaultBytesLimit;
     if (existing != null) {
       await AccountStorageUsage.db.deleteRow(session, existing);
     }
-    final reseeded = await _seedUsage(session, accountId);
-    if (limit != defaultBytesLimit) {
-      await AccountStorageUsage.db.updateRow(
-        session,
-        reseeded.copyWith(bytesLimit: limit),
-      );
-    }
-    return reseeded;
+    return await _seedUsage(session, accountId);
   }
 }

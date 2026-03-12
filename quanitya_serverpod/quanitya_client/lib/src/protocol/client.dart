@@ -374,7 +374,6 @@ class EndpointPowerSync extends _i1.EndpointRef {
 ///
 /// Handles CRUD operations for E2EE encrypted data and template aesthetics.
 /// All operations require authentication via AnonAccred device key.
-/// New inserts are gated by per-account storage quota.
 /// {@category Endpoint}
 class EndpointSync extends _i1.EndpointRef {
   EndpointSync(_i1.EndpointCaller caller) : super(caller);
