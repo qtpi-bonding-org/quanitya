@@ -12,23 +12,21 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
-abstract class ErrorReportChallenge implements _i1.SerializableModel {
-  ErrorReportChallenge._({
+abstract class PublicChallenge implements _i1.SerializableModel {
+  PublicChallenge._({
     this.id,
     required this.challenge,
     required this.expiresAt,
   });
 
-  factory ErrorReportChallenge({
+  factory PublicChallenge({
     int? id,
     required String challenge,
     required DateTime expiresAt,
-  }) = _ErrorReportChallengeImpl;
+  }) = _PublicChallengeImpl;
 
-  factory ErrorReportChallenge.fromJson(
-    Map<String, dynamic> jsonSerialization,
-  ) {
-    return ErrorReportChallenge(
+  factory PublicChallenge.fromJson(Map<String, dynamic> jsonSerialization) {
+    return PublicChallenge(
       id: jsonSerialization['id'] as int?,
       challenge: jsonSerialization['challenge'] as String,
       expiresAt: _i1.DateTimeJsonExtension.fromJson(
@@ -46,10 +44,10 @@ abstract class ErrorReportChallenge implements _i1.SerializableModel {
 
   DateTime expiresAt;
 
-  /// Returns a shallow copy of this [ErrorReportChallenge]
+  /// Returns a shallow copy of this [PublicChallenge]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
-  ErrorReportChallenge copyWith({
+  PublicChallenge copyWith({
     int? id,
     String? challenge,
     DateTime? expiresAt,
@@ -57,7 +55,7 @@ abstract class ErrorReportChallenge implements _i1.SerializableModel {
   @override
   Map<String, dynamic> toJson() {
     return {
-      '__className__': 'ErrorReportChallenge',
+      '__className__': 'PublicChallenge',
       if (id != null) 'id': id,
       'challenge': challenge,
       'expiresAt': expiresAt.toJson(),
@@ -72,8 +70,8 @@ abstract class ErrorReportChallenge implements _i1.SerializableModel {
 
 class _Undefined {}
 
-class _ErrorReportChallengeImpl extends ErrorReportChallenge {
-  _ErrorReportChallengeImpl({
+class _PublicChallengeImpl extends PublicChallenge {
+  _PublicChallengeImpl({
     int? id,
     required String challenge,
     required DateTime expiresAt,
@@ -83,16 +81,16 @@ class _ErrorReportChallengeImpl extends ErrorReportChallenge {
          expiresAt: expiresAt,
        );
 
-  /// Returns a shallow copy of this [ErrorReportChallenge]
+  /// Returns a shallow copy of this [PublicChallenge]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   @override
-  ErrorReportChallenge copyWith({
+  PublicChallenge copyWith({
     Object? id = _Undefined,
     String? challenge,
     DateTime? expiresAt,
   }) {
-    return ErrorReportChallenge(
+    return PublicChallenge(
       id: id is int? ? id : this.id,
       challenge: challenge ?? this.challenge,
       expiresAt: expiresAt ?? this.expiresAt,

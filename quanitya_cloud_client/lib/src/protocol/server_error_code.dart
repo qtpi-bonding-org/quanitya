@@ -22,6 +22,8 @@ enum ServerErrorCode implements _i1.SerializableModel {
   challengeExpired,
   authenticationFailed,
   insufficientPermissions,
+  jwtSigningKeyMissing,
+  jwtGenerationFailed,
   internalError;
 
   static ServerErrorCode fromJson(String name) {
@@ -44,6 +46,10 @@ enum ServerErrorCode implements _i1.SerializableModel {
         return ServerErrorCode.authenticationFailed;
       case 'insufficientPermissions':
         return ServerErrorCode.insufficientPermissions;
+      case 'jwtSigningKeyMissing':
+        return ServerErrorCode.jwtSigningKeyMissing;
+      case 'jwtGenerationFailed':
+        return ServerErrorCode.jwtGenerationFailed;
       case 'internalError':
         return ServerErrorCode.internalError;
       default:
