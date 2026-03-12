@@ -17,7 +17,7 @@ import 'archive_metadata.dart' as _i4;
 import 'archive_month_info.dart' as _i5;
 import 'archive_search_result.dart' as _i6;
 import 'archived_month.dart' as _i7;
-import 'encrypted_analysis_pipeline.dart' as _i8;
+import 'encrypted_analysis_script.dart' as _i8;
 import 'encrypted_entry.dart' as _i9;
 import 'encrypted_schedule.dart' as _i10;
 import 'encrypted_template.dart' as _i11;
@@ -39,7 +39,7 @@ export 'archive_metadata.dart';
 export 'archive_month_info.dart';
 export 'archive_search_result.dart';
 export 'archived_month.dart';
-export 'encrypted_analysis_pipeline.dart';
+export 'encrypted_analysis_script.dart';
 export 'encrypted_entry.dart';
 export 'encrypted_schedule.dart';
 export 'encrypted_template.dart';
@@ -104,8 +104,8 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i7.ArchivedMonth) {
       return _i7.ArchivedMonth.fromJson(data) as T;
     }
-    if (t == _i8.EncryptedAnalysisPipeline) {
-      return _i8.EncryptedAnalysisPipeline.fromJson(data) as T;
+    if (t == _i8.EncryptedAnalysisScript) {
+      return _i8.EncryptedAnalysisScript.fromJson(data) as T;
     }
     if (t == _i9.EncryptedEntry) {
       return _i9.EncryptedEntry.fromJson(data) as T;
@@ -152,10 +152,8 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i7.ArchivedMonth?>()) {
       return (data != null ? _i7.ArchivedMonth.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i8.EncryptedAnalysisPipeline?>()) {
-      return (data != null
-              ? _i8.EncryptedAnalysisPipeline.fromJson(data)
-              : null)
+    if (t == _i1.getType<_i8.EncryptedAnalysisScript?>()) {
+      return (data != null ? _i8.EncryptedAnalysisScript.fromJson(data) : null)
           as T;
     }
     if (t == _i1.getType<_i9.EncryptedEntry?>()) {
@@ -208,9 +206,9 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i8.EncryptedAnalysisPipeline>) {
+    if (t == List<_i8.EncryptedAnalysisScript>) {
       return (data as List)
-              .map((e) => deserialize<_i8.EncryptedAnalysisPipeline>(e))
+              .map((e) => deserialize<_i8.EncryptedAnalysisScript>(e))
               .toList()
           as T;
     }
@@ -243,7 +241,7 @@ class Protocol extends _i1.SerializationManager {
       _i5.ArchiveMonthInfo => 'ArchiveMonthInfo',
       _i6.ArchiveSearchResult => 'ArchiveSearchResult',
       _i7.ArchivedMonth => 'ArchivedMonth',
-      _i8.EncryptedAnalysisPipeline => 'EncryptedAnalysisPipeline',
+      _i8.EncryptedAnalysisScript => 'EncryptedAnalysisScript',
       _i9.EncryptedEntry => 'EncryptedEntry',
       _i10.EncryptedSchedule => 'EncryptedSchedule',
       _i11.EncryptedTemplate => 'EncryptedTemplate',
@@ -278,8 +276,8 @@ class Protocol extends _i1.SerializationManager {
         return 'ArchiveSearchResult';
       case _i7.ArchivedMonth():
         return 'ArchivedMonth';
-      case _i8.EncryptedAnalysisPipeline():
-        return 'EncryptedAnalysisPipeline';
+      case _i8.EncryptedAnalysisScript():
+        return 'EncryptedAnalysisScript';
       case _i9.EncryptedEntry():
         return 'EncryptedEntry';
       case _i10.EncryptedSchedule():
@@ -332,8 +330,8 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'ArchivedMonth') {
       return deserialize<_i7.ArchivedMonth>(data['data']);
     }
-    if (dataClassName == 'EncryptedAnalysisPipeline') {
-      return deserialize<_i8.EncryptedAnalysisPipeline>(data['data']);
+    if (dataClassName == 'EncryptedAnalysisScript') {
+      return deserialize<_i8.EncryptedAnalysisScript>(data['data']);
     }
     if (dataClassName == 'EncryptedEntry') {
       return deserialize<_i9.EncryptedEntry>(data['data']);

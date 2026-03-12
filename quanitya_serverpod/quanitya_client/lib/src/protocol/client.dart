@@ -24,7 +24,7 @@ import 'package:quanitya_client/src/protocol/encrypted_template.dart' as _i9;
 import 'package:quanitya_client/src/protocol/encrypted_entry.dart' as _i10;
 import 'package:quanitya_client/src/protocol/encrypted_schedule.dart' as _i11;
 import 'package:quanitya_client/src/protocol/template_aesthetics.dart' as _i12;
-import 'package:quanitya_client/src/protocol/encrypted_analysis_pipeline.dart'
+import 'package:quanitya_client/src/protocol/encrypted_analysis_script.dart'
     as _i13;
 import 'package:quanitya_client/src/protocol/storage_usage_response.dart'
     as _i14;
@@ -480,24 +480,24 @@ class EndpointSync extends _i1.EndpointRef {
         {'id': id},
       );
 
-  /// Upsert encrypted analysis pipeline
-  _i2.Future<_i13.EncryptedAnalysisPipeline> upsertEncryptedAnalysisPipeline(
+  /// Upsert encrypted analysis script
+  _i2.Future<_i13.EncryptedAnalysisScript> upsertEncryptedAnalysisScript(
     String id,
     String encryptedData,
-  ) => caller.callServerEndpoint<_i13.EncryptedAnalysisPipeline>(
+  ) => caller.callServerEndpoint<_i13.EncryptedAnalysisScript>(
     'quanitya.sync',
-    'upsertEncryptedAnalysisPipeline',
+    'upsertEncryptedAnalysisScript',
     {
       'id': id,
       'encryptedData': encryptedData,
     },
   );
 
-  /// Delete encrypted analysis pipeline
-  _i2.Future<bool> deleteEncryptedAnalysisPipeline(String id) =>
+  /// Delete encrypted analysis script
+  _i2.Future<bool> deleteEncryptedAnalysisScript(String id) =>
       caller.callServerEndpoint<bool>(
         'quanitya.sync',
-        'deleteEncryptedAnalysisPipeline',
+        'deleteEncryptedAnalysisScript',
         {'id': id},
       );
 

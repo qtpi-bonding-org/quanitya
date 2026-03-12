@@ -243,7 +243,7 @@ class ArchiveEndpoint extends Endpoint {
       )
     ).toList();
     
-    // For entry-only archives, templates/schedules/pipelines are empty
+    // For entry-only archives, templates/schedules/scripts are empty
     // These data types are never archived and stay in PostgreSQL forever
     return ArchivedMonth(
       userId: data['userId'],
@@ -252,7 +252,7 @@ class ArchiveEndpoint extends Endpoint {
       entries: entries,
       templates: [], // Never archived
       schedules: [], // Never archived
-      analysisPipelines: [], // Never archived
+      analysisScripts: [], // Never archived
       archivedAt: DateTime.parse(data['archivedAt']),
       version: data['version'] ?? '1.0',
     );

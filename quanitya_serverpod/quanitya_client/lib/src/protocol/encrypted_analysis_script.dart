@@ -12,8 +12,8 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
-abstract class EncryptedAnalysisPipeline implements _i1.SerializableModel {
-  EncryptedAnalysisPipeline._({
+abstract class EncryptedAnalysisScript implements _i1.SerializableModel {
+  EncryptedAnalysisScript._({
     _i1.UuidValue? id,
     required this.accountId,
     required this.encryptedData,
@@ -21,17 +21,17 @@ abstract class EncryptedAnalysisPipeline implements _i1.SerializableModel {
   }) : id = id ?? const _i1.Uuid().v4obj(),
        updatedAt = updatedAt ?? DateTime.now();
 
-  factory EncryptedAnalysisPipeline({
+  factory EncryptedAnalysisScript({
     _i1.UuidValue? id,
     required int accountId,
     required String encryptedData,
     DateTime? updatedAt,
-  }) = _EncryptedAnalysisPipelineImpl;
+  }) = _EncryptedAnalysisScriptImpl;
 
-  factory EncryptedAnalysisPipeline.fromJson(
+  factory EncryptedAnalysisScript.fromJson(
     Map<String, dynamic> jsonSerialization,
   ) {
-    return EncryptedAnalysisPipeline(
+    return EncryptedAnalysisScript(
       id: jsonSerialization['id'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
@@ -52,10 +52,10 @@ abstract class EncryptedAnalysisPipeline implements _i1.SerializableModel {
 
   DateTime updatedAt;
 
-  /// Returns a shallow copy of this [EncryptedAnalysisPipeline]
+  /// Returns a shallow copy of this [EncryptedAnalysisScript]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
-  EncryptedAnalysisPipeline copyWith({
+  EncryptedAnalysisScript copyWith({
     _i1.UuidValue? id,
     int? accountId,
     String? encryptedData,
@@ -64,7 +64,7 @@ abstract class EncryptedAnalysisPipeline implements _i1.SerializableModel {
   @override
   Map<String, dynamic> toJson() {
     return {
-      '__className__': 'quanitya.EncryptedAnalysisPipeline',
+      '__className__': 'quanitya.EncryptedAnalysisScript',
       'id': id.toJson(),
       'accountId': accountId,
       'encryptedData': encryptedData,
@@ -78,8 +78,8 @@ abstract class EncryptedAnalysisPipeline implements _i1.SerializableModel {
   }
 }
 
-class _EncryptedAnalysisPipelineImpl extends EncryptedAnalysisPipeline {
-  _EncryptedAnalysisPipelineImpl({
+class _EncryptedAnalysisScriptImpl extends EncryptedAnalysisScript {
+  _EncryptedAnalysisScriptImpl({
     _i1.UuidValue? id,
     required int accountId,
     required String encryptedData,
@@ -91,17 +91,17 @@ class _EncryptedAnalysisPipelineImpl extends EncryptedAnalysisPipeline {
          updatedAt: updatedAt,
        );
 
-  /// Returns a shallow copy of this [EncryptedAnalysisPipeline]
+  /// Returns a shallow copy of this [EncryptedAnalysisScript]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   @override
-  EncryptedAnalysisPipeline copyWith({
+  EncryptedAnalysisScript copyWith({
     _i1.UuidValue? id,
     int? accountId,
     String? encryptedData,
     DateTime? updatedAt,
   }) {
-    return EncryptedAnalysisPipeline(
+    return EncryptedAnalysisScript(
       id: id ?? this.id,
       accountId: accountId ?? this.accountId,
       encryptedData: encryptedData ?? this.encryptedData,

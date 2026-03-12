@@ -25,7 +25,7 @@ import 'package:quanitya_server/src/generated/encrypted_template.dart' as _i9;
 import 'package:quanitya_server/src/generated/encrypted_entry.dart' as _i10;
 import 'package:quanitya_server/src/generated/encrypted_schedule.dart' as _i11;
 import 'package:quanitya_server/src/generated/template_aesthetics.dart' as _i12;
-import 'package:quanitya_server/src/generated/encrypted_analysis_pipeline.dart'
+import 'package:quanitya_server/src/generated/encrypted_analysis_script.dart'
     as _i13;
 import 'package:quanitya_server/src/generated/storage_usage_response.dart'
     as _i14;
@@ -1022,7 +1022,7 @@ class _SyncEndpoint {
     });
   }
 
-  _i3.Future<_i13.EncryptedAnalysisPipeline> upsertEncryptedAnalysisPipeline(
+  _i3.Future<_i13.EncryptedAnalysisScript> upsertEncryptedAnalysisScript(
     _i1.TestSessionBuilder sessionBuilder,
     String id,
     String encryptedData,
@@ -1031,13 +1031,13 @@ class _SyncEndpoint {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'sync',
-            method: 'upsertEncryptedAnalysisPipeline',
+            method: 'upsertEncryptedAnalysisScript',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'sync',
-          methodName: 'upsertEncryptedAnalysisPipeline',
+          methodName: 'upsertEncryptedAnalysisScript',
           parameters: _i1.testObjectToJson({
             'id': id,
             'encryptedData': encryptedData,
@@ -1049,7 +1049,7 @@ class _SyncEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.EncryptedAnalysisPipeline>);
+                as _i3.Future<_i13.EncryptedAnalysisScript>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1057,7 +1057,7 @@ class _SyncEndpoint {
     });
   }
 
-  _i3.Future<bool> deleteEncryptedAnalysisPipeline(
+  _i3.Future<bool> deleteEncryptedAnalysisScript(
     _i1.TestSessionBuilder sessionBuilder,
     String id,
   ) async {
@@ -1065,13 +1065,13 @@ class _SyncEndpoint {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'sync',
-            method: 'deleteEncryptedAnalysisPipeline',
+            method: 'deleteEncryptedAnalysisScript',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'sync',
-          methodName: 'deleteEncryptedAnalysisPipeline',
+          methodName: 'deleteEncryptedAnalysisScript',
           parameters: _i1.testObjectToJson({'id': id}),
           serializationManager: _serializationManager,
         );

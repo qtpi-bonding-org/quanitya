@@ -620,8 +620,8 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['id'],
                   ),
         ),
-        'upsertEncryptedAnalysisPipeline': _i1.MethodConnector(
-          name: 'upsertEncryptedAnalysisPipeline',
+        'upsertEncryptedAnalysisScript': _i1.MethodConnector(
+          name: 'upsertEncryptedAnalysisScript',
           params: {
             'id': _i1.ParameterDescription(
               name: 'id',
@@ -639,14 +639,14 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async => (endpoints['sync'] as _i6.SyncEndpoint)
-                  .upsertEncryptedAnalysisPipeline(
+                  .upsertEncryptedAnalysisScript(
                     session,
                     params['id'],
                     params['encryptedData'],
                   ),
         ),
-        'deleteEncryptedAnalysisPipeline': _i1.MethodConnector(
-          name: 'deleteEncryptedAnalysisPipeline',
+        'deleteEncryptedAnalysisScript': _i1.MethodConnector(
+          name: 'deleteEncryptedAnalysisScript',
           params: {
             'id': _i1.ParameterDescription(
               name: 'id',
@@ -659,7 +659,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async => (endpoints['sync'] as _i6.SyncEndpoint)
-                  .deleteEncryptedAnalysisPipeline(
+                  .deleteEncryptedAnalysisScript(
                     session,
                     params['id'],
                   ),

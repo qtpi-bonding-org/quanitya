@@ -45,9 +45,9 @@ sync_rules:
           - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at 
             FROM encrypted_schedules 
             WHERE "accountId" = bucket.user_id
-          # Analysis Pipelines
-          - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at 
-            FROM encrypted_analysis_pipelines 
+          # Analysis Scripts
+          - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at
+            FROM encrypted_analysis_scripts
             WHERE "accountId" = bucket.user_id
 
       # Greetings (Demo data)

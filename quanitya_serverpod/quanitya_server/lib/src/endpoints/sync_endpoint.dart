@@ -274,11 +274,11 @@ class SyncEndpoint extends Endpoint {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Encrypted Analysis Pipelines
+  // Encrypted Analysis Scripts
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Upsert encrypted analysis pipeline
-  Future<EncryptedAnalysisPipeline> upsertEncryptedAnalysisPipeline(
+  /// Upsert encrypted analysis script
+  Future<EncryptedAnalysisScript> upsertEncryptedAnalysisScript(
     Session session,
     String id,
     String encryptedData,
@@ -287,7 +287,7 @@ class SyncEndpoint extends Endpoint {
     final uuidId = UuidValue.fromString(id);
 
     final existing =
-        await EncryptedAnalysisPipeline.db.findById(session, uuidId);
+        await EncryptedAnalysisScript.db.findById(session, uuidId);
 
     if (existing != null && existing.accountId == accountId) {
       final oldSize = existing.encryptedData.length;
@@ -296,7 +296,7 @@ class SyncEndpoint extends Endpoint {
         updatedAt: DateTime.now(),
       );
       final result =
-          await EncryptedAnalysisPipeline.db.updateRow(session, updated);
+          await EncryptedAnalysisScript.db.updateRow(session, updated);
       await StorageQuotaService.adjustUsage(
         session, accountId, encryptedData.length - oldSize, 0,
       );
@@ -307,14 +307,14 @@ class SyncEndpoint extends Endpoint {
       )) {
         throw StorageQuotaExceededException(accountId: accountId);
       }
-      final pipeline = EncryptedAnalysisPipeline(
+      final script = EncryptedAnalysisScript(
         id: uuidId,
         accountId: accountId,
         encryptedData: encryptedData,
         updatedAt: DateTime.now(),
       );
       final result =
-          await EncryptedAnalysisPipeline.db.insertRow(session, pipeline);
+          await EncryptedAnalysisScript.db.insertRow(session, script);
       await StorageQuotaService.incrementUsage(
         session, accountId, encryptedData.length, 1,
       );
@@ -322,8 +322,8 @@ class SyncEndpoint extends Endpoint {
     }
   }
 
-  /// Delete encrypted analysis pipeline
-  Future<bool> deleteEncryptedAnalysisPipeline(
+  /// Delete encrypted analysis script
+  Future<bool> deleteEncryptedAnalysisScript(
     Session session,
     String id,
   ) async {
@@ -331,13 +331,13 @@ class SyncEndpoint extends Endpoint {
     final uuidId = UuidValue.fromString(id);
 
     final existing =
-        await EncryptedAnalysisPipeline.db.findById(session, uuidId);
+        await EncryptedAnalysisScript.db.findById(session, uuidId);
     if (existing == null || existing.accountId != accountId) {
       return false;
     }
 
     final removedSize = existing.encryptedData.length;
-    await EncryptedAnalysisPipeline.db.deleteRow(session, existing);
+    await EncryptedAnalysisScript.db.deleteRow(session, existing);
     await StorageQuotaService.decrementUsage(
       session, accountId, removedSize, 1,
     );

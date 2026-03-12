@@ -4,7 +4,7 @@ import '../generated/protocol.dart';
 /// Per-account storage quota tracking and enforcement.
 ///
 /// Tracks bytes used across all encrypted tables (entries, templates,
-/// schedules, analysis pipelines). Gates new inserts when quota exceeded.
+/// schedules, analysis scripts). Gates new inserts when quota exceeded.
 /// Updates and deletes are always allowed.
 class StorageQuotaService {
   /// Default storage limit: 1 GB
@@ -113,7 +113,7 @@ class StorageQuotaService {
           UNION ALL
           SELECT "encryptedData" FROM encrypted_schedules WHERE "accountId" = \$1
           UNION ALL
-          SELECT "encryptedData" FROM encrypted_analysis_pipelines WHERE "accountId" = \$1
+          SELECT "encryptedData" FROM encrypted_analysis_scripts WHERE "accountId" = \$1
       ) combined
       ''',
       parameters: QueryParameters.positional([accountId]),

@@ -11,7 +11,7 @@ import 'r2_storage_service.dart';
 ///
 /// Handles monthly archival of ONLY encrypted_entries to R2 storage:
 /// - Entries older than [_bufferMonths] are archived to R2, deleted from PostgreSQL
-/// - Templates, schedules, analysis pipelines, aesthetics: NEVER archived (stay forever)
+/// - Templates, schedules, analysis scripts, aesthetics: NEVER archived (stay forever)
 /// - Buffer months configurable via ARCHIVE_BUFFER_MONTHS env var (default: 6)
 class ArchivalService {
   static final int _bufferMonths = int.tryParse(
@@ -28,7 +28,7 @@ class ArchivalService {
   /// Run monthly archival process for entries only
   ///
   /// Archives ONLY encrypted_entries older than [_bufferMonths] months.
-  /// Templates, schedules, analysis pipelines, and aesthetics stay in PostgreSQL forever.
+  /// Templates, schedules, analysis scripts, and aesthetics stay in PostgreSQL forever.
   Future<ArchivalResult> runMonthlyArchival() async {
     final result = ArchivalResult();
     

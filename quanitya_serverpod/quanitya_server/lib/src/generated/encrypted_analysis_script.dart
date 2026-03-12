@@ -12,9 +12,9 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 
-abstract class EncryptedAnalysisPipeline
+abstract class EncryptedAnalysisScript
     implements _i1.TableRow<_i1.UuidValue>, _i1.ProtocolSerialization {
-  EncryptedAnalysisPipeline._({
+  EncryptedAnalysisScript._({
     _i1.UuidValue? id,
     required this.accountId,
     required this.encryptedData,
@@ -22,17 +22,17 @@ abstract class EncryptedAnalysisPipeline
   }) : id = id ?? const _i1.Uuid().v4obj(),
        updatedAt = updatedAt ?? DateTime.now();
 
-  factory EncryptedAnalysisPipeline({
+  factory EncryptedAnalysisScript({
     _i1.UuidValue? id,
     required int accountId,
     required String encryptedData,
     DateTime? updatedAt,
-  }) = _EncryptedAnalysisPipelineImpl;
+  }) = _EncryptedAnalysisScriptImpl;
 
-  factory EncryptedAnalysisPipeline.fromJson(
+  factory EncryptedAnalysisScript.fromJson(
     Map<String, dynamic> jsonSerialization,
   ) {
-    return EncryptedAnalysisPipeline(
+    return EncryptedAnalysisScript(
       id: jsonSerialization['id'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
@@ -44,9 +44,9 @@ abstract class EncryptedAnalysisPipeline
     );
   }
 
-  static final t = EncryptedAnalysisPipelineTable();
+  static final t = EncryptedAnalysisScriptTable();
 
-  static const db = EncryptedAnalysisPipelineRepository._();
+  static const db = EncryptedAnalysisScriptRepository._();
 
   @override
   _i1.UuidValue id;
@@ -60,10 +60,10 @@ abstract class EncryptedAnalysisPipeline
   @override
   _i1.Table<_i1.UuidValue> get table => t;
 
-  /// Returns a shallow copy of this [EncryptedAnalysisPipeline]
+  /// Returns a shallow copy of this [EncryptedAnalysisScript]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
-  EncryptedAnalysisPipeline copyWith({
+  EncryptedAnalysisScript copyWith({
     _i1.UuidValue? id,
     int? accountId,
     String? encryptedData,
@@ -72,7 +72,7 @@ abstract class EncryptedAnalysisPipeline
   @override
   Map<String, dynamic> toJson() {
     return {
-      '__className__': 'quanitya.EncryptedAnalysisPipeline',
+      '__className__': 'quanitya.EncryptedAnalysisScript',
       'id': id.toJson(),
       'accountId': accountId,
       'encryptedData': encryptedData,
@@ -83,7 +83,7 @@ abstract class EncryptedAnalysisPipeline
   @override
   Map<String, dynamic> toJsonForProtocol() {
     return {
-      '__className__': 'quanitya.EncryptedAnalysisPipeline',
+      '__className__': 'quanitya.EncryptedAnalysisScript',
       'id': id.toJson(),
       'accountId': accountId,
       'encryptedData': encryptedData,
@@ -91,26 +91,26 @@ abstract class EncryptedAnalysisPipeline
     };
   }
 
-  static EncryptedAnalysisPipelineInclude include() {
-    return EncryptedAnalysisPipelineInclude._();
+  static EncryptedAnalysisScriptInclude include() {
+    return EncryptedAnalysisScriptInclude._();
   }
 
-  static EncryptedAnalysisPipelineIncludeList includeList({
-    _i1.WhereExpressionBuilder<EncryptedAnalysisPipelineTable>? where,
+  static EncryptedAnalysisScriptIncludeList includeList({
+    _i1.WhereExpressionBuilder<EncryptedAnalysisScriptTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<EncryptedAnalysisPipelineTable>? orderBy,
+    _i1.OrderByBuilder<EncryptedAnalysisScriptTable>? orderBy,
     bool orderDescending = false,
-    _i1.OrderByListBuilder<EncryptedAnalysisPipelineTable>? orderByList,
-    EncryptedAnalysisPipelineInclude? include,
+    _i1.OrderByListBuilder<EncryptedAnalysisScriptTable>? orderByList,
+    EncryptedAnalysisScriptInclude? include,
   }) {
-    return EncryptedAnalysisPipelineIncludeList._(
+    return EncryptedAnalysisScriptIncludeList._(
       where: where,
       limit: limit,
       offset: offset,
-      orderBy: orderBy?.call(EncryptedAnalysisPipeline.t),
+      orderBy: orderBy?.call(EncryptedAnalysisScript.t),
       orderDescending: orderDescending,
-      orderByList: orderByList?.call(EncryptedAnalysisPipeline.t),
+      orderByList: orderByList?.call(EncryptedAnalysisScript.t),
       include: include,
     );
   }
@@ -121,8 +121,8 @@ abstract class EncryptedAnalysisPipeline
   }
 }
 
-class _EncryptedAnalysisPipelineImpl extends EncryptedAnalysisPipeline {
-  _EncryptedAnalysisPipelineImpl({
+class _EncryptedAnalysisScriptImpl extends EncryptedAnalysisScript {
+  _EncryptedAnalysisScriptImpl({
     _i1.UuidValue? id,
     required int accountId,
     required String encryptedData,
@@ -134,17 +134,17 @@ class _EncryptedAnalysisPipelineImpl extends EncryptedAnalysisPipeline {
          updatedAt: updatedAt,
        );
 
-  /// Returns a shallow copy of this [EncryptedAnalysisPipeline]
+  /// Returns a shallow copy of this [EncryptedAnalysisScript]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   @override
-  EncryptedAnalysisPipeline copyWith({
+  EncryptedAnalysisScript copyWith({
     _i1.UuidValue? id,
     int? accountId,
     String? encryptedData,
     DateTime? updatedAt,
   }) {
-    return EncryptedAnalysisPipeline(
+    return EncryptedAnalysisScript(
       id: id ?? this.id,
       accountId: accountId ?? this.accountId,
       encryptedData: encryptedData ?? this.encryptedData,
@@ -153,9 +153,9 @@ class _EncryptedAnalysisPipelineImpl extends EncryptedAnalysisPipeline {
   }
 }
 
-class EncryptedAnalysisPipelineUpdateTable
-    extends _i1.UpdateTable<EncryptedAnalysisPipelineTable> {
-  EncryptedAnalysisPipelineUpdateTable(super.table);
+class EncryptedAnalysisScriptUpdateTable
+    extends _i1.UpdateTable<EncryptedAnalysisScriptTable> {
+  EncryptedAnalysisScriptUpdateTable(super.table);
 
   _i1.ColumnValue<int, int> accountId(int value) => _i1.ColumnValue(
     table.accountId,
@@ -175,10 +175,10 @@ class EncryptedAnalysisPipelineUpdateTable
       );
 }
 
-class EncryptedAnalysisPipelineTable extends _i1.Table<_i1.UuidValue> {
-  EncryptedAnalysisPipelineTable({super.tableRelation})
-    : super(tableName: 'encrypted_analysis_pipelines') {
-    updateTable = EncryptedAnalysisPipelineUpdateTable(this);
+class EncryptedAnalysisScriptTable extends _i1.Table<_i1.UuidValue> {
+  EncryptedAnalysisScriptTable({super.tableRelation})
+    : super(tableName: 'encrypted_analysis_scripts') {
+    updateTable = EncryptedAnalysisScriptUpdateTable(this);
     accountId = _i1.ColumnInt(
       'accountId',
       this,
@@ -194,7 +194,7 @@ class EncryptedAnalysisPipelineTable extends _i1.Table<_i1.UuidValue> {
     );
   }
 
-  late final EncryptedAnalysisPipelineUpdateTable updateTable;
+  late final EncryptedAnalysisScriptUpdateTable updateTable;
 
   late final _i1.ColumnInt accountId;
 
@@ -211,19 +211,19 @@ class EncryptedAnalysisPipelineTable extends _i1.Table<_i1.UuidValue> {
   ];
 }
 
-class EncryptedAnalysisPipelineInclude extends _i1.IncludeObject {
-  EncryptedAnalysisPipelineInclude._();
+class EncryptedAnalysisScriptInclude extends _i1.IncludeObject {
+  EncryptedAnalysisScriptInclude._();
 
   @override
   Map<String, _i1.Include?> get includes => {};
 
   @override
-  _i1.Table<_i1.UuidValue> get table => EncryptedAnalysisPipeline.t;
+  _i1.Table<_i1.UuidValue> get table => EncryptedAnalysisScript.t;
 }
 
-class EncryptedAnalysisPipelineIncludeList extends _i1.IncludeList {
-  EncryptedAnalysisPipelineIncludeList._({
-    _i1.WhereExpressionBuilder<EncryptedAnalysisPipelineTable>? where,
+class EncryptedAnalysisScriptIncludeList extends _i1.IncludeList {
+  EncryptedAnalysisScriptIncludeList._({
+    _i1.WhereExpressionBuilder<EncryptedAnalysisScriptTable>? where,
     super.limit,
     super.offset,
     super.orderBy,
@@ -231,20 +231,20 @@ class EncryptedAnalysisPipelineIncludeList extends _i1.IncludeList {
     super.orderByList,
     super.include,
   }) {
-    super.where = where?.call(EncryptedAnalysisPipeline.t);
+    super.where = where?.call(EncryptedAnalysisScript.t);
   }
 
   @override
   Map<String, _i1.Include?> get includes => include?.includes ?? {};
 
   @override
-  _i1.Table<_i1.UuidValue> get table => EncryptedAnalysisPipeline.t;
+  _i1.Table<_i1.UuidValue> get table => EncryptedAnalysisScript.t;
 }
 
-class EncryptedAnalysisPipelineRepository {
-  const EncryptedAnalysisPipelineRepository._();
+class EncryptedAnalysisScriptRepository {
+  const EncryptedAnalysisScriptRepository._();
 
-  /// Returns a list of [EncryptedAnalysisPipeline]s matching the given query parameters.
+  /// Returns a list of [EncryptedAnalysisScript]s matching the given query parameters.
   ///
   /// Use [where] to specify which items to include in the return value.
   /// If none is specified, all items will be returned.
@@ -266,22 +266,22 @@ class EncryptedAnalysisPipelineRepository {
   ///   limit: 100,
   /// );
   /// ```
-  Future<List<EncryptedAnalysisPipeline>> find(
+  Future<List<EncryptedAnalysisScript>> find(
     _i1.Session session, {
-    _i1.WhereExpressionBuilder<EncryptedAnalysisPipelineTable>? where,
+    _i1.WhereExpressionBuilder<EncryptedAnalysisScriptTable>? where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<EncryptedAnalysisPipelineTable>? orderBy,
+    _i1.OrderByBuilder<EncryptedAnalysisScriptTable>? orderBy,
     bool orderDescending = false,
-    _i1.OrderByListBuilder<EncryptedAnalysisPipelineTable>? orderByList,
+    _i1.OrderByListBuilder<EncryptedAnalysisScriptTable>? orderByList,
     _i1.Transaction? transaction,
     _i1.LockMode? lockMode,
     _i1.LockBehavior? lockBehavior,
   }) async {
-    return session.db.find<EncryptedAnalysisPipeline>(
-      where: where?.call(EncryptedAnalysisPipeline.t),
-      orderBy: orderBy?.call(EncryptedAnalysisPipeline.t),
-      orderByList: orderByList?.call(EncryptedAnalysisPipeline.t),
+    return session.db.find<EncryptedAnalysisScript>(
+      where: where?.call(EncryptedAnalysisScript.t),
+      orderBy: orderBy?.call(EncryptedAnalysisScript.t),
+      orderByList: orderByList?.call(EncryptedAnalysisScript.t),
       orderDescending: orderDescending,
       limit: limit,
       offset: offset,
@@ -291,7 +291,7 @@ class EncryptedAnalysisPipelineRepository {
     );
   }
 
-  /// Returns the first matching [EncryptedAnalysisPipeline] matching the given query parameters.
+  /// Returns the first matching [EncryptedAnalysisScript] matching the given query parameters.
   ///
   /// Use [where] to specify which items to include in the return value.
   /// If none is specified, all items will be returned.
@@ -308,21 +308,21 @@ class EncryptedAnalysisPipelineRepository {
   ///   orderBy: (t) => t.age,
   /// );
   /// ```
-  Future<EncryptedAnalysisPipeline?> findFirstRow(
+  Future<EncryptedAnalysisScript?> findFirstRow(
     _i1.Session session, {
-    _i1.WhereExpressionBuilder<EncryptedAnalysisPipelineTable>? where,
+    _i1.WhereExpressionBuilder<EncryptedAnalysisScriptTable>? where,
     int? offset,
-    _i1.OrderByBuilder<EncryptedAnalysisPipelineTable>? orderBy,
+    _i1.OrderByBuilder<EncryptedAnalysisScriptTable>? orderBy,
     bool orderDescending = false,
-    _i1.OrderByListBuilder<EncryptedAnalysisPipelineTable>? orderByList,
+    _i1.OrderByListBuilder<EncryptedAnalysisScriptTable>? orderByList,
     _i1.Transaction? transaction,
     _i1.LockMode? lockMode,
     _i1.LockBehavior? lockBehavior,
   }) async {
-    return session.db.findFirstRow<EncryptedAnalysisPipeline>(
-      where: where?.call(EncryptedAnalysisPipeline.t),
-      orderBy: orderBy?.call(EncryptedAnalysisPipeline.t),
-      orderByList: orderByList?.call(EncryptedAnalysisPipeline.t),
+    return session.db.findFirstRow<EncryptedAnalysisScript>(
+      where: where?.call(EncryptedAnalysisScript.t),
+      orderBy: orderBy?.call(EncryptedAnalysisScript.t),
+      orderByList: orderByList?.call(EncryptedAnalysisScript.t),
       orderDescending: orderDescending,
       offset: offset,
       transaction: transaction,
@@ -331,15 +331,15 @@ class EncryptedAnalysisPipelineRepository {
     );
   }
 
-  /// Finds a single [EncryptedAnalysisPipeline] by its [id] or null if no such row exists.
-  Future<EncryptedAnalysisPipeline?> findById(
+  /// Finds a single [EncryptedAnalysisScript] by its [id] or null if no such row exists.
+  Future<EncryptedAnalysisScript?> findById(
     _i1.Session session,
     _i1.UuidValue id, {
     _i1.Transaction? transaction,
     _i1.LockMode? lockMode,
     _i1.LockBehavior? lockBehavior,
   }) async {
-    return session.db.findById<EncryptedAnalysisPipeline>(
+    return session.db.findById<EncryptedAnalysisScript>(
       id,
       transaction: transaction,
       lockMode: lockMode,
@@ -347,9 +347,9 @@ class EncryptedAnalysisPipelineRepository {
     );
   }
 
-  /// Inserts all [EncryptedAnalysisPipeline]s in the list and returns the inserted rows.
+  /// Inserts all [EncryptedAnalysisScript]s in the list and returns the inserted rows.
   ///
-  /// The returned [EncryptedAnalysisPipeline]s will have their `id` fields set.
+  /// The returned [EncryptedAnalysisScript]s will have their `id` fields set.
   ///
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// insert, none of the rows will be inserted.
@@ -357,143 +357,143 @@ class EncryptedAnalysisPipelineRepository {
   /// If [ignoreConflicts] is set to `true`, rows that conflict with existing
   /// rows are silently skipped, and only the successfully inserted rows are
   /// returned.
-  Future<List<EncryptedAnalysisPipeline>> insert(
+  Future<List<EncryptedAnalysisScript>> insert(
     _i1.Session session,
-    List<EncryptedAnalysisPipeline> rows, {
+    List<EncryptedAnalysisScript> rows, {
     _i1.Transaction? transaction,
     bool ignoreConflicts = false,
   }) async {
-    return session.db.insert<EncryptedAnalysisPipeline>(
+    return session.db.insert<EncryptedAnalysisScript>(
       rows,
       transaction: transaction,
       ignoreConflicts: ignoreConflicts,
     );
   }
 
-  /// Inserts a single [EncryptedAnalysisPipeline] and returns the inserted row.
+  /// Inserts a single [EncryptedAnalysisScript] and returns the inserted row.
   ///
-  /// The returned [EncryptedAnalysisPipeline] will have its `id` field set.
-  Future<EncryptedAnalysisPipeline> insertRow(
+  /// The returned [EncryptedAnalysisScript] will have its `id` field set.
+  Future<EncryptedAnalysisScript> insertRow(
     _i1.Session session,
-    EncryptedAnalysisPipeline row, {
+    EncryptedAnalysisScript row, {
     _i1.Transaction? transaction,
   }) async {
-    return session.db.insertRow<EncryptedAnalysisPipeline>(
+    return session.db.insertRow<EncryptedAnalysisScript>(
       row,
       transaction: transaction,
     );
   }
 
-  /// Updates all [EncryptedAnalysisPipeline]s in the list and returns the updated rows. If
+  /// Updates all [EncryptedAnalysisScript]s in the list and returns the updated rows. If
   /// [columns] is provided, only those columns will be updated. Defaults to
   /// all columns.
   /// This is an atomic operation, meaning that if one of the rows fails to
   /// update, none of the rows will be updated.
-  Future<List<EncryptedAnalysisPipeline>> update(
+  Future<List<EncryptedAnalysisScript>> update(
     _i1.Session session,
-    List<EncryptedAnalysisPipeline> rows, {
-    _i1.ColumnSelections<EncryptedAnalysisPipelineTable>? columns,
+    List<EncryptedAnalysisScript> rows, {
+    _i1.ColumnSelections<EncryptedAnalysisScriptTable>? columns,
     _i1.Transaction? transaction,
   }) async {
-    return session.db.update<EncryptedAnalysisPipeline>(
+    return session.db.update<EncryptedAnalysisScript>(
       rows,
-      columns: columns?.call(EncryptedAnalysisPipeline.t),
+      columns: columns?.call(EncryptedAnalysisScript.t),
       transaction: transaction,
     );
   }
 
-  /// Updates a single [EncryptedAnalysisPipeline]. The row needs to have its id set.
+  /// Updates a single [EncryptedAnalysisScript]. The row needs to have its id set.
   /// Optionally, a list of [columns] can be provided to only update those
   /// columns. Defaults to all columns.
-  Future<EncryptedAnalysisPipeline> updateRow(
+  Future<EncryptedAnalysisScript> updateRow(
     _i1.Session session,
-    EncryptedAnalysisPipeline row, {
-    _i1.ColumnSelections<EncryptedAnalysisPipelineTable>? columns,
+    EncryptedAnalysisScript row, {
+    _i1.ColumnSelections<EncryptedAnalysisScriptTable>? columns,
     _i1.Transaction? transaction,
   }) async {
-    return session.db.updateRow<EncryptedAnalysisPipeline>(
+    return session.db.updateRow<EncryptedAnalysisScript>(
       row,
-      columns: columns?.call(EncryptedAnalysisPipeline.t),
+      columns: columns?.call(EncryptedAnalysisScript.t),
       transaction: transaction,
     );
   }
 
-  /// Updates a single [EncryptedAnalysisPipeline] by its [id] with the specified [columnValues].
+  /// Updates a single [EncryptedAnalysisScript] by its [id] with the specified [columnValues].
   /// Returns the updated row or null if no row with the given id exists.
-  Future<EncryptedAnalysisPipeline?> updateById(
+  Future<EncryptedAnalysisScript?> updateById(
     _i1.Session session,
     _i1.UuidValue id, {
-    required _i1.ColumnValueListBuilder<EncryptedAnalysisPipelineUpdateTable>
+    required _i1.ColumnValueListBuilder<EncryptedAnalysisScriptUpdateTable>
     columnValues,
     _i1.Transaction? transaction,
   }) async {
-    return session.db.updateById<EncryptedAnalysisPipeline>(
+    return session.db.updateById<EncryptedAnalysisScript>(
       id,
-      columnValues: columnValues(EncryptedAnalysisPipeline.t.updateTable),
+      columnValues: columnValues(EncryptedAnalysisScript.t.updateTable),
       transaction: transaction,
     );
   }
 
-  /// Updates all [EncryptedAnalysisPipeline]s matching the [where] expression with the specified [columnValues].
+  /// Updates all [EncryptedAnalysisScript]s matching the [where] expression with the specified [columnValues].
   /// Returns the list of updated rows.
-  Future<List<EncryptedAnalysisPipeline>> updateWhere(
+  Future<List<EncryptedAnalysisScript>> updateWhere(
     _i1.Session session, {
-    required _i1.ColumnValueListBuilder<EncryptedAnalysisPipelineUpdateTable>
+    required _i1.ColumnValueListBuilder<EncryptedAnalysisScriptUpdateTable>
     columnValues,
-    required _i1.WhereExpressionBuilder<EncryptedAnalysisPipelineTable> where,
+    required _i1.WhereExpressionBuilder<EncryptedAnalysisScriptTable> where,
     int? limit,
     int? offset,
-    _i1.OrderByBuilder<EncryptedAnalysisPipelineTable>? orderBy,
-    _i1.OrderByListBuilder<EncryptedAnalysisPipelineTable>? orderByList,
+    _i1.OrderByBuilder<EncryptedAnalysisScriptTable>? orderBy,
+    _i1.OrderByListBuilder<EncryptedAnalysisScriptTable>? orderByList,
     bool orderDescending = false,
     _i1.Transaction? transaction,
   }) async {
-    return session.db.updateWhere<EncryptedAnalysisPipeline>(
-      columnValues: columnValues(EncryptedAnalysisPipeline.t.updateTable),
-      where: where(EncryptedAnalysisPipeline.t),
+    return session.db.updateWhere<EncryptedAnalysisScript>(
+      columnValues: columnValues(EncryptedAnalysisScript.t.updateTable),
+      where: where(EncryptedAnalysisScript.t),
       limit: limit,
       offset: offset,
-      orderBy: orderBy?.call(EncryptedAnalysisPipeline.t),
-      orderByList: orderByList?.call(EncryptedAnalysisPipeline.t),
+      orderBy: orderBy?.call(EncryptedAnalysisScript.t),
+      orderByList: orderByList?.call(EncryptedAnalysisScript.t),
       orderDescending: orderDescending,
       transaction: transaction,
     );
   }
 
-  /// Deletes all [EncryptedAnalysisPipeline]s in the list and returns the deleted rows.
+  /// Deletes all [EncryptedAnalysisScript]s in the list and returns the deleted rows.
   /// This is an atomic operation, meaning that if one of the rows fail to
   /// be deleted, none of the rows will be deleted.
-  Future<List<EncryptedAnalysisPipeline>> delete(
+  Future<List<EncryptedAnalysisScript>> delete(
     _i1.Session session,
-    List<EncryptedAnalysisPipeline> rows, {
+    List<EncryptedAnalysisScript> rows, {
     _i1.Transaction? transaction,
   }) async {
-    return session.db.delete<EncryptedAnalysisPipeline>(
+    return session.db.delete<EncryptedAnalysisScript>(
       rows,
       transaction: transaction,
     );
   }
 
-  /// Deletes a single [EncryptedAnalysisPipeline].
-  Future<EncryptedAnalysisPipeline> deleteRow(
+  /// Deletes a single [EncryptedAnalysisScript].
+  Future<EncryptedAnalysisScript> deleteRow(
     _i1.Session session,
-    EncryptedAnalysisPipeline row, {
+    EncryptedAnalysisScript row, {
     _i1.Transaction? transaction,
   }) async {
-    return session.db.deleteRow<EncryptedAnalysisPipeline>(
+    return session.db.deleteRow<EncryptedAnalysisScript>(
       row,
       transaction: transaction,
     );
   }
 
   /// Deletes all rows matching the [where] expression.
-  Future<List<EncryptedAnalysisPipeline>> deleteWhere(
+  Future<List<EncryptedAnalysisScript>> deleteWhere(
     _i1.Session session, {
-    required _i1.WhereExpressionBuilder<EncryptedAnalysisPipelineTable> where,
+    required _i1.WhereExpressionBuilder<EncryptedAnalysisScriptTable> where,
     _i1.Transaction? transaction,
   }) async {
-    return session.db.deleteWhere<EncryptedAnalysisPipeline>(
-      where: where(EncryptedAnalysisPipeline.t),
+    return session.db.deleteWhere<EncryptedAnalysisScript>(
+      where: where(EncryptedAnalysisScript.t),
       transaction: transaction,
     );
   }
@@ -502,27 +502,27 @@ class EncryptedAnalysisPipelineRepository {
   /// will return the count of all rows in the table.
   Future<int> count(
     _i1.Session session, {
-    _i1.WhereExpressionBuilder<EncryptedAnalysisPipelineTable>? where,
+    _i1.WhereExpressionBuilder<EncryptedAnalysisScriptTable>? where,
     int? limit,
     _i1.Transaction? transaction,
   }) async {
-    return session.db.count<EncryptedAnalysisPipeline>(
-      where: where?.call(EncryptedAnalysisPipeline.t),
+    return session.db.count<EncryptedAnalysisScript>(
+      where: where?.call(EncryptedAnalysisScript.t),
       limit: limit,
       transaction: transaction,
     );
   }
 
-  /// Acquires row-level locks on [EncryptedAnalysisPipeline] rows matching the [where] expression.
+  /// Acquires row-level locks on [EncryptedAnalysisScript] rows matching the [where] expression.
   Future<void> lockRows(
     _i1.Session session, {
-    required _i1.WhereExpressionBuilder<EncryptedAnalysisPipelineTable> where,
+    required _i1.WhereExpressionBuilder<EncryptedAnalysisScriptTable> where,
     required _i1.LockMode lockMode,
     required _i1.Transaction transaction,
     _i1.LockBehavior lockBehavior = _i1.LockBehavior.wait,
   }) async {
-    return session.db.lockRows<EncryptedAnalysisPipeline>(
-      where: where(EncryptedAnalysisPipeline.t),
+    return session.db.lockRows<EncryptedAnalysisScript>(
+      where: where(EncryptedAnalysisScript.t),
       lockMode: lockMode,
       lockBehavior: lockBehavior,
       transaction: transaction,

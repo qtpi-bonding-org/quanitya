@@ -20,8 +20,8 @@ fields:
   # Archived encrypted schedules for this month
   schedules: List<EncryptedSchedule>
   
-  # Archived encrypted analysis pipelines for this month
-  analysisPipelines: List<EncryptedAnalysisPipeline>
+  # Archived encrypted analysis scripts for this month
+  analysisScripts: List<EncryptedAnalysisScript>
   
   # When this data was archived to R2
   archivedAt: DateTime
