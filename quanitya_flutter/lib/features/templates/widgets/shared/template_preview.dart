@@ -419,7 +419,6 @@ class _TemplatePreviewState extends State<TemplatePreview> {
           field: field,
           value: _previewValues[field.id],
           onChanged: (value) => _updatePreviewValue(field.id, value),
-          palette: _palette,
           widgetColors: widgetColors,
           textStyle: _bodyStyle.copyWith(
             color: QuanityaPalette.primary.textPrimary,

@@ -862,5 +862,34 @@
     "placeholders": {
       "fieldType": { "type": "String" }
     }
-  }
+  },
+
+  "fieldBuilderTooltipRemove": "Remove",
+  "fieldBuilderTooltipMinItems": "Minimum items reached",
+  "fieldBuilderAddItem": "Add {label}",
+  "@fieldBuilderAddItem": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "fieldBuilderMaxItemsReached": "Maximum {count} items reached",
+  "@fieldBuilderMaxItemsReached": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "fieldBuilderEnterHint": "Enter {label}",
+  "@fieldBuilderEnterHint": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "fieldBuilderSelectHint": "Select {label}",
+  "@fieldBuilderSelectHint": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "fieldBuilderUpdateLocation": "Update Location",
+  "fieldBuilderCaptureLocation": "Capture Location"
 }

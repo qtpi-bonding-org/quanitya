@@ -605,9 +605,11 @@ packages:
   flutter_adaptable_group:
     dependency: "direct main"
     description:
-      path: "../../../../../my-libs/flutter_adaptable_group"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "96ab228b52ded1ab71d1acbcbf4c1ff9a7d423cc"
+      url: "https://github.com/qtpi-bonding-org/flutter_adaptable_group.git"
+    source: git
     version: "0.1.0"
   flutter_bloc:
     dependency: "direct main"
