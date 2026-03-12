@@ -16,6 +16,7 @@ import '../../../design_system/widgets/analysis_output/analysis_output.dart';
 import '../../../design_system/widgets/quanitya_text_field.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
+import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
@@ -276,7 +277,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
             textStyle: TextStyle(
               fontFamily: 'monospace',
               fontSize: AppSizes.fontMini,
-              color: const Color(0xFF858585),
+              color: QuanityaPalette.primary.textSecondary,
             ),
           ),
         ),
@@ -296,9 +297,9 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
     final config = await llmCubit.buildLlmConfig(useCloudProxy: useCloudProxy);
     if (config == null) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.llmProviderConfigureLlm)),
-        );
+        PostItToast.show(context,
+            message: context.l10n.llmProviderConfigureLlm,
+            type: PostItType.warning);
       }
       return;
     }

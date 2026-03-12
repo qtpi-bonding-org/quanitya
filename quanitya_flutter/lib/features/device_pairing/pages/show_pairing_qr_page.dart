@@ -13,6 +13,7 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/device_name_display.dart';
+import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
@@ -218,9 +219,9 @@ class _ShowPairingQrViewState extends State<_ShowPairingQrView> {
           onPressed: () {
             final data = jsonEncode(state.qrData!.toJson());
             Clipboard.setData(ClipboardData(text: data));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(context.l10n.pairingDataCopied)),
-            );
+            PostItToast.show(context,
+                message: context.l10n.pairingDataCopied,
+                type: PostItType.success);
           },
         ),
         // Cancel button

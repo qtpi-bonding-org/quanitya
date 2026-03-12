@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:intl/intl.dart';
 
 import '../../../data/repositories/data_retrieval_service.dart';
 import '../../../design_system/primitives/app_spacings.dart';
@@ -13,10 +11,11 @@ import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/charts/time_series_chart.dart';
 import '../../../design_system/widgets/charts/boolean_heatmap_chart.dart';
 import '../../../design_system/widgets/charts/categorical_scatter_chart.dart';
-import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../support/extensions/context_extensions.dart';
+import '../../../design_system/widgets/quanitya_empty_state.dart';
 import '../../visualization/cubits/visualization_cubit.dart';
 import '../cubits/results_list_cubit.dart';
+import '../widgets/results_template_fold.dart';
 
 /// Graphs page for the Results section.
 ///
@@ -34,7 +33,7 @@ class ResultsGraphsPage extends StatelessWidget {
         }
 
         if (state.templates.isEmpty) {
-          return _EmptyResultsState();
+          return const QuanityaEmptyState();
         }
 
         return SingleChildScrollView(
@@ -42,112 +41,14 @@ class ResultsGraphsPage extends StatelessWidget {
           child: Column(
             children: [
               for (final item in state.templates)
-                _TemplateGraphsFold(item: item),
+                ResultsTemplateFold(
+                  item: item,
+                  bodyBuilder: () => const _GraphsFoldBody(),
+                ),
             ],
           ),
         );
       },
-    );
-  }
-}
-
-class _EmptyResultsState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    return Center(
-      child: Padding(
-        padding: AppPadding.allTriple,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.insights,
-                size: 64,
-                color: palette.textSecondary.withValues(alpha: 0.5)),
-            VSpace.x2,
-            Text('No Results Yet',
-                style: context.text.headlineSmall
-                    ?.copyWith(color: palette.textPrimary)),
-            VSpace.x1,
-            Text(
-              'Log entries to see visualizations here.',
-              textAlign: TextAlign.center,
-              style: context.text.bodyMedium
-                  ?.copyWith(color: palette.textSecondary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TemplateGraphsFold extends StatefulWidget {
-  final ResultsTemplateItem item;
-  const _TemplateGraphsFold({required this.item});
-
-  @override
-  State<_TemplateGraphsFold> createState() => _TemplateGraphsFoldState();
-}
-
-class _TemplateGraphsFoldState extends State<_TemplateGraphsFold> {
-  VisualizationCubit? _cubit;
-
-  void _onExpansionChanged(bool expanded) {
-    if (expanded) {
-      _cubit ??= GetIt.I<VisualizationCubit>();
-      _cubit!.loadForTemplate(widget.item.templateId);
-      setState(() {});
-    }
-  }
-
-  @override
-  void dispose() {
-    _cubit?.close();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    final dateFormat = DateFormat.yMMMd();
-
-    return NotebookFold(
-      onExpansionChanged: _onExpansionChanged,
-      header: Row(
-        children: [
-          Expanded(
-            child: Text(
-              widget.item.templateName,
-              style: context.text.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: palette.textPrimary,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          HSpace.x2,
-          Text(
-            '${widget.item.entryCount}',
-            style:
-                context.text.bodySmall?.copyWith(color: palette.textSecondary),
-          ),
-          if (widget.item.lastLoggedAt != null) ...[
-            HSpace.x1,
-            Text(
-              dateFormat.format(widget.item.lastLoggedAt!),
-              style: context.text.bodySmall
-                  ?.copyWith(color: palette.textSecondary),
-            ),
-          ],
-        ],
-      ),
-      child: _cubit == null
-          ? const SizedBox.shrink()
-          : BlocProvider.value(
-              value: _cubit!,
-              child: const _GraphsFoldBody(),
-            ),
     );
   }
 }

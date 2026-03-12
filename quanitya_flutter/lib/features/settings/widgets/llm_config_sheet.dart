@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
@@ -195,7 +196,7 @@ class _ModelTile extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.check_circle,
-                    size: 14,
+                    size: AppSizes.iconSmall,
                     color: context.colors.successColor,
                   ),
                   HSpace.x05,

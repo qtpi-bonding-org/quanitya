@@ -11,6 +11,7 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
+import '../../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_confirmation_dialog.dart';
@@ -251,9 +252,9 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
         final repo = GetIt.I<TemplateWithAestheticsRepository>();
         await repo.archive(templateId);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.l10n.templateDeleted)),
-          );
+          PostItToast.show(context,
+              message: context.l10n.templateDeleted,
+              type: PostItType.success);
           AppNavigation.back(context);
         }
       },
@@ -353,9 +354,9 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     final config = await llmCubit.buildLlmConfig(useCloudProxy: useCloudProxy);
     if (config == null) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.llmProviderConfigureLlm)),
-        );
+        PostItToast.show(context,
+            message: context.l10n.llmProviderConfigureLlm,
+            type: PostItType.warning);
       }
       return;
     }

@@ -674,5 +674,72 @@
   "errorSettingsFailed": "Settings operation failed",
   "errorLocationFailed": "Location error",
   "errorRecoveryFailed": "Account recovery failed",
-  "errorDeviceRevocationFailed": "Device revocation failed"
+  "errorDeviceRevocationFailed": "Device revocation failed",
+
+  "settingsHealthMetrics": "Health Metrics",
+  "healthAccessGranted": "Health data access granted",
+  "healthAccessNotRequested": "Health data access not yet requested",
+  "healthRequestPermissions": "Request Permissions",
+  "healthSyncData": "Sync Health Data",
+  "healthEntriesImported": "{count} entries imported",
+  "@healthEntriesImported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "resultsTabGraphs": "Graphs",
+  "resultsTabAnalysis": "Analysis",
+  "resultsNoResultsTitle": "No Results Yet",
+  "resultsNoResultsGraphsDescription": "Log entries to see visualizations here.",
+  "resultsNoResultsAnalysisDescription": "Log entries to see analysis here.",
+  "resultsAnalyzeFields": "Analyze Fields",
+  "resultsAnalyzeFieldsDescription": "Select a numeric field to create or view analysis scripts",
+  "resultsAnalysisResults": "Analysis Results",
+  "resultsAnalysisResultsDescription": "Results from executed analysis scripts",
+  "resultsNoAnalysisTitle": "No Analysis Available",
+  "resultsNoAnalysisDescription": "Add numeric fields to your template to enable analysis scripts.",
+  "resultsDataPoints": "{count} data points",
+  "@resultsDataPoints": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "errorBoxNoReports": "No Error Reports",
+  "errorBoxNoReportsDescription": "Error reports will appear here as you encounter errors.",
+  "errorBoxPrivacyBanner": "Privacy-first: Only technical error data, no personal information",
+  "errorBoxSendAllReports": "Send All Reports",
+
+  "notificationMarkAsRead": "Mark as Read",
+  "notificationOpen": "Open",
+  "notificationJustNow": "Just now",
+  "notificationMinutesAgo": "{count}m ago",
+  "@notificationMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationHoursAgo": "{count}h ago",
+  "@notificationHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationDaysAgo": "{count}d ago",
+  "@notificationDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

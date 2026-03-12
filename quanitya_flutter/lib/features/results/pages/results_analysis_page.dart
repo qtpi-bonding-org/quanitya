@@ -2,8 +2,6 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
-import 'package:intl/intl.dart';
 
 import '../../../app_router.dart';
 import '../../../data/repositories/data_retrieval_service.dart';
@@ -12,12 +10,13 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/analysis_output/analysis_output.dart';
-import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../logic/analytics/models/analysis_output.dart';
 import '../../../logic/analytics/models/matrix_vector_scalar/time_series_matrix.dart';
 import '../../../support/extensions/context_extensions.dart';
+import '../../../design_system/widgets/quanitya_empty_state.dart';
 import '../../visualization/cubits/visualization_cubit.dart';
 import '../cubits/results_list_cubit.dart';
+import '../widgets/results_template_fold.dart';
 
 /// Analysis page for the Results section.
 ///
@@ -35,7 +34,7 @@ class ResultsAnalysisPage extends StatelessWidget {
         }
 
         if (state.templates.isEmpty) {
-          return _EmptyResultsState();
+          return const QuanityaEmptyState();
         }
 
         return SingleChildScrollView(
@@ -43,112 +42,14 @@ class ResultsAnalysisPage extends StatelessWidget {
           child: Column(
             children: [
               for (final item in state.templates)
-                _TemplateAnalysisFold(item: item),
+                ResultsTemplateFold(
+                  item: item,
+                  bodyBuilder: () => const _AnalysisFoldBody(),
+                ),
             ],
           ),
         );
       },
-    );
-  }
-}
-
-class _EmptyResultsState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    return Center(
-      child: Padding(
-        padding: AppPadding.allTriple,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.analytics_outlined,
-                size: 64,
-                color: palette.textSecondary.withValues(alpha: 0.5)),
-            VSpace.x2,
-            Text('No Results Yet',
-                style: context.text.headlineSmall
-                    ?.copyWith(color: palette.textPrimary)),
-            VSpace.x1,
-            Text(
-              'Log entries to see analysis here.',
-              textAlign: TextAlign.center,
-              style: context.text.bodyMedium
-                  ?.copyWith(color: palette.textSecondary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TemplateAnalysisFold extends StatefulWidget {
-  final ResultsTemplateItem item;
-  const _TemplateAnalysisFold({required this.item});
-
-  @override
-  State<_TemplateAnalysisFold> createState() => _TemplateAnalysisFoldState();
-}
-
-class _TemplateAnalysisFoldState extends State<_TemplateAnalysisFold> {
-  VisualizationCubit? _cubit;
-
-  void _onExpansionChanged(bool expanded) {
-    if (expanded) {
-      _cubit ??= GetIt.I<VisualizationCubit>();
-      _cubit!.loadForTemplate(widget.item.templateId);
-      setState(() {});
-    }
-  }
-
-  @override
-  void dispose() {
-    _cubit?.close();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-    final dateFormat = DateFormat.yMMMd();
-
-    return NotebookFold(
-      onExpansionChanged: _onExpansionChanged,
-      header: Row(
-        children: [
-          Expanded(
-            child: Text(
-              widget.item.templateName,
-              style: context.text.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: palette.textPrimary,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          HSpace.x2,
-          Text(
-            '${widget.item.entryCount}',
-            style: context.text.bodySmall
-                ?.copyWith(color: palette.textSecondary),
-          ),
-          if (widget.item.lastLoggedAt != null) ...[
-            HSpace.x1,
-            Text(
-              dateFormat.format(widget.item.lastLoggedAt!),
-              style: context.text.bodySmall
-                  ?.copyWith(color: palette.textSecondary),
-            ),
-          ],
-        ],
-      ),
-      child: _cubit == null
-          ? const SizedBox.shrink()
-          : BlocProvider.value(
-              value: _cubit!,
-              child: const _AnalysisFoldBody(),
-            ),
     );
   }
 }
@@ -172,7 +73,7 @@ class _AnalysisFoldBody extends StatelessWidget {
 
         // Show placeholder if no analysis results and no numeric fields
         if (state.analysisResults.isEmpty && data.numericFields.isEmpty) {
-          return _NoAnalysisPlaceholder();
+          return const QuanityaEmptyState();
         }
 
         return QuanityaColumn(
@@ -217,7 +118,7 @@ class _AnalyzeFieldsSection extends StatelessWidget {
                 size: AppSizes.iconMedium, color: palette.textPrimary),
             HSpace.x1,
             Text(
-              'Analyze Fields',
+              context.l10n.resultsAnalyzeFields,
               style: context.text.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: palette.textPrimary,
@@ -227,7 +128,7 @@ class _AnalyzeFieldsSection extends StatelessWidget {
         ),
         VSpace.x1,
         Text(
-          'Select a numeric field to create or view analysis scripts',
+          context.l10n.resultsAnalyzeFieldsDescription,
           style:
               context.text.bodyMedium?.copyWith(color: palette.textSecondary),
         ),
@@ -263,7 +164,7 @@ class _AnalysisResultsSection extends StatelessWidget {
             ),
             HSpace.x1,
             Text(
-              'Analysis Results',
+              context.l10n.resultsAnalysisResults,
               style: context.text.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: palette.textPrimary,
@@ -273,7 +174,7 @@ class _AnalysisResultsSection extends StatelessWidget {
         ),
         VSpace.x1,
         Text(
-          'Results from executed analysis scripts',
+          context.l10n.resultsAnalysisResultsDescription,
           style: context.text.bodyMedium?.copyWith(
             color: palette.textSecondary,
           ),
@@ -428,7 +329,7 @@ class _FieldAnalysisCard extends StatelessWidget {
                       ),
                       VSpace.x05,
                       Text(
-                        '${fieldData.points.length} data points',
+                        context.l10n.resultsDataPoints(fieldData.points.length),
                         style: context.text.bodySmall?.copyWith(
                           color: palette.textSecondary,
                         ),
@@ -450,41 +351,3 @@ class _FieldAnalysisCard extends StatelessWidget {
   }
 }
 
-/// Placeholder when there are no analysis pipelines or numeric fields.
-class _NoAnalysisPlaceholder extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-
-    return Center(
-      child: Padding(
-        padding: AppPadding.allTriple,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.analytics_outlined,
-              size: 64,
-              color: palette.textSecondary.withValues(alpha: 0.5),
-            ),
-            VSpace.x2,
-            Text(
-              'No Analysis Available',
-              style: context.text.headlineSmall?.copyWith(
-                color: palette.textPrimary,
-              ),
-            ),
-            VSpace.x1,
-            Text(
-              'Add numeric fields to your template to enable analysis scripts.',
-              textAlign: TextAlign.center,
-              style: context.text.bodyMedium?.copyWith(
-                color: palette.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

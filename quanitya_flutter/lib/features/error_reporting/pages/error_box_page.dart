@@ -43,7 +43,7 @@ class _ErrorBoxView extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'Error Reports',
+            context.l10n.settingsErrorReports,
             style: context.text.headlineMedium,
           ),
           leading: QuanityaIconButton(
@@ -71,11 +71,11 @@ class ErrorsTabContent extends StatelessWidget {
           isEmpty: state.unsentErrors.isEmpty,
           emptyState: OutboxEmptyState(
             icon: Icons.bug_report_outlined,
-            title: 'No Error Reports',
-            description: 'Error reports will appear here as you encounter errors.',
+            title: context.l10n.errorBoxNoReports,
+            description: context.l10n.errorBoxNoReportsDescription,
           ),
           banner: OutboxPrivacyBanner(
-            text: 'Privacy-first: Only technical error data, no personal information',
+            text: context.l10n.errorBoxPrivacyBanner,
           ),
           content: ListView.separated(
             padding: AppPadding.page,
@@ -137,7 +137,7 @@ class _BottomActions extends StatelessWidget {
           child: SafeArea(
             top: false,
             child: QuanityaTextButton(
-              text: 'Send All Reports',
+              text: context.l10n.errorBoxSendAllReports,
               onPressed: state.status == UiFlowStatus.loading
                   ? null
                   : () => _sendAllAndPromptClear(context),

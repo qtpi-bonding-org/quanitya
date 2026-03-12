@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/swipeable_page_shell.dart';
+import '../../../design_system/widgets/multi_ui_flow_listener.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../l10n/app_localizations.dart';
@@ -83,40 +84,50 @@ class _OfficePageState extends State<OfficePage> {
         BlocProvider(create: (_) => GetIt.instance<PurchaseCubit>()),
         BlocProvider(create: (_) => GetIt.instance<EntitlementCubit>()),
       ],
-      child: UiFlowListener<LlmProviderCubit, LlmProviderState>(
-        mapper: GetIt.instance<LlmProviderMessageMapper>(),
-        child: UiFlowListener<DataExportCubit, DataExportState>(
-          mapper: GetIt.instance<DataExportMessageMapper>(),
-          child: UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
+      child: MultiUiFlowListener(
+        listeners: [
+          (child) => UiFlowListener<LlmProviderCubit, LlmProviderState>(
+            mapper: GetIt.instance<LlmProviderMessageMapper>(),
+            child: child,
+          ),
+          (child) => UiFlowListener<DataExportCubit, DataExportState>(
+            mapper: GetIt.instance<DataExportMessageMapper>(),
+            child: child,
+          ),
+          (child) => UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
             mapper: GetIt.instance<RecoveryKeyMessageMapper>(),
-            child: UiFlowListener<WebhookCubit, WebhookState>(
-              mapper: GetIt.instance<WebhookMessageMapper>(),
-              child: UiFlowListener<PurchaseCubit, PurchaseState>(
-                mapper: GetIt.instance<PurchaseMessageMapper>(),
-                child: UiFlowListener<EntitlementCubit, EntitlementState>(
-                  mapper: GetIt.instance<EntitlementMessageMapper>(),
-                  child: Builder(
-                    builder: (innerContext) => SwipeablePageShell(
-                      onPageChanged: (index) =>
-                          _onPageChanged(innerContext, index),
-                      pages: const [
-                        SettingsContent(),
-                        PurchaseTabContent(),
-                        AppInfoTabContent(),
-                      ],
-                      labels: [
-                        _buildLabel(
-                            context, l10n.officeTabPreferences, _currentIndex == 0),
-                        _buildLabel(
-                            context, l10n.officeTabPurchases, _currentIndex == 1),
-                        _buildLabel(
-                            context, l10n.officeTabInfo, _currentIndex == 2),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            child: child,
+          ),
+          (child) => UiFlowListener<WebhookCubit, WebhookState>(
+            mapper: GetIt.instance<WebhookMessageMapper>(),
+            child: child,
+          ),
+          (child) => UiFlowListener<PurchaseCubit, PurchaseState>(
+            mapper: GetIt.instance<PurchaseMessageMapper>(),
+            child: child,
+          ),
+          (child) => UiFlowListener<EntitlementCubit, EntitlementState>(
+            mapper: GetIt.instance<EntitlementMessageMapper>(),
+            child: child,
+          ),
+        ],
+        child: Builder(
+          builder: (innerContext) => SwipeablePageShell(
+            onPageChanged: (index) =>
+                _onPageChanged(innerContext, index),
+            pages: const [
+              SettingsContent(),
+              PurchaseTabContent(),
+              AppInfoTabContent(),
+            ],
+            labels: [
+              _buildLabel(
+                  context, l10n.officeTabPreferences, _currentIndex == 0),
+              _buildLabel(
+                  context, l10n.officeTabPurchases, _currentIndex == 1),
+              _buildLabel(
+                  context, l10n.officeTabInfo, _currentIndex == 2),
+            ],
           ),
         ),
       ),

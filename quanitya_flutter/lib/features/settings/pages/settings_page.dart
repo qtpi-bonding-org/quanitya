@@ -10,6 +10,7 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' as cloud;
 
 import '../../../../app_router.dart';
 import '../../../../support/extensions/context_extensions.dart';
+import '../../../../design_system/widgets/multi_ui_flow_listener.dart';
 import '../../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
@@ -76,29 +77,37 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return UiFlowListener<LlmProviderCubit, LlmProviderState>(
-      mapper: GetIt.instance<LlmProviderMessageMapper>(),
-      child: UiFlowListener<DataExportCubit, DataExportState>(
-        mapper: GetIt.instance<DataExportMessageMapper>(),
-        child: UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
+    return MultiUiFlowListener(
+      listeners: [
+        (child) => UiFlowListener<LlmProviderCubit, LlmProviderState>(
+          mapper: GetIt.instance<LlmProviderMessageMapper>(),
+          child: child,
+        ),
+        (child) => UiFlowListener<DataExportCubit, DataExportState>(
+          mapper: GetIt.instance<DataExportMessageMapper>(),
+          child: child,
+        ),
+        (child) => UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
           mapper: GetIt.instance<RecoveryKeyMessageMapper>(),
-          child: UiFlowListener<WebhookCubit, WebhookState>(
-            mapper: GetIt.instance<WebhookMessageMapper>(),
-            child: Scaffold(
-              appBar: AppBar(
-                title: Text(
-                  context.l10n.settingsTitle,
-                  style: context.text.headlineMedium,
-                ),
-                leading: QuanityaIconButton(
-                  icon: Icons.arrow_back,
-                  onPressed: () => AppNavigation.back(context),
-                ),
-              ),
-              body: const SettingsContent(),
-            ),
+          child: child,
+        ),
+        (child) => UiFlowListener<WebhookCubit, WebhookState>(
+          mapper: GetIt.instance<WebhookMessageMapper>(),
+          child: child,
+        ),
+      ],
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            context.l10n.settingsTitle,
+            style: context.text.headlineMedium,
+          ),
+          leading: QuanityaIconButton(
+            icon: Icons.arrow_back,
+            onPressed: () => AppNavigation.back(context),
           ),
         ),
+        body: const SettingsContent(),
       ),
     );
   }
@@ -152,7 +161,7 @@ class SettingsContent extends StatelessWidget {
               header: Row(children: [
                 Icon(Icons.monitor_heart, size: AppSizes.iconMedium, color: context.colors.textPrimary),
                 HSpace.x2,
-                Text('Health Metrics', style: context.text.titleMedium),
+                Text(context.l10n.settingsHealthMetrics, style: context.text.titleMedium),
               ]),
               child: const _HealthConnectSection(),
             ),
@@ -222,8 +231,8 @@ class _HealthConnectSection extends StatelessWidget {
           children: [
             Text(
               state.permissionsGranted
-                  ? 'Health data access granted'
-                  : 'Health data access not yet requested',
+                  ? context.l10n.healthAccessGranted
+                  : context.l10n.healthAccessNotRequested,
               style: context.text.bodyMedium?.copyWith(
                 color: state.permissionsGranted
                     ? context.colors.successColor
@@ -233,14 +242,14 @@ class _HealthConnectSection extends StatelessWidget {
             VSpace.x3,
             if (!state.permissionsGranted)
               QuanityaTextButton(
-                text: 'Request Permissions',
+                text: context.l10n.healthRequestPermissions,
                 onPressed: isLoading
                     ? null
                     : () => cubit.requestPermissions(_defaultHealthTypes),
               ),
             if (state.permissionsGranted) ...[
               QuanityaTextButton(
-                text: 'Sync Health Data',
+                text: context.l10n.healthSyncData,
                 onPressed: isLoading
                     ? null
                     : () => cubit.sync(_defaultHealthTypes),
@@ -248,7 +257,7 @@ class _HealthConnectSection extends StatelessWidget {
               if (state.lastImportCount > 0) ...[
                 VSpace.x2,
                 Text(
-                  '${state.lastImportCount} entries imported',
+                  context.l10n.healthEntriesImported(state.lastImportCount),
                   style: context.text.bodySmall?.copyWith(
                     color: context.colors.textSecondary,
                   ),

@@ -33,7 +33,7 @@ class _ResultsSectionState extends State<ResultsSection> {
         ],
         labels: [
           Text(
-            'Graphs',
+            context.l10n.resultsTabGraphs,
             style: context.text.bodySmall?.copyWith(
               fontWeight:
                   _currentPageIndex == 0 ? FontWeight.w900 : FontWeight.w500,
@@ -43,7 +43,7 @@ class _ResultsSectionState extends State<ResultsSection> {
             ),
           ),
           Text(
-            'Analysis',
+            context.l10n.resultsTabAnalysis,
             style: context.text.bodySmall?.copyWith(
               fontWeight:
                   _currentPageIndex == 1 ? FontWeight.w900 : FontWeight.w500,

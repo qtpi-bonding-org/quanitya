@@ -10,6 +10,7 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_field.dart';
 import '../../outbox/widgets/outbox_tab_content.dart';
@@ -148,9 +149,9 @@ class _FeedbackTabContentState extends State<FeedbackTabContent> {
     final text = _textController.text.trim();
     if (text.length < 10) {
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.errorFeedbackTooShort)),
-      );
+      PostItToast.show(context,
+          message: l10n.errorFeedbackTooShort,
+          type: PostItType.warning);
       return;
     }
     context.read<FeedbackCubit>().submitFeedback(

@@ -45,7 +45,7 @@ class NotificationCard extends StatelessWidget {
                       )),
                       VSpace.x025,
                       Text(
-                        _formatTimestamp(notification.createdAt),
+                        _formatTimestamp(context, notification.createdAt),
                         style: context.text.bodySmall?.copyWith(
                           color: context.colors.textPrimary.withValues(alpha: 0.6),
                         ),
@@ -68,14 +68,14 @@ class NotificationCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: QuanityaTextButton(
-                      text: 'Mark as Read',
+                      text: context.l10n.notificationMarkAsRead,
                       onPressed: onMark,
                     ),
                   ),
                   HSpace.x2,
                   Expanded(
                     child: QuanityaTextButton(
-                      text: notification.actionLabel ?? 'Open',
+                      text: notification.actionLabel ?? context.l10n.notificationOpen,
                       onPressed: () {
                         // TODO: Handle deep link navigation
                         onMark();
@@ -99,15 +99,15 @@ class NotificationCard extends StatelessWidget {
     );
   }
 
-  String _formatTimestamp(DateTime timestamp) {
+  String _formatTimestamp(BuildContext context, DateTime timestamp) {
     final now = DateTime.now();
     final diff = now.difference(timestamp);
-    
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
-    if (diff.inDays < 1) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    
+
+    if (diff.inMinutes < 1) return context.l10n.notificationJustNow;
+    if (diff.inHours < 1) return context.l10n.notificationMinutesAgo(diff.inMinutes);
+    if (diff.inDays < 1) return context.l10n.notificationHoursAgo(diff.inHours);
+    if (diff.inDays < 7) return context.l10n.notificationDaysAgo(diff.inDays);
+
     return DateFormat.yMd().add_jm().format(timestamp);
   }
 }
@@ -132,14 +132,14 @@ class _NotificationIcon extends StatelessWidget {
   }
 
   ({IconData icon, Color color}) _getIconConfig(String type, BuildContext context) {
-    final primary = context.colors.textPrimary;
+    final colors = context.colors;
     return switch (type) {
-      'inform' => (icon: Icons.info_outline, color: Colors.blue),
-      'warning' => (icon: Icons.warning_amber_outlined, color: Colors.orange),
-      'failure' => (icon: Icons.error_outline, color: Colors.red),
-      'success' => (icon: Icons.check_circle_outline, color: Colors.green),
-      'announcement' => (icon: Icons.campaign_outlined, color: Colors.purple),
-      _ => (icon: Icons.notifications_outlined, color: primary.withValues(alpha: 0.6)),
+      'inform' => (icon: Icons.info_outline, color: colors.infoColor),
+      'warning' => (icon: Icons.warning_amber_outlined, color: colors.warningColor),
+      'failure' => (icon: Icons.error_outline, color: colors.destructiveColor),
+      'success' => (icon: Icons.check_circle_outline, color: colors.successColor),
+      'announcement' => (icon: Icons.campaign_outlined, color: colors.interactableColor),
+      _ => (icon: Icons.notifications_outlined, color: colors.textPrimary.withValues(alpha: 0.6)),
     };
   }
 }

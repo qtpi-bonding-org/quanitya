@@ -9,6 +9,7 @@ import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
+import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart' as btn;
 
@@ -214,12 +215,9 @@ class _ErrorDetails extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.stackTraceCopied),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    PostItToast.show(context,
+        message: context.l10n.stackTraceCopied,
+        type: PostItType.success);
   }
 }
 

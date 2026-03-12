@@ -157,14 +157,14 @@ class _FieldEditorListState extends State<FieldEditorList> {
                       Icon(
                         Icons.warning_amber_outlined,
                         size: AppSizes.size16,
-                        color: Colors.amber[600],
+                        color: context.colors.warningColor,
                       ),
                       HSpace.x05,
                       Expanded(
                         child: Text(
                           'No default value set - quick log won\'t work',
                           style: context.text.bodySmall?.copyWith(
-                            color: Colors.amber[600],
+                            color: context.colors.warningColor,
                           ),
                         ),
                       ),
