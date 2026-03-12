@@ -6,14 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'app/root_navigator_key.dart';
 import 'features/templates/pages/template_designer_page.dart';
 import 'features/analytics/pages/analysis_builder_page.dart';
-import 'features/settings/pages/settings_page.dart';
-import 'features/settings/pages/app_info_page.dart';
-import 'features/analytics_inbox/pages/analytics_inbox_page.dart';
-import 'features/error_reporting/pages/error_box_page.dart';
-import 'features/user_feedback/pages/feedback_page.dart';
-import 'features/outbox/pages/outbox_page.dart';
 import 'l10n/app_localizations.dart';
-import 'features/notifications/pages/notification_inbox_page.dart';
 import 'data/repositories/template_with_aesthetics_repository.dart';
 import 'features/log_entry/pages/logged_entries_template_page.dart';
 import 'features/home/pages/notebook_shell.dart';
@@ -24,7 +17,6 @@ import 'features/onboarding/pages/recovery_key_backup_page.dart';
 import 'features/onboarding/pages/account_recovery_page.dart';
 import 'features/onboarding/cubits/onboarding_cubit.dart';
 import 'features/templates/pages/template_import_page.dart';
-import 'features/purchase/pages/purchase_page.dart';
 import 'features/device_pairing/pages/show_pairing_qr_page.dart';
 import 'features/device_pairing/pages/scan_pairing_qr_page.dart';
 import 'features/onboarding/pages/connect_device_page.dart';
@@ -176,46 +168,6 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: AppRoutes.settings,
-            name: RouteNames.settings,
-            builder: (context, state) => const SettingsPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.appInfo,
-            name: RouteNames.appInfo,
-            builder: (context, state) => const AppInfoPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.errorBox,
-            name: RouteNames.errorBox,
-            builder: (context, state) => const ErrorBoxPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.analyticsInbox,
-            name: RouteNames.analyticsInbox,
-            builder: (context, state) => const AnalyticsInboxPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.feedback,
-            name: RouteNames.feedback,
-            builder: (context, state) => const FeedbackPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.outbox,
-            name: RouteNames.outbox,
-            builder: (context, state) => const PostagePage(),
-          ),
-          GoRoute(
-            path: AppRoutes.notificationInbox,
-            name: RouteNames.notificationInbox,
-            builder: (context, state) => const NotificationInboxPage(),
-          ),
-          GoRoute(
-            path: AppRoutes.purchase,
-            name: RouteNames.purchase,
-            builder: (context, state) => const PurchasePage(),
-          ),
-          GoRoute(
             path: AppRoutes.templateImport,
             name: RouteNames.templateImport,
             builder: (context, state) => const TemplateImportPage(),
@@ -262,16 +214,8 @@ class AppRoutes {
   static const String about = '/about';
   static const String templateEditor = '/template-editor';
   static const String logHistory = '/log-history/:templateId';
-  static const String settings = '/settings';
-  static const String appInfo = '/app-info';
-  static const String errorBox = '/error-box';
-  static const String analyticsInbox = '/analytics-inbox';
-  static const String feedback = '/feedback';
-  static const String outbox = '/outbox';
-  static const String notificationInbox = '/notification-inbox';
   static const String connectDevice = '/connect-device';
   static const String scriptBuilder = '/script-builder';
-  static const String purchase = '/purchase';
   static const String templateImport = '/template-import';
 }
 
@@ -286,16 +230,8 @@ class RouteNames {
   static const String about = 'about';
   static const String templateEditor = 'templateEditor';
   static const String logHistory = 'logHistory';
-  static const String settings = 'settings';
-  static const String appInfo = 'appInfo';
-  static const String errorBox = 'errorBox';
-  static const String analyticsInbox = 'analyticsInbox';
-  static const String feedback = 'feedback';
-  static const String outbox = 'outbox';
-  static const String notificationInbox = 'notificationInbox';
   static const String connectDevice = 'connectDevice';
   static const String scriptBuilder = 'scriptBuilder';
-  static const String purchase = 'purchase';
   static const String templateImport = 'templateImport';
 }
 
@@ -319,37 +255,6 @@ class AppNavigation {
     );
   }
 
-  static void toSettings(BuildContext context) {
-    context.pushNamed(RouteNames.settings);
-  }
-
-  static void toAppInfo(BuildContext context) {
-    context.pushNamed(RouteNames.appInfo);
-  }
-
-  static void toErrorBox(BuildContext context) {
-    context.pushNamed(RouteNames.errorBox);
-  }
-
-  static void toAnalyticsInbox(BuildContext context) {
-    context.pushNamed(RouteNames.analyticsInbox);
-  }
-
-  static void toOutbox(BuildContext context) {
-    context.pushNamed(RouteNames.outbox);
-  }
-
-  static void toNotificationInbox(BuildContext context) {
-    context.pushNamed(RouteNames.notificationInbox);
-  }
-
-  static void toPurchase(BuildContext context) {
-    context.pushNamed(RouteNames.purchase);
-  }
-
-  static void toFeedback(BuildContext context) {
-    context.pushNamed(RouteNames.feedback);
-  }
 
   static void back(BuildContext context) {
     if (context.canPop()) {

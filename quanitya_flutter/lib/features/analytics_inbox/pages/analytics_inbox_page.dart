@@ -1,67 +1,21 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app_router.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
-import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
-import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../data/dao/analytics_inbox_dao.dart';
 import '../cubits/analytics_inbox_cubit.dart';
 import '../cubits/analytics_inbox_state.dart';
-import '../cubits/analytics_inbox_message_mapper.dart';
 import '../../outbox/widgets/outbox_tab_content.dart';
 
-/// Analytics Inbox Page - Review and send usage analytics events
-///
-/// Shows grouped analytics events with counts and timestamps.
-/// Users can toggle auto-send, send all, or clear events.
-class AnalyticsInboxPage extends StatelessWidget {
-  const AnalyticsInboxPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GetIt.instance<AnalyticsInboxCubit>()..load(),
-      child: const _AnalyticsInboxView(),
-    );
-  }
-}
-
-class _AnalyticsInboxView extends StatelessWidget {
-  const _AnalyticsInboxView();
-
-  @override
-  Widget build(BuildContext context) {
-    return UiFlowListener<AnalyticsInboxCubit, AnalyticsInboxState>(
-      mapper: GetIt.instance<AnalyticsInboxMessageMapper>(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            context.l10n.analyticsInboxTitle,
-            style: context.text.headlineMedium,
-          ),
-          leading: QuanityaIconButton(
-            icon: Icons.arrow_back,
-            onPressed: () => AppNavigation.back(context),
-          ),
-        ),
-        body: const AnalyticsTabContent(),
-      ),
-    );
-  }
-}
-
-/// Reusable analytics inbox content — used in both standalone AnalyticsInboxPage
-/// and the unified PostagePage tab.
+/// Analytics inbox content — embedded in [NotebookShell] via PostagePage.
 class AnalyticsTabContent extends StatelessWidget {
   const AnalyticsTabContent({super.key});
 

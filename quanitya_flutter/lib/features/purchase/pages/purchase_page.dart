@@ -1,66 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
-import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/purchase_cubit.dart';
 import '../cubits/purchase_state.dart';
-import '../cubits/purchase_message_mapper.dart';
 import '../cubits/entitlement_cubit.dart';
 import '../cubits/entitlement_state.dart';
-import '../cubits/entitlement_message_mapper.dart';
 import '../widgets/product_card.dart';
 import '../widgets/balance_display.dart';
 
-/// Purchase page showing available products and entitlement balances.
-class PurchasePage extends StatelessWidget {
-  const PurchasePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => GetIt.instance<PurchaseCubit>()..loadProducts(),
-        ),
-        BlocProvider(
-          create: (_) => GetIt.instance<EntitlementCubit>()
-            ..loadEntitlements()
-            ..checkSyncAccess(),
-        ),
-      ],
-      child: const _PurchaseView(),
-    );
-  }
-}
-
-class _PurchaseView extends StatelessWidget {
-  const _PurchaseView();
-
-  @override
-  Widget build(BuildContext context) {
-    return UiFlowListener<PurchaseCubit, PurchaseState>(
-      mapper: GetIt.instance<PurchaseMessageMapper>(),
-      child: UiFlowListener<EntitlementCubit, EntitlementState>(
-        mapper: GetIt.instance<EntitlementMessageMapper>(),
-        child: Scaffold(
-          appBar: AppBar(title: Text(context.l10n.purchaseTitle)),
-          body: const PurchaseTabContent(),
-        ),
-      ),
-    );
-  }
-}
-
-/// Embeddable purchase content — used in both standalone PurchasePage
-/// and the unified OfficePage tab.
+/// Purchase content — embedded in [NotebookShell] via OfficePage.
 ///
 /// Expects [PurchaseCubit] and [EntitlementCubit] to be available via
 /// [BlocProvider] above.

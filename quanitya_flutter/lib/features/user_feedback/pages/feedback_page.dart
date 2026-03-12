@@ -1,64 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
-import '../../../app_router.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
-import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_field.dart';
 import '../../outbox/widgets/outbox_tab_content.dart';
-import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../cubits/feedback_cubit.dart';
 import '../cubits/feedback_state.dart';
-import '../mappers/feedback_message_mapper.dart';
 
-/// Page for submitting user feedback.
-class FeedbackPage extends StatelessWidget {
-  const FeedbackPage({super.key});
-  
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GetIt.instance<FeedbackCubit>(),
-      child: const _FeedbackPageContent(),
-    );
-  }
-}
-
-class _FeedbackPageContent extends StatelessWidget {
-  const _FeedbackPageContent();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return UiFlowListener<FeedbackCubit, FeedbackState>(
-      mapper: GetIt.instance<FeedbackMessageMapper>(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            l10n.feedbackTitle,
-            style: context.text.headlineMedium,
-          ),
-          leading: QuanityaIconButton(
-            icon: Icons.arrow_back,
-            onPressed: () => AppNavigation.back(context),
-          ),
-        ),
-        body: const FeedbackTabContent(),
-      ),
-    );
-  }
-}
-
-/// Reusable feedback form content — used in both standalone FeedbackPage
-/// and the unified PostagePage tab.
+/// Feedback form content — embedded in [NotebookShell] via PostagePage.
 class FeedbackTabContent extends StatefulWidget {
   const FeedbackTabContent({super.key});
 

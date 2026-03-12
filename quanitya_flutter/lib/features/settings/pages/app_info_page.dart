@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../app_router.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
-import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../support/extensions/context_extensions.dart';
 
 Future<void> _launchUrl(String url) async {
@@ -16,29 +14,7 @@ Future<void> _launchUrl(String url) async {
   }
 }
 
-class AppInfoPage extends StatelessWidget {
-  const AppInfoPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(context.l10n.information, style: context.text.headlineMedium),
-        leading: QuanityaIconButton(
-          icon: Icons.arrow_back,
-          onPressed: () => AppNavigation.back(context),
-        ),
-      ),
-      body: const AppInfoTabContent(),
-    );
-  }
-}
-
-/// Embeddable app info content — used in both standalone AppInfoPage
-/// and the unified OfficePage tab.
+/// App info content — embedded in [NotebookShell] via OfficePage.
 class AppInfoTabContent extends StatelessWidget {
   const AppInfoTabContent({super.key});
 

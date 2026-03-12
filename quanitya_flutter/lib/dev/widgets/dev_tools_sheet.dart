@@ -227,9 +227,6 @@ class DevToolsSheet extends StatelessWidget {
                 children: [
                   _NavChip(label: 'Onboarding', route: AppRoutes.onboarding),
                   _NavChip(label: 'About', route: AppRoutes.about),
-                  _NavChip(label: 'Settings', route: AppRoutes.settings),
-                  _NavChip(label: 'Template Editor', route: AppRoutes.templateEditor),
-                  _NavChip(label: 'Script Builder', route: AppRoutes.scriptBuilder),
                 ],
               ),
               VSpace.x4,
@@ -289,12 +286,6 @@ class _NavChip extends StatelessWidget {
         context.go(route); // Use go for onboarding to reset stack
       case AppRoutes.about:
         AppNavigation.toAbout(context);
-      case AppRoutes.settings:
-        AppNavigation.toSettings(context);
-      case AppRoutes.templateEditor:
-        AppNavigation.toTemplateDesigner(context);
-      case AppRoutes.scriptBuilder:
-        AppNavigation.toAnalysisBuilder(context);
       default:
         context.go(route);
     }

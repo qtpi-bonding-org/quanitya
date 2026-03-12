@@ -10,13 +10,10 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' as cloud;
 
 import '../../../../app_router.dart';
 import '../../../../support/extensions/context_extensions.dart';
-import '../../../../design_system/widgets/multi_ui_flow_listener.dart';
-import '../../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/primitives/quanitya_fonts.dart';
-import '../../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
@@ -27,21 +24,13 @@ import '../../../../infrastructure/webhooks/models/webhook_model.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../app_operating_mode/cubits/app_operating_cubit.dart';
 import '../cubits/data_export/data_export_cubit.dart';
-import '../cubits/data_export/data_export_state.dart';
-import '../cubits/data_export/data_export_message_mapper.dart';
 import '../cubits/recovery_key/recovery_key_cubit.dart';
-import '../cubits/recovery_key/recovery_key_state.dart';
-import '../cubits/recovery_key/recovery_key_message_mapper.dart';
 import '../cubits/device_management/device_management_cubit.dart';
 import '../cubits/webhook/webhook_cubit.dart';
 import '../cubits/webhook/webhook_state.dart';
-import '../cubits/webhook/webhook_message_mapper.dart';
 import '../widgets/import_recovery_key_sheet.dart';
 import '../widgets/device_list_section.dart';
 import '../widgets/webhook_sheet.dart';
-import '../cubits/llm_provider/llm_provider_cubit.dart';
-import '../cubits/llm_provider/llm_provider_state.dart';
-import '../cubits/llm_provider/llm_provider_message_mapper.dart';
 import '../widgets/llm_provider_section.dart';
 import '../widgets/api_key_sheet.dart';
 import '../widgets/table_selection_sheet.dart';
@@ -52,68 +41,7 @@ import '../../../integrations/flutter/health/health_sync_state.dart';
 
 bool get _supportsHealthData => !kIsWeb && (Platform.isIOS || Platform.isAndroid);
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => GetIt.instance<DataExportCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<RecoveryKeyCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<DeviceManagementCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<WebhookCubit>()..load()),
-        BlocProvider(create: (_) => GetIt.instance<LlmProviderCubit>()..load()),
-        BlocProvider.value(value: GetIt.instance<AppOperatingCubit>()),
-      ],
-      child: const SettingsView(),
-    );
-  }
-}
-
-/// Standalone page with Scaffold — used for deep-link / push navigation.
-class SettingsView extends StatelessWidget {
-  const SettingsView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiUiFlowListener(
-      listeners: [
-        (child) => UiFlowListener<LlmProviderCubit, LlmProviderState>(
-          mapper: GetIt.instance<LlmProviderMessageMapper>(),
-          child: child,
-        ),
-        (child) => UiFlowListener<DataExportCubit, DataExportState>(
-          mapper: GetIt.instance<DataExportMessageMapper>(),
-          child: child,
-        ),
-        (child) => UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
-          mapper: GetIt.instance<RecoveryKeyMessageMapper>(),
-          child: child,
-        ),
-        (child) => UiFlowListener<WebhookCubit, WebhookState>(
-          mapper: GetIt.instance<WebhookMessageMapper>(),
-          child: child,
-        ),
-      ],
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            context.l10n.settingsTitle,
-            style: context.text.headlineMedium,
-          ),
-          leading: QuanityaIconButton(
-            icon: Icons.arrow_back,
-            onPressed: () => AppNavigation.back(context),
-          ),
-        ),
-        body: const SettingsContent(),
-      ),
-    );
-  }
-}
-
-/// The content body, usable standalone or embedded in [NotebookShell].
+/// Settings content — embedded in [NotebookShell] via OfficePage.
 ///
 /// Expects [DataExportCubit], [RecoveryKeyCubit], [DeviceManagementCubit],
 /// [WebhookCubit], and [AppOperatingCubit] to be available above.
