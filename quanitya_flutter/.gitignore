@@ -36,6 +36,11 @@ web/sqlite3.wasm
 web/powersync_db.worker.js
 web/powersync_sync.worker.js
 
+# Native PowerSync extension (downloaded by setup_powersync_tests.sh)
+libpowersync.dylib
+libpowersync.so
+powersync.dll
+
 # Symbolization related
 app.*.symbols
 
