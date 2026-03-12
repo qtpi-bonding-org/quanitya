@@ -34,6 +34,9 @@ class FeedbackSubmissionService {
         // Validate input
         _validateFeedback(feedbackText, feedbackType);
 
+        // Convert string type to protocol enum
+        final typedFeedbackType = _parseFeedbackType(feedbackType);
+
         // Build payload for signing
         // Format: "challenge:feedbackType:feedbackText"
         final payloadSuffix = '$feedbackType:$feedbackText';
@@ -49,7 +52,7 @@ class FeedbackSubmissionService {
               publicKeyHex: publicKeyHex,
               signature: signature,
               feedbackText: feedbackText,
-              feedbackType: feedbackType,
+              feedbackType: typedFeedbackType,
               metadata: metadata,
             );
           },
@@ -59,7 +62,17 @@ class FeedbackSubmissionService {
       'submitFeedback',
     );
   }
-  
+
+  /// Parse feedback type string to protocol enum.
+  FeedbackType _parseFeedbackType(String type) {
+    return switch (type) {
+      'feature_request' => FeedbackType.featureRequest,
+      'bug' => FeedbackType.bug,
+      'general' => FeedbackType.general,
+      _ => throw FeedbackException('Invalid feedback type: $type', kind: FeedbackFailure.invalidType),
+    };
+  }
+
   /// Validate feedback input.
   void _validateFeedback(String text, String type) {
     // Validate text length
