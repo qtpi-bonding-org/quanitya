@@ -116,7 +116,7 @@ class _QuanityaCheckboxState extends State<QuanityaCheckbox>
               width: 20,
               height: 20,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(AppSizes.radiusTiny),
                 border: Border.all(
                   color: color,
                   width: 1.5,
@@ -125,7 +125,7 @@ class _QuanityaCheckboxState extends State<QuanityaCheckbox>
               child: widget.value
                   ? Icon(
                       Icons.check,
-                      size: 14,
+                      size: AppSizes.fontSmall,
                       color: widget.checkColor,
                     )
                   : null,

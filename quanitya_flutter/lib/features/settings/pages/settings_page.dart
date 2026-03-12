@@ -464,10 +464,9 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
             VSpace.x3,
 
             ...state.webhooks.map((webhook) {
-              final match = _templates?.cast<TemplateWithAesthetics?>().firstWhere(
-                    (t) => t!.template.id == webhook.templateId,
-                    orElse: () => null,
-                  );
+              final match = _templates?.where(
+                    (t) => t.template.id == webhook.templateId,
+                  ).firstOrNull;
               final templateName = match?.template.name ?? 'Unknown';
               
               return Padding(

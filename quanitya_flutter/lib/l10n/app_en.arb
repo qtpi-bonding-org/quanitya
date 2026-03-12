@@ -741,5 +741,121 @@
         "type": "int"
       }
     }
+  },
+
+  "tabLogbook": "Logbook",
+  "tabResults": "Results",
+  "tabPostage": "Postage",
+  "tabOffice": "Office",
+
+  "analysisDescribeHint": "Describe the analysis you want...",
+  "analysisNewScript": "+ New",
+  "analysisResults": "Results",
+  "analysisRun": "Run",
+  "analysisSaveScript": "Save Script",
+  "analysisScriptNameHint": "Script name...",
+  "analysisNoVectorData": "No vector data",
+  "analysisNoMatrixData": "No matrix data",
+  "analysisMatrix": "Matrix",
+
+  "livePreview": "Live Preview",
+  "matrixDimensions": "Matrix: {cols} cols x {rows} rows",
+  "@matrixDimensions": {
+    "placeholders": {
+      "cols": { "type": "int" },
+      "rows": { "type": "int" }
+    }
+  },
+  "matrixColumns": "Columns: {columns}",
+  "@matrixColumns": {
+    "placeholders": {
+      "columns": { "type": "String" }
+    }
+  },
+  "waitingForResults": "Waiting for results...",
+
+  "errorOccurrenceOnce": "Once",
+  "errorOccurrenceTimes": "{count} times",
+  "@errorOccurrenceTimes": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "errorFromSource": "From {source}",
+  "@errorFromSource": {
+    "placeholders": {
+      "source": { "type": "String" }
+    }
+  },
+  "errorDetailErrorType": "Error Type",
+  "errorDetailErrorCode": "Error Code",
+  "errorDetailSourceCubit": "Source Cubit",
+  "errorDetailUserMessage": "User Message",
+  "errorDetailStackTrace": "Stack Trace",
+  "actionCopy": "Copy",
+  "actionSendReport": "Send Report",
+
+  "selectExperiment": "Select Experiment",
+
+  "importTemplateTitle": "Import Template",
+  "importTemplateUrlSection": "TEMPLATE URL",
+  "importTemplateUrlDescription": "Paste a GitHub Gist or raw JSON URL",
+
+  "logEntryToday": "Today",
+  "logEntryMoreFields": "... +{count} more",
+  "@logEntryMoreFields": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "fieldNoDefaultWarning": "No default value set - quick log won't work",
+
+  "timelineNoDetails": "No details",
+
+  "operatingModeLocal": "Local Only",
+  "operatingModeSelfHosted": "Self-Hosted",
+  "operatingModeCloud": "Quanitya Cloud",
+  "operatingModeLocalDescription": "All data stays on your device",
+  "operatingModeSelfHostedDescription": "Sync with your own server",
+  "operatingModeCloudDescription": "Managed cloud with premium features",
+
+  "templatePreviewEdit": "Edit",
+  "templatePreviewSave": "Save Template",
+  "templatePreviewDiscard": "Discard",
+  "templatePreviewImport": "Import Template",
+
+  "timeRangeAll": "ALL",
+  "timeRangeToday": "TODAY",
+  "timeRangeWeek": "WEEK",
+  "timeRangeMonth": "MONTH",
+  "timeRangeCustom": "CUSTOM",
+
+  "templateDefaultAuthor": "Quanitya User",
+
+  "operationCompletedSuccessfully": "Operation completed successfully",
+
+  "selectDate": "Select date",
+  "selectTime": "Select time",
+
+  "authenticateViewHidden": "Authenticate to view hidden entries",
+  "authenticateStoreRecoveryKey": "Authenticate to store your recovery key securely",
+
+  "chartNameTrend": "Trend",
+  "chartNameCompletion": "Completion",
+  "chartNameCategories": "Categories",
+  "chartNameNotApplicable": "N/A",
+
+  "editFieldType": "Edit {fieldType}",
+  "@editFieldType": {
+    "placeholders": {
+      "fieldType": { "type": "String" }
+    }
+  },
+  "addFieldType": "Add {fieldType}",
+  "@addFieldType": {
+    "placeholders": {
+      "fieldType": { "type": "String" }
+    }
   }
 }

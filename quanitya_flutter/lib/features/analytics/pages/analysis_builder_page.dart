@@ -119,7 +119,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
             padding: AppPadding.page,
             child: AiPromptWidget(
               title: context.l10n.analysisBuilderJsTitle,
-              hintText: 'Describe the analysis you want...',
+              hintText: context.l10n.analysisDescribeHint,
               isLoading: _isGenerating,
               onGenerate: (prompt) => _generateFromAi(context, prompt),
             ),
@@ -129,7 +129,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
           Padding(
             padding: AppPadding.pageHorizontal,
             child: QuanityaTextButton(
-              text: '+ New',
+              text: context.l10n.analysisNewScript,
               onPressed: () => cubit.newScript(),
             ),
           ),
@@ -203,7 +203,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
                     ),
                     HSpace.x1,
                     Text(
-                      'Results',
+                      context.l10n.analysisResults,
                       style: context.text.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: palette.textPrimary,
@@ -225,12 +225,12 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
               children: [
                 if (state.snippet.isNotEmpty) ...[
                   QuanityaTextButton(
-                    text: 'Run',
+                    text: context.l10n.analysisRun,
                     onPressed: () => cubit.runScript(),
                   ),
                   HSpace.x2,
                   QuanityaTextButton(
-                    text: 'Save',
+                    text: context.l10n.actionSave,
                     onPressed: () => _showSaveSheet(context, cubit),
                   ),
                 ],
@@ -325,7 +325,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
   ) {
     LooseInsertSheet.show<String>(
       context: context,
-      title: 'Save Script',
+      title: context.l10n.analysisSaveScript,
       builder: (_) => _SaveScriptForm(
         onSave: (name) {
           Navigator.of(context).pop();
@@ -363,7 +363,7 @@ class _AnalysisResultDisplay extends StatelessWidget {
       vector: (vectors) {
         if (vectors.isEmpty) {
           return Text(
-            'No vector data',
+            context.l10n.analysisNoVectorData,
             style: context.text.bodyMedium
                 ?.copyWith(color: palette.textSecondary),
           );
@@ -384,7 +384,7 @@ class _AnalysisResultDisplay extends StatelessWidget {
       matrix: (matrices) {
         if (matrices.isEmpty) {
           return Text(
-            'No matrix data',
+            context.l10n.analysisNoMatrixData,
             style: context.text.bodyMedium
                 ?.copyWith(color: palette.textSecondary),
           );
@@ -396,7 +396,7 @@ class _AnalysisResultDisplay extends StatelessWidget {
             children: matrices.map((m) {
               final name = m.columnNames.length > 1
                   ? m.columnNames[1]
-                  : 'Matrix';
+                  : context.l10n.analysisMatrix;
               return Padding(
                 padding: EdgeInsets.only(right: AppSizes.space * 2),
                 child: MathMatrix(label: name, data: m.data, rows: m.data.length),
@@ -441,13 +441,13 @@ class _SaveScriptFormState extends State<_SaveScriptForm> {
       children: [
         QuanityaTextField(
           controller: _controller,
-          hintText: 'Script name...',
+          hintText: context.l10n.analysisScriptNameHint,
           autofocus: true,
           onSubmitted: (_) => _submit(),
         ),
         VSpace.x2,
         QuanityaTextButton(
-          text: 'Save',
+          text: context.l10n.actionSave,
           onPressed: _submit,
         ),
       ],

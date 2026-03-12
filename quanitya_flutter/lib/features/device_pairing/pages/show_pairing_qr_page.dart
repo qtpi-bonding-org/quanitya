@@ -216,13 +216,15 @@ class _ShowPairingQrViewState extends State<_ShowPairingQrView> {
         ],
         QuanityaTextButton(
           text: context.l10n.copyPairingData,
-          onPressed: () {
-            final data = jsonEncode(state.qrData!.toJson());
-            Clipboard.setData(ClipboardData(text: data));
-            PostItToast.show(context,
-                message: context.l10n.pairingDataCopied,
-                type: PostItType.success);
-          },
+          onPressed: state.qrData != null
+              ? () {
+                  final data = jsonEncode(state.qrData?.toJson());
+                  Clipboard.setData(ClipboardData(text: data));
+                  PostItToast.show(context,
+                      message: context.l10n.pairingDataCopied,
+                      type: PostItType.success);
+                }
+              : null,
         ),
         // Cancel button
         QuanityaTextButton(

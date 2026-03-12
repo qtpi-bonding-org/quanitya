@@ -30,7 +30,7 @@ class LogEntryList extends StatelessWidget {
           children: [
             Icon(Icons.history, size: AppSizes.iconXLarge, color: context.colors.textSecondary.withValues(alpha: 0.3)),
             VSpace.x2,
-            Text(context.l10n.logEntryNoEntries, style: context.text.bodyLarge!.copyWith(color: context.colors.textSecondary)), // 16px
+            Text(context.l10n.logEntryNoEntries, style: context.text.bodyLarge?.copyWith(color: context.colors.textSecondary)), // 16px
           ],
         ),
       );

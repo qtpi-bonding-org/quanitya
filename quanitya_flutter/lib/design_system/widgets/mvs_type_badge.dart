@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../primitives/quanitya_palette.dart';
 import '../primitives/quanitya_fonts.dart';
+import '../primitives/app_spacings.dart';
 import '../../support/extensions/context_extensions.dart';
 import '../../logic/analytics/models/matrix_vector_scalar/analysis_data_type.dart';
 
@@ -46,7 +47,7 @@ class MvsTypeBadge extends StatelessWidget {
           ),
         ),
         if (label != null) ...[
-          const SizedBox(width: 4),
+          HSpace.x05,
           Text(
             label,
             style: context.text.bodySmall?.copyWith(

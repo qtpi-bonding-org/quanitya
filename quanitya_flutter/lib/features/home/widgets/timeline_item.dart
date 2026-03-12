@@ -124,7 +124,7 @@ class TimelineItem extends StatelessWidget {
                     // Data Summary (Preview of first valid field)
                     if (entry.data.isNotEmpty)
                       Text(
-                        _formatEntryData(entry.data),
+                        _formatEntryData(context, entry.data),
                         style: context.text.bodyMedium,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -158,8 +158,8 @@ class TimelineItem extends StatelessWidget {
     return context.text.bodyLarge ?? const TextStyle();
   }
 
-  String _formatEntryData(Map<String, dynamic> data) {
-    if (data.isEmpty) return 'No details';
+  String _formatEntryData(BuildContext context, Map<String, dynamic> data) {
+    if (data.isEmpty) return context.l10n.timelineNoDetails;
     // Just grab the first value for now as a preview
     final firstValue = data.values.first;
     return firstValue.toString();

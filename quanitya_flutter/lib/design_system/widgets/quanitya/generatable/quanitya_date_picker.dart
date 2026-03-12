@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorable/flutter_colorable.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../primitives/app_sizes.dart';
 import '../../../primitives/quanitya_fonts.dart';
+import '../../../primitives/quanitya_palette.dart';
 
 /// Zen-styled date picker - no outlines, just an underline and clean appearance.
 ///
@@ -48,7 +50,7 @@ class QuanityaDatePicker extends StatelessWidget {
     final hasValue = value != null;
     final displayText = hasValue
         ? _formatDate(value!)
-        : (hintText ?? 'Select date');
+        : (hintText ?? AppLocalizations.of(context)?.selectDate ?? 'Select date');
 
     // Use provided style or fall back to default
     final baseStyle = textStyle ?? TextStyle(
@@ -78,7 +80,7 @@ class QuanityaDatePicker extends StatelessWidget {
                   displayText,
                   style: baseStyle.copyWith(
                     color: hasValue
-                        ? (textColor ?? baseStyle.color ?? Colors.black87)
+                        ? (textColor ?? baseStyle.color ?? QuanityaPalette.primary.textPrimary)
                         : borderColor.withValues(alpha: 0.6),
                   ),
                 ),

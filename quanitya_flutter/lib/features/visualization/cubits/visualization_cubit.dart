@@ -1,4 +1,5 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../data/interfaces/analysis_script_interface.dart';
@@ -53,7 +54,7 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
           };
         } catch (e) {
           // Log error but continue with other scripts
-          print('Failed to execute script ${script.name}: $e');
+          debugPrint('Failed to execute script ${script.name}: $e');
         }
       }
 

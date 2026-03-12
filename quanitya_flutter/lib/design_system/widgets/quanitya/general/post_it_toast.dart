@@ -57,7 +57,7 @@ class PostItToast extends StatelessWidget {
         // NO borderRadius - sharp corners like real post-its!
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
+            color: QuanityaPalette.primary.textPrimary.withValues(alpha: 0.15),
             offset: const Offset(2, 3),
             blurRadius: 4,
           ),

@@ -1,5 +1,7 @@
+import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import '../../../../infrastructure/feedback/localization_service.dart';
 import '../../../../infrastructure/platform/platform_local_auth.dart';
 import '../../../../support/extensions/cubit_ui_flow_extension.dart';
 import 'temporal_timeline_state.dart';
@@ -27,7 +29,7 @@ class TemporalTimelineCubit extends QuanityaCubit<TemporalTimelineState> {
 
     // Unlocking requires authentication
     final result = await _localAuthService.authenticate(
-      reason: 'Authenticate to view hidden entries',
+      reason: GetIt.I<AppLocalizationService>().l10n.authenticateViewHidden,
     );
 
     if (result) {

@@ -126,7 +126,7 @@ class _QuanityaTextButtonState extends State<QuanityaTextButton>
               style: widget.style ??
                   TextStyle(
                     fontFamily: QuanityaFonts.bodyFamily,
-                    fontSize: 16, // Slightly larger for better readability
+                    fontSize: AppSizes.fontStandard,
                     fontWeight: _isPressed ? FontWeight.w700 : FontWeight.w600,
                     color: color,
                   ),

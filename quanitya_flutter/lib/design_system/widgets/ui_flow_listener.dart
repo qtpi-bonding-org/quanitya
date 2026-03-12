@@ -185,12 +185,21 @@ class UiFlowListener<B extends StateStreamable<S>, S extends IUiFlowState>
   /// Handles success toast display (fallback when no mapper).
   void _handleSuccessState(S state) {
     if (!showSuccessToasts || !state.isSuccess) return;
-    
+
     final feedbackService = GetIt.instance<IFeedbackService>();
     feedbackService.show(FeedbackMessage(
-      message: successMessage ?? 'Operation completed successfully',
+      message: successMessage ?? _getDefaultSuccessMessage(),
       type: MessageType.success,
     ));
+  }
+
+  String _getDefaultSuccessMessage() {
+    try {
+      final localization = GetIt.instance<ILocalizationService>();
+      return localization.translate('operation.completed.successfully');
+    } catch (_) {
+      return 'Operation completed successfully';
+    }
   }
 }
 

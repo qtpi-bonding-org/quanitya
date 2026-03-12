@@ -48,7 +48,7 @@ class _TemplateImportViewState extends State<_TemplateImportView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Import Template',
+          context.l10n.importTemplateTitle,
           style: context.text.headlineMedium,
         ),
         leading: QuanityaIconButton(
@@ -73,14 +73,14 @@ class _TemplateImportViewState extends State<_TemplateImportView> {
               children: [
                 // URL input
                 Text(
-                  'TEMPLATE URL',
+                  context.l10n.importTemplateUrlSection,
                   style: context.text.titleMedium?.copyWith(
                     color: context.colors.textPrimary,
                   ),
                 ),
                 VSpace.x1,
                 Text(
-                  'Paste a GitHub Gist or raw JSON URL',
+                  context.l10n.importTemplateUrlDescription,
                   style: context.text.bodyMedium?.copyWith(
                     color: context.colors.textSecondary,
                   ),
@@ -126,6 +126,8 @@ class _TemplateImportViewState extends State<_TemplateImportView> {
                   TemplatePreview.imported(
                     template: state.previewTemplate!.template,
                     aesthetics: state.previewTemplate!.aesthetics,
+                    importLabel: context.l10n.templatePreviewImport,
+                    cancelLabel: context.l10n.actionCancel,
                     onImport: () => context
                         .read<TemplateSharingImportCubit>()
                         .confirmImport(),

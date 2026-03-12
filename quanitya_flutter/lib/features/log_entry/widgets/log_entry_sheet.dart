@@ -121,9 +121,9 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
     super.initState();
     _isEditing = widget.mode == LogEntrySheetMode.create;
 
-    if (widget.mode == LogEntrySheetMode.view) {
+    if (widget.mode == LogEntrySheetMode.view && widget.entryWithContext != null) {
       _values = Map<String, dynamic>.from(
-        widget.entryWithContext!.entry.data,
+        widget.entryWithContext?.entry.data ?? {},
       );
     } else {
       _values = {};
@@ -315,7 +315,9 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
   }
 
   void _saveEntry(BuildContext context) {
-    final entry = widget.entryWithContext!.entry;
+    final entryWithContext = widget.entryWithContext;
+    if (entryWithContext == null) return;
+    final entry = entryWithContext.entry;
     final updatedEntry = entry.copyWith(
       data: _values,
       occurredAt: entry.occurredAt ?? DateTime.now(),

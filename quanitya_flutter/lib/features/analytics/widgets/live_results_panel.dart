@@ -90,7 +90,7 @@ class LiveResultsPanel extends StatelessWidget {
           ),
           HSpace.x05,
           Text(
-            'Live Preview',
+            context.l10n.livePreview,
             style: context.text.bodyMedium?.copyWith(
               color: QuanityaPalette.primary.successColor,
               fontWeight: FontWeight.w600,
@@ -266,12 +266,12 @@ class LiveResultsPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Matrix: ${colCount} cols x ${rowCount} rows",
+            context.l10n.matrixDimensions(colCount, rowCount),
             style: context.text.bodySmall,
           ),
           VSpace.x05,
           Text(
-            "Columns: ${matrix.columnNames.join(', ')}",
+            context.l10n.matrixColumns(matrix.columnNames.join(', ')),
             style: context.text.labelSmall,
           ),
         ],
@@ -293,7 +293,7 @@ class LiveResultsPanel extends StatelessWidget {
             ),
             VSpace.x05,
             Text(
-              'Waiting for results...',
+              context.l10n.waitingForResults,
               style: context.text.bodySmall?.copyWith(
                 color: QuanityaPalette.primary.textSecondary,
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../primitives/quanitya_palette.dart';
 import '../primitives/zen_grid_constants.dart';
 
 /// A positioned widget that automatically centers its child on zen paper grid points.
@@ -155,7 +156,7 @@ class ZenGridLine extends StatelessWidget {
         width: thickness,
         height: lineHeight,
         child: Container(
-          color: color ?? Colors.grey.withValues(alpha: 0.4),
+          color: color ?? QuanityaPalette.primary.textSecondary.withValues(alpha: 0.4),
         ),
       );
     }
@@ -170,7 +171,7 @@ class ZenGridLine extends StatelessWidget {
           width: thickness,
           height: lineHeight / 2 - 10, // Leave space for label
           child: Container(
-            color: color ?? Colors.grey.withValues(alpha: 0.4),
+            color: color ?? QuanityaPalette.primary.textSecondary.withValues(alpha: 0.4),
           ),
         ),
         // Label at midpoint
@@ -188,7 +189,7 @@ class ZenGridLine extends StatelessWidget {
           width: thickness,
           height: lineHeight / 2 - 10, // Leave space for label
           child: Container(
-            color: color ?? Colors.grey.withValues(alpha: 0.4),
+            color: color ?? QuanityaPalette.primary.textSecondary.withValues(alpha: 0.4),
           ),
         ),
       ],
@@ -200,7 +201,7 @@ class ZenGridLine extends StatelessWidget {
 /// 
 /// **Usage:**
 /// ```dart
-/// ZenGridDot(column: 4, row: 2, color: Colors.red)
+/// ZenGridDot(column: 4, row: 2)
 /// ```
 class ZenGridDot extends StatelessWidget {
   final int column;
@@ -213,7 +214,7 @@ class ZenGridDot extends StatelessWidget {
     required this.column,
     required this.row,
     this.size = 6.0,
-    this.color = Colors.red,
+    this.color = const Color(0xFFBC4B41),
   });
 
   @override

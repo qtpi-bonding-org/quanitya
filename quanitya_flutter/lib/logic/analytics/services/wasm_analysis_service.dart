@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:javascript_flutter/javascript_flutter.dart';
 import 'package:injectable/injectable.dart';
@@ -60,7 +61,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
     } catch (e, stack) {
       if (e is AnalysisException) rethrow;
       // ignore: avoid_print
-      print('WasmAnalysisService ERROR: $e\n$stack');
+      debugPrint('WasmAnalysisService ERROR: $e\n$stack');
       throw AnalysisException('Analysis Engine Error: $e');
     }
   }
@@ -129,7 +130,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
     } catch (e, stack) {
       if (e is AnalysisException) rethrow;
       // ignore: avoid_print
-      print('JS Runtime ERROR: $e\n$stack');
+      debugPrint('JS Runtime ERROR: $e\n$stack');
       throw AnalysisException('JS Runtime Error: $e');
     } finally {
       await javascript.dispose();
@@ -158,7 +159,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
     );
 
     // ignore: avoid_print
-    print('WasmAnalysis: fieldId=$fieldId, templateId=$templateId, fieldName=$fieldName, entries=${entries.length}');
+    debugPrint('WasmAnalysis: fieldId=$fieldId, templateId=$templateId, fieldName=$fieldName, entries=${entries.length}');
 
     if (entries.isEmpty) {
       return (values: <double>[], timestamps: <DateTime>[]);

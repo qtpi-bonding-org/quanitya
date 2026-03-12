@@ -59,7 +59,7 @@ class QuanityaDropdown<T> extends StatelessWidget {
       fontSize: AppSizes.fontStandard,
     );
     final effectiveStyle = baseStyle.copyWith(
-      color: textColor ?? baseStyle.color ?? Colors.black87,
+      color: textColor ?? baseStyle.color ?? QuanityaPalette.primary.textPrimary,
     );
     final hintStyle = baseStyle.copyWith(
       color: effectiveBorderColor.withValues(alpha: 0.6),

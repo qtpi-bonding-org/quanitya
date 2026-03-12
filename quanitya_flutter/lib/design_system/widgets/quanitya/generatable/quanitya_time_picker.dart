@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorable/flutter_colorable.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../primitives/app_sizes.dart';
 import '../../../primitives/quanitya_fonts.dart';
+import '../../../primitives/quanitya_palette.dart';
 
 /// Zen-styled time picker - no outlines, just an underline and clean appearance.
 ///
@@ -42,7 +44,7 @@ class QuanityaTimePicker extends StatelessWidget {
     final hasValue = value != null;
     final displayText = hasValue
         ? _formatTime(value!)
-        : (hintText ?? 'Select time');
+        : (hintText ?? AppLocalizations.of(context)?.selectTime ?? 'Select time');
 
     return Material(
       type: MaterialType.transparency,
@@ -68,7 +70,7 @@ class QuanityaTimePicker extends StatelessWidget {
                     fontFamily: QuanityaFonts.bodyFamily,
                     fontSize: AppSizes.fontStandard,
                     color: hasValue
-                        ? (textColor ?? Colors.black87)
+                        ? (textColor ?? QuanityaPalette.primary.textPrimary)
                         : borderColor.withValues(alpha: 0.6),
                   ),
                 ),

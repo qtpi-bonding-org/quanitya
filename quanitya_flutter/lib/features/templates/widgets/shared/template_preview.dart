@@ -47,6 +47,8 @@ class TemplatePreview extends StatefulWidget {
     TemplateAestheticsModel? aesthetics,
     required VoidCallback onEdit,
     required VoidCallback onSave,
+    required String editLabel,
+    required String saveLabel,
     Map<String, dynamic>? initialValues,
     ValueChanged<Map<String, dynamic>>? onValuesChanged,
   }) {
@@ -58,12 +60,12 @@ class TemplatePreview extends StatefulWidget {
       onValuesChanged: onValuesChanged,
       actions: [
         TemplatePreviewAction.secondary(
-          label: 'Edit',
+          label: editLabel,
           icon: Icons.edit,
           onPressed: onEdit,
         ),
         TemplatePreviewAction.primary(
-          label: 'Save Template',
+          label: saveLabel,
           icon: Icons.save,
           onPressed: onSave,
         ),
@@ -78,6 +80,8 @@ class TemplatePreview extends StatefulWidget {
     required TemplateAestheticsModel aesthetics,
     required VoidCallback onSave,
     VoidCallback? onDiscard,
+    required String saveLabel,
+    String? discardLabel,
     Map<String, dynamic>? initialValues,
     ValueChanged<Map<String, dynamic>>? onValuesChanged,
   }) {
@@ -88,14 +92,14 @@ class TemplatePreview extends StatefulWidget {
       initialValues: initialValues,
       onValuesChanged: onValuesChanged,
       actions: [
-        if (onDiscard != null)
+        if (onDiscard != null && discardLabel != null)
           TemplatePreviewAction.secondary(
-            label: 'Discard',
+            label: discardLabel,
             icon: Icons.close,
             onPressed: onDiscard,
           ),
         TemplatePreviewAction.primary(
-          label: 'Save Template',
+          label: saveLabel,
           icon: Icons.save,
           onPressed: onSave,
         ),
@@ -110,6 +114,8 @@ class TemplatePreview extends StatefulWidget {
     TemplateAestheticsModel? aesthetics,
     required VoidCallback onImport,
     VoidCallback? onCancel,
+    required String importLabel,
+    String? cancelLabel,
     Map<String, dynamic>? initialValues,
     ValueChanged<Map<String, dynamic>>? onValuesChanged,
   }) {
@@ -120,14 +126,14 @@ class TemplatePreview extends StatefulWidget {
       initialValues: initialValues,
       onValuesChanged: onValuesChanged,
       actions: [
-        if (onCancel != null)
+        if (onCancel != null && cancelLabel != null)
           TemplatePreviewAction.secondary(
-            label: 'Cancel',
+            label: cancelLabel,
             icon: Icons.close,
             onPressed: onCancel,
           ),
         TemplatePreviewAction.primary(
-          label: 'Import Template',
+          label: importLabel,
           icon: Icons.download,
           onPressed: onImport,
         ),
@@ -240,24 +246,24 @@ class _TemplatePreviewState extends State<TemplatePreview> {
   Map<String, Color> _getDefaultWidgetColors() {
     return {
       'activeColor': _accentColor,
-      'inactiveColor': _accent2 ?? _tone2 ?? Colors.grey.shade300,
+      'inactiveColor': _accent2 ?? _tone2 ?? QuanityaPalette.primary.textSecondary.withValues(alpha: 0.3),
       'thumbColor': _accentColor,
       'activeTrackColor': _accentColor,
-      'activeThumbColor': Colors.white,
-      'inactiveTrackColor': _tone2 ?? Colors.grey.shade300,
-      'inactiveThumbColor': Colors.white,
+      'activeThumbColor': QuanityaPalette.primary.backgroundPrimary,
+      'inactiveTrackColor': _tone2 ?? QuanityaPalette.primary.textSecondary.withValues(alpha: 0.3),
+      'inactiveThumbColor': QuanityaPalette.primary.backgroundPrimary,
       'cursorColor': _accentColor,
       'focusedBorderColor': _accentColor,
-      'borderColor': _tone2 ?? Colors.grey.shade300,
-      'fillColor': Colors.white,
+      'borderColor': _tone2 ?? QuanityaPalette.primary.textSecondary.withValues(alpha: 0.3),
+      'fillColor': QuanityaPalette.primary.backgroundPrimary,
       'errorBorderColor': context.colors.errorColor,
       'buttonColor': _accentColor,
-      'iconColor': Colors.white,
+      'iconColor': QuanityaPalette.primary.backgroundPrimary,
       'valueColor': QuanityaPalette.primary.textPrimary,
-      'dropdownColor': Colors.white,
+      'dropdownColor': QuanityaPalette.primary.backgroundPrimary,
       'dropdownIconColor': _tone1 ?? QuanityaPalette.primary.textPrimary,
       'primaryColor': _accentColor,
-      'backgroundColor': Colors.white,
+      'backgroundColor': QuanityaPalette.primary.backgroundPrimary,
     };
   }
 
@@ -268,7 +274,7 @@ class _TemplatePreviewState extends State<TemplatePreview> {
       borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
       clipBehavior: Clip.antiAlias,
       elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shadowColor: QuanityaPalette.primary.textPrimary.withValues(alpha: 0.1),
       child: ZenPaperBackground(
         baseColor: QuanityaPalette.primary.backgroundPrimary,
         child: Column(
@@ -456,7 +462,7 @@ class _TemplatePreviewState extends State<TemplatePreview> {
                       ? FilledButton.icon(
                           style: FilledButton.styleFrom(
                             backgroundColor: _accentColor,
-                            foregroundColor: Colors.white,
+                            foregroundColor: QuanityaPalette.primary.backgroundPrimary,
                             textStyle: _bodyStyle.copyWith(
                               fontWeight: FontWeight.w600,
                             ),

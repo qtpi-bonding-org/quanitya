@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
+import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../app_router.dart';
 import '../../../infrastructure/auth/auth_service.dart';
+import '../../../infrastructure/feedback/localization_service.dart';
 import '../../../infrastructure/platform/platform_local_auth.dart';
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../infrastructure/crypto/key_export_service.dart';
@@ -182,7 +184,7 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
     await tryOperation(() async {
       // Authenticate first
       final authResult = await _localAuthService.authenticate(
-        reason: 'Authenticate to store your recovery key securely',
+        reason: GetIt.I<AppLocalizationService>().l10n.authenticateStoreRecoveryKey,
       );
 
       if (!authResult) {

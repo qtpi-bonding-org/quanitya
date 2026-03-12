@@ -57,7 +57,7 @@ class LooseInsertSheet extends StatelessWidget {
                 width: AppSizes.space * 5,
                 height: AppSizes.space * 0.5,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withAlpha(77),
+                  color: QuanityaPalette.primary.textSecondary.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(AppSizes.space * 0.25),
                 ),
               ),

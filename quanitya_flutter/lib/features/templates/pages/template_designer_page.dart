@@ -107,6 +107,8 @@ class TemplateDesignerPage extends StatelessWidget {
         child: TemplatePreview.editor(
           template: completeTemplate.template,
           aesthetics: completeTemplate.aesthetics,
+          editLabel: context.l10n.templatePreviewEdit,
+          saveLabel: context.l10n.templatePreviewSave,
           initialValues: state.previewValues,
           onEdit: () => Navigator.pop(sheetContext),
           onSave: () {
@@ -129,7 +131,7 @@ class TemplateDesignerPage extends StatelessWidget {
     final exportCubit = GetIt.instance<TemplateSharingExportCubit>();
     exportCubit.exportTemplate(
       templateWithAesthetics: completeTemplate,
-      author: AuthorCredit.create(name: 'Quanitya User'),
+      author: AuthorCredit.create(name: context.l10n.templateDefaultAuthor),
     );
   }
 }

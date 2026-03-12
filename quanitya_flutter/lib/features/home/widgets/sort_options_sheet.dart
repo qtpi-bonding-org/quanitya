@@ -84,7 +84,7 @@ class _SortOptionsContent extends StatelessWidget {
               // ── Time range ───────────────────────────────────────────
               _SectionHeader(label: context.l10n.timeRangeHeader),
               ...TimelineTimeRange.values.map((range) {
-                String label = range.name.toUpperCase();
+                String label = _getTimeRangeLabel(context, range);
                 if (range == TimelineTimeRange.custom &&
                     dataState.filters.customStartDate != null) {
                   final start = dataState.filters.customStartDate!;
@@ -131,6 +131,16 @@ class _SortOptionsContent extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _getTimeRangeLabel(BuildContext context, TimelineTimeRange range) {
+    return switch (range) {
+      TimelineTimeRange.all => context.l10n.timeRangeAll,
+      TimelineTimeRange.today => context.l10n.timeRangeToday,
+      TimelineTimeRange.week => context.l10n.timeRangeWeek,
+      TimelineTimeRange.month => context.l10n.timeRangeMonth,
+      TimelineTimeRange.custom => context.l10n.timeRangeCustom,
+    };
   }
 }
 

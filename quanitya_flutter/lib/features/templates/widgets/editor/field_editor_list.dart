@@ -145,7 +145,7 @@ class _FieldEditorListState extends State<FieldEditorList> {
             // Show default value if set, otherwise show warning icon
             field.defaultValue != null
                 ? Text(
-                    '${context.l10n.fieldDefaultValueLabel.replaceAll(' (optional)', '')}: ${_formatDefaultValue(field)}',
+                    '${context.l10n.fieldDefaultValueLabel.replaceAll(' (optional)', '')}: ${_formatDefaultValue(context, field)}',
                     style: context.text.bodySmall?.copyWith(
                       color: context.colors.textSecondary.withValues(
                         alpha: 0.7,
@@ -162,7 +162,7 @@ class _FieldEditorListState extends State<FieldEditorList> {
                       HSpace.x05,
                       Expanded(
                         child: Text(
-                          'No default value set - quick log won\'t work',
+                          context.l10n.fieldNoDefaultWarning,
                           style: context.text.bodySmall?.copyWith(
                             color: context.colors.warningColor,
                           ),
@@ -191,13 +191,13 @@ class _FieldEditorListState extends State<FieldEditorList> {
     );
   }
 
-  String _formatDefaultValue(TemplateField field) {
+  String _formatDefaultValue(BuildContext context, TemplateField field) {
     final value = field.defaultValue;
     if (value == null) return '';
 
     // Format based on field type
     return switch (field.type) {
-      FieldEnum.boolean => value == true ? 'Yes' : 'No',
+      FieldEnum.boolean => value == true ? context.l10n.booleanTrue : context.l10n.booleanFalse,
       FieldEnum.datetime => _formatDateTime(value),
       _ => value.toString(),
     };

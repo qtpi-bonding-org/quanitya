@@ -34,7 +34,7 @@ class QuanityaConfirmationDialog extends StatelessWidget {
       barrierDismissible: true,
       barrierLabel:
           MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black54,
+      barrierColor: QuanityaPalette.primary.textPrimary.withValues(alpha: 0.54),
       transitionDuration: const Duration(milliseconds: 200),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
         return SlideTransition(

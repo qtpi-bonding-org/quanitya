@@ -315,7 +315,9 @@ class _DeviceCard extends StatelessWidget {
       confirmText: context.l10n.revoke,
       isDestructive: true,
       onConfirm: () {
-        context.read<DeviceManagementCubit>().revokeDevice(device.id!);
+        final deviceId = device.id;
+        if (deviceId == null) return;
+        context.read<DeviceManagementCubit>().revokeDevice(deviceId);
       },
     );
   }

@@ -35,8 +35,8 @@ class ErrorEntryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final formattedTime = DateFormat.yMd().add_jm().format(error.timestamp);
     final occurrenceText = occurrenceCount > 1
-        ? '$occurrenceCount times'
-        : 'Once';
+        ? context.l10n.errorOccurrenceTimes(occurrenceCount)
+        : context.l10n.errorOccurrenceOnce;
 
     return Container(
       padding: AppPadding.allDouble,
@@ -73,7 +73,7 @@ class ErrorEntryCard extends StatelessWidget {
                   ),
                   VSpace.x025,
                   Text(
-                    'From ${error.source}',
+                    context.l10n.errorFromSource(error.source),
                     style: context.text.bodySmall?.copyWith(
                       color: context.colors.interactableColor,
                     ),
@@ -135,16 +135,16 @@ class _ErrorDetails extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildDetailRow('Error Type', error.errorType),
-          _buildDetailRow('Error Code', error.errorCode),
-          _buildDetailRow('Source Cubit', error.source),
+          _buildDetailRow(context.l10n.errorDetailErrorType, error.errorType),
+          _buildDetailRow(context.l10n.errorDetailErrorCode, error.errorCode),
+          _buildDetailRow(context.l10n.errorDetailSourceCubit, error.source),
           if (error.userMessage != null)
-            _buildDetailRow('User Message', error.userMessage!),
+            _buildDetailRow(context.l10n.errorDetailUserMessage, error.userMessage!),
           VSpace.x2,
           Row(
             children: [
               Text(
-                'Stack Trace',
+                context.l10n.errorDetailStackTrace,
                 style: context.text.bodyMedium?.copyWith(
                   color: context.colors.textPrimary,
                   fontWeight: FontWeight.w600,
@@ -152,7 +152,7 @@ class _ErrorDetails extends StatelessWidget {
               ),
               const Spacer(),
               btn.QuanityaTextButton(
-                text: 'Copy',
+                text: context.l10n.actionCopy,
                 onPressed: () => _copyToClipboard(context, error.stackTrace),
               ),
             ],
@@ -236,14 +236,14 @@ class _ActionButtons extends StatelessWidget {
       children: [
         Expanded(
           child: btn.QuanityaTextButton(
-            text: 'Delete',
+            text: context.l10n.actionDelete,
             onPressed: onDelete,
           ),
         ),
         HSpace.x2,
         Expanded(
           child: QuanityaTextButton(
-            text: 'Send Report',
+            text: context.l10n.actionSendReport,
             onPressed: onSend,
           ),
         ),

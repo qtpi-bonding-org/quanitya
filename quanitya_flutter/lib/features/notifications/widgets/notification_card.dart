@@ -89,7 +89,7 @@ class NotificationCard extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: QuanityaTextButton(
-                  text: 'Mark as Read',
+                  text: context.l10n.notificationMarkAsRead,
                   onPressed: onMark,
                 ),
               ),

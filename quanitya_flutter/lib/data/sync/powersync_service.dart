@@ -56,10 +56,26 @@ class PowerSyncService implements IPowerSyncService {
   bool _isConnected = false;
 
   @override
-  PowerSyncDatabase get powerSyncDb => _powerSyncDb!;
+  PowerSyncDatabase get powerSyncDb {
+    final db = _powerSyncDb;
+    if (db == null) {
+      throw StateError(
+        'PowerSyncService not initialized. Call initialize() before accessing powerSyncDb.',
+      );
+    }
+    return db;
+  }
 
   @override
-  AppDatabase get driftDb => _driftDb!;
+  AppDatabase get driftDb {
+    final db = _driftDb;
+    if (db == null) {
+      throw StateError(
+        'PowerSyncService not initialized. Call initialize() before accessing driftDb.',
+      );
+    }
+    return db;
+  }
 
   @override
   bool get isConnected => _isConnected;
