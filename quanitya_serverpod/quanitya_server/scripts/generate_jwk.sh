@@ -18,12 +18,14 @@ openssl genrsa -out "$TEMP_DIR/private.pem" 2048 2>/dev/null
 
 PS_JWK_KID="quanitya-$(date +%s)"
 
-# Check for cryptography library
+# Ensure cryptography library is available
 if ! python3 -c "import cryptography" >/dev/null 2>&1; then
-    echo "Installing cryptography library..."
-    pip3 install cryptography --quiet 2>/dev/null || {
-        echo "ERROR: pip3 install cryptography failed."
-        echo "Install manually: pip3 install cryptography"
+    echo "Installing cryptography library in venv..."
+    python3 -m venv "$TEMP_DIR/venv"
+    source "$TEMP_DIR/venv/bin/activate"
+    pip install cryptography --quiet 2>/dev/null || {
+        echo "ERROR: pip install cryptography failed."
+        echo "Install manually: python3 -m pip install cryptography"
         exit 1
     }
 fi

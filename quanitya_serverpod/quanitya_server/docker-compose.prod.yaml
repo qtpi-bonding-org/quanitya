@@ -57,11 +57,6 @@ services:
         condition: service_healthy
     networks:
       - quanitya_network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   postgres:
     image: pgvector/pgvector:pg16
@@ -112,7 +107,7 @@ services:
     environment:
       POWERSYNC_CONFIG_PATH: /config/config.yaml
       PS_SOURCE_URI: "postgresql://powersync_role:${POSTGRES_PASSWORD}@postgres:5432/quanitya"
-      PS_STORAGE_URI: "postgresql://powersync_role:${POSTGRES_PASSWORD}@postgres:5432/quanitya"
+      PS_STORAGE_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/powersync_storage"
       # PS_JWK_N, PS_JWK_E, PS_JWK_KID loaded from .jwk via env_file
     depends_on:
       postgres:
