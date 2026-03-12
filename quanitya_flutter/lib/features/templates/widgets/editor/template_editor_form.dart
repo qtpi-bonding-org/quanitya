@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../logic/templates/enums/field_enum.dart';
+import '../../../../logic/templates/enums/field_enum_extensions.dart';
 import '../../../../logic/templates/models/shared/template_field.dart';
 import '../../../../design_system/structures/column.dart';
 import '../../../../design_system/structures/row.dart';
@@ -258,36 +259,18 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   }
 
   Widget _buildAddFieldList(BuildContext context) {
+    final types = FieldEnum.values;
     return QuanityaGroup(
       child: Column(
         children: [
-          _buildAddFieldOption(
-              context, context.l10n.fieldNumber, Icons.numbers, FieldEnum.integer),
-          Divider(
-              height: 1,
-              color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(
-              context, context.l10n.fieldText, Icons.text_fields, FieldEnum.text),
-          Divider(
-              height: 1,
-              color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(
-              context, context.l10n.fieldToggle, Icons.toggle_on, FieldEnum.boolean),
-          Divider(
-              height: 1,
-              color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(context, context.l10n.fieldDate,
-              Icons.calendar_today, FieldEnum.datetime),
-          Divider(
-              height: 1,
-              color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(
-              context, context.l10n.fieldChoice, Icons.list, FieldEnum.enumerated),
-          Divider(
-              height: 1,
-              color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(
-              context, context.l10n.fieldFloat, Icons.numbers, FieldEnum.float),
+          for (int i = 0; i < types.length; i++) ...[
+            if (i > 0)
+              Divider(
+                  height: 1,
+                  color: context.colors.textSecondary.withValues(alpha: 0.1)),
+            _buildAddFieldOption(
+                context, types[i].displayName, types[i].icon, types[i]),
+          ],
         ],
       ),
     );
