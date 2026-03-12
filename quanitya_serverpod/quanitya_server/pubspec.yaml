@@ -16,6 +16,7 @@ dependencies:
   pointycastle: ^4.0.0
   aws_s3_api: ^2.0.0     # For R2 (S3-compatible) storage
   archive: ^3.6.1        # For gzip compression
+  mailer: ^6.2.0          # SMTP email (optional, env-configured)
 
 dev_dependencies:
   lints: '>=3.0.0 <7.0.0'
