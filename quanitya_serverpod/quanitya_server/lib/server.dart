@@ -11,6 +11,8 @@ import 'src/web/routes/root.dart';
 import 'src/middleware/request_logger.dart';
 import 'src/services/email_service.dart';
 
+export 'src/services/email_service.dart';
+
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
   // Initialize Serverpod and connect it with your generated code.
