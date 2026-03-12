@@ -3756,7 +3756,7 @@
     {
       "__className__": "serverpod.DatabaseMigrationVersion",
       "module": "quanitya",
-      "version": "20260312103638229"
+      "version": "20260312142831140"
     },
     {
       "__className__": "serverpod.DatabaseMigrationVersion",

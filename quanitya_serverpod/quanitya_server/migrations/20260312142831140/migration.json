@@ -42,13 +42,6 @@
           },
           {
             "__className__": "serverpod.ColumnDefinition",
-            "name": "bytesLimit",
-            "columnType": 6,
-            "isNullable": false,
-            "dartType": "int"
-          },
-          {
-            "__className__": "serverpod.ColumnDefinition",
             "name": "updatedAt",
             "columnType": 4,
             "isNullable": false,

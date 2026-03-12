@@ -818,9 +818,9 @@ ALTER TABLE ONLY "serverpod_auth_core_session"
 -- MIGRATION VERSION FOR quanitya
 --
 INSERT INTO "serverpod_migrations" ("module", "version", "timestamp")
-    VALUES ('quanitya', '20260312103638229', now())
+    VALUES ('quanitya', '20260312142831140', now())
     ON CONFLICT ("module")
-    DO UPDATE SET "version" = '20260312103638229', "timestamp" = now();
+    DO UPDATE SET "version" = '20260312142831140', "timestamp" = now();
 
 --
 -- MIGRATION VERSION FOR serverpod
