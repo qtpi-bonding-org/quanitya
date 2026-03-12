@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:serverpod/serverpod.dart';
@@ -7,23 +8,26 @@ import '../generated/protocol.dart';
 import 'r2_storage_service.dart';
 
 /// Archival service for managing PowerSync data lifecycle
-/// 
+///
 /// Handles monthly archival of ONLY encrypted_entries to R2 storage:
-/// - 6 months: PowerSync syncs entries (active data)
-/// - 8+ months: Entries archived to R2, deleted from PostgreSQL
+/// - Entries older than [_bufferMonths] are archived to R2, deleted from PostgreSQL
 /// - Templates, schedules, analysis pipelines, aesthetics: NEVER archived (stay forever)
+/// - Buffer months configurable via ARCHIVE_BUFFER_MONTHS env var (default: 6)
 class ArchivalService {
-  static const int _bufferMonths = 8;
+  static final int _bufferMonths = int.tryParse(
+        Platform.environment['ARCHIVE_BUFFER_MONTHS'] ?? '',
+      ) ??
+      6;
   static const int _batchSize = 100;
-  
+
   final Session _session;
   final R2StorageService _r2Storage;
-  
+
   ArchivalService(this._session, this._r2Storage);
 
   /// Run monthly archival process for entries only
-  /// 
-  /// Archives ONLY encrypted_entries that are 8+ months old.
+  ///
+  /// Archives ONLY encrypted_entries older than [_bufferMonths] months.
   /// Templates, schedules, analysis pipelines, and aesthetics stay in PostgreSQL forever.
   Future<ArchivalResult> runMonthlyArchival() async {
     final result = ArchivalResult();
@@ -31,7 +35,7 @@ class ArchivalService {
     try {
       _session.log('Starting monthly archival process (entries only)');
       
-      // Calculate target month (8 months ago) - ONLY for entries
+      // Calculate target month (buffer months ago) - ONLY for entries
       final now = DateTime.now();
       final archiveMonth = DateTime(now.year, now.month - _bufferMonths, 1);
       final nextMonth = DateTime(archiveMonth.year, archiveMonth.month + 1, 1);

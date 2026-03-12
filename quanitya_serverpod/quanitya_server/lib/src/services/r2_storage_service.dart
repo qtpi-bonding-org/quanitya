@@ -92,20 +92,29 @@ class R2StorageService {
   }
 
   /// List all archives for a specific user
-  /// 
+  ///
   /// [userId] - User ID to list archives for
-  /// 
+  ///
   /// Returns list of archive keys (file paths)
   Future<List<String>> listUserArchives(int userId) async {
+    return listArchives('archives/$userId/');
+  }
+
+  /// List all archives matching a prefix
+  ///
+  /// [prefix] - Prefix to list archives for (e.g., 'error-reports/')
+  ///
+  /// Returns list of archive keys (file paths)
+  Future<List<String>> listArchives(String prefix) async {
     try {
       final response = await _s3Client.listObjectsV2(
         bucket: _bucketName,
-        prefix: 'archives/$userId/',
+        prefix: prefix,
       );
-      
+
       return response.contents?.map((obj) => obj.key!).toList() ?? [];
     } catch (e) {
-      throw Exception('Failed to list user archives: $e');
+      throw Exception('Failed to list archives: $e');
     }
   }
 
