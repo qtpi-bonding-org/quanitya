@@ -303,23 +303,27 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     IconData icon,
     FieldEnum type,
   ) {
-    return InkWell(
-      onTap: () => _showFieldEditorSheet(context, type),
-      child: Padding(
-        padding: EdgeInsets.all(AppSizes.space * 2),
-        child: QuanityaRow(
-          spacing: HSpace.x2,
-          alignment: CrossAxisAlignment.center,
-          start: Icon(icon,
-              size: AppSizes.size20, color: context.colors.textSecondary),
-          middle: Text(
-            label,
-            style: context.text.bodyMedium?.copyWith(
-              color: context.colors.textSecondary,
+    return Semantics(
+      button: true,
+      label: 'Add $label field',
+      child: InkWell(
+        onTap: () => _showFieldEditorSheet(context, type),
+        child: Padding(
+          padding: EdgeInsets.all(AppSizes.space * 2),
+          child: QuanityaRow(
+            spacing: HSpace.x2,
+            alignment: CrossAxisAlignment.center,
+            start: Icon(icon,
+                size: AppSizes.size20, color: context.colors.textSecondary),
+            middle: Text(
+              label,
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.textSecondary,
+              ),
             ),
+            end: Icon(Icons.add,
+                size: AppSizes.size20, color: context.colors.interactableColor),
           ),
-          end: Icon(Icons.add,
-              size: AppSizes.size20, color: context.colors.interactableColor),
         ),
       ),
     );

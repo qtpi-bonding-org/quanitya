@@ -8,6 +8,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/primitives/zen_grid_constants.dart';
 import '../../../design_system/widgets/zen_grid_positioned.dart';
+import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../logic/analytics/models/analysis_output.dart';
 import '../../../logic/analytics/models/matrix_vector_scalar/time_series_matrix.dart';
@@ -98,13 +99,11 @@ class LiveResultsPanel extends StatelessWidget {
           ),
           const Spacer(),
           if (onClose != null)
-            GestureDetector(
-              onTap: onClose,
-              child: Icon(
-                Icons.close,
-                size: AppSizes.iconSmall,
-                color: QuanityaPalette.primary.textSecondary,
-              ),
+            QuanityaIconButton(
+              icon: Icons.close,
+              iconSize: AppSizes.iconSmall,
+              tooltip: 'Close',
+              onPressed: onClose,
             ),
         ],
       ),

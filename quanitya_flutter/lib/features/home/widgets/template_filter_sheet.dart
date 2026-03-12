@@ -93,29 +93,34 @@ class _TemplateRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: AppSizes.space,
-          horizontal: AppSizes.space * 0.5,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isSelected ? Icons.check : null,
-              size: AppSizes.iconSmall,
-              color: palette.interactableColor,
-            ),
-            HSpace.x1,
-            Expanded(
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: AppSizes.space,
+            horizontal: AppSizes.space * 0.5,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isSelected ? Icons.check : null,
+                size: AppSizes.iconSmall,
+                color: palette.interactableColor,
               ),
-            ),
-          ],
+              HSpace.x1,
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

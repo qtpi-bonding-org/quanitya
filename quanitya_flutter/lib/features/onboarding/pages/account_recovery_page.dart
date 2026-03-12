@@ -294,12 +294,15 @@ class _ExistingKeysWarning extends StatelessWidget {
               ),
               HSpace.x1,
               Expanded(
-                child: GestureDetector(
-                  onTap: () => onChanged(!confirmEraseKeys),
-                  child: Text(
-                    context.l10n.recoveryConfirmEraseKeys,
-                    style: context.text.bodySmall?.copyWith(
-                      color: context.colors.textSecondary,
+                child: Semantics(
+                  label: 'Accept terms',
+                  child: GestureDetector(
+                    onTap: () => onChanged(!confirmEraseKeys),
+                    child: Text(
+                      context.l10n.recoveryConfirmEraseKeys,
+                      style: context.text.bodySmall?.copyWith(
+                        color: context.colors.textSecondary,
+                      ),
                     ),
                   ),
                 ),

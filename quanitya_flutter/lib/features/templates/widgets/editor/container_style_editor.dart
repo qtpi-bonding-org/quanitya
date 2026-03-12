@@ -83,33 +83,38 @@ class _PresetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 100,
-        height: 72,
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected ? accentColor : context.colors.textSecondary.withValues(alpha: 0.3),
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-          color: isSelected ? accentColor.withValues(alpha: 0.05) : null,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Mini preview of the style geometry
-            _PresetMiniPreview(style: style, accentColor: accentColor),
-            VSpace.x05,
-            Text(
-              style.displayName,
-              style: context.text.labelSmall?.copyWith(
-                color: isSelected ? accentColor : context.colors.textSecondary,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: style.displayName,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 100,
+          height: 72,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: isSelected ? accentColor : context.colors.textSecondary.withValues(alpha: 0.3),
+              width: isSelected ? 2 : 1,
             ),
-          ],
+            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+            color: isSelected ? accentColor.withValues(alpha: 0.05) : null,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Mini preview of the style geometry
+              _PresetMiniPreview(style: style, accentColor: accentColor),
+              VSpace.x05,
+              Text(
+                style.displayName,
+                style: context.text.labelSmall?.copyWith(
+                  color: isSelected ? accentColor : context.colors.textSecondary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

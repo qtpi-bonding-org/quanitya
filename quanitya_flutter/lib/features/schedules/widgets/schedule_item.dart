@@ -316,49 +316,53 @@ class _InlineScheduleControls extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           child: IgnorePointer(
             ignoring: frequency == ScheduleFrequency.off,
-            child: GestureDetector(
-              onTap: () async {
-                final picked = await showTimePicker(
-                  context: context,
-                  initialTime: time,
-                );
-                if (picked != null) {
-                  onTimeChanged(picked);
-                }
-              },
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    context.l10n.scheduleTimeLabel,
-                    style: context.text.bodySmall?.copyWith(
-                      color: palette.textSecondary,
+            child: Semantics(
+              button: true,
+              label: 'Change time',
+              child: GestureDetector(
+                onTap: () async {
+                  final picked = await showTimePicker(
+                    context: context,
+                    initialTime: time,
+                  );
+                  if (picked != null) {
+                    onTimeChanged(picked);
+                  }
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      context.l10n.scheduleTimeLabel,
+                      style: context.text.bodySmall?.copyWith(
+                        color: palette.textSecondary,
+                      ),
                     ),
-                  ),
-                  HSpace.x1,
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: AppSizes.space,
-                      vertical: AppSizes.space * 0.5,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: palette.textSecondary.withValues(alpha: 0.3),
-                          width: 1,
+                    HSpace.x1,
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppSizes.space,
+                        vertical: AppSizes.space * 0.5,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: palette.textSecondary.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        time.format(context),
+                        style: context.text.bodySmall?.copyWith(
+                          color: palette.textPrimary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                    child: Text(
-                      time.format(context),
-                      style: context.text.bodySmall?.copyWith(
-                        color: palette.textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

@@ -295,54 +295,58 @@ class _FieldAnalysisCard extends StatelessWidget {
 
     return Container(
       margin: EdgeInsets.only(bottom: AppSizes.space),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-          onTap: () {
-            AppNavigation.toAnalysisBuilder(
-              context,
-              fieldId: fieldData.field.label,
-              templateId: templateId,
-            );
-          },
-          child: Container(
-            padding: AppPadding.allDouble,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: palette.textSecondary.withValues(alpha: 0.2),
+      child: Semantics(
+        button: true,
+        label: 'Analyze field: ${fieldData.field.label}',
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+            onTap: () {
+              AppNavigation.toAnalysisBuilder(
+                context,
+                fieldId: fieldData.field.label,
+                templateId: templateId,
+              );
+            },
+            child: Container(
+              padding: AppPadding.allDouble,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: palette.textSecondary.withValues(alpha: 0.2),
+                ),
+                borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
               ),
-              borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        fieldData.field.label,
-                        style: context.text.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: palette.textPrimary,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          fieldData.field.label,
+                          style: context.text.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: palette.textPrimary,
+                          ),
                         ),
-                      ),
-                      VSpace.x05,
-                      Text(
-                        context.l10n.resultsDataPoints(fieldData.points.length),
-                        style: context.text.bodySmall?.copyWith(
-                          color: palette.textSecondary,
+                        VSpace.x05,
+                        Text(
+                          context.l10n.resultsDataPoints(fieldData.points.length),
+                          style: context.text.bodySmall?.copyWith(
+                            color: palette.textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  color: palette.textSecondary,
-                  size: AppSizes.iconMedium,
-                ),
-              ],
+                  Icon(
+                    Icons.chevron_right,
+                    color: palette.textSecondary,
+                    size: AppSizes.iconMedium,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

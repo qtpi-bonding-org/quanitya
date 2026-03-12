@@ -63,42 +63,46 @@ class _InfoLinkItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-        child: Padding(
-          padding: AppPadding.verticalSingle,
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: AppSizes.iconMedium,
-                color: context.colors.textPrimary,
-              ),
-              HSpace.x2,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: context.text.bodyLarge),
-                    if (subtitle != null)
-                      Text(
-                        subtitle!,
-                        style: context.text.bodySmall?.copyWith(
-                          color: context.colors.textSecondary,
-                        ),
-                      ),
-                  ],
+    return Semantics(
+      button: true,
+      label: title,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+          child: Padding(
+            padding: AppPadding.verticalSingle,
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  size: AppSizes.iconMedium,
+                  color: context.colors.textPrimary,
                 ),
-              ),
-              Icon(
-                Icons.open_in_new,
-                size: AppSizes.iconSmall,
-                color: context.colors.interactableColor,
-              ),
-            ],
+                HSpace.x2,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: context.text.bodyLarge),
+                      if (subtitle != null)
+                        Text(
+                          subtitle!,
+                          style: context.text.bodySmall?.copyWith(
+                            color: context.colors.textSecondary,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.open_in_new,
+                  size: AppSizes.iconSmall,
+                  color: context.colors.interactableColor,
+                ),
+              ],
+            ),
           ),
         ),
       ),

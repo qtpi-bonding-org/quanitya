@@ -5,6 +5,7 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
+import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya/generatable/quanitya_dropdown.dart';
@@ -152,12 +153,10 @@ class _ApiKeySheetState extends State<ApiKeySheet> {
               labelText: context.l10n.apiKeyValue,
               hintText: context.l10n.apiKeyValueHint,
               obscureText: _obscureKey,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureKey ? Icons.visibility_off : Icons.visibility,
-                  color: context.colors.interactableColor,
-                  size: AppSizes.iconSmall,
-                ),
+              suffixIcon: QuanityaIconButton(
+                icon: _obscureKey ? Icons.visibility_off : Icons.visibility,
+                iconSize: AppSizes.iconSmall,
+                tooltip: 'Toggle visibility',
                 onPressed: () => setState(() => _obscureKey = !_obscureKey),
               ),
               validator: (value) {

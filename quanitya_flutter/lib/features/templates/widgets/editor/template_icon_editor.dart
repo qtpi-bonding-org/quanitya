@@ -59,45 +59,49 @@ class TemplateIconEditor extends StatelessWidget {
             VSpace.x2,
             // Icon and name preview (as it will appear on home page)
             Center(
-              child: GestureDetector(
-                onTap: () => _showIconPicker(context),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Icon bubble with template's accent color
-                    Container(
-                      width: AppSizes.iconXLarge,
-                      height: AppSizes.iconXLarge,
-                      decoration: BoxDecoration(
-                        color: accentColor.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                        border: Border.all(
+              child: Semantics(
+                button: true,
+                label: 'Change template icon',
+                child: GestureDetector(
+                  onTap: () => _showIconPicker(context),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Icon bubble with template's accent color
+                      Container(
+                        width: AppSizes.iconXLarge,
+                        height: AppSizes.iconXLarge,
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: accentColor,
+                            width: 2,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Icon(
+                          iconData,
+                          size: AppSizes.iconLarge,
                           color: accentColor,
-                          width: 2,
                         ),
                       ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        iconData,
-                        size: AppSizes.iconLarge,
-                        color: accentColor,
+                      VSpace.x1,
+                      // Show template name below icon with title font
+                      Text(
+                        state.templateName.isEmpty
+                            ? context.l10n.templateNamePlaceholder
+                            : state.templateName,
+                        style: _getTitleStyle(titleFont, context).copyWith(
+                          color: state.templateName.isEmpty
+                              ? context.colors.textSecondary.withValues(alpha: 0.5)
+                              : context.colors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    VSpace.x1,
-                    // Show template name below icon with title font
-                    Text(
-                      state.templateName.isEmpty
-                          ? context.l10n.templateNamePlaceholder
-                          : state.templateName,
-                      style: _getTitleStyle(titleFont, context).copyWith(
-                        color: state.templateName.isEmpty
-                            ? context.colors.textSecondary.withValues(alpha: 0.5)
-                            : context.colors.textPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

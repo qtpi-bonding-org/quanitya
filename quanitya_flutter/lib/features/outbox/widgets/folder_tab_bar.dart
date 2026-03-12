@@ -41,17 +41,22 @@ class FolderTabBar extends StatelessWidget {
           children: List.generate(tabs.length, (index) {
             final isSelected = index == currentIndex;
             return Expanded(
-              child: GestureDetector(
-                onTap: () => onTabSelected(index),
-                behavior: HitTestBehavior.opaque,
-                child: _FolderTabWidget(
-                  tab: tabs[index],
-                  isSelected: isSelected,
-                  position: index == 0
-                      ? _TabPosition.first
-                      : index == tabs.length - 1
-                          ? _TabPosition.last
-                          : _TabPosition.middle,
+              child: Semantics(
+                button: true,
+                selected: isSelected,
+                label: tabs[index].label,
+                child: GestureDetector(
+                  onTap: () => onTabSelected(index),
+                  behavior: HitTestBehavior.opaque,
+                  child: _FolderTabWidget(
+                    tab: tabs[index],
+                    isSelected: isSelected,
+                    position: index == 0
+                        ? _TabPosition.first
+                        : index == tabs.length - 1
+                            ? _TabPosition.last
+                            : _TabPosition.middle,
+                  ),
                 ),
               ),
             );

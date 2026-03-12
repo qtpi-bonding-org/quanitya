@@ -187,63 +187,67 @@ class _BackupMethodTile extends StatelessWidget {
     final interactable = context.colors.interactableColor;
     final textSecondary = context.colors.textSecondary;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: QuanityaRow(
-        alignment: CrossAxisAlignment.start,
-        spacing: HSpace.x2,
-        start: Icon(
-          isCompleted ? Icons.check : icon,
-          size: AppSizes.iconMedium,
-          color: isCompleted ? interactable : textSecondary,
-        ),
-        middle: QuanityaColumn(
-          spacing: VSpace.x025,
-          crossAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: context.text.bodyLarge?.copyWith(
-                color: isCompleted ? interactable : context.colors.textPrimary,
+    return Semantics(
+      button: true,
+      label: title,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: QuanityaRow(
+          alignment: CrossAxisAlignment.start,
+          spacing: HSpace.x2,
+          start: Icon(
+            isCompleted ? Icons.check : icon,
+            size: AppSizes.iconMedium,
+            color: isCompleted ? interactable : textSecondary,
+          ),
+          middle: QuanityaColumn(
+            spacing: VSpace.x025,
+            crossAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: context.text.bodyLarge?.copyWith(
+                  color: isCompleted ? interactable : context.colors.textPrimary,
+                ),
               ),
-            ),
-            Text(
-              subtitle,
-              style: context.text.bodySmall?.copyWith(
-                color: textSecondary,
+              Text(
+                subtitle,
+                style: context.text.bodySmall?.copyWith(
+                  color: textSecondary,
+                ),
               ),
-            ),
-            if (warning != null) ...[
-              VSpace.x025,
-              Row(
-                children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    size: AppSizes.iconSmall,
-                    color: context.colors.warningColor,
-                  ),
-                  HSpace.x05,
-                  Expanded(
-                    child: Text(
-                      warning!,
-                      style: context.text.bodySmall?.copyWith(
-                        color: context.colors.warningColor,
+              if (warning != null) ...[
+                VSpace.x025,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      size: AppSizes.iconSmall,
+                      color: context.colors.warningColor,
+                    ),
+                    HSpace.x05,
+                    Expanded(
+                      child: Text(
+                        warning!,
+                        style: context.text.bodySmall?.copyWith(
+                          color: context.colors.warningColor,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ],
-          ],
+          ),
+          end: isCompleted
+              ? null
+              : Icon(
+                  Icons.chevron_right,
+                  size: AppSizes.iconMedium,
+                  color: context.colors.interactableColor,
+                ),
         ),
-        end: isCompleted
-            ? null
-            : Icon(
-                Icons.chevron_right,
-                size: AppSizes.iconMedium,
-                color: context.colors.interactableColor,
-              ),
       ),
     );
   }

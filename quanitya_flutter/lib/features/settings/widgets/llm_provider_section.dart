@@ -90,11 +90,14 @@ class _ConfigRow extends StatelessWidget {
         ? 'openrouter.ai'
         : config.baseUrl.replaceAll('http://', '').replaceAll('/v1', '');
 
-    return InkWell(
-      onTap: onTap,
-      onLongPress: onEdit,
-      borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-      child: Container(
+    return Semantics(
+      button: true,
+      label: '$displayUrl — ${config.modelId}',
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onEdit,
+        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+        child: Container(
         padding: AppPadding.allDouble,
         decoration: BoxDecoration(
           color: context.colors.textSecondary.withValues(alpha: 0.05),
@@ -138,6 +141,7 @@ class _ConfigRow extends StatelessWidget {
               color: context.colors.textSecondary,
             ),
           ],
+        ),
         ),
       ),
     );

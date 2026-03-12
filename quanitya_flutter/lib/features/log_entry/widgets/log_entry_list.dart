@@ -45,10 +45,14 @@ class LogEntryList extends StatelessWidget {
         separatorBuilder: (_, _) => VSpace.x3,
         itemBuilder: (context, index) {
           final entry = entries[index];
-          return GestureDetector(
-            onTap: onEntryTap != null ? () => onEntryTap!(entry) : null,
-            behavior: HitTestBehavior.opaque,
-            child: LogEntryItem(entry: entry, template: template),
+          return Semantics(
+            button: onEntryTap != null,
+            label: 'View log entry',
+            child: GestureDetector(
+              onTap: onEntryTap != null ? () => onEntryTap!(entry) : null,
+              behavior: HitTestBehavior.opaque,
+              child: LogEntryItem(entry: entry, template: template),
+            ),
           );
         },
       ),

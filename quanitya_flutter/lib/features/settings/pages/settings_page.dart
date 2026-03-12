@@ -357,49 +357,53 @@ class _ApiKeyRow extends StatelessWidget {
         ? context.l10n.apiKeyTypeBearer
         : '${context.l10n.apiKeyTypeHeader}: ${apiKey.headerName}';
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-      child: Container(
-        padding: AppPadding.allDouble,
-        decoration: BoxDecoration(
-          color: context.colors.textSecondary.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              apiKey.authType == AuthType.bearer ? Icons.vpn_key : Icons.code,
-              size: AppSizes.iconMedium,
-              color: context.colors.textPrimary,
-            ),
-            HSpace.x2,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    apiKey.name,
-                    style: context.text.bodyLarge?.copyWith(
-                      color: context.colors.interactableColor,
-                    ),
-                  ),
-                  VSpace.x025,
-                  Text(
-                    typeLabel,
-                    style: context.text.bodySmall?.copyWith(
-                      color: context.colors.textSecondary,
-                    ),
-                  ),
-                ],
+    return Semantics(
+      button: true,
+      label: 'Edit API key: ${apiKey.name}',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+        child: Container(
+          padding: AppPadding.allDouble,
+          decoration: BoxDecoration(
+            color: context.colors.textSecondary.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                apiKey.authType == AuthType.bearer ? Icons.vpn_key : Icons.code,
+                size: AppSizes.iconMedium,
+                color: context.colors.textPrimary,
               ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              size: AppSizes.iconSmall,
-              color: context.colors.interactableColor,
-            ),
-          ],
+              HSpace.x2,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      apiKey.name,
+                      style: context.text.bodyLarge?.copyWith(
+                        color: context.colors.interactableColor,
+                      ),
+                    ),
+                    VSpace.x025,
+                    Text(
+                      typeLabel,
+                      style: context.text.bodySmall?.copyWith(
+                        color: context.colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                size: AppSizes.iconSmall,
+                color: context.colors.interactableColor,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -551,80 +555,84 @@ class _WebhookRow extends StatelessWidget {
         ? DateFormat.yMd().add_jm().format(webhook.lastTriggeredAt!)
         : context.l10n.webhookNeverTriggered;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-      child: Container(
-        padding: AppPadding.allDouble,
-        decoration: BoxDecoration(
-          color: context.colors.textSecondary.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.webhook,
-                  size: AppSizes.iconMedium,
-                  color: webhook.isEnabled 
-                      ? context.colors.interactableColor 
-                      : context.colors.textSecondary,
-                ),
-                HSpace.x2,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        webhook.name,
-                        style: context.text.bodyLarge?.copyWith(
-                          color: context.colors.interactableColor,
-                        ),
-                      ),
-                      VSpace.x025,
-                      Text(
-                        templateName,
-                        style: context.text.bodySmall?.copyWith(
-                          color: context.colors.textPrimary,
-                        ),
-                      ),
-                    ],
+    return Semantics(
+      button: true,
+      label: 'Edit webhook',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+        child: Container(
+          padding: AppPadding.allDouble,
+          decoration: BoxDecoration(
+            color: context.colors.textSecondary.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.webhook,
+                    size: AppSizes.iconMedium,
+                    color: webhook.isEnabled
+                        ? context.colors.interactableColor
+                        : context.colors.textSecondary,
                   ),
-                ),
-                QuanityaToggle(
-                  value: webhook.isEnabled,
-                  onChanged: onToggle,
-                ),
-              ],
-            ),
-            VSpace.x2,
-            Text(
-              displayUrl,
-              style: context.text.bodySmall?.copyWith(
-                color: context.colors.textSecondary,
-                fontFamily: QuanityaFonts.bodyFamily,
+                  HSpace.x2,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          webhook.name,
+                          style: context.text.bodyLarge?.copyWith(
+                            color: context.colors.interactableColor,
+                          ),
+                        ),
+                        VSpace.x025,
+                        Text(
+                          templateName,
+                          style: context.text.bodySmall?.copyWith(
+                            color: context.colors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  QuanityaToggle(
+                    value: webhook.isEnabled,
+                    onChanged: onToggle,
+                  ),
+                ],
               ),
-              overflow: TextOverflow.ellipsis,
-            ),
-            VSpace.x1,
-            Row(
-              children: [
-                Text(
-                  '${context.l10n.webhookLastTriggered}: $lastTriggered',
-                  style: context.text.bodySmall?.copyWith(
-                    color: context.colors.textSecondary,
+              VSpace.x2,
+              Text(
+                displayUrl,
+                style: context.text.bodySmall?.copyWith(
+                  color: context.colors.textSecondary,
+                  fontFamily: QuanityaFonts.bodyFamily,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              VSpace.x1,
+              Row(
+                children: [
+                  Text(
+                    '${context.l10n.webhookLastTriggered}: $lastTriggered',
+                    style: context.text.bodySmall?.copyWith(
+                      color: context.colors.textSecondary,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                QuanityaTextButton(
-                  text: context.l10n.webhookRetry,
-                  onPressed: webhook.isEnabled ? onRetry : null,
-                ),
-              ],
-            ),
-          ],
+                  const Spacer(),
+                  QuanityaTextButton(
+                    text: context.l10n.webhookRetry,
+                    onPressed: webhook.isEnabled ? onRetry : null,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

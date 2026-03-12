@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/structures/group.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
@@ -176,40 +177,37 @@ class _ModelTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return QuanityaGroup(
       onTap: onTap,
-      child: Padding(
-        padding: AppPadding.verticalSingle,
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                model.id,
-                style: context.text.bodyMedium?.copyWith(
-                  color: context.colors.textPrimary,
-                ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              model.id,
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.textPrimary,
               ),
             ),
-            if (model.tested)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.check_circle,
-                    size: AppSizes.iconSmall,
+          ),
+          if (model.tested)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  size: AppSizes.iconSmall,
+                  color: context.colors.successColor,
+                ),
+                HSpace.x05,
+                Text(
+                  context.l10n.llmProviderModelTested,
+                  style: context.text.bodySmall?.copyWith(
                     color: context.colors.successColor,
                   ),
-                  HSpace.x05,
-                  Text(
-                    context.l10n.llmProviderModelTested,
-                    style: context.text.bodySmall?.copyWith(
-                      color: context.colors.successColor,
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }

@@ -42,9 +42,13 @@ class TrackerCard extends StatelessWidget {
         // 1. Icon (Big & Centered) - Priority: icon → emoji → default
         // Wrapped in GestureDetector for onIconTap (navigate to template editor)
         Center(
-          child: GestureDetector(
-            onTap: onIconTap,
-            child: _buildIcon(context),
+          child: Semantics(
+            button: true,
+            label: 'Edit template',
+            child: GestureDetector(
+              onTap: onIconTap,
+              child: _buildIcon(context),
+            ),
           ),
         ),
 

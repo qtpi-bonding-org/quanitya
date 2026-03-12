@@ -101,48 +101,52 @@ class _ConnectOptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-        child: Padding(
-          padding: AppPadding.verticalSingle,
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: AppSizes.iconLarge,
-                color: context.colors.interactableColor,
-              ),
-              HSpace.x2,
-              Expanded(
-                child: QuanityaColumn(
-                  spacing: VSpace.x05,
-                  crossAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: context.text.titleMedium?.copyWith(
-                        color: context.colors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      description,
-                      style: context.text.bodySmall?.copyWith(
-                        color: context.colors.textSecondary,
-                      ),
-                    ),
-                  ],
+    return Semantics(
+      button: true,
+      label: title,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+          child: Padding(
+            padding: AppPadding.verticalSingle,
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  size: AppSizes.iconLarge,
+                  color: context.colors.interactableColor,
                 ),
-              ),
-              HSpace.x1,
-              Icon(
-                Icons.chevron_right_rounded,
-                size: AppSizes.iconMedium,
-                color: context.colors.textSecondary,
-              ),
-            ],
+                HSpace.x2,
+                Expanded(
+                  child: QuanityaColumn(
+                    spacing: VSpace.x05,
+                    crossAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: context.text.titleMedium?.copyWith(
+                          color: context.colors.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        description,
+                        style: context.text.bodySmall?.copyWith(
+                          color: context.colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                HSpace.x1,
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: AppSizes.iconMedium,
+                  color: context.colors.textSecondary,
+                ),
+              ],
+            ),
           ),
         ),
       ),

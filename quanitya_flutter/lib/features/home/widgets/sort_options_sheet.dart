@@ -189,24 +189,29 @@ class _OptionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: AppSizes.space,
-          horizontal: AppSizes.space * 0.5,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon ?? (isSelected ? Icons.check : null),
-              size: AppSizes.iconSmall,
-              color: palette.interactableColor,
-            ),
-            HSpace.x1,
-            Expanded(child: Text(label)),
-          ],
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: AppSizes.space,
+            horizontal: AppSizes.space * 0.5,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon ?? (isSelected ? Icons.check : null),
+                size: AppSizes.iconSmall,
+                color: palette.interactableColor,
+              ),
+              HSpace.x1,
+              Expanded(child: Text(label)),
+            ],
+          ),
         ),
       ),
     );

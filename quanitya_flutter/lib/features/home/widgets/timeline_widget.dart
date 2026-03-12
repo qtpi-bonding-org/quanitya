@@ -71,10 +71,13 @@ class TimelineWidget extends StatelessWidget {
   ) {
     final template = entryWithContext.template;
     
-    return GestureDetector(
-      onTap: onItemTap != null ? () => onItemTap!(item) : null,
-      child: IntrinsicHeight(
-        child: Row(
+    return Semantics(
+      button: true,
+      label: 'View log entry',
+      child: GestureDetector(
+        onTap: onItemTap != null ? () => onItemTap!(item) : null,
+        child: IntrinsicHeight(
+          child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Timeline Column - matches original structure
@@ -169,6 +172,7 @@ class TimelineWidget extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 

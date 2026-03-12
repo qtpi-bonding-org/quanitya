@@ -6,6 +6,7 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
+import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../support/extensions/color_extensions.dart';
 import '../../cubits/editor/template_editor_cubit.dart';
@@ -121,16 +122,26 @@ class ColorPaletteEditor extends StatelessWidget {
     Color color,
     Function(Color) onColorChanged,
   ) {
-    return GestureDetector(
-      onTap: () => _showColorPicker(context, color, onColorChanged),
-      child: Container(
-        width: AppSizes.iconLarge,
-        height: AppSizes.iconLarge,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: context.colors.textSecondary.withValues(alpha: 0.2),
+    return Semantics(
+      button: true,
+      label: 'Change color',
+      child: GestureDetector(
+        onTap: () => _showColorPicker(context, color, onColorChanged),
+        child: SizedBox(
+          width: AppSizes.buttonHeight,
+          height: AppSizes.buttonHeight,
+          child: Center(
+            child: Container(
+              width: AppSizes.iconLarge,
+              height: AppSizes.iconLarge,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: context.colors.textSecondary.withValues(alpha: 0.2),
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -159,8 +170,8 @@ class ColorPaletteEditor extends StatelessWidget {
             VSpace.x2,
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton(
-                child: Text(context.l10n.selectAction),
+              child: QuanityaTextButton(
+                text: context.l10n.selectAction,
                 onPressed: () => Navigator.of(ctx).pop(),
               ),
             ),
