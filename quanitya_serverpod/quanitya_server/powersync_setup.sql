@@ -30,11 +30,10 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 
 --
 -- Grant database and schema permissions to powersync_role
+-- Per PowerSync docs: only CONNECT + USAGE needed, NOT CREATE.
 --
 GRANT CONNECT ON DATABASE quanitya TO powersync_role;
 GRANT USAGE ON SCHEMA public TO powersync_role;
-GRANT CREATE ON DATABASE quanitya TO powersync_role;
-GRANT CREATE ON SCHEMA public TO powersync_role;
 
 --
 -- PowerSync Setup: Create publication

@@ -1,0 +1,9 @@
+# StorageUsageResponse: typed response for getStorageUsage endpoint
+# Avoids returning Map<String, dynamic> which Serverpod cannot serialize.
+class: StorageUsageResponse
+fields:
+  bytesUsed: int
+  bytesLimit: int
+  rowCount: int
+  percentUsed: int
+  bytesRemaining: int

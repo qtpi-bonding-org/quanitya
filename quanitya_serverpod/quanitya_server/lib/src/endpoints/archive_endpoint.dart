@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:archive/archive.dart';
 import 'package:serverpod/serverpod.dart';
 
+import 'dart:io';
 import '../generated/protocol.dart';
 import '../services/r2_storage_service.dart';
 import '../services/archival_service.dart';
@@ -196,12 +197,19 @@ class ArchiveEndpoint extends Endpoint {
   }
 
   /// Manual archival trigger for testing and maintenance
-  /// 
+  ///
   /// Triggers the monthly archival process manually.
-  /// Useful for testing and one-off archival operations.
+  /// Requires the caller's account ID to be listed in the
+  /// ADMIN_ACCOUNT_IDS environment variable (comma-separated).
   Future<String> runManualArchival(Session session) async {
+    final userId = session.authenticated!.userIdentifier;
+    final adminIds = Platform.environment['ADMIN_ACCOUNT_IDS']?.split(',').map((e) => e.trim()).toSet() ?? {};
+    if (!adminIds.contains(userId)) {
+      throw Exception('Only admin accounts can trigger manual archival.');
+    }
+
     try {
-      session.log('Manual archival triggered by user ${session.authenticated!.userIdentifier}');
+      session.log('Manual archival triggered by admin $userId');
       
       final archivalService = ArchivalService.fromEnvironment(session);
       final result = await archivalService.runMonthlyArchival();

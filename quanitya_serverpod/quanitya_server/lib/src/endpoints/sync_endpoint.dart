@@ -228,6 +228,8 @@ class SyncEndpoint extends Endpoint {
 
     final existing = await TemplateAesthetics.db.findById(session, uuidId);
 
+    final parsedUpdatedAt = _parseDateTime(updatedAt) ?? DateTime.now();
+
     if (existing != null && existing.accountId == accountId) {
       final updated = existing.copyWith(
         templateId: templateId,
@@ -237,9 +239,7 @@ class SyncEndpoint extends Endpoint {
         paletteJson: paletteJson,
         fontConfigJson: fontConfigJson,
         colorMappingsJson: colorMappingsJson,
-        updatedAt: updatedAt != null
-            ? DateTime.parse(updatedAt)
-            : DateTime.now(),
+        updatedAt: parsedUpdatedAt,
       );
       return await TemplateAesthetics.db.updateRow(session, updated);
     } else {
@@ -253,9 +253,7 @@ class SyncEndpoint extends Endpoint {
         paletteJson: paletteJson,
         fontConfigJson: fontConfigJson,
         colorMappingsJson: colorMappingsJson,
-        updatedAt: updatedAt != null
-            ? DateTime.parse(updatedAt)
-            : DateTime.now(),
+        updatedAt: parsedUpdatedAt,
       );
       return await TemplateAesthetics.db.insertRow(session, aesthetics);
     }
@@ -351,17 +349,23 @@ class SyncEndpoint extends Endpoint {
   // ─────────────────────────────────────────────────────────────────────────
 
   /// Get storage usage for authenticated user
-  Future<Map<String, dynamic>> getStorageUsage(Session session) async {
+  Future<StorageUsageResponse> getStorageUsage(Session session) async {
     final accountId = int.parse(session.authenticated!.userIdentifier);
     final usage = await StorageQuotaService.getUsage(session, accountId);
 
-    return {
-      'bytesUsed': usage.bytesUsed,
-      'bytesLimit': usage.bytesLimit,
-      'rowCount': usage.rowCount,
-      'percentUsed': (usage.bytesUsed / usage.bytesLimit * 100).round(),
-      'bytesRemaining':
+    return StorageUsageResponse(
+      bytesUsed: usage.bytesUsed,
+      bytesLimit: usage.bytesLimit,
+      rowCount: usage.rowCount,
+      percentUsed: (usage.bytesUsed / usage.bytesLimit * 100).round(),
+      bytesRemaining:
           (usage.bytesLimit - usage.bytesUsed).clamp(0, usage.bytesLimit),
-    };
+    );
+  }
+
+  /// Safely parse a DateTime string, returning null on invalid input.
+  static DateTime? _parseDateTime(String? value) {
+    if (value == null) return null;
+    return DateTime.tryParse(value);
   }
 }
