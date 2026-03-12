@@ -10,6 +10,7 @@ import '../../../../logic/templates/enums/ui_element_enum.dart';
 import '../../../../logic/schedules/models/schedule.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../data/repositories/schedule_repository.dart';
+import '../../../../infrastructure/permissions/permission_service.dart';
 import '../../../../logic/templates/enums/field_enum.dart';
 import '../../widgets/editor/schedule_section.dart';
 import 'template_editor_state.dart';
@@ -23,8 +24,9 @@ import 'template_editor_state.dart';
 class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   final TemplateWithAestheticsRepository _repository;
   final ScheduleRepository _scheduleRepository;
+  final PermissionService _permissionService;
 
-  TemplateEditorCubit(this._repository, this._scheduleRepository) : super(const TemplateEditorState());
+  TemplateEditorCubit(this._repository, this._scheduleRepository, this._permissionService) : super(const TemplateEditorState());
 
   // ─────────────────────────────────────────────────────────────────────────
   // Entry Points
@@ -437,7 +439,10 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
 
       await _repository.save(completeTemplate);
 
-      // Save or delete schedule
+      // Save or delete schedule (request notification permission if creating one)
+      if (state.scheduleFrequency != ScheduleFrequency.off) {
+        await _permissionService.ensureNotification();
+      }
       await _saveOrDeleteSchedule(completeTemplate.template.id);
 
       return state.copyWith(

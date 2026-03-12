@@ -1,4 +1,7 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:get_it/get_it.dart';
+
+import '../permissions/permission_service.dart';
 
 /// Lightweight location service for manual GPS capture.
 ///
@@ -9,8 +12,8 @@ class LocationService {
 
   /// Captures the current GPS position.
   ///
-  /// Requests permission if not already granted. Returns lat/lng map
-  /// suitable for storing in entry data JSON.
+  /// Requests permission via [PermissionService] if not already granted.
+  /// Returns lat/lng map suitable for storing in entry data JSON.
   ///
   /// Throws [LocationException] if permission denied or unavailable.
   static Future<Map<String, double>> captureCurrentPosition() async {
@@ -19,17 +22,9 @@ class LocationService {
       throw LocationException('Location services are disabled.');
     }
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        throw LocationException('Location permission denied.');
-      }
-    }
-    if (permission == LocationPermission.deniedForever) {
-      throw LocationException(
-        'Location permission permanently denied. Enable in Settings.',
-      );
+    final granted = await GetIt.instance<PermissionService>().ensureLocation();
+    if (!granted) {
+      throw LocationException('Location permission denied.');
     }
 
     final position = await Geolocator.getCurrentPosition(

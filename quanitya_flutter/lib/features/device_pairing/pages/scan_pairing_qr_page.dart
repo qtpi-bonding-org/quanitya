@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:permission_handler/permission_handler.dart' show openAppSettings;
+
+import '../../../infrastructure/permissions/permission_service.dart';
 
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
@@ -51,7 +53,7 @@ class _ScanPairingQrViewState extends State<_ScanPairingQrView>
     with WidgetsBindingObserver {
   final MobileScannerController _scannerController = MobileScannerController();
   bool _hasScanned = false;
-  PermissionStatus? _permissionStatus;
+  bool? _cameraGranted;
 
   @override
   void initState() {
@@ -68,10 +70,10 @@ class _ScanPairingQrViewState extends State<_ScanPairingQrView>
   }
 
   Future<void> _checkPermission() async {
-    final status = await Permission.camera.request();
+    final granted = await GetIt.instance<PermissionService>().ensureCamera();
     if (mounted) {
       setState(() {
-        _permissionStatus = status;
+        _cameraGranted = granted;
       });
     }
   }
@@ -107,10 +109,10 @@ class _ScanPairingQrViewState extends State<_ScanPairingQrView>
             }
           },
           builder: (context, state) {
-            if (_permissionStatus == null) {
+            if (_cameraGranted == null) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (_permissionStatus!.isDenied || _permissionStatus!.isPermanentlyDenied) {
+            if (!_cameraGranted!) {
               return _buildPermissionDenied(context);
             }
             if (state.scanStatus == ScanStatus.registering) {
