@@ -73,46 +73,51 @@ class QuanityaConfirmationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 400),
-        decoration: BoxDecoration(
-          color: context.colors.backgroundPrimary,
-          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-          boxShadow: const [
-            BoxShadow(
-              color: Color.fromRGBO(0, 0, 0, 0.15),
-              offset: Offset(2, 3),
-              blurRadius: 4,
-            ),
-          ],
-        ),
-        padding: EdgeInsets.all(AppSizes.space * 2),
-        child: QuanityaColumn(
-          crossAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(title, style: context.text.headlineMedium),
-            Text(message, style: context.text.bodyLarge),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                QuanityaTextButton(
-                  text: context.l10n.actionCancel,
-                  onPressed: () => Navigator.of(context).pop(false),
-                ),
-                QuanityaTextButton(
-                  text: confirmText ?? context.l10n.confirm,
-                  isDestructive: isDestructive,
-                  onPressed: () {
-                    onConfirm();
-                    Navigator.of(context).pop(true);
-                  },
-                ),
-              ],
-            ),
-          ],
+    return Semantics(
+      scopesRoute: true,
+      namesRoute: true,
+      label: title,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          decoration: BoxDecoration(
+            color: context.colors.backgroundPrimary,
+            borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+            boxShadow: const [
+              BoxShadow(
+                color: Color.fromRGBO(0, 0, 0, 0.15),
+                offset: Offset(2, 3),
+                blurRadius: 4,
+              ),
+            ],
+          ),
+          padding: EdgeInsets.all(AppSizes.space * 2),
+          child: QuanityaColumn(
+            crossAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(title, style: context.text.headlineMedium),
+              Text(message, style: context.text.bodyLarge),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  QuanityaTextButton(
+                    text: context.l10n.actionCancel,
+                    onPressed: () => Navigator.of(context).pop(false),
+                  ),
+                  QuanityaTextButton(
+                    text: confirmText ?? context.l10n.confirm,
+                    isDestructive: isDestructive,
+                    onPressed: () {
+                      onConfirm();
+                      Navigator.of(context).pop(true);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

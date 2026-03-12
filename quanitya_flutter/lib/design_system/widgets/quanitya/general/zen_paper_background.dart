@@ -124,12 +124,14 @@ class _ZenPaperBackgroundState extends State<ZenPaperBackground> {
           left: 0,
           right: 0,
           height: chunkHeight,
-          child: RepaintBoundary(
-            child: CustomPaint(
-              painter: _StaticChunkPainter(
-                color: color,
-                chunkIndex: i,
-                horizontalOffset: horizontalOffset,
+          child: ExcludeSemantics(
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: _StaticChunkPainter(
+                  color: color,
+                  chunkIndex: i,
+                  horizontalOffset: horizontalOffset,
+                ),
               ),
             ),
           ),

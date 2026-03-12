@@ -78,7 +78,11 @@ class QuanityaIconButton extends StatelessWidget {
       );
     }
 
-    return button;
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: button,
+    );
   }
 }
 

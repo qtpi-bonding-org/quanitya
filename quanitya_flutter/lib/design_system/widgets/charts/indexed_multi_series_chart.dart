@@ -29,10 +29,15 @@ class IndexedMultiSeriesChart extends StatelessWidget {
   final List<IndexedChartSeries> series;
   final double height;
 
+  /// Optional accessibility summary for screen readers.
+  /// When provided, wraps the chart in a [Semantics] label.
+  final String? semanticSummary;
+
   const IndexedMultiSeriesChart({
     super.key,
     required this.series,
     this.height = 220,
+    this.semanticSummary,
   });
 
   @override
@@ -72,7 +77,7 @@ class IndexedMultiSeriesChart extends StatelessWidget {
 
     final isSingle = activeSeries.length == 1;
 
-    return Column(
+    final chart = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Legend (only for multi-series)
@@ -161,6 +166,12 @@ class IndexedMultiSeriesChart extends StatelessWidget {
           ),
         ),
       ],
+    );
+
+    final defaultLabel = 'Multi-series chart: ${series.map((s) => s.label).join(", ")}';
+    return Semantics(
+      label: semanticSummary ?? defaultLabel,
+      child: ExcludeSemantics(child: chart),
     );
   }
 

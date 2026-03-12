@@ -24,6 +24,10 @@ class CategoricalScatterChart extends StatelessWidget {
   final Color? dotColor;
   final String? title;
 
+  /// Optional accessibility summary for screen readers.
+  /// When provided, wraps the chart in a [Semantics] label.
+  final String? semanticSummary;
+
   const CategoricalScatterChart({
     super.key,
     required this.data,
@@ -31,6 +35,7 @@ class CategoricalScatterChart extends StatelessWidget {
     this.height = 200,
     this.dotColor,
     this.title,
+    this.semanticSummary,
   });
 
   @override
@@ -51,7 +56,7 @@ class CategoricalScatterChart extends StatelessWidget {
     final maxDate = dates.last;
     final daySpan = maxDate.difference(minDate).inDays + 1;
 
-    return SizedBox(
+    final chart = SizedBox(
       height: height,
       child: CustomPaint(
         painter: _CategoricalScatterPainter(
@@ -65,6 +70,14 @@ class CategoricalScatterChart extends StatelessWidget {
         ),
         size: Size.infinite,
       ),
+    );
+
+    final defaultLabel = title != null
+        ? 'Scatter chart: $title'
+        : 'Scatter chart: ${categories.join(", ")}';
+    return Semantics(
+      label: semanticSummary ?? defaultLabel,
+      child: ExcludeSemantics(child: chart),
     );
   }
 }

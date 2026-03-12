@@ -21,46 +21,52 @@ class ScalarCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
+    final semanticLabel = unit != null
+        ? '$label: ${value.toStringAsFixed(2)} $unit'
+        : '$label: ${value.toStringAsFixed(2)}';
 
-    return Container(
-      padding: AppPadding.allDouble,
-      decoration: BoxDecoration(
-        color: palette.primaryColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: context.text.bodySmall?.copyWith(
-              color: palette.textSecondary,
-            ),
-          ),
-          VSpace.x05,
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                value.toStringAsFixed(2),
-                style: context.text.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: palette.textPrimary,
-                ),
+    return Semantics(
+      label: semanticLabel,
+      child: Container(
+        padding: AppPadding.allDouble,
+        decoration: BoxDecoration(
+          color: palette.primaryColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: context.text.bodySmall?.copyWith(
+                color: palette.textSecondary,
               ),
-              if (unit != null) ...[
-                HSpace.x05,
+            ),
+            VSpace.x05,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 Text(
-                  unit!,
-                  style: context.text.bodyMedium?.copyWith(
-                    color: palette.textSecondary,
+                  value.toStringAsFixed(2),
+                  style: context.text.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: palette.textPrimary,
                   ),
                 ),
+                if (unit != null) ...[
+                  HSpace.x05,
+                  Text(
+                    unit!,
+                    style: context.text.bodyMedium?.copyWith(
+                      color: palette.textSecondary,
+                    ),
+                  ),
+                ],
               ],
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

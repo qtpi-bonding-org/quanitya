@@ -22,18 +22,25 @@ class BooleanPoint {
 /// Green = true, Gray = false, Empty = no entry.
 class BooleanHeatmapChart extends StatelessWidget {
   final List<BooleanPoint> data;
+  final String title;
   final double height;
   final Color? trueColor;
   final Color? falseColor;
   final int weeks;
 
+  /// Optional accessibility summary for screen readers.
+  /// When provided, wraps the chart in a [Semantics] label.
+  final String? semanticSummary;
+
   const BooleanHeatmapChart({
     super.key,
     required this.data,
+    required this.title,
     this.height = 160, // Increased from 120 to 160
     this.trueColor,
     this.falseColor,
     this.weeks = 12,
+    this.semanticSummary,
   });
 
   @override
@@ -55,7 +62,7 @@ class BooleanHeatmapChart extends StatelessWidget {
     final startOfWeek = today.subtract(Duration(days: today.weekday % 7));
     final startDate = startOfWeek.subtract(Duration(days: (weeks - 1) * 7));
 
-    return SizedBox(
+    final chart = SizedBox(
       height: height,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -146,6 +153,12 @@ class BooleanHeatmapChart extends StatelessWidget {
           );
         },
       ),
+    );
+
+    final defaultLabel = 'Boolean heatmap: $title';
+    return Semantics(
+      label: semanticSummary ?? defaultLabel,
+      child: ExcludeSemantics(child: chart),
     );
   }
 }

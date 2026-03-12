@@ -27,16 +27,19 @@ class AnalyticsCard extends StatelessWidget {
         ? QuanityaPalette.primary.interactableColor
         : QuanityaPalette.primary.textPrimary;
     
-    return Container(
-      decoration: BoxDecoration(
-        color: QuanityaPalette.primary.backgroundPrimary,
-        border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        label,
-        style: context.text.bodyMedium?.copyWith(color: textColor),
+    return Semantics(
+      label: label,
+      child: Container(
+        decoration: BoxDecoration(
+          color: QuanityaPalette.primary.backgroundPrimary,
+          border: Border.all(color: borderColor),
+          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: context.text.bodyMedium?.copyWith(color: textColor),
+        ),
       ),
     );
   }

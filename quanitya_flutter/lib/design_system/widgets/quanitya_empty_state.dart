@@ -25,6 +25,7 @@ class QuanityaEmptyState extends StatelessWidget {
         width: logoSize,
         height: logoSize,
         color: context.colors.textSecondary.withValues(alpha: opacity),
+        excludeFromSemantics: true,
       ),
     );
   }

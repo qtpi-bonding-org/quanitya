@@ -46,41 +46,46 @@ class QuanityaTimePicker extends StatelessWidget {
         ? _formatTime(value!)
         : (hintText ?? AppLocalizations.of(context)?.selectTime ?? 'Select time');
 
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        onTap: onChanged != null ? () => _showPicker(context) : null,
-        child: Container(
-          constraints: BoxConstraints(minHeight: AppSizes.buttonHeight),
-          decoration: BoxDecoration(
-            // Zen style: underline only, no box
-            border: Border(
-              bottom: BorderSide(
-                color: borderColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  displayText,
-                  style: TextStyle(
-                    fontFamily: QuanityaFonts.bodyFamily,
-                    fontSize: AppSizes.fontStandard,
-                    color: hasValue
-                        ? (textColor ?? QuanityaPalette.primary.textPrimary)
-                        : borderColor.withValues(alpha: 0.6),
-                  ),
+    return Semantics(
+      button: true,
+      label: hintText,
+      value: hasValue ? displayText : null,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onChanged != null ? () => _showPicker(context) : null,
+          child: Container(
+            constraints: BoxConstraints(minHeight: AppSizes.buttonHeight),
+            decoration: BoxDecoration(
+              // Zen style: underline only, no box
+              border: Border(
+                bottom: BorderSide(
+                  color: borderColor.withValues(alpha: 0.3),
+                  width: 1,
                 ),
               ),
-              Icon(
-                Icons.access_time_outlined,
-                color: primaryColor,
-                size: AppSizes.iconSmall,
-              ),
-            ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    displayText,
+                    style: TextStyle(
+                      fontFamily: QuanityaFonts.bodyFamily,
+                      fontSize: AppSizes.fontStandard,
+                      color: hasValue
+                          ? (textColor ?? QuanityaPalette.primary.textPrimary)
+                          : borderColor.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.access_time_outlined,
+                  color: primaryColor,
+                  size: AppSizes.iconSmall,
+                ),
+              ],
+            ),
           ),
         ),
       ),

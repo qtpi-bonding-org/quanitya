@@ -24,6 +24,7 @@ class QuanityaToggle extends StatelessWidget {
 
   final bool value;
   final ValueChanged<bool>? onChanged;
+  final String? semanticLabel;
 
   const QuanityaToggle({
     super.key,
@@ -33,6 +34,7 @@ class QuanityaToggle extends StatelessWidget {
     this.inactiveTrackColor,
     required this.value,
     this.onChanged,
+    this.semanticLabel,
   });
 
   @override
@@ -44,28 +46,32 @@ class QuanityaToggle extends StatelessWidget {
     final trackOff = inactiveTrackColor ?? palette.stateOffColor;
 
     // Wrap in SizedBox to ensure consistent touch target
-    return SizedBox(
-      height: AppSizes.buttonHeight,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Switch(
-          value: value,
-          onChanged: onChanged,
-          thumbColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return thumbOn;
-            }
-            return thumbOff;
-          }),
-          trackColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return trackOn;
-            }
-            return trackOff.withValues(alpha: 0.3);
-          }),
-          // Zen style: no outline
-          trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
-          trackOutlineWidth: WidgetStateProperty.all(0),
+    return Semantics(
+      toggled: value,
+      label: semanticLabel,
+      child: SizedBox(
+        height: AppSizes.buttonHeight,
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Switch(
+            value: value,
+            onChanged: onChanged,
+            thumbColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
+                return thumbOn;
+              }
+              return thumbOff;
+            }),
+            trackColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
+                return trackOn;
+              }
+              return trackOff.withValues(alpha: 0.3);
+            }),
+            // Zen style: no outline
+            trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+            trackOutlineWidth: WidgetStateProperty.all(0),
+          ),
         ),
       ),
     );

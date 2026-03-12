@@ -73,6 +73,11 @@ class SwipeablePageShell extends StatefulWidget {
   /// animates to the corresponding page.
   final List<Widget> labels;
 
+  /// Optional semantic labels for each tab, used by screen readers.
+  /// If provided, must match the length of [labels].
+  /// If null for a given index, screen readers receive no label for that tab.
+  final List<String?>? semanticTabLabels;
+
   /// The initial page index. Defaults to 0.
   final int initialPage;
 
@@ -99,6 +104,7 @@ class SwipeablePageShell extends StatefulWidget {
     this.onPageChanged,
     this.overlays = const [],
     this.scrollOffsets = const [],
+    this.semanticTabLabels,
   });
 
   @override
@@ -108,10 +114,12 @@ class SwipeablePageShell extends StatefulWidget {
 class _SwipeablePageShellState extends State<SwipeablePageShell> {
   late PageController _controller;
   bool _ownsController = false;
+  late int _currentPage;
 
   @override
   void initState() {
     super.initState();
+    _currentPage = widget.initialPage;
     _initController();
   }
 
@@ -163,7 +171,10 @@ class _SwipeablePageShellState extends State<SwipeablePageShell> {
                 child: PageView(
                   controller: _controller,
                   physics: const ClampingScrollPhysics(),
-                  onPageChanged: widget.onPageChanged,
+                  onPageChanged: (page) {
+                    setState(() => _currentPage = page);
+                    widget.onPageChanged?.call(page);
+                  },
                   children: widget.pages,
                 ),
               ),
@@ -175,19 +186,27 @@ class _SwipeablePageShellState extends State<SwipeablePageShell> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     for (int i = 0; i < widget.labels.length; i++)
-                      GestureDetector(
-                        onTap: () => _controller.animateToPage(
-                          i,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        ),
-                        behavior: HitTestBehavior.opaque,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: AppSizes.space * 1.5,
-                            vertical: AppSizes.space * 0.5,
+                      Semantics(
+                        button: true,
+                        selected: _currentPage == i,
+                        label: widget.semanticTabLabels != null &&
+                                i < widget.semanticTabLabels!.length
+                            ? widget.semanticTabLabels![i]
+                            : null,
+                        child: GestureDetector(
+                          onTap: () => _controller.animateToPage(
+                            i,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
                           ),
-                          child: widget.labels[i],
+                          behavior: HitTestBehavior.opaque,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSizes.space * 1.5,
+                              vertical: AppSizes.space * 0.5,
+                            ),
+                            child: widget.labels[i],
+                          ),
                         ),
                       ),
                   ],

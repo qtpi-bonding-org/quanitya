@@ -22,28 +22,31 @@ class DeviceNameDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return QuanityaColumn(
-      spacing: VSpace.x2,
-      crossAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          label,
-          style: context.text.bodyLarge,
-          textAlign: TextAlign.center,
-        ),
-        Container(
-          padding: AppPadding.allDouble,
-          decoration: BoxDecoration(
-            color: context.colors.textSecondary.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-          ),
-          child: Text(
-            deviceName.isNotEmpty ? deviceName : '...',
+    return Semantics(
+      label: '$label: ${deviceName.isNotEmpty ? deviceName : '...'}',
+      child: QuanityaColumn(
+        spacing: VSpace.x2,
+        crossAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            label,
             style: context.text.bodyLarge,
             textAlign: TextAlign.center,
           ),
-        ),
-      ],
+          Container(
+            padding: AppPadding.allDouble,
+            decoration: BoxDecoration(
+              color: context.colors.textSecondary.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+            ),
+            child: Text(
+              deviceName.isNotEmpty ? deviceName : '...',
+              style: context.text.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

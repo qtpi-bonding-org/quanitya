@@ -162,6 +162,7 @@ class _BooleanChartSection extends StatelessWidget {
                 data: fieldData.points
                     .map((p) => BooleanPoint(date: p.date, value: p.value))
                     .toList(),
+                title: fieldData.field.label,
                 height: AppSizes.space * 20,
                 trueColor: palette.successColor,
                 weeks: 12,
@@ -287,6 +288,7 @@ class _StatsSummary extends StatelessWidget {
         Center(
           child: BooleanHeatmapChart(
             data: contributionData,
+            title: 'Logging activity',
             height: AppSizes.space * 20,
             trueColor: QuanityaPalette.category10[0],
             weeks: 12,

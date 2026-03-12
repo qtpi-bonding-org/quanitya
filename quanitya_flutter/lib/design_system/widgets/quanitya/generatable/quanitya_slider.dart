@@ -21,6 +21,7 @@ class QuanityaSlider extends StatelessWidget {
   final int? divisions;
   final ValueChanged<double>? onChanged;
   final bool showValue;
+  final String? semanticLabel;
 
   const QuanityaSlider({
     super.key,
@@ -33,35 +34,43 @@ class QuanityaSlider extends StatelessWidget {
     this.divisions,
     this.onChanged,
     this.showValue = false,
+    this.semanticLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SliderTheme(
-      data: SliderThemeData(
-        activeTrackColor: activeColor,
-        inactiveTrackColor: inactiveColor.withValues(alpha: 0.3),
-        thumbColor: thumbColor,
-        overlayColor: thumbColor.withValues(alpha: 0.12),
-        // Zen style: thin track, small thumb
-        trackHeight: 2,
-        thumbShape: const RoundSliderThumbShape(
-          enabledThumbRadius: 8,
-          elevation: 0, // No shadow - flat zen style
-          pressedElevation: 0,
+    return Semantics(
+      label: semanticLabel,
+      value: '$value',
+      child: SliderTheme(
+        data: SliderThemeData(
+          activeTrackColor: activeColor,
+          inactiveTrackColor: inactiveColor.withValues(alpha: 0.3),
+          thumbColor: thumbColor,
+          overlayColor: thumbColor.withValues(alpha: 0.12),
+          // Zen style: thin track, small thumb
+          trackHeight: 2,
+          thumbShape: const RoundSliderThumbShape(
+            enabledThumbRadius: 8,
+            elevation: 0, // No shadow - flat zen style
+            pressedElevation: 0,
+          ),
+          overlayShape: const RoundSliderOverlayShape(
+            overlayRadius: 20, // Touch feedback area
+          ),
+          // No tick marks for cleaner look
+          tickMarkShape: SliderTickMarkShape.noTickMark,
         ),
-        overlayShape: const RoundSliderOverlayShape(
-          overlayRadius: 20, // Touch feedback area
+        child: Slider(
+          value: value.clamp(min, max),
+          min: min,
+          max: max,
+          divisions: divisions,
+          onChanged: onChanged,
+          semanticFormatterCallback: semanticLabel != null
+              ? (double val) => '$semanticLabel: $val'
+              : null,
         ),
-        // No tick marks for cleaner look
-        tickMarkShape: SliderTickMarkShape.noTickMark,
-      ),
-      child: Slider(
-        value: value.clamp(min, max),
-        min: min,
-        max: max,
-        divisions: divisions,
-        onChanged: onChanged,
       ),
     );
   }

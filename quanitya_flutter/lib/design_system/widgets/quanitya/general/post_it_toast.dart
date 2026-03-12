@@ -50,41 +50,45 @@ class PostItToast extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
 
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 280),
-      decoration: BoxDecoration(
-        color: _colorForType(type),
-        // NO borderRadius - sharp corners like real post-its!
-        boxShadow: [
-          BoxShadow(
-            color: QuanityaPalette.primary.textPrimary.withValues(alpha: 0.15),
-            offset: const Offset(2, 3),
-            blurRadius: 4,
-          ),
-        ],
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSizes.space * 1.5,
-        vertical: AppSizes.space,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: QuanityaFonts.headerFamily,
-              fontSize: AppSizes.fontSmall,
-              fontWeight: FontWeight.w500,
-              color: palette.textPrimary,
+    return Semantics(
+      liveRegion: true,
+      label: message,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 280),
+        decoration: BoxDecoration(
+          color: _colorForType(type),
+          // NO borderRadius - sharp corners like real post-its!
+          boxShadow: [
+            BoxShadow(
+              color: QuanityaPalette.primary.textPrimary.withValues(alpha: 0.15),
+              offset: const Offset(2, 3),
+              blurRadius: 4,
             ),
-          ),
-          if (action != null) ...[
-            SizedBox(height: AppSizes.space * 0.5),
-            action!,
           ],
-        ],
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSizes.space * 1.5,
+          vertical: AppSizes.space,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: QuanityaFonts.headerFamily,
+                fontSize: AppSizes.fontSmall,
+                fontWeight: FontWeight.w500,
+                color: palette.textPrimary,
+              ),
+            ),
+            if (action != null) ...[
+              SizedBox(height: AppSizes.space * 0.5),
+              action!,
+            ],
+          ],
+        ),
       ),
     );
   }

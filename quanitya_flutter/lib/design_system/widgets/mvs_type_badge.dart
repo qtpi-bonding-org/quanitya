@@ -34,28 +34,32 @@ class MvsTypeBadge extends StatelessWidget {
     final notation = _getNotation(type);
     final color = _getColor(type);
     final label = showLabel ? _getLabel(type) : null;
-    
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          notation,
-          style: context.text.bodySmall?.copyWith(
-            color: color,
-            fontFamily: QuanityaFonts.bodyFamily,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        if (label != null) ...[
-          HSpace.x05,
+    final typeName = _getLabel(type);
+
+    return Semantics(
+      label: 'Data type: $typeName',
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           Text(
-            label,
+            notation,
             style: context.text.bodySmall?.copyWith(
-              color: color.withValues(alpha: 0.7),
+              color: color,
+              fontFamily: QuanityaFonts.bodyFamily,
+              fontWeight: FontWeight.w500,
             ),
           ),
+          if (label != null) ...[
+            HSpace.x05,
+            Text(
+              label,
+              style: context.text.bodySmall?.copyWith(
+                color: color.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
   
