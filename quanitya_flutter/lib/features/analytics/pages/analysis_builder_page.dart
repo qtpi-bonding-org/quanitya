@@ -205,7 +205,6 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
                     Text(
                       context.l10n.analysisResults,
                       style: context.text.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
                         color: palette.textPrimary,
                       ),
                     ),

@@ -120,7 +120,6 @@ class _AnalyzeFieldsSection extends StatelessWidget {
             Text(
               context.l10n.resultsAnalyzeFields,
               style: context.text.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
                 color: palette.textPrimary,
               ),
             ),
@@ -166,7 +165,6 @@ class _AnalysisResultsSection extends StatelessWidget {
             Text(
               context.l10n.resultsAnalysisResults,
               style: context.text.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
                 color: palette.textPrimary,
               ),
             ),
@@ -225,7 +223,6 @@ class _AnalysisResultCard extends StatelessWidget {
           Text(
             script.name,
             style: context.text.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
               color: palette.textPrimary,
             ),
           ),
@@ -326,7 +323,6 @@ class _FieldAnalysisCard extends StatelessWidget {
                         Text(
                           fieldData.field.label,
                           style: context.text.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
                             color: palette.textPrimary,
                           ),
                         ),

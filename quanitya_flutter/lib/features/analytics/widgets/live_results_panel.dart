@@ -163,7 +163,6 @@ class LiveResultsPanel extends StatelessWidget {
             _formatValue(scalar.value),
             style: context.text.headlineMedium?.copyWith(
               color: QuanityaPalette.primary.textPrimary,
-              fontWeight: FontWeight.bold,
               fontFamily: QuanityaFonts.headerFamily,
             ),
           ),

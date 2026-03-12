@@ -88,7 +88,6 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                       header: Text(
                         context.l10n.templateNameLabel,
                         style: context.text.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
                           color: context.colors.textPrimary,
                         ),
                       ),
@@ -122,7 +121,6 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                       header: Text(
                         '${context.l10n.aestheticsSection} (${context.l10n.optionalLabel})',
                         style: context.text.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
                           color: context.colors.textPrimary,
                         ),
                       ),
@@ -144,7 +142,6 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                       header: Text(
                         '${context.l10n.scheduleTitle} (${context.l10n.optionalLabel})',
                         style: context.text.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
                           color: context.colors.textPrimary,
                         ),
                       ),
@@ -185,7 +182,6 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
       start: Text(
         context.l10n.templateFieldsSection,
         style: context.text.titleMedium?.copyWith(
-          fontWeight: FontWeight.w600,
           color: context.colors.textPrimary,
         ),
       ),

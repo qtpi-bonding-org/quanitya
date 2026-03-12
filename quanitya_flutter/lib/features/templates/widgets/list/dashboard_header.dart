@@ -51,7 +51,6 @@ class _DashboardHeaderState extends State<DashboardHeader> {
           style: theme.textTheme.headlineLarge?.copyWith(
             fontFamily: QuanityaFonts.headerFamily,
             color: theme.colorScheme.onSurface, // Sumi Black
-            fontWeight: FontWeight.bold,
           ),
         ),
         VSpace.x1,

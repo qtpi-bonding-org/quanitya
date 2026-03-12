@@ -52,9 +52,7 @@ class ProductCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     product.localizedPrice ?? '\$${product.priceUsd.toStringAsFixed(2)}',
-                    style: context.text.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: context.text.titleLarge,
                   ),
                 ),
                 HSpace.x1,

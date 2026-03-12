@@ -56,7 +56,6 @@ class _ResultsTemplateFoldState extends State<ResultsTemplateFold> {
             child: Text(
               widget.item.templateName,
               style: context.text.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
                 color: palette.textPrimary,
               ),
               overflow: TextOverflow.ellipsis,

@@ -141,7 +141,6 @@ class _EventCard extends StatelessWidget {
               '${event.count}',
               style: context.text.titleMedium?.copyWith(
                 color: context.colors.interactableColor,
-                fontWeight: FontWeight.bold,
               ),
             ),
           ),

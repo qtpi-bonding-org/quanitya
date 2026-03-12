@@ -230,11 +230,6 @@ class CalculationService {
           Calculation.extractField => _executeExtractField(input, params),
           Calculation.extractTimestamps => _executeExtractTimestamps(input),
 
-          // === MATRIX TRANSFORMERS ===
-          Calculation.matrixRollingAverage =>
-            _executeMatrixRollingAverage(input, params),
-          Calculation.matrixFilter => _executeMatrixFilter(input, params),
-
           // === VALUE VECTOR AGGREGATORS ===
           Calculation.vectorMean => meanToMvs(input.asValueVector.values),
           Calculation.vectorMedian => medianToMvs(input.asValueVector.values),
@@ -315,19 +310,6 @@ class CalculationService {
   MvsUnion _executeExtractTimestamps(MvsUnion input) {
     final matrix = input.asTimeSeriesMatrix;
     return MvsUnion.timestampVector(matrix.timestampVector);
-  }
-
-  MvsUnion _executeMatrixRollingAverage(
-    MvsUnion input,
-    Map<String, dynamic> params,
-  ) {
-    // TODO: Implement rolling average on matrix
-    throw AnalysisException('matrixRollingAverage not yet implemented');
-  }
-
-  MvsUnion _executeMatrixFilter(MvsUnion input, Map<String, dynamic> params) {
-    // TODO: Implement matrix filtering
-    throw AnalysisException('matrixFilter not yet implemented');
   }
 
   MvsUnion _executeVectorFirst(MvsUnion input) {

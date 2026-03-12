@@ -112,7 +112,6 @@ class _NumericChartSection extends StatelessWidget {
           Text(
             fieldData.field.label,
             style: context.text.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
               color: palette.textPrimary,
             ),
           ),
@@ -149,7 +148,6 @@ class _BooleanChartSection extends StatelessWidget {
           Text(
             fieldData.field.label,
             style: context.text.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
               color: palette.textPrimary,
             ),
           ),
@@ -189,7 +187,6 @@ class _CategoricalChartSection extends StatelessWidget {
           Text(
             fieldData.field.label,
             style: context.text.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
               color: palette.textPrimary,
             ),
           ),
@@ -256,7 +253,6 @@ class _StatsSummary extends StatelessWidget {
             Text(
               '$totalEntries',
               style: context.text.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
                 color: palette.textPrimary,
               ),
             ),
@@ -271,7 +267,6 @@ class _StatsSummary extends StatelessWidget {
             Text(
               '$consistencyPercent%',
               style: context.text.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
                 color: palette.textPrimary,
               ),
             ),
