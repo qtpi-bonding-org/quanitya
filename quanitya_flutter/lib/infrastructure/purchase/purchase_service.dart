@@ -107,12 +107,7 @@ class PurchaseService implements IPurchaseService {
     return tryMethod(
       () async {
         for (final provider in _providers.values) {
-          final pending = await provider.recoverPendingPurchases();
-          for (final purchase in pending) {
-            if (purchase.status == PurchaseStatus.success) {
-              await provider.validateWithServer(purchase);
-            }
-          }
+          await provider.recoverPendingPurchases();
         }
       },
       PurchaseException.new,

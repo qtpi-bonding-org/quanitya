@@ -483,7 +483,7 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
                   ),
                 ),
               )
-            else
+            else ...[
               Center(
                 child: QuanityaTextButton(
                   text: context.l10n.addWebhook,
@@ -492,6 +492,18 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
                       : null,
                 ),
               ),
+              if (_templates!.isEmpty) ...[
+                VSpace.x1,
+                Center(
+                  child: Text(
+                    context.l10n.webhooksCreateTemplateFirst,
+                    style: context.text.bodySmall?.copyWith(
+                      color: context.colors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ],
         );
       },

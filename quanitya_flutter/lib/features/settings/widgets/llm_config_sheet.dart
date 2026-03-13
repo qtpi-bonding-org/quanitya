@@ -9,6 +9,7 @@ import '../../../design_system/structures/group.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
+import '../../../infrastructure/llm/models/llm_types.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/llm_provider/llm_provider_cubit.dart';
 import '../models/llm_provider_config_model.dart';
@@ -25,6 +26,7 @@ class LlmConfigSheet {
     required LlmProviderCubit cubit,
     LlmProviderConfigModel? config,
     String? defaultBaseUrl,
+    LlmProvider provider = LlmProvider.openRouter,
   }) async {
     final result = await LooseInsertSheet.show<LlmProviderConfigModel>(
       context: context,
@@ -35,6 +37,7 @@ class LlmConfigSheet {
         cubit: cubit,
         config: config,
         defaultBaseUrl: defaultBaseUrl,
+        provider: config?.provider ?? provider,
       ),
     );
 
@@ -48,11 +51,13 @@ class _LlmConfigForm extends StatefulWidget {
   final LlmProviderCubit cubit;
   final LlmProviderConfigModel? config;
   final String? defaultBaseUrl;
+  final LlmProvider provider;
 
   const _LlmConfigForm({
     required this.cubit,
     required this.config,
     this.defaultBaseUrl,
+    required this.provider,
   });
 
   @override
@@ -68,8 +73,7 @@ class _LlmConfigFormState extends State<_LlmConfigForm> {
   List<OpenRouterModelRecord> _models = [];
   List<String> _providers = [];
 
-  bool get _isOpenRouter =>
-      _baseUrlController.text.contains('openrouter');
+  bool get _isOpenRouter => widget.provider == LlmProvider.openRouter;
 
   @override
   void initState() {
@@ -210,6 +214,7 @@ class _LlmConfigFormState extends State<_LlmConfigForm> {
                   if (_formKey.currentState?.validate() ?? false) {
                     final result = LlmProviderConfigModel(
                       id: widget.config?.id ?? _uuid.v4(),
+                      provider: widget.provider,
                       baseUrl: _baseUrlController.text.trim(),
                       modelId: _modelController.text.trim(),
                       apiKeyId: widget.config?.apiKeyId,

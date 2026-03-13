@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../infrastructure/core/try_operation.dart';
+import '../../../infrastructure/llm/models/llm_types.dart';
 import '../exceptions/llm_provider_exception.dart';
 import '../models/llm_provider_config_model.dart';
 
@@ -48,6 +49,7 @@ class LlmProviderConfigRepository {
         await _db.into(_db.llmProviderConfigs).insertOnConflictUpdate(
               LlmProviderConfigsCompanion.insert(
                 id: id,
+                provider: Value(model.provider.name),
                 baseUrl: model.baseUrl,
                 modelId: model.modelId,
                 apiKeyId: Value(model.apiKeyId),
@@ -72,6 +74,29 @@ class LlmProviderConfigRepository {
     );
   }
 
+  /// Persists the Quanitya provider as the active selection.
+  /// Uses a stable sentinel row so it participates in the
+  /// "most recently used = active" ordering naturally.
+  static const quanityaSentinelId = 'quanitya-builtin';
+
+  Future<void> saveQuanityaSelection() {
+    return tryMethod(
+      () async {
+        await _db.into(_db.llmProviderConfigs).insertOnConflictUpdate(
+              LlmProviderConfigsCompanion.insert(
+                id: quanityaSentinelId,
+                provider: const Value('quanitya'),
+                baseUrl: '',
+                modelId: '',
+                lastUsedAt: DateTime.now(),
+              ),
+            );
+      },
+      LlmProviderException.new,
+      'saveQuanityaSelection',
+    );
+  }
+
   Future<void> touchLastUsed(String id) {
     return tryMethod(
       () async {
@@ -89,6 +114,7 @@ class LlmProviderConfigRepository {
   LlmProviderConfigModel _rowToModel(LlmProviderConfig row) {
     return LlmProviderConfigModel(
       id: row.id,
+      provider: LlmProvider.values.byName(row.provider),
       baseUrl: row.baseUrl,
       modelId: row.modelId,
       apiKeyId: row.apiKeyId,

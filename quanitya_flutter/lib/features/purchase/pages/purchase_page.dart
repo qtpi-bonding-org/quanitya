@@ -176,7 +176,6 @@ class PurchaseTabContent extends StatelessWidget {
           PurchaseRequest(
             productId: product.productId,
             rail: product.rail,
-            accountId: 0, // Resolved server-side
           ),
         );
   }

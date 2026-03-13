@@ -29,8 +29,8 @@ packages:
     dependency: "direct main"
     description:
       path: anonaccount_client
-      ref: a8761ae38cf91e12ed13d480a6ffa9ab09b714b9
-      resolved-ref: a8761ae38cf91e12ed13d480a6ffa9ab09b714b9
+      ref: f6b4281c354da12bd6dd84ab592a31b5da496bac
+      resolved-ref: f6b4281c354da12bd6dd84ab592a31b5da496bac
       url: "https://github.com/qtpi-bonding-org/serverpod_anonaccred.git"
     source: git
     version: "0.1.0"
@@ -38,8 +38,8 @@ packages:
     dependency: "direct main"
     description:
       path: anonaccred_client
-      ref: a8761ae38cf91e12ed13d480a6ffa9ab09b714b9
-      resolved-ref: a8761ae38cf91e12ed13d480a6ffa9ab09b714b9
+      ref: f6b4281c354da12bd6dd84ab592a31b5da496bac
+      resolved-ref: f6b4281c354da12bd6dd84ab592a31b5da496bac
       url: "https://github.com/qtpi-bonding-org/serverpod_anonaccred.git"
     source: git
     version: "0.1.0+1"
@@ -376,8 +376,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "57951f2de99784c3fc4664f7b66bb13ce6e80bc7"
-      resolved-ref: "57951f2de99784c3fc4664f7b66bb13ce6e80bc7"
+      ref: e30f27c943a9c25ec6c7eaf70787f48998a7c113
+      resolved-ref: e30f27c943a9c25ec6c7eaf70787f48998a7c113
       url: "https://github.com/qtpi-bonding-org/dart_jwk_duo.git"
     source: git
     version: "1.0.0"

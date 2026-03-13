@@ -17,12 +17,12 @@ dependencies:
   anonaccount_client:
     git:
       url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
-      ref: 1eed7a5d673c9cb16ee83715e537b41ae8c558c0
+      ref: f6b4281c354da12bd6dd84ab592a31b5da496bac
       path: anonaccount_client
   anonaccred_client:
     git:
       url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
-      ref: 1eed7a5d673c9cb16ee83715e537b41ae8c558c0
+      ref: f6b4281c354da12bd6dd84ab592a31b5da496bac
       path: anonaccred_client
 
 dev_dependencies:

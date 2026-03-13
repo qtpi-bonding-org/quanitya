@@ -72,7 +72,7 @@ void main() {
         success: true,
         tag: 'sync_days',
         amount: 30,
-        internalTransactionId: 'txn_abc',
+        productId: 'com.quanitya.sync30',
       );
 
       expect(result.success, isTrue);

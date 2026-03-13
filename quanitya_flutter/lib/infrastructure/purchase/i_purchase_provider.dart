@@ -27,7 +27,11 @@ abstract class IPurchaseProvider {
   Future<PurchaseValidationResult> validateWithServer(PurchaseResult purchase);
 
   /// Recover any pending/unfinished purchases.
-  Future<List<PurchaseResult>> recoverPendingPurchases();
+  ///
+  /// For stream-based providers (Apple/Google IAP), this triggers re-delivery
+  /// of pending transactions via the purchase stream. Orphaned transactions
+  /// are validated and completed automatically by the stream handler.
+  Future<void> recoverPendingPurchases();
 
   /// Clean up resources (e.g., cancel stream subscriptions).
   Future<void> dispose();

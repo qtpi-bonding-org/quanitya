@@ -5,6 +5,7 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../infrastructure/llm/models/llm_types.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/llm_provider/llm_provider_cubit.dart';
 import '../cubits/llm_provider/llm_provider_state.dart';
@@ -50,6 +51,7 @@ class LlmProviderSection extends StatelessWidget {
                     context,
                     null,
                     defaultBaseUrl: LlmConfigSheet.ollamaBaseUrl,
+                    provider: LlmProvider.ollama,
                   ),
                 ),
               ],
@@ -62,18 +64,23 @@ class LlmProviderSection extends StatelessWidget {
 
   List<Widget> _buildProviderRows(
       BuildContext context, LlmProviderState state) {
-    final isQuanityaActive = state.activeConfig == null;
+    final isQuanityaActive = state.activeConfig == null ||
+        state.activeConfig?.provider == LlmProvider.quanitya;
     final quanityaRow = Padding(
       padding: AppPadding.verticalSingle,
       child: _QuanityaProviderRow(
         isActive: isQuanityaActive,
-        onTap: () {
-          // TODO: handle Quanitya provider selection
-        },
+        onTap: () =>
+            context.read<LlmProviderCubit>().selectQuanitya(),
       ),
     );
 
-    final configRows = state.configs.map((config) {
+    // Filter out the Quanitya sentinel — it has its own dedicated row
+    final userConfigs = state.configs
+        .where((c) => c.provider != LlmProvider.quanitya)
+        .toList();
+
+    final configRows = userConfigs.map((config) {
       final isTested = state.availableModels
           .any((m) => m.id == config.modelId && m.tested);
       return Padding(
@@ -90,10 +97,8 @@ class LlmProviderSection extends StatelessWidget {
     }).toList();
 
     if (isQuanityaActive) {
-      // Quanitya first, then configs
       return [quanityaRow, ...configRows];
     } else {
-      // Active config is first (already sorted by cubit), Quanitya second
       if (configRows.isNotEmpty) {
         return [configRows.first, quanityaRow, ...configRows.skip(1)];
       }
@@ -105,12 +110,14 @@ class LlmProviderSection extends StatelessWidget {
     BuildContext context,
     LlmProviderConfigModel? config, {
     String? defaultBaseUrl,
+    LlmProvider provider = LlmProvider.openRouter,
   }) {
     LlmConfigSheet.show(
       context: context,
       cubit: context.read<LlmProviderCubit>(),
       config: config,
       defaultBaseUrl: defaultBaseUrl,
+      provider: provider,
     );
   }
 }
@@ -182,9 +189,12 @@ class _ConfigRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayUrl = config.baseUrl.contains('openrouter')
-        ? 'openrouter.ai'
-        : config.baseUrl.replaceAll('http://', '').replaceAll('/v1', '');
+    final displayUrl = switch (config.provider) {
+      LlmProvider.quanitya => 'Quanitya',
+      LlmProvider.openRouter => 'openrouter.ai',
+      LlmProvider.ollama =>
+        config.baseUrl.replaceAll('http://', '').replaceAll('/v1', ''),
+    };
 
     return Semantics(
       button: true,
@@ -202,7 +212,7 @@ class _ConfigRow extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              config.baseUrl.contains('openrouter')
+              config.provider == LlmProvider.openRouter
                   ? Icons.cloud
                   : Icons.computer,
               size: AppSizes.iconMedium,

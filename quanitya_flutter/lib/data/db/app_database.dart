@@ -46,33 +46,13 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 1;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
-      },
-      onUpgrade: (Migrator m, int from, int to) async {
-        if (from < 2) {
-          // Add error_box_entries table for privacy-preserving error reporting
-          await m.createTable(errorBoxEntries);
-        }
-        if (from < 3) {
-          // Add notifications table for server-to-client notifications
-          await m.createTable(notifications);
-        }
-        if (from < 4) {
-          // Add analytics inbox table for local-first analytics
-          await m.createTable(analyticsInboxEntries);
-          // Add analytics_auto_send column to app_operating_settings
-          await m.addColumn(appOperatingSettings, appOperatingSettings.analyticsAutoSend);
-        }
-        if (from < 5) {
-          await m.createTable(openRouterModels);
-          await m.createTable(llmProviderConfigs);
-        }
       },
     );
   }

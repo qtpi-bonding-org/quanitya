@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' as cubit_ui_flow;
 
 import '../../app_router.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
+
 import '../../data/db/app_database.dart';
+import '../../data/sync/powersync_service.dart';
 import '../../design_system/primitives/app_sizes.dart';
 import '../../design_system/primitives/app_spacings.dart';
 import '../../design_system/primitives/quanitya_palette.dart';
@@ -116,15 +119,37 @@ class DevToolsSheet extends StatelessWidget {
               ),
               VSpace.x2,
 
-              // Connect to cloud
+              // Connect to cloud (with entitlement check)
               _DevToolRow(
                 label: l10n.devConnectToCloud,
                 child: _DevActionButton(
                   text: l10n.devConnect,
                   onPressed: () async {
-                    final appOperatingCubit = GetIt.instance<AppOperatingCubit>();
-                    await appOperatingCubit.switchToCloud();
+                    final cubit = GetIt.instance<AppOperatingCubit>();
+                    await cubit.switchToCloud();
+                    if (cubit.state.status == cubit_ui_flow.UiFlowStatus.failure) {
+                      throw cubit.state.error ?? Exception('switchToCloud failed');
+                    }
                   },
+                  successMessage: 'Cloud mode enabled',
+                ),
+              ),
+              VSpace.x2,
+
+              // PowerSync connect (bypasses entitlement)
+              _DevToolRow(
+                label: 'PowerSync Connect',
+                child: _DevActionButton(
+                  text: 'Sync',
+                  onPressed: () async {
+                    final powerSync = GetIt.instance<IPowerSyncService>();
+                    final client = GetIt.instance<Client>();
+                    await powerSync.connect(client);
+                    if (!powerSync.isConnected) {
+                      throw Exception('PowerSync failed to connect — check logs');
+                    }
+                  },
+                  successMessage: 'PowerSync connected',
                 ),
               ),
               VSpace.x2,

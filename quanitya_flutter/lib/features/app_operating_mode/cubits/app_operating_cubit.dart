@@ -202,26 +202,37 @@ class AppOperatingCubit extends QuanityaCubit<AppOperatingState> {
 
   /// Switch to cloud mode (requires payment verification)
   Future<void> switchToCloud() async {
+    debugPrint('☁️ switchToCloud: START, current mode=${state.mode.name}');
     emit(state.copyWith(status: UiFlowStatus.loading));
     _isUpdatingFromSelf = true;
     try {
       // Verify entitlement (sync days) before allowing cloud mode
+      debugPrint('☁️ switchToCloud: Checking entitlement...');
       if (GetIt.instance.isRegistered<IEntitlementService>()) {
         final hasSyncAccess =
             await GetIt.instance<IEntitlementService>().hasSyncAccess();
+        debugPrint('☁️ switchToCloud: hasSyncAccess=$hasSyncAccess');
         if (!hasSyncAccess) {
           throw const AppOperatingException(
             'Cloud access requires sync days. Purchase sync time to continue.',
           );
         }
+      } else {
+        debugPrint('☁️ switchToCloud: IEntitlementService not registered, skipping check');
       }
 
+      debugPrint('☁️ switchToCloud: Testing connection to ${state.baseUrl}...');
       final isReachable = await _networkService.testConnection(state.baseUrl);
+      debugPrint('☁️ switchToCloud: isReachable=$isReachable');
+
+      debugPrint('☁️ switchToCloud: Updating mode in repository...');
       await _repository.updateMode(AppOperatingMode.cloud);
-      
+
       // Handle PowerSync mode change
+      debugPrint('☁️ switchToCloud: Calling _handlePowerSyncModeChange...');
       await _handlePowerSyncModeChange(AppOperatingMode.cloud);
-      
+      debugPrint('☁️ switchToCloud: _handlePowerSyncModeChange returned');
+
       emit(state.copyWith(
         mode: AppOperatingMode.cloud,
         isConnected: isReachable,
@@ -231,7 +242,9 @@ class AppOperatingCubit extends QuanityaCubit<AppOperatingState> {
         status: UiFlowStatus.success,
         lastOperation: AppOperatingOperation.switchMode,
       ));
+      debugPrint('☁️ switchToCloud: DONE');
     } catch (e) {
+      debugPrint('☁️ switchToCloud: ERROR: $e');
       emit(state.copyWith(
         status: UiFlowStatus.failure,
         error: e,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:serverpod/serverpod.dart';
+import 'package:anonaccount_server/anonaccount_server.dart';
 import 'package:jose/jose.dart';
 
 import '../generated/protocol.dart';
@@ -32,27 +33,30 @@ class PowerSyncEndpoint extends Endpoint {
       throw Exception('User not authenticated');
     }
 
-    final accountId = session.authenticated!.userIdentifier;
-    session.log(
-      'PowerSync: Raw accountId: "$accountId" (length: ${accountId.length})',
-      level: LogLevel.info,
-    );
-
-    if (accountId.isEmpty) {
+    final accountIdStr = session.authenticated!.userIdentifier;
+    if (accountIdStr.isEmpty) {
       session.log(
-        'PowerSync: ERROR - accountId is empty',
+        'PowerSync: ERROR - userIdentifier is empty',
         level: LogLevel.error,
       );
       throw Exception('User identifier is empty');
     }
 
+    // Look up the account's ultimate public key for JWT identity
+    final accountId = int.parse(accountIdStr);
+    final account = await AnonAccount.db.findById(session, accountId);
+    if (account == null) {
+      throw Exception('Account not found');
+    }
+    final ultimateKeyHex = account.ultimateSigningPublicKeyHex;
+
     session.log(
-      'PowerSync: Generating token for user (length: ${accountId.length})...',
+      'PowerSync: Generating token for account...',
       level: LogLevel.info,
     );
 
-    // Create JWT using jose library with JWK
-    final token = await _createPowerSyncToken(accountId, session);
+    // Create JWT using jose library with JWK — ultimate key as identity
+    final token = await _createPowerSyncToken(ultimateKeyHex, session);
 
     // Token expires in 5 minutes
     final expiresAt = DateTime.now().add(const Duration(minutes: 5));

@@ -46,7 +46,6 @@ const powerSyncSchema = Schema([
   // Notifications - Server-to-client notifications (no E2EE)
   // ─────────────────────────────────────────────────────────────────────────
   Table('notifications', [
-    Column.text('account_id'),
     Column.text('title'),
     Column.text('message'),
     Column.text('type'),

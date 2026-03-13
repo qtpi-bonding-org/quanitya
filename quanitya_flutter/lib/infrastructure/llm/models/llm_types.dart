@@ -3,9 +3,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'llm_types.freezed.dart';
 part 'llm_types.g.dart';
 
-enum LlmProvider { openRouter, ollama }
+enum LlmProvider { quanitya, openRouter, ollama }
 
-/// Configuration for LLM providers (OpenRouter/Ollama)
+/// Configuration for LLM providers (Quanitya/OpenRouter/Ollama)
 @freezed
 class LlmConfig with _$LlmConfig {
   const factory LlmConfig({
@@ -15,10 +15,19 @@ class LlmConfig with _$LlmConfig {
     required String model,
     String? appName,
     String? appUrl,
-    @Default(false) bool useCloudProxy,
   }) = _LlmConfig;
 
   factory LlmConfig.fromJson(Map<String, dynamic> json) => _$LlmConfigFromJson(json);
+
+  /// Factory for Quanitya (managed cloud proxy — no API key needed)
+  factory LlmConfig.quanitya() {
+    return const LlmConfig(
+      provider: LlmProvider.quanitya,
+      apiKey: '',
+      baseUrl: '',
+      model: '',
+    );
+  }
 
   /// Factory for OpenRouter (Cloud)
   factory LlmConfig.openRouter({
@@ -26,7 +35,6 @@ class LlmConfig with _$LlmConfig {
     required String model, // e.g., 'anthropic/claude-3.5-sonnet'
     String? appName,
     String? appUrl,
-    bool useCloudProxy = false,
   }) {
     return LlmConfig(
       provider: LlmProvider.openRouter,
@@ -35,7 +43,6 @@ class LlmConfig with _$LlmConfig {
       model: model,
       appName: appName,
       appUrl: appUrl,
-      useCloudProxy: useCloudProxy,
     );
   }
 

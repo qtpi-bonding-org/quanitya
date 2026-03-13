@@ -28,8 +28,6 @@ import '../../../logic/analytics/enums/analysis_output_mode.dart';
 import '../../../logic/analytics/enums/time_resolution.dart';
 import '../../../logic/analytics/models/analysis_output.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../../app_operating_mode/cubits/app_operating_cubit.dart';
-import '../../app_operating_mode/models/app_operating_mode.dart';
 
 /// Analysis script builder — write or AI-generate JavaScript analysis code.
 class AnalysisBuilderPage extends StatefulWidget {
@@ -289,11 +287,9 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
 
     final cubit = context.read<AnalysisBuilderCubit>();
     final state = cubit.state;
-    final useCloudProxy =
-        context.read<AppOperatingCubit>().state.mode == AppOperatingMode.cloud;
 
     final llmCubit = GetIt.I<LlmProviderCubit>();
-    final config = await llmCubit.buildLlmConfig(useCloudProxy: useCloudProxy);
+    final config = await llmCubit.buildLlmConfig();
     if (config == null) {
       if (context.mounted) {
         PostItToast.show(context,

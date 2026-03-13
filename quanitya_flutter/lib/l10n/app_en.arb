@@ -348,6 +348,7 @@
     }
   },
   "enableICloudSync": "Enable iCloud Sync",
+  "webhooksCreateTemplateFirst": "Create a template first to add webhooks",
   "devToolsTitle": "Dev Tools",
   "devSeedFakeData": "Seed Fake Data",
   "devSeed": "Seed",
@@ -618,6 +619,8 @@
   "syncActive": "Cloud Sync Active",
   "syncInactive": "No Sync Access",
   "entitlementLabel": "Entitlement #{id}",
+  "entitlementActive": "Active",
+  "entitlementInactive": "Inactive",
   "outboxTitle": "Outbox",
   "outboxTabFeedback": "Feedback",
   "outboxTabAnalytics": "Analytics",

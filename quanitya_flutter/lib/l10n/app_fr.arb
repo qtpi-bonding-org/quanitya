@@ -347,6 +347,7 @@
     }
   },
   "enableICloudSync": "Activer la synchronisation iCloud",
+  "webhooksCreateTemplateFirst": "Créez d'abord un modèle pour ajouter des webhooks",
   "devToolsTitle": "Outils de développement",
   "devSeedFakeData": "Générer des fausses données",
   "devSeed": "Semer",

@@ -43,7 +43,6 @@ class PurchaseRequest with _$PurchaseRequest {
   const factory PurchaseRequest({
     required String productId,
     required PurchaseRail rail,
-    required int accountId,
     String? internalTransactionId,
   }) = _PurchaseRequest;
 
@@ -74,7 +73,7 @@ class PurchaseResult with _$PurchaseResult {
 class PurchaseValidationResult with _$PurchaseValidationResult {
   const factory PurchaseValidationResult({
     required bool success,
-    String? internalTransactionId,
+    String? productId,
     String? tag,
     double? amount,
     String? errorMessage,

@@ -10,10 +10,12 @@ import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
+import '../../auth/auth_service.dart';
 import '../../core/try_operation.dart';
 import '../../crypto/crypto_key_repository.dart';
 import '../../crypto/data_encryption_service.dart';
 import '../../crypto/utils/hashcash.dart';
+import '../../device/device_info_service.dart';
 import '../i_purchase_provider.dart';
 import '../purchase_exception.dart';
 import '../purchase_models.dart';
@@ -23,8 +25,16 @@ class InAppPurchaseProvider implements IPurchaseProvider {
   final Client _client;
   final ICryptoKeyRepository _keyRepository;
   final IDataEncryptionService _encryption;
+  final AuthService _authService;
+  final DeviceInfoService _deviceInfoService;
 
-  InAppPurchaseProvider(this._client, this._keyRepository, this._encryption);
+  InAppPurchaseProvider(
+    this._client,
+    this._keyRepository,
+    this._encryption,
+    this._authService,
+    this._deviceInfoService,
+  );
 
   final iap.InAppPurchase _iapInstance = iap.InAppPurchase.instance;
   StreamSubscription<List<iap.PurchaseDetails>>? _purchaseSubscription;
@@ -240,6 +250,12 @@ class InAppPurchaseProvider implements IPurchaseProvider {
             'transactionId=${purchase.transactionId}, '
             'status=${purchase.status}');
 
+        // Ensure server registration before validating the purchase.
+        // Keys always exist (onboarding), but server registration is async
+        // and may not have completed yet.
+        final deviceLabel = await _deviceInfoService.getDeviceName();
+        await _authService.ensureRegistered(deviceLabel: deviceLabel);
+
         final publicKeyHex =
             await _keyRepository.getDeviceSigningPublicKeyHex();
         if (publicKeyHex == null) {
@@ -256,36 +272,31 @@ class InAppPurchaseProvider implements IPurchaseProvider {
             .authenticateDevice(challenge, signature);
 
         debugPrint('validateWithServer: auth result='
-            'success=${authResult.success}, '
-            'accountId=${authResult.accountId}');
+            'success=${authResult.success}');
 
-        final accountId = authResult.accountId;
-        if (!authResult.success || accountId == null) {
+        if (!authResult.success) {
           throw const PurchaseException('Authentication failed');
         }
-        Map<String, dynamic> result;
+        final result;
 
         if (purchase.rail == PurchaseRail.appleIap) {
           final txnId = purchase.transactionId ?? '';
           debugPrint('validateWithServer: calling validateAppleTransaction '
               'txnId=$txnId, '
-              'productId=${purchase.productId}, '
-              'accountId=$accountId');
+              'productId=${purchase.productId}');
           result =
               await _client.modules.anonaccred.iAP.validateAppleTransaction(
             publicKeyHex,
             signature,
             txnId,
             purchase.productId,
-            accountId,
             internalTransactionId: purchase.transactionId,
           );
         } else {
           debugPrint('validateWithServer: calling validateGooglePurchase '
               'packageName=${purchase.packageName}, '
               'productId=${purchase.productId}, '
-              'purchaseToken=${purchase.purchaseToken != null ? '${purchase.purchaseToken?.substring(0, 20)}...' : 'null'}, '
-              'accountId=$accountId');
+              'purchaseToken=${purchase.purchaseToken != null ? '${purchase.purchaseToken?.substring(0, 20)}...' : 'null'}');
           result =
               await _client.modules.anonaccred.iAP.validateGooglePurchase(
             publicKeyHex,
@@ -293,15 +304,13 @@ class InAppPurchaseProvider implements IPurchaseProvider {
             purchase.packageName ?? '',
             purchase.productId,
             purchase.purchaseToken ?? '',
-            accountId,
             internalTransactionId: purchase.transactionId,
           );
         }
 
         debugPrint('validateWithServer: server response=$result');
 
-        final success = result['success'] as bool? ?? false;
-        if (success) {
+        if (result.success) {
           final rawDetails = _rawPurchaseDetails.remove(purchase.productId);
           if (rawDetails != null) {
             await _iapInstance.completePurchase(rawDetails);
@@ -310,12 +319,11 @@ class InAppPurchaseProvider implements IPurchaseProvider {
         }
 
         return PurchaseValidationResult(
-          success: success,
-          internalTransactionId:
-              result['internal_transaction_id'] as String?,
-          tag: result['tag'] as String?,
-          amount: (result['amount'] as num?)?.toDouble(),
-          errorMessage: result['error'] as String?,
+          success: result.success,
+          productId: result.productId,
+          tag: result.tag,
+          amount: result.amount,
+          errorMessage: result.error,
         );
       },
       PurchaseException.new,
@@ -324,11 +332,13 @@ class InAppPurchaseProvider implements IPurchaseProvider {
   }
 
   @override
-  Future<List<PurchaseResult>> recoverPendingPurchases() {
+  Future<void> recoverPendingPurchases() {
     return tryMethod(
       () async {
         await _iapInstance.restorePurchases();
-        return <PurchaseResult>[];
+        // Restored transactions arrive via the purchase stream.
+        // _handlePurchaseUpdates routes them to _recoverOrphanedPurchase
+        // which validates with server and calls completePurchase.
       },
       PurchaseException.new,
       'recoverPendingPurchases',
@@ -433,6 +443,36 @@ class InAppPurchaseProvider implements IPurchaseProvider {
 
       if (completer != null && !completer.isCompleted) {
         completer.complete(result);
+      } else if (details.status == iap.PurchaseStatus.purchased ||
+          details.status == iap.PurchaseStatus.restored) {
+        // Orphaned transaction — no active purchase request waiting for this.
+        // Validate with server and completePurchase to clear Apple's queue.
+        _recoverOrphanedPurchase(result);
+      }
+    }
+  }
+
+  Future<void> _recoverOrphanedPurchase(PurchaseResult result) async {
+    try {
+      debugPrint('_recoverOrphanedPurchase: recovering '
+          'productId=${result.productId}, '
+          'transactionId=${result.transactionId}');
+      await validateWithServer(result);
+      debugPrint('_recoverOrphanedPurchase: recovered ${result.productId}');
+    } catch (e) {
+      debugPrint('_recoverOrphanedPurchase: failed for '
+          '${result.productId}: $e');
+      // Still try to complete the purchase to clear the queue
+      final rawDetails = _rawPurchaseDetails.remove(result.productId);
+      if (rawDetails != null) {
+        try {
+          await _iapInstance.completePurchase(rawDetails);
+          debugPrint('_recoverOrphanedPurchase: '
+              'completePurchase called for ${result.productId}');
+        } catch (e2) {
+          debugPrint('_recoverOrphanedPurchase: '
+              'completePurchase also failed: $e2');
+        }
       }
     }
   }

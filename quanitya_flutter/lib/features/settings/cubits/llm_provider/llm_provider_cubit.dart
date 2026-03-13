@@ -57,6 +57,19 @@ class LlmProviderCubit extends QuanityaCubit<LlmProviderState> {
     }, emitLoading: false);
   }
 
+  Future<void> selectQuanitya() async {
+    await tryOperation(() async {
+      await _configRepo.saveQuanityaSelection();
+      final configs = await _configRepo.getAll();
+      return state.copyWith(
+        configs: configs,
+        activeConfig: configs.first,
+        status: UiFlowStatus.success,
+        lastOperation: LlmProviderOperation.load,
+      );
+    }, emitLoading: false);
+  }
+
   Future<void> saveConfig(LlmProviderConfigModel config) async {
     await tryOperation(() async {
       await _configRepo.save(config);
@@ -127,31 +140,35 @@ class LlmProviderCubit extends QuanityaCubit<LlmProviderState> {
   Future<void> testConnection(String configId) async {
     await tryOperation(() async {
       final config = state.configs.firstWhere((c) => c.id == configId);
-      final isOpenRouter = config.baseUrl.contains('openrouter.ai');
 
-      if (isOpenRouter) {
-        if (config.apiKeyId == null) {
-          throw Exception('No API key configured');
-        }
-        final keyValue = await _apiKeyRepo.getKeyValue(config.apiKeyId!);
-        if (keyValue == null || keyValue.isEmpty) {
-          throw Exception('API key not found');
-        }
-        final response = await _httpClient.get(
-          Uri.parse('https://openrouter.ai/api/v1/key'),
-          headers: {'Authorization': 'Bearer $keyValue'},
-        );
-        if (response.statusCode != 200) {
-          throw Exception('Invalid API key (${response.statusCode})');
-        }
-      } else {
-        final baseUrl = config.baseUrl.replaceAll('/v1', '');
-        final response = await _httpClient.get(
-          Uri.parse('$baseUrl/api/tags'),
-        );
-        if (response.statusCode != 200) {
-          throw Exception('Ollama not reachable (${response.statusCode})');
-        }
+      switch (config.provider) {
+        case LlmProvider.quanitya:
+          // Quanitya connection is managed server-side — no client test needed
+          break;
+        case LlmProvider.openRouter:
+          final apiKeyId = config.apiKeyId;
+          if (apiKeyId == null) {
+            throw Exception('No API key configured');
+          }
+          final keyValue = await _apiKeyRepo.getKeyValue(apiKeyId);
+          if (keyValue == null || keyValue.isEmpty) {
+            throw Exception('API key not found');
+          }
+          final response = await _httpClient.get(
+            Uri.parse('https://openrouter.ai/api/v1/key'),
+            headers: {'Authorization': 'Bearer $keyValue'},
+          );
+          if (response.statusCode != 200) {
+            throw Exception('Invalid API key (${response.statusCode})');
+          }
+        case LlmProvider.ollama:
+          final baseUrl = config.baseUrl.replaceAll('/v1', '');
+          final response = await _httpClient.get(
+            Uri.parse('$baseUrl/api/tags'),
+          );
+          if (response.statusCode != 200) {
+            throw Exception('Ollama not reachable (${response.statusCode})');
+          }
       }
 
       return state.copyWith(
@@ -161,28 +178,25 @@ class LlmProviderCubit extends QuanityaCubit<LlmProviderState> {
     }, emitLoading: true);
   }
 
-  Future<LlmConfig?> buildLlmConfig({bool useCloudProxy = false}) async {
+  Future<LlmConfig?> buildLlmConfig() async {
     final config = state.activeConfig ?? await _configRepo.getActive();
     if (config == null) return null;
 
-    final isOpenRouter = config.baseUrl.contains('openrouter.ai');
+    return switch (config.provider) {
+      LlmProvider.quanitya => LlmConfig.quanitya(),
+      LlmProvider.openRouter => LlmConfig.openRouter(
+          apiKey: await _resolveApiKey(config.apiKeyId),
+          model: config.modelId,
+        ),
+      LlmProvider.ollama => LlmConfig.ollama(
+          model: config.modelId,
+          url: config.baseUrl,
+        ),
+    };
+  }
 
-    String apiKey = '';
-    if (config.apiKeyId != null) {
-      apiKey = await _apiKeyRepo.getKeyValue(config.apiKeyId!) ?? '';
-    }
-
-    if (isOpenRouter) {
-      return LlmConfig.openRouter(
-        apiKey: apiKey,
-        model: config.modelId,
-        useCloudProxy: useCloudProxy,
-      );
-    } else {
-      return LlmConfig.ollama(
-        model: config.modelId,
-        url: config.baseUrl,
-      );
-    }
+  Future<String> _resolveApiKey(String? apiKeyId) async {
+    if (apiKeyId == null) return '';
+    return await _apiKeyRepo.getKeyValue(apiKeyId) ?? '';
   }
 }

@@ -383,6 +383,7 @@ class OpenRouterModels extends Table {
 /// Most recently used config is active on app restart.
 class LlmProviderConfigs extends Table {
   TextColumn get id => text()();
+  TextColumn get provider => text().withDefault(const Constant('openRouter'))();
   TextColumn get baseUrl => text().named('base_url')();
   TextColumn get modelId => text().named('model_id')();
   TextColumn get apiKeyId => text().named('api_key_id').nullable()();

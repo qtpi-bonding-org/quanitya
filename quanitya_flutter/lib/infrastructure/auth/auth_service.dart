@@ -13,6 +13,7 @@ import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
 import '../crypto/data_encryption_service.dart';
 import '../crypto/interfaces/i_secure_storage.dart';
+import '../crypto/utils/hashcash.dart';
 import '../../features/app_operating_mode/repositories/app_operating_repository.dart';
 import '../../features/app_operating_mode/models/app_operating_mode.dart';
 import 'registration_payload.dart';
@@ -154,6 +155,7 @@ class AuthService {
 
   static const _registrationPayloadKey = 'quanitya_registration_payload';
   static const _crossDeviceRegistrationBlobKey = 'quanitya_cross_device_registration';
+  static const _registeredWithServerKey = 'quanitya_registered_with_server';
 
   bool _isInitialized = false;
 
@@ -353,10 +355,6 @@ class AuthService {
     return RegistrationPayloadX.fromJsonString(json);
   }
 
-  /// Delete registration payload from secure storage (after successful registration)
-  Future<void> _deleteRegistrationPayload() async {
-    await _secureStorage.deleteSecureData(_registrationPayloadKey);
-  }
 
   /// Register existing local account with server using stored registration payload
   ///
@@ -428,35 +426,37 @@ class AuthService {
           '🔐 AuthService: Account registration params - devicePublicKeyHex: ${payload.devicePublicKeyHex.length} chars, recoveryBlob: ${payload.recoveryBlob.length} chars, ultimatePublicKeyHex: ${payload.ultimatePublicKeyHex.length} chars',
         );
         try {
-          final account = await _client.modules.anonaccount.account.createAccount(
-            payload.devicePublicKeyHex, // publicMasterKey
-            payload.recoveryBlob, // encryptedDataKey (for recovery)
-            payload
-                .ultimatePublicKeyHex, // ultimatePublicKey (for recovery lookup)
+          // Account creation requires proof-of-work via accountRegistration endpoint
+          final challengeResponse = await _client.accountRegistration.getChallenge();
+          final proofOfWork = await _computeProofOfWork(
+            challengeResponse.challenge,
+            challengeResponse.difficulty,
+          );
+          final signPayload =
+              '${challengeResponse.challenge}:createAccount:${payload.ultimatePublicKeyHex}';
+          final powSignature = await _encryption.signWithDeviceKey(signPayload);
+
+          await _client.accountRegistration.createAccount(
+            challenge: challengeResponse.challenge,
+            proofOfWork: proofOfWork,
+            signature: powSignature,
+            ultimateSigningPublicKeyHex: payload.ultimatePublicKeyHex,
+            encryptedDataKey: payload.recoveryBlob,
+            ultimatePublicKey: payload.ultimatePublicKeyHex,
           );
           debugPrint(
-            '🔐 AuthService: Account created successfully with ID: ${account.id}',
+            '🔐 AuthService: Account created successfully',
           );
 
-          // 4. Register device
-          final accountId = account.id;
-          if (accountId == null) {
-            debugPrint(
-              '🔐 AuthService: ERROR - Server returned account without ID',
-            );
-            throw const AccountCreationException(
-              'Server returned account without ID',
-            );
-          }
-
+          // 4. Register device — uses ultimate key to look up account
           debugPrint('🔐 AuthService: Registering device with server...');
           debugPrint(
-            '🔐 AuthService: Device registration params - accountId: $accountId, devicePublicKeyHex: ${payload.devicePublicKeyHex.length} chars, deviceBlob: ${payload.deviceBlob.length} chars, label: "$deviceLabel"',
+            '🔐 AuthService: Device registration params - devicePublicKeyHex: ${payload.devicePublicKeyHex.length} chars, deviceBlob: ${payload.deviceBlob.length} chars, label: "$deviceLabel"',
           );
           await _client.modules.anonaccount.device.registerDevice(
-            accountId,
-            payload.devicePublicKeyHex, // deviceSigningPublicKeyHex
-            payload.deviceBlob, // encryptedDataKey (for this device)
+            payload.ultimatePublicKeyHex,
+            payload.devicePublicKeyHex,
+            payload.deviceBlob,
             deviceLabel,
           );
           debugPrint('🔐 AuthService: Device registered successfully');
@@ -472,7 +472,7 @@ class AuthService {
 
               debugPrint('🔐 AuthService: Registering cross-device key ($label) with server...');
               await _client.modules.anonaccount.device.registerDevice(
-                accountId,
+                payload.ultimatePublicKeyHex,
                 keyHex,
                 blob,
                 label,
@@ -487,10 +487,11 @@ class AuthService {
             debugPrint('🔐 AuthService: Cross-device key registration failed (non-critical): $e');
           }
 
-          // 5. Delete registration payload after successful registration
-          debugPrint('🔐 AuthService: Deleting registration payload...');
-          await _deleteRegistrationPayload();
-          debugPrint('🔐 AuthService: Registration payload deleted');
+          // 5. Mark device as registered with server
+          await _secureStorage.storeSecureData(
+            _registeredWithServerKey,
+            'true',
+          );
 
           // 6. Switch app to cloud mode after successful server registration
           debugPrint('🔐 AuthService: Switching app to cloud mode...');
@@ -509,6 +510,27 @@ class AuthService {
       (message, [cause]) => AccountCreationException(message, cause: cause),
       'registerAccountWithServer',
     );
+  }
+
+  /// Check whether this device is registered with the server yet.
+  ///
+  /// Returns `true` if registration has completed successfully.
+  Future<bool> get isRegisteredWithServer async =>
+      await _secureStorage.getSecureData(_registeredWithServerKey) != null;
+
+  /// Ensure the device is registered with the server.
+  ///
+  /// If a registration payload exists (account created locally but not yet
+  /// registered), this performs the server registration now. Safe to call
+  /// multiple times — it's a no-op when already registered.
+  Future<void> ensureRegistered({required String deviceLabel}) async {
+    if (await isRegisteredWithServer) return;
+    await registerAccountWithServer(deviceLabel: deviceLabel);
+  }
+
+  /// Compute hashcash proof-of-work for spam prevention.
+  Future<String> _computeProofOfWork(String challenge, int difficulty) async {
+    return Hashcash.mint(challenge, difficulty: difficulty);
   }
 
   /// Recover account using ultimate private key (from user's offline backup)
@@ -540,9 +562,25 @@ class AuthService {
         final ultimatePublicKeyHex = await ultimateKeyDuo.signingKeyPair
             .exportPublicKeyHex();
 
-        // 3. Look up account on server
-        final account = await _client.modules.anonaccount.account
-            .getAccountForRecovery(ultimatePublicKeyHex);
+        // 3. Look up account on server (PoW-protected)
+        final challengeResponse =
+            await _client.accountRegistration.getChallenge();
+        final proofOfWork = await _computeProofOfWork(
+          challengeResponse.challenge,
+          challengeResponse.difficulty,
+        );
+        final recoveryPayload =
+            '${challengeResponse.challenge}:getAccountForRecovery:$ultimatePublicKeyHex';
+        final recoverySig =
+            await _encryption.signWithKeyDuo(recoveryPayload, ultimateKeyDuo);
+
+        final account = await _client.accountRegistration
+            .getAccountForRecovery(
+          challenge: challengeResponse.challenge,
+          proofOfWork: proofOfWork,
+          ultimatePublicKey: ultimatePublicKeyHex,
+          signature: recoverySig,
+        );
 
         if (account == null) {
           throw const AccountRecoveryException(
@@ -584,14 +622,9 @@ class AuthService {
           deviceKey.encryption.publicKey,
         );
 
-        // 7. Register new device with account
-        final accountId = account.id;
-        if (accountId == null) {
-          throw const AccountRecoveryException('Account missing ID');
-        }
-
+        // 7. Register new device with account (uses ultimate key, not int id)
         await _client.modules.anonaccount.device.registerDevice(
-          accountId,
+          ultimatePublicKeyHex,
           devicePublicKeyHex,
           deviceBlob,
           deviceLabel,
@@ -600,7 +633,13 @@ class AuthService {
         // 8. Store symmetric key locally
         await _keyRepository.storeSymmetricDataKeyJwk(symmetricKeyJwk);
 
-        // 9. Switch app to cloud mode after successful recovery
+        // 9. Mark device as registered with server
+        await _secureStorage.storeSecureData(
+          _registeredWithServerKey,
+          'true',
+        );
+
+        // 10. Switch app to cloud mode after successful recovery
         debugPrint(
           '🔐 AuthService: Switching app to cloud mode after recovery...',
         );
@@ -705,7 +744,13 @@ class AuthService {
         // 7. Store symmetric key locally
         await _keyRepository.storeSymmetricDataKeyJwk(symmetricKeyJwk);
 
-        // 8. Switch app to cloud mode
+        // 8. Mark device as registered with server
+        await _secureStorage.storeSecureData(
+          _registeredWithServerKey,
+          'true',
+        );
+
+        // 9. Switch app to cloud mode
         await _appOperatingRepository.updateMode(AppOperatingMode.cloud);
         debugPrint('🔐 AuthService: Cross-device key recovery complete');
       },

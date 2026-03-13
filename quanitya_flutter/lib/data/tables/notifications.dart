@@ -8,10 +8,7 @@ import 'package:drift/drift.dart';
 class Notifications extends Table {
   /// UUID primary key (synced from server)
   TextColumn get id => text()();
-  
-  /// Account ID for user-specific notifications (nullable for broadcast)
-  TextColumn get accountId => text().named('account_id').nullable()();
-  
+
   /// Notification title
   TextColumn get title => text()();
   

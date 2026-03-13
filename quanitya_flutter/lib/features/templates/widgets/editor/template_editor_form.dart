@@ -24,8 +24,6 @@ import '../../cubits/editor/template_editor_state.dart';
 import '../../cubits/generator/template_generator_cubit.dart';
 import '../../../../design_system/widgets/ai/ai_prompt_widget.dart';
 import '../../../settings/cubits/llm_provider/llm_provider_cubit.dart';
-import '../../../app_operating_mode/cubits/app_operating_cubit.dart';
-import '../../../app_operating_mode/models/app_operating_mode.dart';
 import 'color_palette_editor.dart';
 import 'container_style_editor.dart';
 import 'field_editor_list.dart';
@@ -368,11 +366,9 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     if (prompt.isEmpty || _isGenerating) return;
 
     final editorCubit = context.read<TemplateEditorCubit>();
-    final useCloudProxy =
-        context.read<AppOperatingCubit>().state.mode == AppOperatingMode.cloud;
 
     final llmCubit = GetIt.I<LlmProviderCubit>();
-    final config = await llmCubit.buildLlmConfig(useCloudProxy: useCloudProxy);
+    final config = await llmCubit.buildLlmConfig();
     if (config == null) {
       if (context.mounted) {
         PostItToast.show(context,

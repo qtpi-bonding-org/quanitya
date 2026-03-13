@@ -73,30 +73,51 @@ class BalanceDisplay extends StatelessWidget {
               ),
             ),
             VSpace.x1,
-            ...entitlements.map((e) => Padding(
-                  padding: EdgeInsets.only(bottom: AppSizes.space * 0.5),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          context.l10n.entitlementLabel(e.entitlementId),
-                          style: context.text.bodyMedium?.copyWith(
-                            color: palette.textSecondary,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+            ...entitlements.map((e) {
+              final name = e.entitlement?.name ??
+                  context.l10n.entitlementLabel(e.entitlementId);
+              final isSyncTier =
+                  e.entitlement?.tag.startsWith('sync_') ?? false;
+              return Padding(
+                padding: EdgeInsets.only(bottom: AppSizes.space * 0.5),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: context.text.bodyMedium?.copyWith(
+                          color: palette.textSecondary,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      HSpace.x1,
+                    ),
+                    HSpace.x1,
+                    if (isSyncTier)
                       Text(
-                        e.balance.toStringAsFixed(1),
+                        e.balance > 0
+                            ? context.l10n.entitlementActive
+                            : context.l10n.entitlementInactive,
+                        style: context.text.bodyMedium?.copyWith(
+                          color: e.balance > 0
+                              ? palette.successColor
+                              : palette.textSecondary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    else
+                      Text(
+                        e.balance.truncateToDouble() == e.balance
+                            ? e.balance.toInt().toString()
+                            : e.balance.toStringAsFixed(1),
                         style: context.text.bodyMedium?.copyWith(
                           color: palette.textPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ],
-                  ),
-                )),
+                  ],
+                ),
+              );
+            }),
           ],
         ],
       ),

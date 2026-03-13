@@ -89,7 +89,6 @@ void main() {
         const PurchaseRequest(
           productId: 'sync_1gb_month',
           rail: PurchaseRail.appleIap,
-          accountId: 1,
         ),
       ),
       expect: () => [
@@ -119,7 +118,6 @@ void main() {
         const PurchaseRequest(
           productId: 'sync_1gb_month',
           rail: PurchaseRail.appleIap,
-          accountId: 1,
         ),
       ),
       expect: () => [

@@ -96,12 +96,10 @@ void main() {
       test('has required fields for auth response', () {
         final result = AuthenticationResult(
           success: true,
-          accountId: 42,
           deviceId: 7,
         );
 
         expect(result.success, isTrue);
-        expect(result.accountId, equals(42));
         expect(result.deviceId, equals(7));
       });
 
@@ -154,7 +152,6 @@ void main() {
     test('AuthenticationResult roundtrips through JSON', () {
       final original = AuthenticationResult(
         success: true,
-        accountId: 1,
         deviceId: 2,
       );
 
@@ -162,7 +159,7 @@ void main() {
       final restored = AuthenticationResult.fromJson(json);
 
       expect(restored.success, equals(original.success));
-      expect(restored.accountId, equals(original.accountId));
+      expect(restored.deviceId, equals(original.deviceId));
     });
   });
 }

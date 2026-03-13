@@ -39,7 +39,6 @@ void main() {
       const PurchaseRequest(
         productId: '',
         rail: PurchaseRail.appleIap,
-        accountId: 0,
       ),
     );
     registerFallbackValue(
@@ -143,7 +142,6 @@ void main() {
         const PurchaseRequest(
           productId: 'sync_1gb_month',
           rail: PurchaseRail.appleIap,
-          accountId: 1,
         ),
       );
 
@@ -171,7 +169,6 @@ void main() {
         const PurchaseRequest(
           productId: 'sync_1gb_month',
           rail: PurchaseRail.appleIap,
-          accountId: 1,
         ),
       );
 
@@ -186,7 +183,6 @@ void main() {
           const PurchaseRequest(
             productId: 'sync_1gb_month',
             rail: PurchaseRail.monero,
-            accountId: 1,
           ),
         ),
         throwsA(isA<PurchaseException>()),

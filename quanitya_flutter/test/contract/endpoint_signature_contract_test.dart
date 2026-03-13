@@ -68,7 +68,6 @@ void main() {
       Future<AuthenticationResult> simulatedCall() async {
         return AuthenticationResult(
           success: true,
-          accountId: 1,
           deviceId: 1,
         );
       }
@@ -98,8 +97,8 @@ void main() {
       // If the path changes, this won't compile
       void verifyPath(Client client) {
         // These lines verify the path exists - compile error if changed
-        final _ = client.modules.anonaccount.account;
-        final __ = client.modules.anonaccount.device;
+        final _ = client.modules.anonaccount.device;
+        final __ = client.accountRegistration;
       }
 
       expect(verifyPath, isA<void Function(Client)>());
@@ -139,15 +138,15 @@ void main() {
       );
     });
 
-    test('device.registerDevice signature: (int, String, String, String) -> AccountDevice', () {
+    test('device.registerDevice signature: (String, String, String, String) -> AccountDevice', () {
       Future<AccountDevice> expectedSignature(
-        int accountId,
+        String ultimateSigningPublicKeyHex,
         String deviceSigningPublicKeyHex,
         String encryptedDataKey,
         String label,
       ) async {
         return AccountDevice(
-          accountId: accountId,
+          accountId: 1, // Server fills this from ultimate key lookup
           deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
           encryptedDataKey: encryptedDataKey,
           label: label,
@@ -156,7 +155,7 @@ void main() {
 
       expect(
         expectedSignature,
-        isA<Future<AccountDevice> Function(int, String, String, String)>(),
+        isA<Future<AccountDevice> Function(String, String, String, String)>(),
       );
     });
 
@@ -186,7 +185,7 @@ void main() {
         String challenge,
         String signature,
       ) async {
-        return AuthenticationResult(success: true, accountId: 1, deviceId: 1);
+        return AuthenticationResult(success: true, deviceId: 1);
       }
 
       expect(

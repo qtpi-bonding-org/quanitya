@@ -12,60 +12,62 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
-import 'package:quanitya_cloud_client/src/protocol/admin_signing_key.dart'
-    as _i3;
-import 'package:quanitya_cloud_client/src/protocol/admin_role.dart' as _i4;
-import 'package:quanitya_cloud_client/src/protocol/paginated_analytics_events.dart'
-    as _i5;
-import 'package:quanitya_cloud_client/src/protocol/analytics_event.dart' as _i6;
-import 'package:quanitya_cloud_client/src/protocol/analytics_statistics.dart'
-    as _i7;
-import 'package:quanitya_cloud_client/src/protocol/admin_action_result.dart'
-    as _i8;
-import 'package:quanitya_cloud_client/src/protocol/batch_submission_result.dart'
-    as _i9;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i3;
 import 'package:quanitya_cloud_client/src/protocol/public_challenge_response.dart'
+    as _i4;
+import 'package:quanitya_cloud_client/src/protocol/admin_signing_key.dart'
+    as _i5;
+import 'package:quanitya_cloud_client/src/protocol/admin_role.dart' as _i6;
+import 'package:quanitya_cloud_client/src/protocol/paginated_analytics_events.dart'
+    as _i7;
+import 'package:quanitya_cloud_client/src/protocol/analytics_event.dart' as _i8;
+import 'package:quanitya_cloud_client/src/protocol/analytics_statistics.dart'
+    as _i9;
+import 'package:quanitya_cloud_client/src/protocol/admin_action_result.dart'
     as _i10;
-import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_request.dart'
+import 'package:quanitya_cloud_client/src/protocol/batch_submission_result.dart'
     as _i11;
-import 'package:quanitya_cloud_client/src/protocol/paginated_error_reports.dart'
+import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_response.dart'
     as _i12;
-import 'package:quanitya_cloud_client/src/protocol/error_report.dart' as _i13;
-import 'package:quanitya_cloud_client/src/protocol/error_statistics.dart'
+import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_request.dart'
+    as _i13;
+import 'package:quanitya_cloud_client/src/protocol/paginated_error_reports.dart'
     as _i14;
+import 'package:quanitya_cloud_client/src/protocol/error_report.dart' as _i15;
+import 'package:quanitya_cloud_client/src/protocol/error_statistics.dart'
+    as _i16;
 import 'package:quanitya_cloud_client/src/protocol/paginated_feedback_reports.dart'
-    as _i15;
-import 'package:quanitya_cloud_client/src/protocol/feedback_type.dart' as _i16;
-import 'package:quanitya_cloud_client/src/protocol/feedback_report.dart'
     as _i17;
-import 'package:quanitya_cloud_client/src/protocol/feedback_statistics.dart'
-    as _i18;
-import 'package:quanitya_cloud_client/src/protocol/notification_create_result.dart'
+import 'package:quanitya_cloud_client/src/protocol/feedback_type.dart' as _i18;
+import 'package:quanitya_cloud_client/src/protocol/feedback_report.dart'
     as _i19;
-import 'package:quanitya_cloud_client/src/protocol/notification_type.dart'
+import 'package:quanitya_cloud_client/src/protocol/feedback_statistics.dart'
     as _i20;
-import 'package:quanitya_cloud_client/src/protocol/notification_statistics.dart'
+import 'package:quanitya_cloud_client/src/protocol/notification_create_result.dart'
     as _i21;
-import 'package:quanitya_cloud_client/src/protocol/paginated_notifications.dart'
+import 'package:quanitya_cloud_client/src/protocol/notification_type.dart'
     as _i22;
-import 'package:quanitya_cloud_client/src/protocol/notification_details.dart'
+import 'package:quanitya_cloud_client/src/protocol/notification_statistics.dart'
     as _i23;
-import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
+import 'package:quanitya_cloud_client/src/protocol/paginated_notifications.dart'
     as _i24;
-import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
+import 'package:quanitya_cloud_client/src/protocol/notification_details.dart'
     as _i25;
-import 'package:quanitya_cloud_client/src/protocol/sync_access_info.dart'
+import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
     as _i26;
-import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
+import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
     as _i27;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:quanitya_cloud_client/src/protocol/sync_access_info.dart'
     as _i28;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
     as _i29;
-import 'package:quanitya_client/quanitya_client.dart' as _i30;
-import 'package:anonaccount_client/anonaccount_client.dart' as _i31;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i32;
-import 'protocol.dart' as _i33;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _i30;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i31;
+import 'package:quanitya_client/quanitya_client.dart' as _i32;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i33;
+import 'protocol.dart' as _i34;
 
 /// A simple cloud-specific endpoint to verify the cloud server is working.
 /// {@category Endpoint}
@@ -111,6 +113,153 @@ class EndpointAccountDeletion extends _i1.EndpointRef {
     'accountDeletion',
     'deleteAccount',
     {},
+  );
+}
+
+/// Account registration and recovery with proof-of-work spam prevention.
+///
+/// Wraps account creation and recovery from anonaccount with
+/// [PublicSubmissionEndpoint] for hashcash PoW + rate limiting.
+///
+/// The client's `ultimateSigningPublicKeyHex` doubles as the public key
+/// for PoW signature verification and rate limiting — no extra key needed.
+/// {@category Endpoint}
+class EndpointAccountRegistration extends EndpointPublicSubmission {
+  EndpointAccountRegistration(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'accountRegistration';
+
+  /// Create a new anonymous account with proof-of-work verification.
+  _i2.Future<_i3.AnonAccount> createAccount({
+    required String challenge,
+    required String proofOfWork,
+    required String signature,
+    required String ultimateSigningPublicKeyHex,
+    required String encryptedDataKey,
+    required String ultimatePublicKey,
+  }) => caller.callServerEndpoint<_i3.AnonAccount>(
+    'accountRegistration',
+    'createAccount',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'signature': signature,
+      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
+      'encryptedDataKey': encryptedDataKey,
+      'ultimatePublicKey': ultimatePublicKey,
+    },
+  );
+
+  /// Look up account for recovery with proof-of-work verification.
+  ///
+  /// Requires PoW to prevent brute-force probing of public keys.
+  /// Returns [AnonAccount] if found, or `null` if no account matches.
+  _i2.Future<_i3.AnonAccount?> getAccountForRecovery({
+    required String challenge,
+    required String proofOfWork,
+    required String ultimatePublicKey,
+    required String signature,
+  }) => caller.callServerEndpoint<_i3.AnonAccount?>(
+    'accountRegistration',
+    'getAccountForRecovery',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'ultimatePublicKey': ultimatePublicKey,
+      'signature': signature,
+    },
+  );
+
+  /// Get challenge for proof-of-work.
+  ///
+  /// This method is inherited by all public endpoints and provides
+  /// a consistent way to generate challenges.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  ///
+  /// Returns a map with:
+  /// - challenge: Random challenge string (32 hex chars)
+  /// - difficulty: Number of leading zero bits required (20)
+  /// - expiresAt: Unix timestamp when challenge expires
+  ///
+  /// Example:
+  /// ```dart
+  /// final challenge = await getChallenge(session);
+  /// // Returns: {
+  /// //   'challenge': 'abc123...',
+  /// //   'difficulty': 20,
+  /// //   'expiresAt': 1234567890
+  /// // }
+  /// ```
+  @override
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
+        'accountRegistration',
+        'getChallenge',
+        {},
+      );
+
+  /// Verify submission (PoW + signature + rate limit).
+  ///
+  /// This method performs all verification steps:
+  /// 1. Verifies proof-of-work solution
+  /// 2. Verifies ECDSA signature
+  /// 3. Checks and enforces rate limits
+  ///
+  /// Throws an exception if any verification step fails.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [challenge]: Challenge string from getChallenge()
+  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature (128 hex chars)
+  /// - [payload]: Original payload that was signed
+  ///
+  /// Throws:
+  /// - Exception if proof-of-work is invalid
+  /// - Exception if signature is invalid
+  /// - RateLimitExceededException if rate limit exceeded
+  ///
+  /// Example:
+  /// ```dart
+  /// try {
+  ///   await verifySubmission(
+  ///     session,
+  ///     challenge,
+  ///     proofOfWork,
+  ///     publicKeyHex,
+  ///     signature,
+  ///     payload,
+  ///   );
+  ///   // Verification successful, process submission
+  /// } catch (e) {
+  ///   // Handle verification failure
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
+  ///     message: e.toString(),
+  ///   );
+  /// }
+  /// ```
+  @override
+  _i2.Future<void> verifySubmission(
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) => caller.callServerEndpoint<void>(
+    'accountRegistration',
+    'verifySubmission',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'payload': payload,
+    },
   );
 }
 
@@ -179,10 +328,10 @@ class EndpointAdminKeyManagement extends EndpointAdminManagement {
   ///
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key for authentication (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
-  _i2.Future<List<_i3.AdminSigningKey>> listKeys(
+  _i2.Future<List<_i5.AdminSigningKey>> listKeys(
     String adminPublicKeyHex,
     String adminSignature,
-  ) => caller.callServerEndpoint<List<_i3.AdminSigningKey>>(
+  ) => caller.callServerEndpoint<List<_i5.AdminSigningKey>>(
     'adminKeyManagement',
     'listKeys',
     {
@@ -198,11 +347,11 @@ class EndpointAdminKeyManagement extends EndpointAdminManagement {
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key for authentication (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
   /// [keyId] - ID of the key to retrieve
-  _i2.Future<_i3.AdminSigningKey> getKeyInfo(
+  _i2.Future<_i5.AdminSigningKey> getKeyInfo(
     String adminPublicKeyHex,
     String adminSignature,
     int keyId,
-  ) => caller.callServerEndpoint<_i3.AdminSigningKey>(
+  ) => caller.callServerEndpoint<_i5.AdminSigningKey>(
     'adminKeyManagement',
     'getKeyInfo',
     {
@@ -272,11 +421,11 @@ class EndpointAdminKeyManagement extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i4.AdminRole?> validateAdmin(
+  _i2.Future<_i6.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+  ) => caller.callServerEndpoint<_i6.AdminRole?>(
     'adminKeyManagement',
     'validateAdmin',
     {
@@ -314,11 +463,11 @@ class EndpointAdminKeyManagement extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i4.AdminRole> requireAdmin(
+  _i2.Future<_i6.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole>(
+  ) => caller.callServerEndpoint<_i6.AdminRole>(
     'adminKeyManagement',
     'requireAdmin',
     {
@@ -368,7 +517,7 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   /// - total: Total count matching filters
   /// - limit: Page size used
   /// - offset: Offset used
-  _i2.Future<_i5.PaginatedAnalyticsEvents> listEvents(
+  _i2.Future<_i7.PaginatedAnalyticsEvents> listEvents(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -377,7 +526,7 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
     String? platformFilter,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i5.PaginatedAnalyticsEvents>(
+  }) => caller.callServerEndpoint<_i7.PaginatedAnalyticsEvents>(
     'analyticsAdmin',
     'listEvents',
     {
@@ -403,11 +552,11 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - data: Full analytics event details
-  _i2.Future<_i6.AnalyticsEvent> getEventDetails(
+  _i2.Future<_i8.AnalyticsEvent> getEventDetails(
     String adminPublicKeyHex,
     String adminSignature,
     int eventId,
-  ) => caller.callServerEndpoint<_i6.AnalyticsEvent>(
+  ) => caller.callServerEndpoint<_i8.AnalyticsEvent>(
     'analyticsAdmin',
     'getEventDetails',
     {
@@ -432,12 +581,12 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   /// - byEventName: Count by event name
   /// - byPlatform: Count by platform
   /// - recentEvents: Recent events (last 7 days, limit 10)
-  _i2.Future<_i7.AnalyticsStatistics> getStatistics(
+  _i2.Future<_i9.AnalyticsStatistics> getStatistics(
     String adminPublicKeyHex,
     String adminSignature, {
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i7.AnalyticsStatistics>(
+  }) => caller.callServerEndpoint<_i9.AnalyticsStatistics>(
     'analyticsAdmin',
     'getStatistics',
     {
@@ -460,11 +609,11 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   /// Returns:
   /// - success: true if deleted
   /// - message: Success message
-  _i2.Future<_i8.AdminActionResult> deleteEvent(
+  _i2.Future<_i10.AdminActionResult> deleteEvent(
     String adminPublicKeyHex,
     String adminSignature,
     int eventId,
-  ) => caller.callServerEndpoint<_i8.AdminActionResult>(
+  ) => caller.callServerEndpoint<_i10.AdminActionResult>(
     'analyticsAdmin',
     'deleteEvent',
     {
@@ -513,11 +662,11 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i4.AdminRole?> validateAdmin(
+  _i2.Future<_i6.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+  ) => caller.callServerEndpoint<_i6.AdminRole?>(
     'analyticsAdmin',
     'validateAdmin',
     {
@@ -555,11 +704,11 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i4.AdminRole> requireAdmin(
+  _i2.Future<_i6.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole>(
+  ) => caller.callServerEndpoint<_i6.AdminRole>(
     'analyticsAdmin',
     'requireAdmin',
     {
@@ -598,13 +747,13 @@ class EndpointAnalyticsEvent extends EndpointPublicSubmission {
   ///   - props: JSON-encoded properties (optional)
   ///
   /// Throws [ServerException] on validation, rate limit, or internal errors.
-  _i2.Future<_i9.BatchSubmissionResult> submitEvents({
+  _i2.Future<_i11.BatchSubmissionResult> submitEvents({
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
     required String eventsJson,
-  }) => caller.callServerEndpoint<_i9.BatchSubmissionResult>(
+  }) => caller.callServerEndpoint<_i11.BatchSubmissionResult>(
     'analyticsEvent',
     'submitEvents',
     {
@@ -639,8 +788,8 @@ class EndpointAnalyticsEvent extends EndpointPublicSubmission {
   /// // }
   /// ```
   @override
-  _i2.Future<_i10.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i10.PublicChallengeResponse>(
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
         'analyticsEvent',
         'getChallenge',
         {},
@@ -784,7 +933,7 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
   ///   );
   /// }
   /// ```
-  _i2.Future<_i4.AdminRole?> validateAdmin(
+  _i2.Future<_i6.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
@@ -817,7 +966,7 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
   /// );
   /// // If we get here, authentication succeeded
   /// ```
-  _i2.Future<_i4.AdminRole> requireAdmin(
+  _i2.Future<_i6.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
@@ -889,7 +1038,7 @@ abstract class EndpointPublicSubmission extends _i1.EndpointRef {
   /// //   'expiresAt': 1234567890
   /// // }
   /// ```
-  _i2.Future<_i10.PublicChallengeResponse> getChallenge();
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge();
 
   /// Verify submission (PoW + signature + rate limit).
   ///
@@ -988,9 +1137,9 @@ class EndpointCloudLlm extends _i1.EndpointRef {
   ///
   /// Returns JSON string containing the LLM's
   /// structured JSON output (shape defined by caller's schema).
-  _i2.Future<String> generateStructured(
-    _i11.CloudLlmStructuredRequest request,
-  ) => caller.callServerEndpoint<String>(
+  _i2.Future<_i12.CloudLlmStructuredResponse> generateStructured(
+    _i13.CloudLlmStructuredRequest request,
+  ) => caller.callServerEndpoint<_i12.CloudLlmStructuredResponse>(
     'cloudLlm',
     'generateStructured',
     {'request': request},
@@ -1096,11 +1245,11 @@ class EndpointEntitlementAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i4.AdminRole?> validateAdmin(
+  _i2.Future<_i6.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+  ) => caller.callServerEndpoint<_i6.AdminRole?>(
     'entitlementAdmin',
     'validateAdmin',
     {
@@ -1138,11 +1287,11 @@ class EndpointEntitlementAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i4.AdminRole> requireAdmin(
+  _i2.Future<_i6.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole>(
+  ) => caller.callServerEndpoint<_i6.AdminRole>(
     'entitlementAdmin',
     'requireAdmin',
     {
@@ -1192,7 +1341,7 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// - total: Total count matching filters
   /// - limit: Page size used
   /// - offset: Offset used
-  _i2.Future<_i12.PaginatedErrorReports> listErrorReports(
+  _i2.Future<_i14.PaginatedErrorReports> listErrorReports(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -1201,7 +1350,7 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
     String? errorCodeFilter,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i12.PaginatedErrorReports>(
+  }) => caller.callServerEndpoint<_i14.PaginatedErrorReports>(
     'errorReportAdmin',
     'listErrorReports',
     {
@@ -1227,11 +1376,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - data: Full error report details
-  _i2.Future<_i13.ErrorReport> getErrorReportDetails(
+  _i2.Future<_i15.ErrorReport> getErrorReportDetails(
     String adminPublicKeyHex,
     String adminSignature,
     int errorReportId,
-  ) => caller.callServerEndpoint<_i13.ErrorReport>(
+  ) => caller.callServerEndpoint<_i15.ErrorReport>(
     'errorReportAdmin',
     'getErrorReportDetails',
     {
@@ -1253,12 +1402,12 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - data: Statistics including totalErrors, errorsByType, errorsByCode, errorsByPlatform, recentErrors
-  _i2.Future<_i14.ErrorStatistics> getErrorStatistics(
+  _i2.Future<_i16.ErrorStatistics> getErrorStatistics(
     String adminPublicKeyHex,
     String adminSignature, {
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i14.ErrorStatistics>(
+  }) => caller.callServerEndpoint<_i16.ErrorStatistics>(
     'errorReportAdmin',
     'getErrorStatistics',
     {
@@ -1281,11 +1430,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// Returns:
   /// - success: true if deleted
   /// - message: Success message
-  _i2.Future<_i8.AdminActionResult> deleteErrorReport(
+  _i2.Future<_i10.AdminActionResult> deleteErrorReport(
     String adminPublicKeyHex,
     String adminSignature,
     int errorReportId,
-  ) => caller.callServerEndpoint<_i8.AdminActionResult>(
+  ) => caller.callServerEndpoint<_i10.AdminActionResult>(
     'errorReportAdmin',
     'deleteErrorReport',
     {
@@ -1334,11 +1483,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i4.AdminRole?> validateAdmin(
+  _i2.Future<_i6.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+  ) => caller.callServerEndpoint<_i6.AdminRole?>(
     'errorReportAdmin',
     'validateAdmin',
     {
@@ -1376,11 +1525,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i4.AdminRole> requireAdmin(
+  _i2.Future<_i6.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole>(
+  ) => caller.callServerEndpoint<_i6.AdminRole>(
     'errorReportAdmin',
     'requireAdmin',
     {
@@ -1486,13 +1635,13 @@ class EndpointErrorReport extends EndpointPublicSubmission {
   /// - [reportsJson]: JSON-encoded list of error report objects
   ///
   /// Throws [ServerException] on validation, rate limit, or internal errors.
-  _i2.Future<_i9.BatchSubmissionResult> submitErrorReports({
+  _i2.Future<_i11.BatchSubmissionResult> submitErrorReports({
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
     required String reportsJson,
-  }) => caller.callServerEndpoint<_i9.BatchSubmissionResult>(
+  }) => caller.callServerEndpoint<_i11.BatchSubmissionResult>(
     'errorReport',
     'submitErrorReports',
     {
@@ -1527,8 +1676,8 @@ class EndpointErrorReport extends EndpointPublicSubmission {
   /// // }
   /// ```
   @override
-  _i2.Future<_i10.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i10.PublicChallengeResponse>(
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
         'errorReport',
         'getChallenge',
         {},
@@ -1631,15 +1780,15 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Paginated response with feedback reports
-  _i2.Future<_i15.PaginatedFeedbackReports> listFeedback(
+  _i2.Future<_i17.PaginatedFeedbackReports> listFeedback(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
     required int offset,
-    _i16.FeedbackType? feedbackTypeFilter,
+    _i18.FeedbackType? feedbackTypeFilter,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i15.PaginatedFeedbackReports>(
+  }) => caller.callServerEndpoint<_i17.PaginatedFeedbackReports>(
     'feedbackAdmin',
     'listFeedback',
     {
@@ -1664,11 +1813,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Feedback report details
-  _i2.Future<_i17.FeedbackReport> getFeedbackDetails(
+  _i2.Future<_i19.FeedbackReport> getFeedbackDetails(
     String adminPublicKeyHex,
     String adminSignature,
     int feedbackId,
-  ) => caller.callServerEndpoint<_i17.FeedbackReport>(
+  ) => caller.callServerEndpoint<_i19.FeedbackReport>(
     'feedbackAdmin',
     'getFeedbackDetails',
     {
@@ -1692,12 +1841,12 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   /// - totalFeedback: Total feedback count
   /// - byType: Count by feedback type
   /// - recentFeedback: Recent feedback (last 7 days, limit 10)
-  _i2.Future<_i18.FeedbackStatistics> getFeedbackStatistics(
+  _i2.Future<_i20.FeedbackStatistics> getFeedbackStatistics(
     String adminPublicKeyHex,
     String adminSignature, {
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i18.FeedbackStatistics>(
+  }) => caller.callServerEndpoint<_i20.FeedbackStatistics>(
     'feedbackAdmin',
     'getFeedbackStatistics',
     {
@@ -1719,11 +1868,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Success message
-  _i2.Future<_i8.AdminActionResult> deleteFeedback(
+  _i2.Future<_i10.AdminActionResult> deleteFeedback(
     String adminPublicKeyHex,
     String adminSignature,
     int feedbackId,
-  ) => caller.callServerEndpoint<_i8.AdminActionResult>(
+  ) => caller.callServerEndpoint<_i10.AdminActionResult>(
     'feedbackAdmin',
     'deleteFeedback',
     {
@@ -1772,11 +1921,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i4.AdminRole?> validateAdmin(
+  _i2.Future<_i6.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+  ) => caller.callServerEndpoint<_i6.AdminRole?>(
     'feedbackAdmin',
     'validateAdmin',
     {
@@ -1814,11 +1963,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i4.AdminRole> requireAdmin(
+  _i2.Future<_i6.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole>(
+  ) => caller.callServerEndpoint<_i6.AdminRole>(
     'feedbackAdmin',
     'requireAdmin',
     {
@@ -1870,7 +2019,7 @@ class EndpointFeedback extends EndpointPublicSubmission {
     required String publicKeyHex,
     required String signature,
     required String feedbackText,
-    required _i16.FeedbackType feedbackType,
+    required _i18.FeedbackType feedbackType,
     String? metadata,
   }) => caller.callServerEndpoint<void>(
     'feedback',
@@ -1909,8 +2058,8 @@ class EndpointFeedback extends EndpointPublicSubmission {
   /// // }
   /// ```
   @override
-  _i2.Future<_i10.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i10.PublicChallengeResponse>(
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
         'feedback',
         'getChallenge',
         {},
@@ -2010,17 +2159,17 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - List of created notification IDs
-  _i2.Future<_i19.NotificationCreateResult> createNotifications(
+  _i2.Future<_i21.NotificationCreateResult> createNotifications(
     String adminPublicKeyHex,
     String adminSignature, {
     List<int>? accountIds,
     required String title,
     required String message,
-    required _i20.NotificationType type,
+    required _i22.NotificationType type,
     required int expiresInDays,
     String? actionUrl,
     String? actionLabel,
-  }) => caller.callServerEndpoint<_i19.NotificationCreateResult>(
+  }) => caller.callServerEndpoint<_i21.NotificationCreateResult>(
     'notificationAdmin',
     'createNotifications',
     {
@@ -2048,10 +2197,10 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// - total: Total notification count
   /// - marked: Count of marked notifications
   /// - unmarked: Count of unmarked notifications
-  _i2.Future<_i21.NotificationStatistics> getStatistics(
+  _i2.Future<_i23.NotificationStatistics> getStatistics(
     String adminPublicKeyHex,
     String adminSignature,
-  ) => caller.callServerEndpoint<_i21.NotificationStatistics>(
+  ) => caller.callServerEndpoint<_i23.NotificationStatistics>(
     'notificationAdmin',
     'getStatistics',
     {
@@ -2076,7 +2225,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Paginated response with notifications
-  _i2.Future<_i22.PaginatedNotifications> listNotifications(
+  _i2.Future<_i24.PaginatedNotifications> listNotifications(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -2085,7 +2234,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
     bool? isExpired,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i22.PaginatedNotifications>(
+  }) => caller.callServerEndpoint<_i24.PaginatedNotifications>(
     'notificationAdmin',
     'listNotifications',
     {
@@ -2113,11 +2262,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// - notification: Notification details
   /// - receiptCount: Number of receipts
   /// - receipts: List of receipts (who acknowledged)
-  _i2.Future<_i23.NotificationDetails> getNotificationDetails(
+  _i2.Future<_i25.NotificationDetails> getNotificationDetails(
     String adminPublicKeyHex,
     String adminSignature,
     String notificationId,
-  ) => caller.callServerEndpoint<_i23.NotificationDetails>(
+  ) => caller.callServerEndpoint<_i25.NotificationDetails>(
     'notificationAdmin',
     'getNotificationDetails',
     {
@@ -2138,11 +2287,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Success message
-  _i2.Future<_i8.AdminActionResult> deleteNotification(
+  _i2.Future<_i10.AdminActionResult> deleteNotification(
     String adminPublicKeyHex,
     String adminSignature,
     String notificationId,
-  ) => caller.callServerEndpoint<_i8.AdminActionResult>(
+  ) => caller.callServerEndpoint<_i10.AdminActionResult>(
     'notificationAdmin',
     'deleteNotification',
     {
@@ -2191,11 +2340,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i4.AdminRole?> validateAdmin(
+  _i2.Future<_i6.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+  ) => caller.callServerEndpoint<_i6.AdminRole?>(
     'notificationAdmin',
     'validateAdmin',
     {
@@ -2233,11 +2382,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i4.AdminRole> requireAdmin(
+  _i2.Future<_i6.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i4.AdminRole>(
+  ) => caller.callServerEndpoint<_i6.AdminRole>(
     'notificationAdmin',
     'requireAdmin',
     {
@@ -2275,13 +2424,13 @@ class EndpointProductCatalog extends EndpointPublicSubmission {
   /// - [platformName]: Platform identifier (e.g. 'ios', 'android', 'web')
   ///
   /// Returns: PlatformCatalogResponse with rails and their product IDs.
-  _i2.Future<_i24.PlatformCatalogResponse> getCatalog(
+  _i2.Future<_i26.PlatformCatalogResponse> getCatalog(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
     String platformName,
-  ) => caller.callServerEndpoint<_i24.PlatformCatalogResponse>(
+  ) => caller.callServerEndpoint<_i26.PlatformCatalogResponse>(
     'productCatalog',
     'getCatalog',
     {
@@ -2316,8 +2465,8 @@ class EndpointProductCatalog extends EndpointPublicSubmission {
   /// // }
   /// ```
   @override
-  _i2.Future<_i10.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i10.PublicChallengeResponse>(
+  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
         'productCatalog',
         'getChallenge',
         {},
@@ -2418,8 +2567,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// - syncDaysRemaining: days of sync remaining
   /// - accessExpiry: estimated expiry date
   /// - needsTopUp: whether user needs to purchase more sync days
-  _i2.Future<_i25.SyncAccessStatus> checkSyncAccess() =>
-      caller.callServerEndpoint<_i25.SyncAccessStatus>(
+  _i2.Future<_i27.SyncAccessStatus> checkSyncAccess() =>
+      caller.callServerEndpoint<_i27.SyncAccessStatus>(
         'syncAccess',
         'checkSyncAccess',
         {},
@@ -2441,8 +2590,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   ///
   /// Returns typed model with current balances per sync tier and overall access status.
   /// Pricing is sourced from the app stores — not served from the backend.
-  _i2.Future<_i26.SyncAccessInfo> getSyncAccessInfo() =>
-      caller.callServerEndpoint<_i26.SyncAccessInfo>(
+  _i2.Future<_i28.SyncAccessInfo> getSyncAccessInfo() =>
+      caller.callServerEndpoint<_i28.SyncAccessInfo>(
         'syncAccess',
         'getSyncAccessInfo',
         {},
@@ -2462,8 +2611,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// Get sync usage statistics for authenticated user
   ///
   /// Returns usage information and consumption history
-  _i2.Future<_i27.SyncUsageStats> getSyncUsageStats() =>
-      caller.callServerEndpoint<_i27.SyncUsageStats>(
+  _i2.Future<_i29.SyncUsageStats> getSyncUsageStats() =>
+      caller.callServerEndpoint<_i29.SyncUsageStats>(
         'syncAccess',
         'getSyncUsageStats',
         {},
@@ -2472,22 +2621,22 @@ class EndpointSyncAccess extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i28.Caller(client);
-    serverpod_auth_core = _i29.Caller(client);
-    community = _i30.Caller(client);
-    anonaccount = _i31.Caller(client);
-    anonaccred = _i32.Caller(client);
+    serverpod_auth_idp = _i30.Caller(client);
+    serverpod_auth_core = _i31.Caller(client);
+    community = _i32.Caller(client);
+    anonaccount = _i3.Caller(client);
+    anonaccred = _i33.Caller(client);
   }
 
-  late final _i28.Caller serverpod_auth_idp;
+  late final _i30.Caller serverpod_auth_idp;
 
-  late final _i29.Caller serverpod_auth_core;
+  late final _i31.Caller serverpod_auth_core;
 
-  late final _i30.Caller community;
+  late final _i32.Caller community;
 
-  late final _i31.Caller anonaccount;
+  late final _i3.Caller anonaccount;
 
-  late final _i32.Caller anonaccred;
+  late final _i33.Caller anonaccred;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -2510,7 +2659,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i33.Protocol(),
+         _i34.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -2521,6 +2670,7 @@ class Client extends _i1.ServerpodClientShared {
        ) {
     cloudHealth = EndpointCloudHealth(this);
     accountDeletion = EndpointAccountDeletion(this);
+    accountRegistration = EndpointAccountRegistration(this);
     adminKeyManagement = EndpointAdminKeyManagement(this);
     analyticsAdmin = EndpointAnalyticsAdmin(this);
     analyticsEvent = EndpointAnalyticsEvent(this);
@@ -2540,6 +2690,8 @@ class Client extends _i1.ServerpodClientShared {
   late final EndpointCloudHealth cloudHealth;
 
   late final EndpointAccountDeletion accountDeletion;
+
+  late final EndpointAccountRegistration accountRegistration;
 
   late final EndpointAdminKeyManagement adminKeyManagement;
 
@@ -2573,6 +2725,7 @@ class Client extends _i1.ServerpodClientShared {
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
     'cloudHealth': cloudHealth,
     'accountDeletion': accountDeletion,
+    'accountRegistration': accountRegistration,
     'adminKeyManagement': adminKeyManagement,
     'analyticsAdmin': analyticsAdmin,
     'analyticsEvent': analyticsEvent,

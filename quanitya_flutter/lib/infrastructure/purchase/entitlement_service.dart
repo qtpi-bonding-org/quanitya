@@ -9,8 +9,11 @@ import '../crypto/data_encryption_service.dart';
 import 'entitlement_exception.dart';
 import 'i_entitlement_service.dart';
 
-/// Entitlement tag for cloud sync access.
-const String syncDaysTag = 'sync_days';
+/// Entitlement tags for cloud sync access (one per storage tier).
+const List<String> syncEntitlementTags = [
+  'sync_500mb_days',
+  'sync_1gb_days',
+];
 
 @LazySingleton(as: IEntitlementService)
 class EntitlementService implements IEntitlementService {
@@ -28,7 +31,6 @@ class EntitlementService implements IEntitlementService {
         return await _client.modules.anonaccred.commerce.getEntitlements(
           auth.publicKeyHex,
           auth.signature,
-          auth.accountId,
         );
       },
       EntitlementException.new,
@@ -44,7 +46,6 @@ class EntitlementService implements IEntitlementService {
         return await _client.modules.anonaccred.commerce.getEntitlementBalance(
           auth.publicKeyHex,
           auth.signature,
-          auth.accountId,
           tag,
         );
       },
@@ -57,8 +58,11 @@ class EntitlementService implements IEntitlementService {
   Future<bool> hasSyncAccess() {
     return tryMethod(
       () async {
-        final balance = await getEntitlementBalance(syncDaysTag);
-        return balance > 0;
+        for (final tag in syncEntitlementTags) {
+          final balance = await getEntitlementBalance(tag);
+          if (balance > 0) return true;
+        }
+        return false;
       },
       EntitlementException.new,
       'hasSyncAccess',
@@ -73,7 +77,6 @@ class EntitlementService implements IEntitlementService {
         await _client.modules.anonaccred.commerce.consumeEntitlement(
           auth.publicKeyHex,
           auth.signature,
-          auth.accountId,
           tag,
           quantity,
         );
@@ -90,24 +93,23 @@ class EntitlementService implements IEntitlementService {
       throw const EntitlementException('Device key not found');
     }
 
-    // Authenticate with server to get accountId
+    // Authenticate with server
     final challenge = await _client.modules.anonaccount.device
         .generateAuthChallenge(publicKeyHex);
     final signature = await _encryption.signWithDeviceKey(challenge);
     final authResult = await _client.modules.anonaccount.device
         .authenticateDevice(challenge, signature);
 
-    if (!authResult.success || authResult.accountId == null) {
+    if (!authResult.success) {
       throw EntitlementException(
         'AUTH_UNKNOWN: device authentication failed '
-        '(success=${authResult.success}, hasAccountId=${authResult.accountId != null})',
+        '(success=${authResult.success})',
       );
     }
 
     return _AuthParams(
       publicKeyHex: publicKeyHex,
       signature: signature,
-      accountId: authResult.accountId!,
     );
   }
 }
@@ -115,11 +117,9 @@ class EntitlementService implements IEntitlementService {
 class _AuthParams {
   final String publicKeyHex;
   final String signature;
-  final int accountId;
 
   const _AuthParams({
     required this.publicKeyHex,
     required this.signature,
-    required this.accountId,
   });
 }

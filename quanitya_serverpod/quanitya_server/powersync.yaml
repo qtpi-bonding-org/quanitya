@@ -31,7 +31,7 @@ sync_rules:
       # Replaces individual buckets to improve replication reliability
       user_encrypted_data_v4:
         parameters:
-          - SELECT CAST(request.user_id() AS INTEGER) AS user_id
+          - SELECT id AS user_id FROM anon_accounts WHERE "ultimateSigningPublicKeyHex" = request.user_id()
         data:
           # Templates
           - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at 
@@ -53,14 +53,14 @@ sync_rules:
       # Greetings (Demo data)
       user_greetings:
         parameters:
-          - SELECT CAST(request.user_id() AS INTEGER) AS user_id
+          - SELECT id AS user_id FROM anon_accounts WHERE "ultimateSigningPublicKeyHex" = request.user_id()
         data:
           - SELECT * FROM greeting WHERE owner = bucket.user_id
 
       # User-specific bucket for template aesthetics (non-E2EE)
       user_template_aesthetics:
         parameters:
-          - SELECT CAST(request.user_id() AS INTEGER) AS user_id
+          - SELECT id AS user_id FROM anon_accounts WHERE "ultimateSigningPublicKeyHex" = request.user_id()
         data:
           - SELECT id, "templateId" as template_id, "themeName" as theme_name, 
                    icon, emoji, "paletteJson" as palette_json, 
@@ -73,9 +73,9 @@ sync_rules:
       # Global bucket for broadcast notifications (syncs to ALL users)
       global_notifications:
         data:
-          - SELECT id, "accountId" as account_id, title, message, type, 
-                   "createdAt" as created_at, "expiresAt" as expires_at, 
-                   "actionUrl" as action_url, "actionLabel" as action_label, 
+          - SELECT id, title, message, type,
+                   "createdAt" as created_at, "expiresAt" as expires_at,
+                   "actionUrl" as action_url, "actionLabel" as action_label,
                    "markedAt" as marked_at, "updatedAt" as updated_at
             FROM notifications
             WHERE "accountId" IS NULL
@@ -83,11 +83,11 @@ sync_rules:
       # User-specific bucket for individual notifications
       user_notifications:
         parameters:
-          - SELECT CAST(request.user_id() AS INTEGER) AS user_id
+          - SELECT id AS user_id FROM anon_accounts WHERE "ultimateSigningPublicKeyHex" = request.user_id()
         data:
-          - SELECT id, "accountId" as account_id, title, message, type, 
-                   "createdAt" as created_at, "expiresAt" as expires_at, 
-                   "actionUrl" as action_url, "actionLabel" as action_label, 
+          - SELECT id, title, message, type,
+                   "createdAt" as created_at, "expiresAt" as expires_at,
+                   "actionUrl" as action_url, "actionLabel" as action_label,
                    "markedAt" as marked_at, "updatedAt" as updated_at
             FROM notifications
             WHERE "accountId" = bucket.user_id
