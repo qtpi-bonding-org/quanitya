@@ -9,7 +9,7 @@ import '../repositories/llm_provider_config_repository.dart';
 import '../repositories/open_router_model_repository.dart';
 
 const _testedModelsUrl =
-    'https://raw.githubusercontent.com/user/quanitya/main/public/tested_models.json';
+    'https://raw.githubusercontent.com/qtpi-bonding-org/quanitya/main/tested_models.json';
 
 const _uuid = Uuid();
 
