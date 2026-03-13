@@ -7,13 +7,14 @@ import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dar
 import '../../../infrastructure/purchase/purchase_models.dart';
 import '../../../support/extensions/context_extensions.dart';
 
-/// Displays a purchasable product as a solid washi-white price tag.
+/// Displays a consumable product as a gift-card-style widget.
 ///
-/// Manuscript aesthetic: solid fill with subtle shadow (the only
-/// place in the app that uses elevation/shadow), string hole detail,
-/// capacity prominently displayed above the plan name.
-class ProductCard extends StatelessWidget {
-  const ProductCard({
+/// Manuscript aesthetic: solid washi-white card with a rounded rectangular
+/// hang-tab slot at the top center (like a store gift card), price
+/// denomination in the upper-right corner, and capacity prominently
+/// centered.
+class ConsumableCard extends StatelessWidget {
+  const ConsumableCard({
     super.key,
     required this.product,
     required this.onBuy,
@@ -24,12 +25,26 @@ class ProductCard extends StatelessWidget {
   final VoidCallback onBuy;
   final bool isLoading;
 
-  bool get _isSubscription =>
-      product.productType == StoreProductType.subscription;
+  /// Formats price as a clean denomination — sub-dollar amounts use
+  /// the cent symbol (e.g. "49¢") for a gift-card feel.
+  static String _formatPrice(String? localizedPrice, double priceUsd) {
+    if (localizedPrice != null) {
+      // Check for sub-dollar localized price like "$0.49"
+      final subDollar = RegExp(r'^\$0\.(\d{2})$').firstMatch(localizedPrice);
+      if (subDollar != null) {
+        final cents = int.tryParse(subDollar.group(1) ?? '');
+        if (cents != null) return '$cents¢';
+      }
+      return localizedPrice;
+    }
+    if (priceUsd < 1.0) {
+      final cents = (priceUsd * 100).round();
+      return '$cents¢';
+    }
+    return '\$${priceUsd.toStringAsFixed(2)}';
+  }
 
   /// Extracts capacity (e.g. "500 MB", "1 GB") from the title.
-  /// Returns (capacity, planName, entryEstimate).
-  /// If no capacity found, (null, fullTitle, null).
   ({String? capacity, String planName, String? entryEstimate}) _parseTitle() {
     final capacityPattern = RegExp(
       r'(\d+(?:\.\d+)?)\s*(KB|MB|GB|TB)',
@@ -43,10 +58,6 @@ class ProductCard extends StatelessWidget {
         final capacityStr = '${match.group(0)}';
         final remainder = product.title
             .replaceFirst(capacityStr, '')
-            .replaceAll(
-              RegExp(r'\b(monthly|yearly|annual)\b', caseSensitive: false),
-              '',
-            )
             .trim();
         return (
           capacity: capacityStr,
@@ -66,7 +77,7 @@ class ProductCard extends StatelessWidget {
   static String? _estimateEntries(double? value, String unit) {
     if (value == null) return null;
 
-    final bytesPerEntry = 4096; // ~4 KB server-side
+    const bytesPerEntry = 4096; // ~4 KB server-side
     final bytes = switch (unit.toUpperCase()) {
       'KB' => value * 1024,
       'MB' => value * 1024 * 1024,
@@ -92,27 +103,23 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
     final parsed = _parseTitle();
-    final price =
-        product.localizedPrice ?? '\$${product.priceUsd.toStringAsFixed(2)}';
+    final price = _formatPrice(
+      product.localizedPrice,
+      product.priceUsd,
+    );
 
-    final holeRadius = AppSizes.space * 0.75;
+    final buttonLabel = context.l10n.purchaseBuy;
 
-    final buttonLabel = _isSubscription
-        ? context.l10n.purchaseSubscribe
-        : context.l10n.purchaseBuy;
+    // Hang-tab dimensions
+    final tabWidth = AppSizes.space * 5;
+    final tabHeight = AppSizes.space * 1.5;
+    final tabRadius = tabHeight / 2;
 
-    // Build a full semantic description for screen readers
     final semanticParts = <String>[
       parsed.planName,
       if (parsed.capacity != null) parsed.capacity ?? '',
       if (parsed.entryEstimate != null) parsed.entryEstimate ?? '',
       price,
-      if (_isSubscription &&
-          product.subscriptionPeriod == SubscriptionPeriod.monthly)
-        context.l10n.purchasePeriodMonthly,
-      if (_isSubscription &&
-          product.subscriptionPeriod == SubscriptionPeriod.yearly)
-        context.l10n.purchasePeriodYearly,
       buttonLabel,
     ];
 
@@ -124,7 +131,7 @@ class ProductCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: palette.backgroundPrimary,
-          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
           boxShadow: [
             BoxShadow(
               color: palette.textPrimary.withValues(alpha: 0.12),
@@ -139,22 +146,38 @@ class ProductCard extends StatelessWidget {
           ],
         ),
         child: CustomPaint(
-          painter: _StringHolePainter(
-            color: palette.textPrimary.withValues(alpha: 0.12),
-            holeRadius: holeRadius,
-            borderRadius: AppSizes.radiusSmall,
+          painter: _HangTabSlotPainter(
+            color: palette.textPrimary.withValues(alpha: 0.10),
+            tabWidth: tabWidth,
+            tabHeight: tabHeight,
+            tabRadius: tabRadius,
+            cardBorderRadius: AppSizes.radiusMedium,
           ),
           child: Padding(
             padding: EdgeInsets.only(
               left: AppSizes.space * 2,
               right: AppSizes.space * 2,
-              top: AppSizes.space * 3.5,
+              top: AppSizes.space * 1.5,
               bottom: AppSizes.space * 2,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Capacity (prominent, if extractable)
+                // Price denomination — upper-right, like a gift card
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    price,
+                    style: context.text.headlineMedium?.copyWith(
+                      color: palette.textSecondary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+
+                VSpace.x2,
+
+                // Capacity (prominent center)
                 if (parsed.capacity != null) ...[
                   Text(
                     parsed.capacity ?? '',
@@ -177,7 +200,7 @@ class ProductCard extends StatelessWidget {
                   VSpace.x05,
                 ],
 
-                // Plan name
+                // Plan name — bold so "20 AI Calls" etc. reads as the headline
                 Text(
                   parsed.planName,
                   style: context.text.titleMedium?.copyWith(
@@ -189,19 +212,7 @@ class ProductCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
 
-                VSpace.x2,
-
-                // Price
-                Text(
-                  price,
-                  style: context.text.titleLarge?.copyWith(
-                    color: palette.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                VSpace.x2,
+                VSpace.x3,
 
                 // Action
                 if (isLoading)
@@ -227,38 +238,89 @@ class ProductCard extends StatelessWidget {
   }
 }
 
-/// Painter that draws a filled string hole at the top of the price tag.
-///
-/// The hole is a solid dark circle — same tone as the card shadow —
-/// suggesting a punched-out hole in the tag.
-class _StringHolePainter extends CustomPainter {
+/// Painter that draws a rounded rectangular hang-tab slot at the top center
+/// of the card — like the punch-out tab on a physical gift card.
+class _HangTabSlotPainter extends CustomPainter {
   final Color color;
-  final double holeRadius;
-  final double borderRadius;
+  final double tabWidth;
+  final double tabHeight;
+  final double tabRadius;
+  final double cardBorderRadius;
 
-  _StringHolePainter({
+  _HangTabSlotPainter({
     required this.color,
-    required this.holeRadius,
-    required this.borderRadius,
+    required this.tabWidth,
+    required this.tabHeight,
+    required this.tabRadius,
+    required this.cardBorderRadius,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final holeCenter = Offset(
-      size.width / 2,
-      borderRadius + holeRadius + 4,
-    );
+    final centerX = size.width / 2;
+    final halfWidth = tabWidth / 2;
+
+    // Rounded rectangle (pill) body
+    final pillTop = cardBorderRadius;
+    final pillBottom = pillTop + tabHeight;
+
+    // Semicircle arch that bulges up from the pill's top edge
+    final archRadius = halfWidth * 0.375; // 0.75 diameter = 0.375 radius
+
+    final path = Path()
+      // Start at top-left of pill
+      ..moveTo(centerX - halfWidth, pillTop + tabRadius)
+      // Top-left rounded corner
+      ..arcToPoint(
+        Offset(centerX - halfWidth + tabRadius, pillTop),
+        radius: Radius.circular(tabRadius),
+        clockwise: true,
+      )
+      // Straight to where the arch begins
+      ..lineTo(centerX - archRadius, pillTop)
+      // Semicircle arch bulging upward (clockwise = arches above the line)
+      ..arcToPoint(
+        Offset(centerX + archRadius, pillTop),
+        radius: Radius.circular(archRadius),
+        clockwise: true,
+      )
+      // Straight to top-right corner
+      ..lineTo(centerX + halfWidth - tabRadius, pillTop)
+      // Top-right rounded corner
+      ..arcToPoint(
+        Offset(centerX + halfWidth, pillTop + tabRadius),
+        radius: Radius.circular(tabRadius),
+        clockwise: true,
+      )
+      // Right side down
+      ..lineTo(centerX + halfWidth, pillBottom - tabRadius)
+      // Bottom-right rounded corner
+      ..arcToPoint(
+        Offset(centerX + halfWidth - tabRadius, pillBottom),
+        radius: Radius.circular(tabRadius),
+        clockwise: true,
+      )
+      // Bottom straight
+      ..lineTo(centerX - halfWidth + tabRadius, pillBottom)
+      // Bottom-left rounded corner
+      ..arcToPoint(
+        Offset(centerX - halfWidth, pillBottom - tabRadius),
+        radius: Radius.circular(tabRadius),
+        clockwise: true,
+      )
+      ..close();
 
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(holeCenter, holeRadius, paint);
+    canvas.drawPath(path, paint);
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    if (oldDelegate is! _StringHolePainter) return true;
+    if (oldDelegate is! _HangTabSlotPainter) return true;
     return oldDelegate.color != color ||
-        oldDelegate.holeRadius != holeRadius;
+        oldDelegate.tabWidth != tabWidth ||
+        oldDelegate.tabHeight != tabHeight;
   }
 }

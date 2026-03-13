@@ -13,6 +13,7 @@ import '../cubits/purchase_cubit.dart';
 import '../cubits/purchase_state.dart';
 import '../cubits/entitlement_cubit.dart';
 import '../cubits/entitlement_state.dart';
+import '../widgets/consumable_card.dart';
 import '../widgets/product_card.dart';
 import '../widgets/balance_display.dart';
 
@@ -242,7 +243,7 @@ class _ProductSections extends StatelessWidget {
                 children: section.value
                     .map((product) => SizedBox(
                           width: AppSizes.space * 20,
-                          child: ProductCard(
+                          child: ConsumableCard(
                             product: product,
                             isLoading: isPurchasing,
                             onBuy: () => onBuy(product),
