@@ -17,10 +17,14 @@ import '../repositories/open_router_model_repository.dart';
 const _uuid = Uuid();
 
 class LlmConfigSheet {
+  static const openRouterBaseUrl = 'https://openrouter.ai/api/v1';
+  static const ollamaBaseUrl = 'http://localhost:11434/v1';
+
   static Future<void> show({
     required BuildContext context,
     required LlmProviderCubit cubit,
     LlmProviderConfigModel? config,
+    String? defaultBaseUrl,
   }) async {
     final result = await LooseInsertSheet.show<LlmProviderConfigModel>(
       context: context,
@@ -30,6 +34,7 @@ class LlmConfigSheet {
       builder: (sheetContext) => _LlmConfigForm(
         cubit: cubit,
         config: config,
+        defaultBaseUrl: defaultBaseUrl,
       ),
     );
 
@@ -42,10 +47,12 @@ class LlmConfigSheet {
 class _LlmConfigForm extends StatefulWidget {
   final LlmProviderCubit cubit;
   final LlmProviderConfigModel? config;
+  final String? defaultBaseUrl;
 
   const _LlmConfigForm({
     required this.cubit,
     required this.config,
+    this.defaultBaseUrl,
   });
 
   @override
@@ -61,16 +68,23 @@ class _LlmConfigFormState extends State<_LlmConfigForm> {
   List<OpenRouterModelRecord> _models = [];
   List<String> _providers = [];
 
+  bool get _isOpenRouter =>
+      _baseUrlController.text.contains('openrouter');
+
   @override
   void initState() {
     super.initState();
     _baseUrlController = TextEditingController(
-      text: widget.config?.baseUrl ?? 'https://openrouter.ai/api/v1',
+      text: widget.config?.baseUrl ??
+          widget.defaultBaseUrl ??
+          LlmConfigSheet.openRouterBaseUrl,
     );
     _modelController = TextEditingController(
       text: widget.config?.modelId ?? '',
     );
-    _loadModels();
+    if (_isOpenRouter) {
+      _loadModels();
+    }
   }
 
   Future<void> _loadModels() async {
@@ -99,10 +113,11 @@ class _LlmConfigFormState extends State<_LlmConfigForm> {
 
   @override
   Widget build(BuildContext context) {
+    final isOpenRouter = _isOpenRouter;
     final byProvider = _selectedProvider != null
         ? _models.where((m) => m.id.startsWith('$_selectedProvider/'))
         : _models;
-    final filtered = _searchQuery.isEmpty
+    final filtered = !isOpenRouter || _searchQuery.isEmpty
         ? <OpenRouterModelRecord>[]
         : byProvider
             .where((m) =>
@@ -121,13 +136,15 @@ class _LlmConfigFormState extends State<_LlmConfigForm> {
               QuanityaTextFormField(
                 controller: _baseUrlController,
                 labelText: context.l10n.llmProviderBaseUrl,
-                hintText: 'https://openrouter.ai/api/v1',
+                hintText: isOpenRouter
+                    ? LlmConfigSheet.openRouterBaseUrl
+                    : LlmConfigSheet.ollamaBaseUrl,
                 validator: (v) => (v == null || v.isEmpty)
                     ? context.l10n.validationRequired
                     : null,
               ),
               VSpace.x2,
-              if (_providers.isNotEmpty) ...[
+              if (isOpenRouter && _providers.isNotEmpty) ...[
                 Wrap(
                   spacing: AppSizes.space * 0.5,
                   runSpacing: AppSizes.space * 0.5,
@@ -147,8 +164,12 @@ class _LlmConfigFormState extends State<_LlmConfigForm> {
               QuanityaTextFormField(
                 controller: _modelController,
                 labelText: context.l10n.llmProviderModel,
-                hintText: context.l10n.llmProviderSearchModels,
-                onChanged: (v) => setState(() => _searchQuery = v),
+                hintText: isOpenRouter
+                    ? context.l10n.llmProviderSearchModels
+                    : 'llama3, mistral, gemma...',
+                onChanged: isOpenRouter
+                    ? (v) => setState(() => _searchQuery = v)
+                    : null,
                 validator: (v) => (v == null || v.isEmpty)
                     ? context.l10n.validationRequired
                     : null,

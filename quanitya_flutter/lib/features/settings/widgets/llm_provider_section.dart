@@ -29,37 +29,30 @@ class LlmProviderSection extends StatelessWidget {
             ),
             VSpace.x1,
 
-            if (state.configs.isEmpty)
-              Text(
-                context.l10n.llmProviderNoConfigsDescription,
-                style: context.text.bodyMedium?.copyWith(
-                  color: context.colors.textSecondary,
-                ),
-              )
-            else
-              ...state.configs.map((config) {
-                final isTested = state.availableModels.any(
-                    (m) => m.id == config.modelId && m.tested);
-                return Padding(
-                    padding: AppPadding.verticalSingle,
-                    child: _ConfigRow(
-                      config: config,
-                      isActive: config.id == state.activeConfig?.id,
-                      isTested: isTested,
-                      onTap: () => context
-                          .read<LlmProviderCubit>()
-                          .selectConfig(config.id),
-                      onEdit: () => _showConfigSheet(context, config),
-                    ),
-                  );
-              }),
+            ..._buildProviderRows(context, state),
 
             VSpace.x2,
-            Center(
-              child: QuanityaTextButton(
-                text: context.l10n.llmProviderAddConfig,
-                onPressed: () => _showConfigSheet(context, null),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                QuanityaTextButton(
+                  text: 'Add OpenRouter',
+                  onPressed: () => _showConfigSheet(
+                    context,
+                    null,
+                    defaultBaseUrl: LlmConfigSheet.openRouterBaseUrl,
+                  ),
+                ),
+                HSpace.x2,
+                QuanityaTextButton(
+                  text: 'Add Ollama',
+                  onPressed: () => _showConfigSheet(
+                    context,
+                    null,
+                    defaultBaseUrl: LlmConfigSheet.ollamaBaseUrl,
+                  ),
+                ),
+              ],
             ),
           ],
         );
@@ -67,11 +60,107 @@ class LlmProviderSection extends StatelessWidget {
     );
   }
 
-  void _showConfigSheet(BuildContext context, LlmProviderConfigModel? config) {
+  List<Widget> _buildProviderRows(
+      BuildContext context, LlmProviderState state) {
+    final isQuanityaActive = state.activeConfig == null;
+    final quanityaRow = Padding(
+      padding: AppPadding.verticalSingle,
+      child: _QuanityaProviderRow(
+        isActive: isQuanityaActive,
+        onTap: () {
+          // TODO: handle Quanitya provider selection
+        },
+      ),
+    );
+
+    final configRows = state.configs.map((config) {
+      final isTested = state.availableModels
+          .any((m) => m.id == config.modelId && m.tested);
+      return Padding(
+        padding: AppPadding.verticalSingle,
+        child: _ConfigRow(
+          config: config,
+          isActive: config.id == state.activeConfig?.id,
+          isTested: isTested,
+          onTap: () =>
+              context.read<LlmProviderCubit>().selectConfig(config.id),
+          onEdit: () => _showConfigSheet(context, config),
+        ),
+      );
+    }).toList();
+
+    if (isQuanityaActive) {
+      // Quanitya first, then configs
+      return [quanityaRow, ...configRows];
+    } else {
+      // Active config is first (already sorted by cubit), Quanitya second
+      if (configRows.isNotEmpty) {
+        return [configRows.first, quanityaRow, ...configRows.skip(1)];
+      }
+      return [quanityaRow];
+    }
+  }
+
+  void _showConfigSheet(
+    BuildContext context,
+    LlmProviderConfigModel? config, {
+    String? defaultBaseUrl,
+  }) {
     LlmConfigSheet.show(
       context: context,
       cubit: context.read<LlmProviderCubit>(),
       config: config,
+      defaultBaseUrl: defaultBaseUrl,
+    );
+  }
+}
+
+class _QuanityaProviderRow extends StatelessWidget {
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _QuanityaProviderRow({
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Quanitya LLM',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+        child: Container(
+          padding: AppPadding.allDouble,
+          decoration: BoxDecoration(
+            color: context.colors.textSecondary.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+          ),
+          child: Row(
+            children: [
+              Image.asset(
+                'assets/quanitya.png',
+                width: AppSizes.iconMedium,
+                height: AppSizes.iconMedium,
+                color: isActive
+                    ? context.colors.textPrimary
+                    : context.colors.interactableColor,
+              ),
+              HSpace.x2,
+              Expanded(
+                child: Text(
+                  'Quanitya LLM',
+                  style: context.text.bodyLarge?.copyWith(
+                    color: context.colors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
