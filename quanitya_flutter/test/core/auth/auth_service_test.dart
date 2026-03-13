@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
+import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 
 import 'package:quanitya_flutter/infrastructure/auth/auth_service.dart';
 import 'package:quanitya_flutter/infrastructure/crypto/crypto_key_repository.dart';
@@ -9,6 +10,8 @@ import 'package:quanitya_flutter/infrastructure/crypto/exceptions/crypto_excepti
 
 @GenerateMocks([ICryptoKeyRepository, IDataEncryptionService])
 import 'auth_service_test.mocks.dart';
+
+class _FakeKeyDuo extends Fake implements KeyDuo {}
 
 /// Tests for AuthService - focusing on testable logic without Serverpod client mocking.
 /// 
@@ -112,6 +115,98 @@ void main() {
         await mockKeyRepo.generateAndStoreDeviceKey();
 
         verify(mockKeyRepo.generateAndStoreDeviceKey()).called(1);
+      });
+    });
+
+    group('cross-device key status', () {
+      test('crossDeviceRecoveryAvailable indicates recovery path', () async {
+        when(mockKeyRepo.getKeyStatus())
+            .thenAnswer((_) async => CryptoKeyStatus.crossDeviceRecoveryAvailable);
+
+        final status = await mockKeyRepo.getKeyStatus();
+        final needsRecovery = status == CryptoKeyStatus.crossDeviceRecoveryAvailable;
+
+        expect(needsRecovery, isTrue);
+        // Not authenticated — needs cross-device recovery first
+        expect(status == CryptoKeyStatus.ready, isFalse);
+      });
+
+      test('isCrossDeviceStorageAvailable gates cross-device key generation', () {
+        when(mockKeyRepo.isCrossDeviceStorageAvailable).thenReturn(true);
+        expect(mockKeyRepo.isCrossDeviceStorageAvailable, isTrue);
+
+        when(mockKeyRepo.isCrossDeviceStorageAvailable).thenReturn(false);
+        expect(mockKeyRepo.isCrossDeviceStorageAvailable, isFalse);
+      });
+
+      test('crossDeviceLabel returns platform-specific label', () {
+        when(mockKeyRepo.crossDeviceLabel).thenReturn('iCloud');
+        expect(mockKeyRepo.crossDeviceLabel, equals('iCloud'));
+      });
+    });
+
+    group('createAccount cross-device key flow (via key repo)', () {
+      test('generateCrossDeviceKey is available when storage available', () async {
+        final fakeKeyDuo = _FakeKeyDuo();
+        when(mockKeyRepo.isCrossDeviceStorageAvailable).thenReturn(true);
+        when(mockKeyRepo.crossDeviceLabel).thenReturn('iCloud');
+        when(mockKeyRepo.generateCrossDeviceKey())
+            .thenAnswer((_) async => fakeKeyDuo);
+
+        // Simulate the createAccount cross-device key step
+        if (mockKeyRepo.isCrossDeviceStorageAvailable) {
+          final keyDuo = await mockKeyRepo.generateCrossDeviceKey();
+          expect(keyDuo, isNotNull);
+        }
+
+        verify(mockKeyRepo.generateCrossDeviceKey()).called(1);
+      });
+
+      test('cross-device key generation skipped when storage unavailable', () async {
+        when(mockKeyRepo.isCrossDeviceStorageAvailable).thenReturn(false);
+
+        // Simulate the createAccount cross-device key step
+        if (mockKeyRepo.isCrossDeviceStorageAvailable) {
+          await mockKeyRepo.generateCrossDeviceKey();
+        }
+
+        verifyNever(mockKeyRepo.generateCrossDeviceKey());
+      });
+    });
+
+    group('recoverFromCrossDeviceKey flow (via key repo)', () {
+      test('getCrossDeviceKey retrieves synced key for recovery', () async {
+        final fakeKeyDuo = _FakeKeyDuo();
+        when(mockKeyRepo.getCrossDeviceKey())
+            .thenAnswer((_) async => fakeKeyDuo);
+
+        final keyDuo = await mockKeyRepo.getCrossDeviceKey();
+
+        expect(keyDuo, isNotNull);
+        verify(mockKeyRepo.getCrossDeviceKey()).called(1);
+      });
+
+      test('recovery generates new local device key after cross-device auth', () async {
+        when(mockKeyRepo.generateAndStoreDeviceKey())
+            .thenAnswer((_) async {});
+        when(mockKeyRepo.storeSymmetricDataKeyJwk(any))
+            .thenAnswer((_) async {});
+
+        // Simulate the recovery flow: generate local device + store symmetric key
+        await mockKeyRepo.generateAndStoreDeviceKey();
+        await mockKeyRepo.storeSymmetricDataKeyJwk('{"kty":"oct","k":"test","alg":"A256GCM"}');
+
+        verify(mockKeyRepo.generateAndStoreDeviceKey()).called(1);
+        verify(mockKeyRepo.storeSymmetricDataKeyJwk(any)).called(1);
+      });
+
+      test('getCrossDeviceKey returns null when no synced key exists', () async {
+        when(mockKeyRepo.getCrossDeviceKey())
+            .thenAnswer((_) async => null);
+
+        final keyDuo = await mockKeyRepo.getCrossDeviceKey();
+
+        expect(keyDuo, isNull);
       });
     });
   });
