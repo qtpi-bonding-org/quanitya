@@ -118,8 +118,24 @@ class HealthSyncService {
 
         var total = 0;
         for (final entry in grouped.entries) {
-          final adapter = _adapterFactory.create(entry.key);
-          final templateId = await _ensureTemplate(adapter);
+          // Use unmapped adapter for template creation/lookup
+          final baseAdapter = _adapterFactory.create(entry.key);
+          final templateId = await _ensureTemplate(baseAdapter);
+
+          // Resolve field label → UUID mapping from the template
+          final template = await _templateQueryDao.findById(templateId);
+          final fieldMap = <String, String>{};
+          if (template != null) {
+            for (final f in template.fields) {
+              fieldMap[f.label] = f.id;
+            }
+          }
+
+          // Create adapter with field UUID mapping for correct data keys
+          final adapter = _adapterFactory.create(
+            entry.key,
+            fieldLabelToId: fieldMap,
+          );
           final count = await _ingestionService.syncFlutter(
             adapter: adapter,
             templateId: templateId,
