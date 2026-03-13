@@ -165,70 +165,65 @@ class _SwipeablePageShellState extends State<SwipeablePageShell> {
         ),
         SafeArea(
           bottom: false,
-          child: Column(
+          child: PageView(
+            controller: _controller,
+            physics: const ClampingScrollPhysics(),
+            onPageChanged: (page) {
+              setState(() => _currentPage = page);
+              widget.onPageChanged?.call(page);
+            },
             children: [
-              Expanded(
-                child: PageView(
-                  controller: _controller,
-                  physics: const ClampingScrollPhysics(),
-                  onPageChanged: (page) {
-                    setState(() => _currentPage = page);
-                    widget.onPageChanged?.call(page);
+              for (int i = 0; i < widget.pages.length; i++)
+                NotificationListener<ScrollNotification>(
+                  onNotification: (notification) {
+                    if (notification is ScrollUpdateNotification &&
+                        notification.metrics.axis == Axis.vertical) {
+                      setState(() {
+                        _scrollOffsets[i] = notification.metrics.pixels;
+                      });
+                    }
+                    return false;
                   },
-                  children: [
-                    for (int i = 0; i < widget.pages.length; i++)
-                      NotificationListener<ScrollNotification>(
-                        onNotification: (notification) {
-                          if (notification is ScrollUpdateNotification &&
-                              notification.metrics.axis == Axis.vertical) {
-                            setState(() {
-                              _scrollOffsets[i] = notification.metrics.pixels;
-                            });
-                          }
-                          return false;
-                        },
-                        child: widget.pages[i],
-                      ),
-                  ],
+                  child: widget.pages[i],
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: AppSizes.space * 0.25,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    for (int i = 0; i < widget.labels.length; i++)
-                      Semantics(
-                        button: true,
-                        selected: _currentPage == i,
-                        label: widget.semanticTabLabels != null &&
-                                i < widget.semanticTabLabels!.length
-                            ? widget.semanticTabLabels![i]
-                            : null,
-                        child: GestureDetector(
-                          onTap: () => _controller.animateToPage(
-                            i,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          ),
-                          behavior: HitTestBehavior.opaque,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: AppSizes.space * 1.5,
-                              vertical: AppSizes.space * 0.5,
-                            ),
-                            child: widget.labels[i],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
+        // Floating label indicators
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (int i = 0; i < widget.labels.length; i++)
+                  Semantics(
+                    button: true,
+                    selected: _currentPage == i,
+                    label: widget.semanticTabLabels != null &&
+                            i < widget.semanticTabLabels!.length
+                        ? widget.semanticTabLabels![i]
+                        : null,
+                    child: GestureDetector(
+                      onTap: () => _controller.animateToPage(
+                        i,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      ),
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSizes.space * 1.5,
+                          vertical: AppSizes.space * 0.25,
+                        ),
+                        child: widget.labels[i],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ...widget.overlays,
       ],
     );
