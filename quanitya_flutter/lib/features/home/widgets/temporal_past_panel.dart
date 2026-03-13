@@ -13,24 +13,11 @@ import 'timeline_widget.dart';
 /// This panel displays historical data that users have already logged.
 /// Uses TimelineDataCubit to fetch and filter past entries.
 class TemporalPastPanel extends StatelessWidget {
-  final void Function(double)? onScrollOffsetChanged;
-
-  const TemporalPastPanel({
-    super.key,
-    this.onScrollOffsetChanged,
-  });
+  const TemporalPastPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollUpdateNotification &&
-            notification.metrics.axis == Axis.vertical) {
-          onScrollOffsetChanged?.call(notification.metrics.pixels);
-        }
-        return false;
-      },
-      child: BlocBuilder<TimelineDataCubit, TimelineDataState>(
+    return BlocBuilder<TimelineDataCubit, TimelineDataState>(
         builder: (context, state) {
           if (state.isLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -63,8 +50,7 @@ class TemporalPastPanel extends StatelessWidget {
             },
           );
         },
-      ),
-    );
+      );
   }
 
   /// Filters out entries whose templates are hidden. Keeps date dividers.

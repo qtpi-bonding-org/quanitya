@@ -16,24 +16,11 @@ import '../../../app/bootstrap.dart';
 /// It shows WHAT needs to be done and WHEN, not completed entries.
 /// Uses ScheduleListCubit to manage schedule data.
 class TemporalFuturePanel extends StatelessWidget {
-  final void Function(double)? onScrollOffsetChanged;
-
-  const TemporalFuturePanel({
-    super.key,
-    this.onScrollOffsetChanged,
-  });
+  const TemporalFuturePanel({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollUpdateNotification &&
-            notification.metrics.axis == Axis.vertical) {
-          onScrollOffsetChanged?.call(notification.metrics.pixels);
-        }
-        return false;
-      },
-      child: UiFlowListener<ScheduleListCubit, ScheduleListState>(
+    return UiFlowListener<ScheduleListCubit, ScheduleListState>(
         mapper: getIt<ScheduleListMessageMapper>(),
         child: BlocBuilder<ScheduleListCubit, ScheduleListState>(
           builder: (context, state) {
@@ -57,7 +44,6 @@ class TemporalFuturePanel extends StatelessWidget {
             );
           },
         ),
-      ),
-    );
+      );
   }
 }

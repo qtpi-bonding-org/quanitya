@@ -91,10 +91,6 @@ class SwipeablePageShell extends StatefulWidget {
   /// Extra widgets layered on top of the page content in the [Stack].
   final List<Widget> overlays;
 
-  /// Per-page scroll offsets passed to the sliding paper strips.
-  /// Index corresponds to page index; out-of-bounds defaults to 0.0.
-  final List<double> scrollOffsets;
-
   const SwipeablePageShell({
     super.key,
     required this.pages,
@@ -103,7 +99,6 @@ class SwipeablePageShell extends StatefulWidget {
     this.controller,
     this.onPageChanged,
     this.overlays = const [],
-    this.scrollOffsets = const [],
     this.semanticTabLabels,
   });
 
@@ -115,21 +110,14 @@ class _SwipeablePageShellState extends State<SwipeablePageShell> {
   late PageController _controller;
   bool _ownsController = false;
   late int _currentPage;
+  late List<double> _scrollOffsets;
 
   @override
   void initState() {
     super.initState();
     _currentPage = widget.initialPage;
+    _scrollOffsets = List.filled(widget.pages.length, 0.0);
     _initController();
-  }
-
-  @override
-  void didUpdateWidget(SwipeablePageShell oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.controller != oldWidget.controller) {
-      _disposeOwnedController();
-      _initController();
-    }
   }
 
   void _initController() {
@@ -155,13 +143,25 @@ class _SwipeablePageShellState extends State<SwipeablePageShell> {
   }
 
   @override
+  void didUpdateWidget(SwipeablePageShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      _disposeOwnedController();
+      _initController();
+    }
+    if (widget.pages.length != _scrollOffsets.length) {
+      _scrollOffsets = List.filled(widget.pages.length, 0.0);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         _SlidingZenPaper(
           controller: _controller,
           pageCount: widget.pages.length,
-          scrollOffsets: widget.scrollOffsets,
+          scrollOffsets: _scrollOffsets,
         ),
         SafeArea(
           bottom: false,
@@ -175,7 +175,21 @@ class _SwipeablePageShellState extends State<SwipeablePageShell> {
                     setState(() => _currentPage = page);
                     widget.onPageChanged?.call(page);
                   },
-                  children: widget.pages,
+                  children: [
+                    for (int i = 0; i < widget.pages.length; i++)
+                      NotificationListener<ScrollNotification>(
+                        onNotification: (notification) {
+                          if (notification is ScrollUpdateNotification &&
+                              notification.metrics.axis == Axis.vertical) {
+                            setState(() {
+                              _scrollOffsets[i] = notification.metrics.pixels;
+                            });
+                          }
+                          return false;
+                        },
+                        child: widget.pages[i],
+                      ),
+                  ],
                 ),
               ),
               Padding(

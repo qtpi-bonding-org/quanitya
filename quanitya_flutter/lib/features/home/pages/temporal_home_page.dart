@@ -31,8 +31,6 @@ class TemporalHomePage extends StatefulWidget {
 class _TemporalHomePageState extends State<TemporalHomePage> {
   late final PageController _pageController;
   int _currentIndex = 1;
-  double _pastScrollOffset = 0.0;
-  double _futureScrollOffset = 0.0;
 
   TemporalTimelineCubit? _timelineCubit;
 
@@ -103,19 +101,10 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
               setState(() => _currentIndex = index);
               _timelineCubit?.setCurrentPage(index);
             },
-            scrollOffsets: [_pastScrollOffset, 0.0, _futureScrollOffset],
-            pages: [
-              TemporalPastPanel(
-                onScrollOffsetChanged: (offset) {
-                  setState(() => _pastScrollOffset = offset);
-                },
-              ),
-              const TemporalPresentPanel(),
-              TemporalFuturePanel(
-                onScrollOffsetChanged: (offset) {
-                  setState(() => _futureScrollOffset = offset);
-                },
-              ),
+            pages: const [
+              TemporalPastPanel(),
+              TemporalPresentPanel(),
+              TemporalFuturePanel(),
             ],
             labels: [
               _buildTemporalLabel(context, '-t'),
