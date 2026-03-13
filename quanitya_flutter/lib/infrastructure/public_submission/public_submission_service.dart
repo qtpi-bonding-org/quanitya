@@ -107,6 +107,69 @@ class PublicSubmissionService implements IPublicSubmissionService {
     );
   }
   
+  @override
+  Future<T> queryWithVerification<T>({
+    required String endpoint,
+    required String payload,
+    required Future<T> Function(
+      String challenge,
+      String proofOfWork,
+      String publicKeyHex,
+      String signature,
+    ) queryCallback,
+  }) {
+    return tryMethod(
+      () async {
+        debugPrint('📤 [$endpoint] Step 1: Getting challenge...');
+        final challengeResponse = await _getChallenge(endpoint);
+        debugPrint('📤 [$endpoint] Step 1: Got challenge (difficulty: ${challengeResponse.difficulty})');
+
+        debugPrint('📤 [$endpoint] Step 2: Mining PoW...');
+        final proofOfWork = await _mineProofOfWork(
+          challengeResponse.challenge,
+          challengeResponse.difficulty,
+        );
+        debugPrint('📤 [$endpoint] Step 2: PoW complete');
+
+        debugPrint('📤 [$endpoint] Step 3: Getting device key...');
+        final publicKeyHex = await _getDevicePublicKeyHex();
+        debugPrint('📤 [$endpoint] Step 3: Got key (${publicKeyHex.substring(0, 8)}...)');
+
+        debugPrint('📤 [$endpoint] Step 4: Signing payload...');
+        final fullPayload = '${challengeResponse.challenge}:$payload';
+        final signature = await _signPayload(fullPayload);
+        debugPrint('📤 [$endpoint] Step 4: Signed (${signature.substring(0, 8)}...)');
+
+        debugPrint('📤 [$endpoint] Step 5: Querying server...');
+        try {
+          final result = await queryCallback(
+            challengeResponse.challenge,
+            proofOfWork,
+            publicKeyHex,
+            signature,
+          );
+          debugPrint('📤 [$endpoint] Step 5: Query successful');
+          return result;
+        } on ServerException catch (e) {
+          switch (e.code) {
+            case ServerErrorCode.rateLimitExceeded:
+              throw RateLimitExceededException(e.message);
+            case ServerErrorCode.challengeExpired:
+              throw ChallengeRequestException(e.message);
+            case ServerErrorCode.invalidProofOfWork:
+              throw ProofOfWorkException(e.message);
+            case ServerErrorCode.invalidSignature:
+              throw SignatureException(e.message);
+            default:
+              throw PublicSubmissionException(e.message);
+          }
+        }
+      },
+      PublicSubmissionException.new,
+      'queryWithVerification',
+    );
+  }
+
   /// Get challenge from server for specific endpoint.
   Future<PublicChallengeResponse> _getChallenge(String endpoint) async {
     try {
@@ -117,6 +180,8 @@ class PublicSubmissionService implements IPublicSubmissionService {
           return await _client.feedback.getChallenge();
         case 'analyticsEvent':
           return await _client.analyticsEvent.getChallenge();
+        case 'productCatalog':
+          return await _client.productCatalog.getChallenge();
         default:
           throw PublicSubmissionException('Unknown endpoint: $endpoint');
       }

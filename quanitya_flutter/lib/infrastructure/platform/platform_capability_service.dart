@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'dart:io' show Platform;
 
+import '../purchase/purchase_models.dart';
+
 /// Service that checks platform capabilities to enable graceful degradation.
 /// 
 /// Use this to check if platform-specific features are available before
@@ -119,9 +121,58 @@ class PlatformCapabilityService {
   }
   
   // ─────────────────────────────────────────────────────────────────────────
+  // Purchase Rail Mapping
+  // ─────────────────────────────────────────────────────────────────────────
+  //
+  // Declares which payment rails are allowed on each platform.
+  // Rails listed here may still be unavailable at runtime (e.g. provider
+  // not yet implemented, store unreachable). This mapping controls which
+  // providers bootstrap should attempt to register.
+  //
+  // ┌───────────┬─────────────────────────────────────────────────────────┐
+  // │ Platform  │ Allowed Rails                                          │
+  // ├───────────┼─────────────────────────────────────────────────────────┤
+  // │ iOS       │ appleIap                                               │
+  // │ Android   │ googleIap                                              │
+  // │ macOS     │ appleIap                                               │
+  // │ Web       │ monero, x402Http  (not yet implemented — coming soon)  │
+  // │ Windows   │ (none)                                                 │
+  // │ Linux     │ (none)                                                 │
+  // └───────────┴─────────────────────────────────────────────────────────┘
+
+  /// Payment rails allowed on the current platform.
+  ///
+  /// Returns an empty list if no rails are supported (e.g. Windows, Linux).
+  /// The UI should show a "coming soon" state when this is non-empty but
+  /// no providers are actually available yet.
+  List<PurchaseRail> get supportedPurchaseRails {
+    if (kIsWeb) return [PurchaseRail.monero, PurchaseRail.x402Http];
+    if (Platform.isIOS) return [PurchaseRail.appleIap];
+    if (Platform.isAndroid) return [PurchaseRail.googleIap];
+    if (Platform.isMacOS) return [PurchaseRail.appleIap];
+    return [];
+  }
+
+  /// Whether any purchase rail is supported on this platform.
+  bool get hasPurchaseSupport => supportedPurchaseRails.isNotEmpty;
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Platform Information
   // ─────────────────────────────────────────────────────────────────────────
   
+  /// Platform identifier for server API calls (lowercase).
+  ///
+  /// Matches the keys used in platform_rails.csv on the server.
+  String get platformId {
+    if (kIsWeb) return 'web';
+    if (Platform.isIOS) return 'ios';
+    if (Platform.isAndroid) return 'android';
+    if (Platform.isMacOS) return 'macos';
+    if (Platform.isWindows) return 'windows';
+    if (Platform.isLinux) return 'linux';
+    return 'unknown';
+  }
+
   /// Current platform name for logging/debugging.
   String get platformName {
     if (kIsWeb) return 'Web';

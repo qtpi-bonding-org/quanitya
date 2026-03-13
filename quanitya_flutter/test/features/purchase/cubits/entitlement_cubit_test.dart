@@ -5,22 +5,27 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:anonaccred_client/anonaccred_client.dart'
     show AccountEntitlement;
 
+import 'package:quanitya_flutter/data/db/app_database.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_entitlement_service.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/entitlement_cubit.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/entitlement_state.dart';
 
 class MockEntitlementService extends Mock implements IEntitlementService {}
 
+class MockAppDatabase extends Mock implements AppDatabase {}
+
 void main() {
   late MockEntitlementService mockService;
+  late MockAppDatabase mockDb;
 
   setUp(() {
     mockService = MockEntitlementService();
+    mockDb = MockAppDatabase();
   });
 
   group('EntitlementCubit', () {
     test('initial state is idle with no entitlements', () {
-      final cubit = EntitlementCubit(mockService);
+      final cubit = EntitlementCubit(mockService, mockDb);
       expect(cubit.state.status, UiFlowStatus.idle);
       expect(cubit.state.entitlements, isEmpty);
       expect(cubit.state.hasSyncAccess, isFalse);
@@ -39,7 +44,7 @@ void main() {
             ),
           ],
         );
-        return EntitlementCubit(mockService);
+        return EntitlementCubit(mockService, mockDb);
       },
       act: (cubit) => cubit.loadEntitlements(),
       expect: () => [
@@ -63,7 +68,7 @@ void main() {
       build: () {
         when(() => mockService.hasSyncAccess())
             .thenAnswer((_) async => true);
-        return EntitlementCubit(mockService);
+        return EntitlementCubit(mockService, mockDb);
       },
       act: (cubit) => cubit.checkSyncAccess(),
       expect: () => [
@@ -86,7 +91,7 @@ void main() {
       build: () {
         when(() => mockService.hasSyncAccess())
             .thenAnswer((_) async => false);
-        return EntitlementCubit(mockService);
+        return EntitlementCubit(mockService, mockDb);
       },
       act: (cubit) => cubit.checkSyncAccess(),
       expect: () => [
@@ -108,7 +113,7 @@ void main() {
       build: () {
         when(() => mockService.hasSyncAccess())
             .thenThrow(Exception('Network error'));
-        return EntitlementCubit(mockService);
+        return EntitlementCubit(mockService, mockDb);
       },
       act: (cubit) => cubit.checkSyncAccess(),
       expect: () => [

@@ -77,17 +77,14 @@ class InAppPurchaseProvider implements IPurchaseProvider {
   /// Fetch active product IDs from the server, or return cached values.
   ///
   /// Uses the HashCash-protected productCatalog endpoint (no IP tracking).
-  /// Maps the client-side [rail] to the server's PaymentRail name
-  /// and queries the rail_product table for active entries.
+  /// Calls getCatalog with the platform name, then extracts product IDs
+  /// for this provider's rail from the response.
   Future<Set<String>> _getProductIds() async {
-    if (_cachedProductIds != null) return _cachedProductIds!;
+    final cached = _cachedProductIds;
+    if (cached != null) return cached;
 
     try {
-      final railName = switch (rail) {
-        PurchaseRail.appleIap => 'apple_iap',
-        PurchaseRail.googleIap => 'google_iap',
-        _ => 'apple_iap',
-      };
+      final platformName = _getPlatformName();
 
       // 1. Get challenge from server
       final challengeResponse = await _client.productCatalog.getChallenge();
@@ -103,19 +100,33 @@ class InAppPurchaseProvider implements IPurchaseProvider {
       if (publicKeyHex == null) {
         throw const PurchaseException('Device key not found');
       }
-      final payload = '$challenge:$railName';
+      final payload = '$challenge:$platformName';
       final signature = await _encryption.signWithDeviceKey(payload);
 
-      // 4. Call protected endpoint
-      final ids = await _client.productCatalog.getActiveStoreProductIds(
+      // 4. Call platform catalog endpoint
+      final catalog = await _client.productCatalog.getCatalog(
         challenge,
         proofOfWork,
         publicKeyHex,
         signature,
-        railName,
+        platformName,
       );
-      _cachedProductIds = ids.toSet();
-      return _cachedProductIds!;
+
+      // 5. Extract product IDs for this provider's rail
+      final railName = switch (rail) {
+        PurchaseRail.appleIap => 'apple_iap',
+        PurchaseRail.googleIap => 'google_iap',
+        PurchaseRail.monero => 'monero',
+        PurchaseRail.x402Http => 'x402_http',
+      };
+
+      final matchingRail = catalog.rails
+          .where((r) => r.rail == railName && r.status == RailStatus.active)
+          .firstOrNull;
+
+      final ids = matchingRail?.productIds.toSet() ?? <String>{};
+      _cachedProductIds = ids;
+      return ids;
     } on ServerException catch (e) {
       throw PurchaseException('Product catalog: ${e.message}');
     } on PurchaseException {
@@ -123,6 +134,16 @@ class InAppPurchaseProvider implements IPurchaseProvider {
     } catch (e) {
       throw PurchaseException('Failed to fetch product catalog: $e');
     }
+  }
+
+  /// Get platform name for the catalog endpoint.
+  String _getPlatformName() {
+    if (Platform.isIOS) return 'ios';
+    if (Platform.isAndroid) return 'android';
+    if (Platform.isMacOS) return 'macos';
+    if (Platform.isWindows) return 'windows';
+    if (Platform.isLinux) return 'linux';
+    return 'unknown';
   }
 
   @override

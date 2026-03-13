@@ -11,6 +11,7 @@ class PurchaseMessageMapper implements IStateMessageMapper<PurchaseState> {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         PurchaseOperation.loadProducts => null,
+        PurchaseOperation.loadRailCatalog => null,
         PurchaseOperation.purchase => MessageKey.success(L10nKeys.purchaseSuccessful),
         PurchaseOperation.recoverPurchases => MessageKey.success(L10nKeys.restorePurchasesSuccess),
       };

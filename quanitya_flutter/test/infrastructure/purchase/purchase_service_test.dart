@@ -1,6 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' show Client;
 
+import 'package:quanitya_flutter/infrastructure/platform/platform_capability_service.dart';
+import 'package:quanitya_flutter/infrastructure/public_submission/public_submission_service.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_entitlement_service.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_purchase_provider.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_exception.dart';
@@ -13,12 +16,23 @@ class MockEntitlementService extends Mock implements IEntitlementService {}
 
 class MockPurchaseProvider extends Mock implements IPurchaseProvider {}
 
+class MockPublicSubmissionService extends Mock
+    implements PublicSubmissionService {}
+
+class MockClient extends Mock implements Client {}
+
+class MockPlatformCapabilityService extends Mock
+    implements PlatformCapabilityService {}
+
 class FakeAccountEntitlement extends Fake implements AccountEntitlement {}
 
 void main() {
   late PurchaseService purchaseService;
   late MockEntitlementService mockEntitlementService;
   late MockPurchaseProvider mockProvider;
+  late MockPublicSubmissionService mockSubmissionService;
+  late MockClient mockClient;
+  late MockPlatformCapabilityService mockPlatformCaps;
 
   setUpAll(() {
     registerFallbackValue(
@@ -40,7 +54,15 @@ void main() {
   setUp(() {
     mockEntitlementService = MockEntitlementService();
     mockProvider = MockPurchaseProvider();
-    purchaseService = PurchaseService(mockEntitlementService);
+    mockSubmissionService = MockPublicSubmissionService();
+    mockClient = MockClient();
+    mockPlatformCaps = MockPlatformCapabilityService();
+    purchaseService = PurchaseService(
+      mockEntitlementService,
+      mockSubmissionService,
+      mockClient,
+      mockPlatformCaps,
+    );
   });
 
   group('PurchaseService', () {

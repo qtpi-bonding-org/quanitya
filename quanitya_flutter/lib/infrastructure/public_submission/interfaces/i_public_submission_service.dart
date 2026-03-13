@@ -13,4 +13,18 @@ abstract class IPublicSubmissionService {
       String signature,
     ) submitCallback,
   });
+
+  /// Query server data with challenge-response verification.
+  ///
+  /// Same PoW ceremony as [submitWithVerification], but returns a value.
+  Future<T> queryWithVerification<T>({
+    required String endpoint,
+    required String payload,
+    required Future<T> Function(
+      String challenge,
+      String proofOfWork,
+      String publicKeyHex,
+      String signature,
+    ) queryCallback,
+  });
 }

@@ -13,6 +13,7 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
   PurchaseCubit(this._purchaseService) : super(const PurchaseState());
 
   Future<void> loadProducts() async {
+    emit(state.copyWith(lastOperation: PurchaseOperation.loadProducts));
     await tryOperation(() async {
       final products = await _purchaseService.getProducts();
       return state.copyWith(
@@ -31,6 +32,17 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
         status: UiFlowStatus.success,
         lastOperation: PurchaseOperation.purchase,
         lastValidation: result,
+      );
+    }, emitLoading: true);
+  }
+
+  Future<void> loadRailCatalog() async {
+    await tryOperation(() async {
+      final catalog = await _purchaseService.getRailCatalog();
+      return state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: PurchaseOperation.loadRailCatalog,
+        railCatalog: catalog,
       );
     }, emitLoading: true);
   }

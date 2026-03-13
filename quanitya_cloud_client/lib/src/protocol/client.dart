@@ -50,20 +50,22 @@ import 'package:quanitya_cloud_client/src/protocol/paginated_notifications.dart'
     as _i22;
 import 'package:quanitya_cloud_client/src/protocol/notification_details.dart'
     as _i23;
-import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
+import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
     as _i24;
-import 'package:quanitya_cloud_client/src/protocol/sync_access_info.dart'
+import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
     as _i25;
-import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
+import 'package:quanitya_cloud_client/src/protocol/sync_access_info.dart'
     as _i26;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
     as _i27;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i28;
-import 'package:quanitya_client/quanitya_client.dart' as _i29;
-import 'package:anonaccount_client/anonaccount_client.dart' as _i30;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i31;
-import 'protocol.dart' as _i32;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i29;
+import 'package:quanitya_client/quanitya_client.dart' as _i30;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i31;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i32;
+import 'protocol.dart' as _i33;
 
 /// A simple cloud-specific endpoint to verify the cloud server is working.
 /// {@category Endpoint}
@@ -2246,13 +2248,13 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   );
 }
 
-/// Product catalog endpoint — returns active store product IDs.
+/// Product catalog endpoint — returns platform-specific rail statuses and products.
 ///
 /// Protected by HashCash proof-of-work + ECDSA signature (inherited from
 /// PublicSubmissionEndpoint). No IP addresses are stored or used.
 ///
-/// The actual product data lives in AnonAccred's rail_product table.
-/// This endpoint wraps the query with Quanitya's PoW protection.
+/// Rail configuration is read from Redis (seeded from platform_rails.csv).
+/// Product data lives in AnonAccred's rail_product table.
 /// {@category Endpoint}
 class EndpointProductCatalog extends EndpointPublicSubmission {
   EndpointProductCatalog(_i1.EndpointCaller caller) : super(caller);
@@ -2260,33 +2262,34 @@ class EndpointProductCatalog extends EndpointPublicSubmission {
   @override
   String get name => 'productCatalog';
 
-  /// Get active store product IDs for a given payment rail.
+  /// Get the product catalog for a platform.
   ///
-  /// Requires HashCash proof-of-work and ECDSA signature.
+  /// Returns rail statuses and active product IDs for each rail
+  /// configured for the given platform.
   ///
   /// Parameters:
   /// - [challenge]: Challenge string from getChallenge()
   /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
   /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature of "challenge:railName"
-  /// - [railName]: Payment rail name (e.g. 'apple_iap', 'google_iap')
+  /// - [signature]: ECDSA signature of "challenge:platformName"
+  /// - [platformName]: Platform identifier (e.g. 'ios', 'android', 'web')
   ///
-  /// Returns: List of active store product ID strings.
-  _i2.Future<List<String>> getActiveStoreProductIds(
+  /// Returns: PlatformCatalogResponse with rails and their product IDs.
+  _i2.Future<_i24.PlatformCatalogResponse> getCatalog(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
-    String railName,
-  ) => caller.callServerEndpoint<List<String>>(
+    String platformName,
+  ) => caller.callServerEndpoint<_i24.PlatformCatalogResponse>(
     'productCatalog',
-    'getActiveStoreProductIds',
+    'getCatalog',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
       'publicKeyHex': publicKeyHex,
       'signature': signature,
-      'railName': railName,
+      'platformName': platformName,
     },
   );
 
@@ -2415,8 +2418,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// - syncDaysRemaining: days of sync remaining
   /// - accessExpiry: estimated expiry date
   /// - needsTopUp: whether user needs to purchase more sync days
-  _i2.Future<_i24.SyncAccessStatus> checkSyncAccess() =>
-      caller.callServerEndpoint<_i24.SyncAccessStatus>(
+  _i2.Future<_i25.SyncAccessStatus> checkSyncAccess() =>
+      caller.callServerEndpoint<_i25.SyncAccessStatus>(
         'syncAccess',
         'checkSyncAccess',
         {},
@@ -2438,8 +2441,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   ///
   /// Returns typed model with current balances per sync tier and overall access status.
   /// Pricing is sourced from the app stores — not served from the backend.
-  _i2.Future<_i25.SyncAccessInfo> getSyncAccessInfo() =>
-      caller.callServerEndpoint<_i25.SyncAccessInfo>(
+  _i2.Future<_i26.SyncAccessInfo> getSyncAccessInfo() =>
+      caller.callServerEndpoint<_i26.SyncAccessInfo>(
         'syncAccess',
         'getSyncAccessInfo',
         {},
@@ -2459,8 +2462,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// Get sync usage statistics for authenticated user
   ///
   /// Returns usage information and consumption history
-  _i2.Future<_i26.SyncUsageStats> getSyncUsageStats() =>
-      caller.callServerEndpoint<_i26.SyncUsageStats>(
+  _i2.Future<_i27.SyncUsageStats> getSyncUsageStats() =>
+      caller.callServerEndpoint<_i27.SyncUsageStats>(
         'syncAccess',
         'getSyncUsageStats',
         {},
@@ -2469,22 +2472,22 @@ class EndpointSyncAccess extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i27.Caller(client);
-    serverpod_auth_core = _i28.Caller(client);
-    community = _i29.Caller(client);
-    anonaccount = _i30.Caller(client);
-    anonaccred = _i31.Caller(client);
+    serverpod_auth_idp = _i28.Caller(client);
+    serverpod_auth_core = _i29.Caller(client);
+    community = _i30.Caller(client);
+    anonaccount = _i31.Caller(client);
+    anonaccred = _i32.Caller(client);
   }
 
-  late final _i27.Caller serverpod_auth_idp;
+  late final _i28.Caller serverpod_auth_idp;
 
-  late final _i28.Caller serverpod_auth_core;
+  late final _i29.Caller serverpod_auth_core;
 
-  late final _i29.Caller community;
+  late final _i30.Caller community;
 
-  late final _i30.Caller anonaccount;
+  late final _i31.Caller anonaccount;
 
-  late final _i31.Caller anonaccred;
+  late final _i32.Caller anonaccred;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -2507,7 +2510,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i32.Protocol(),
+         _i33.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
