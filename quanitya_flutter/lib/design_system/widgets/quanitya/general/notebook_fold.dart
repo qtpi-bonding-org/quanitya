@@ -104,24 +104,29 @@ class _NotebookFoldState extends State<NotebookFold>
               expanded: _isExpanded,
               child: InkWell(
                 onTap: _handleTap,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: AppSizes.space,
-                    horizontal: AppSizes.space,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: AppSizes.buttonHeight,
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(child: widget.header),
-                      widget.trailing ??
-                          RotationTransition(
-                            turns: _iconTurns,
-                            child: Icon(
-                              Icons.expand_more,
-                              color: context.colors.interactableColor,
-                              size: AppSizes.iconMedium,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: AppSizes.space,
+                      horizontal: AppSizes.space,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(child: widget.header),
+                        widget.trailing ??
+                            RotationTransition(
+                              turns: _iconTurns,
+                              child: Icon(
+                                Icons.expand_more,
+                                color: context.colors.interactableColor,
+                                size: AppSizes.iconMedium,
+                              ),
                             ),
-                          ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

@@ -353,7 +353,7 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
               child: TemplatePreview(
                 template: widget.template!,
                 aesthetics: widget.aesthetics,
-              ),
+                  ),
             ),
             VSpace.x2,
             _buildPreviewActions(context),

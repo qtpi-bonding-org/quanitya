@@ -50,6 +50,7 @@ class _ResultsTemplateFoldState extends State<ResultsTemplateFold> {
 
     return NotebookFold(
       onExpansionChanged: _onExpansionChanged,
+      semanticLabel: widget.item.templateName,
       header: Row(
         children: [
           Expanded(
@@ -65,13 +66,13 @@ class _ResultsTemplateFoldState extends State<ResultsTemplateFold> {
           Text(
             '${widget.item.entryCount}',
             style:
-                context.text.bodySmall?.copyWith(color: palette.textSecondary),
+                context.text.bodyMedium?.copyWith(color: palette.textSecondary),
           ),
           if (widget.item.lastLoggedAt != null) ...[
             HSpace.x1,
             Text(
               dateFormat.format(widget.item.lastLoggedAt!),
-              style: context.text.bodySmall
+              style: context.text.bodyMedium
                   ?.copyWith(color: palette.textSecondary),
             ),
           ],

@@ -293,9 +293,9 @@ class DataRetrievalService {
 
         return TemplateAggregatedData(
           template: template,
-          numericFields: numericFields,
-          booleanFields: booleanFields,
-          categoricalFields: categoricalFields,
+          numericFields: numericFields.where((f) => !f.isEmpty).toList(),
+          booleanFields: booleanFields.where((f) => !f.isEmpty).toList(),
+          categoricalFields: categoricalFields.where((f) => !f.isEmpty).toList(),
           totalEntries: entries.length,
           completedEntries: entries.where((e) => e.entry.isCompleted).length,
           startDate: startDate,
@@ -313,7 +313,7 @@ class DataRetrievalService {
   ) {
     final points = <({DateTime date, num value})>[];
     for (final entry in entries) {
-      final raw = entry.entry.data[field.label];
+      final raw = entry.entry.data[field.id];
       final value = _parseNumeric(raw);
       if (value != null) {
         points.add((date: entry.entry.displayTimestamp, value: value));
@@ -329,7 +329,7 @@ class DataRetrievalService {
   ) {
     final points = <({DateTime date, bool value})>[];
     for (final entry in entries) {
-      final value = entry.entry.data[field.label];
+      final value = entry.entry.data[field.id];
       if (value is bool) {
         points.add((date: entry.entry.displayTimestamp, value: value));
       }
@@ -344,7 +344,7 @@ class DataRetrievalService {
   ) {
     final points = <({DateTime date, String category})>[];
     for (final entry in entries) {
-      final value = entry.entry.data[field.label];
+      final value = entry.entry.data[field.id];
       if (value is String && value.isNotEmpty) {
         points.add((date: entry.entry.displayTimestamp, category: value));
       }

@@ -230,7 +230,7 @@ class _AnalysisResultCard extends StatelessWidget {
             VSpace.x05,
             Text(
               script.reasoning,
-              style: context.text.bodySmall?.copyWith(
+              style: context.text.bodyMedium?.copyWith(
                 color: palette.textSecondary,
               ),
             ),
@@ -306,42 +306,47 @@ class _FieldAnalysisCard extends StatelessWidget {
                 templateId: templateId,
               );
             },
-            child: Container(
-              padding: AppPadding.allDouble,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: palette.textSecondary.withValues(alpha: 0.2),
-                ),
-                borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: AppSizes.buttonHeight,
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          fieldData.field.label,
-                          style: context.text.titleMedium?.copyWith(
-                            color: palette.textPrimary,
+              child: Container(
+                padding: AppPadding.allDouble,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: palette.textSecondary.withValues(alpha: 0.2),
+                  ),
+                  borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            fieldData.field.label,
+                            style: context.text.titleMedium?.copyWith(
+                              color: palette.textPrimary,
+                            ),
                           ),
-                        ),
-                        VSpace.x05,
-                        Text(
-                          context.l10n.resultsDataPoints(fieldData.points.length),
-                          style: context.text.bodySmall?.copyWith(
-                            color: palette.textSecondary,
+                          VSpace.x05,
+                          Text(
+                            context.l10n.resultsDataPoints(fieldData.points.length),
+                            style: context.text.bodyMedium?.copyWith(
+                              color: palette.textSecondary,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  Icon(
-                    Icons.chevron_right,
-                    color: palette.textSecondary,
-                    size: AppSizes.iconMedium,
-                  ),
-                ],
+                    Icon(
+                      Icons.chevron_right,
+                      color: palette.textSecondary,
+                      size: AppSizes.iconMedium,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

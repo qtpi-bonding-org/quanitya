@@ -16,7 +16,6 @@ import '../../../../logic/templates/models/shared/template_field.dart';
 import '../../../../logic/templates/models/shared/tracker_template.dart';
 import '../../../../logic/templates/services/shared/default_value_handler.dart';
 import '../../../../logic/templates/services/shared/dynamic_field_builder.dart';
-import '../../../../design_system/widgets/quanitya/general/zen_paper_background.dart';
 import '../../../../infrastructure/fonts/font_preloader_service.dart';
 import '../../../../support/utils/icon_resolver.dart';
 
@@ -269,43 +268,37 @@ class _TemplatePreviewState extends State<TemplatePreview> {
 
   @override
   Widget build(BuildContext context) {
-    return PhysicalModel(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
-      clipBehavior: Clip.antiAlias,
-      elevation: 4,
-      shadowColor: QuanityaPalette.primary.textPrimary.withValues(alpha: 0.1),
-      child: ZenPaperBackground(
-        baseColor: QuanityaPalette.primary.backgroundPrimary,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Scrollable content: header + fields
-            Expanded(
-              child: ListView(
-                padding: AppPadding.page,
-                children: [
-                  // Header: Icon + Title centered
-                  _buildHeader(),
+    return _buildContent();
+  }
 
-                  VSpace.x3,
+  Widget _buildContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Scrollable content: header + fields
+        Expanded(
+          child: ListView(
+            padding: AppPadding.page,
+            children: [
+              // Header: Icon + Title centered
+              _buildHeader(),
 
-                  // Fields
-                  ...widget.template.fields.map(
-                    (field) => Padding(
-                      padding: AppPadding.verticalSingle,
-                      child: _buildField(field),
-                    ),
-                  ),
-                ],
+              VSpace.x3,
+
+              // Fields
+              ...widget.template.fields.map(
+                (field) => Padding(
+                  padding: AppPadding.verticalSingle,
+                  child: _buildField(field),
+                ),
               ),
-            ),
-
-            // Actions (fixed at bottom)
-            if (widget.actions.isNotEmpty) _buildActions(),
-          ],
+            ],
+          ),
         ),
-      ),
+
+        // Actions (fixed at bottom)
+        if (widget.actions.isNotEmpty) _buildActions(),
+      ],
     );
   }
 

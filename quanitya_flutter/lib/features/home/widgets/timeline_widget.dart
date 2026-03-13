@@ -94,15 +94,18 @@ class TimelineWidget extends StatelessWidget {
                             color: QuanityaPalette.primary.textPrimary,
                           ),
                   ),
-                  // Icon Bubble - uses pre-computed color and icon
+                  // Icon Bubble - accent-colored icon, interactable border
                   Container(
                     width: AppSizes.size36,
                     height: AppSizes.size36,
                     decoration: BoxDecoration(
-                      color: accentColor.withValues(alpha: 0.1),
+                      color: entryWithContext.template.isHidden
+                          ? QuanityaPalette.primary.textPrimary
+                              .withValues(alpha: 0.25)
+                          : Colors.transparent,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: accentColor,
+                        color: QuanityaPalette.primary.interactableColor,
                         width: 2,
                       ),
                     ),

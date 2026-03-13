@@ -154,7 +154,7 @@ class LiveResultsPanel extends StatelessWidget {
         children: [
           Text(
             scalar.label,
-            style: context.text.bodySmall?.copyWith(
+            style: context.text.bodyMedium?.copyWith(
               color: QuanityaPalette.primary.textSecondary,
             ),
           ),
@@ -169,7 +169,7 @@ class LiveResultsPanel extends StatelessWidget {
           if (scalar.unit != null)
             Text(
               scalar.unit!,
-              style: context.text.labelSmall?.copyWith(
+              style: context.text.bodySmall?.copyWith(
                 color: QuanityaPalette.primary.textSecondary,
               ),
             ),
@@ -205,7 +205,7 @@ class LiveResultsPanel extends StatelessWidget {
             children: [
               Text(
                 vector.label,
-                style: context.text.bodySmall?.copyWith(
+                style: context.text.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -265,12 +265,12 @@ class LiveResultsPanel extends StatelessWidget {
         children: [
           Text(
             context.l10n.matrixDimensions(colCount, rowCount),
-            style: context.text.bodySmall,
+            style: context.text.bodyMedium,
           ),
           VSpace.x05,
           Text(
             context.l10n.matrixColumns(matrix.columnNames.join(', ')),
-            style: context.text.labelSmall,
+            style: context.text.bodySmall,
           ),
         ],
       ),
@@ -292,7 +292,7 @@ class LiveResultsPanel extends StatelessWidget {
             VSpace.x05,
             Text(
               context.l10n.waitingForResults,
-              style: context.text.bodySmall?.copyWith(
+              style: context.text.bodyMedium?.copyWith(
                 color: QuanityaPalette.primary.textSecondary,
               ),
             ),

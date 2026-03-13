@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:powersync/powersync.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,22 +10,14 @@ import '../db/app_database.dart';
 import '../../infrastructure/config/dev_config.dart';
 import '../../features/app_operating_mode/models/app_operating_mode.dart';
 
-/// PowerSync endpoint URL fallback for development
-/// In production, the endpoint URL comes from the Serverpod backend response
+/// Resolve localhost for Android emulator loopback
 String _resolveUrl(String url) {
-  var resolvedUrl = url;
-
-  // Handle Android simulator localhost loopback
   if (!kIsWeb &&
       defaultTargetPlatform == TargetPlatform.android &&
-      resolvedUrl.contains('localhost')) {
-    resolvedUrl = resolvedUrl.replaceAll('localhost', '10.0.2.2');
+      url.contains('localhost')) {
+    return url.replaceAll('localhost', '10.0.2.2');
   }
-  return resolvedUrl;
-}
-
-String get _devPowerSyncUrl {
-  return _resolveUrl(dotenv.env['POWERSYNC_URL'] ?? 'http://localhost:8105');
+  return url;
 }
 
 /// Interface for PowerSync service
@@ -210,11 +201,7 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
         if (DevConfig.enablePowerSyncConnectionErrors) {
           debugPrint('PowerSync: Failed to get endpoint for cached token: $e');
         }
-        // Fall back to dev URL if server is unreachable
-        return PowerSyncCredentials(
-          endpoint: _devPowerSyncUrl,
-          token: _cachedToken!,
-        );
+        return null;
       }
     }
 

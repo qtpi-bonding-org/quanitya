@@ -39,25 +39,12 @@ class DynamicFieldBuilder {
     Map<String, Color>? widgetColors,
     TextStyle? textStyle,
   }) {
-    // Handle legacy fields without uiElement (graceful fallback)
+    // Infer uiElement from field type when not explicitly set
     if (field.uiElement == null) {
-      return Container(
-        padding: AppPadding.allDouble,
-        decoration: BoxDecoration(
-          color: QuanityaPalette.primary.textSecondary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-          border: Border.all(
-            color: QuanityaPalette.primary.textSecondary.withValues(alpha: 0.2),
-          ),
-        ),
-        child: Text(
-          'No UI element selected: ${field.label}\nValue: ${value?.toString() ?? 'No value'}',
-          style: textStyle?.copyWith(
-            color: QuanityaPalette.primary.textSecondary.withValues(alpha: 0.6),
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      );
+      final inferred = _inferUiElement(field.type);
+      if (inferred != null) {
+        field = field.copyWith(uiElement: inferred);
+      }
     }
 
     // Handle list fields
@@ -94,6 +81,21 @@ class DynamicFieldBuilder {
     return (minItems: null, maxItems: null);
   }
 
+
+  /// Infers a default UI element from the field's data type.
+  static UiElementEnum? _inferUiElement(FieldEnum type) {
+    return switch (type) {
+      FieldEnum.text => UiElementEnum.textField,
+      FieldEnum.integer => UiElementEnum.stepper,
+      FieldEnum.float => UiElementEnum.slider,
+      FieldEnum.boolean => UiElementEnum.toggleSwitch,
+      FieldEnum.datetime => UiElementEnum.datetimePicker,
+      FieldEnum.enumerated => UiElementEnum.dropdown,
+      FieldEnum.location => UiElementEnum.locationPicker,
+      FieldEnum.dimension => UiElementEnum.stepper,
+      FieldEnum.reference => null,
+    };
+  }
 
   /// Builds a list field with add/remove controls and bounds enforcement
   static Widget _buildListField({
@@ -337,8 +339,10 @@ class DynamicFieldBuilder {
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
+    final controller = TextEditingController(text: value?.toString() ?? '');
     return Builder(
       builder: (context) => QuanityaTextField(
+        controller: controller,
         hintText: context.l10n.fieldBuilderEnterHint(field.label.toLowerCase()),
         onChanged: onChanged,
         style: textStyle,
@@ -363,8 +367,10 @@ class DynamicFieldBuilder {
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
+    final controller = TextEditingController(text: value?.toString() ?? '');
     return Builder(
       builder: (context) => QuanityaTextField(
+        controller: controller,
         hintText: context.l10n.fieldBuilderEnterHint(field.label.toLowerCase()),
         onChanged: onChanged,
         maxLines: 4,

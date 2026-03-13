@@ -1,5 +1,8 @@
 import '../../logic/analytics/models/analysis_script.dart';
 
+/// Time-series numeric data extracted from log entries for a specific field.
+typedef FieldTimeSeries = ({List<double> values, List<DateTime> timestamps});
+
 /// Repository interface for AnalysisScriptModel operations with encryption handling.
 ///
 /// This interface defines the contract for managing analysis scripts with
@@ -75,4 +78,11 @@ abstract class IAnalysisScriptRepository {
 
   /// Gets the count of all analysis scripts.
   Future<int> countScripts();
+
+  /// Fetches numeric time-series data for a field.
+  ///
+  /// Resolves the fieldId format ("templateId:fieldName") to the actual
+  /// field UUID used in entry data, then extracts numeric values from
+  /// log entries in the last [days] days.
+  Future<FieldTimeSeries> fetchFieldTimeSeries(String fieldId, {int days = 90});
 }

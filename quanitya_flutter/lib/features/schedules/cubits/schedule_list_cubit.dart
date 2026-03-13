@@ -23,6 +23,13 @@ class ScheduleListCubit extends QuanityaCubit<ScheduleListState> {
     this._templateRepository,
   ) : super(const ScheduleListState());
 
+  /// Set hidden visibility directly (driven by external toggle, no auth).
+  void setShowHidden(bool showHidden) {
+    if (state.showHidden == showHidden) return;
+    emit(state.copyWith(showHidden: showHidden));
+    load();
+  }
+
   /// Start watching schedules
   void load() {
     _subscription?.cancel();
@@ -33,6 +40,10 @@ class ScheduleListCubit extends QuanityaCubit<ScheduleListState> {
         for (final schedule in schedules) {
           final templateWithAesthetics = await _templateRepository.findById(schedule.templateId);
           if (templateWithAesthetics != null) {
+            // Filter out hidden templates when not showing hidden
+            if (!state.showHidden && templateWithAesthetics.template.isHidden) {
+              continue;
+            }
             enriched.add(ScheduleWithContext(
               schedule: schedule,
               template: templateWithAesthetics.template,

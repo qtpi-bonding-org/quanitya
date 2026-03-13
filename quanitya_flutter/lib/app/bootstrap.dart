@@ -24,7 +24,6 @@ import '../logic/schedules/services/schedule_generator_service.dart';
 import '../features/settings/services/tested_models_service.dart';
 import '../features/app_operating_mode/cubits/app_operating_cubit.dart';
 import '../features/app_operating_mode/models/app_operating_mode.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'bootstrap.config.dart';
 
 /// Global service locator instance
@@ -45,13 +44,7 @@ Future<void> bootstrap() async {
   debugPrint('Bootstrap: Starting...');
 
   try {
-    // 0. Load environment variables
-    debugPrint('Bootstrap: Loading .env...');
-    await dotenv.load(fileName: '.env').catchError((e) {
-      debugPrint('Bootstrap: Warning - Could not load .env file: $e');
-    });
-
-    // 0.5. Apply dev configuration (including logging settings)
+    // 0. Apply dev configuration (including logging settings)
     debugPrint('Bootstrap: Applying dev configuration...');
     DevConfig.applyLoggingConfig();
     debugPrint(

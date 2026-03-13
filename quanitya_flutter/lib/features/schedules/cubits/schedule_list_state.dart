@@ -33,5 +33,6 @@ class ScheduleListState
     Object? error,
     ScheduleListOperation? lastOperation,
     @Default([]) List<ScheduleWithContext> schedules,
+    @Default(false) bool showHidden,
   }) = _ScheduleListState;
 }

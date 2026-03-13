@@ -35,6 +35,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
 
   TemporalTimelineCubit? _timelineCubit;
   TimelineDataCubit? _dataCubit;
+  ScheduleListCubit? _scheduleCubit;
 
   @override
   void initState() {
@@ -84,7 +85,10 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
           },
         ),
         BlocProvider(
-          create: (context) => getIt.get<ScheduleListCubit>()..load(),
+          create: (context) {
+            _scheduleCubit = getIt.get<ScheduleListCubit>()..load();
+            return _scheduleCubit!;
+          },
         ),
       ],
       child: MultiBlocListener(
@@ -94,6 +98,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
               previous.showingHidden != current.showingHidden,
             listener: (context, state) {
               _dataCubit?.setIncludeHidden(state.showingHidden);
+              _scheduleCubit?.setShowHidden(state.showingHidden);
             },
           ),
           BlocListener<TemporalTimelineCubit, TemporalTimelineState>(
@@ -124,7 +129,12 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                   setState(() => _pastScrollOffset = offset);
                 },
               ),
-              const TemporalPresentPanel(),
+              Builder(
+                builder: (context) {
+                  final showHidden = context.watch<TemporalTimelineCubit>().state.showingHidden;
+                  return TemporalPresentPanel(showHidden: showHidden);
+                },
+              ),
               TemporalFuturePanel(
                 onScrollOffsetChanged: (offset) {
                   setState(() => _futureScrollOffset = offset);

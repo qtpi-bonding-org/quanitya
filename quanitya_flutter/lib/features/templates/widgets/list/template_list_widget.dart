@@ -14,13 +14,48 @@ import '../../cubits/list/template_list_state.dart';
 import 'dashboard_header.dart';
 import 'tracker_card.dart';
 
-class TemplateListWidget extends StatelessWidget {
-  const TemplateListWidget({super.key});
+class TemplateListWidget extends StatefulWidget {
+  /// When provided, drives hidden visibility from an external toggle
+  /// (e.g. the lock icon on the home page).
+  final bool showHidden;
+
+  const TemplateListWidget({super.key, this.showHidden = false});
+
+  @override
+  State<TemplateListWidget> createState() => _TemplateListWidgetState();
+}
+
+class _TemplateListWidgetState extends State<TemplateListWidget> {
+  late final TemplateListCubit _cubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _cubit = GetIt.I<TemplateListCubit>();
+    if (widget.showHidden) {
+      _cubit.setShowHidden(true);
+    }
+    _cubit.load();
+  }
+
+  @override
+  void didUpdateWidget(covariant TemplateListWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.showHidden != widget.showHidden) {
+      _cubit.setShowHidden(widget.showHidden);
+    }
+  }
+
+  @override
+  void dispose() {
+    _cubit.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GetIt.I<TemplateListCubit>()..load(),
+    return BlocProvider.value(
+      value: _cubit,
       child: SafeArea(
           child: Column(
             children: [
@@ -55,7 +90,7 @@ class TemplateListWidget extends StatelessWidget {
                     if (state.isLoading && state.templates.isEmpty) {
                        return const Center(child: CircularProgressIndicator());
                     }
-                    
+
                     return QuanityaEmptyOr(
                       isEmpty: state.templates.isEmpty,
                       child: SingleChildScrollView(

@@ -87,8 +87,12 @@ class PermissionService {
     try {
       var status = await permission.status;
       if (status.isGranted) {
-        debugPrint('PermissionService: $label already granted');
         return true;
+      }
+
+      if (status.isPermanentlyDenied) {
+        debugPrint('PermissionService: $label permanently denied — open Settings to grant');
+        return false;
       }
 
       status = await permission.request();

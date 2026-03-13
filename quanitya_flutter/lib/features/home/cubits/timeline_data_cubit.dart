@@ -436,7 +436,7 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
     return Icon(Icons.description, size: AppSizes.fontBig, color: color);
   }
 
-  /// Resolve to Quanitya colors (no dynamic parsing)
+  /// Resolve accent color from template aesthetics hex value.
   Color _resolveAccentColor(dynamic aesthetics) {
     if (aesthetics == null) return QuanityaPalette.primary.textSecondary;
 
@@ -445,25 +445,11 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
       return QuanityaPalette.primary.textSecondary;
     }
 
-    // Map common colors to Quanitya palette instead of parsing hex
-    final colorHex = accents.first.toLowerCase();
-    switch (colorHex) {
-      case '#2196f3': // Blue
-      case '#1976d2':
-        return QuanityaPalette.primary.interactableColor;
-      case '#4caf50': // Green
-      case '#2e7d32':
-        return QuanityaPalette.primary.successColor;
-      case '#ff9800': // Orange
-      case '#f57c00':
-        return QuanityaPalette.primary.errorColor;
-      case '#9c27b0': // Purple
-      case '#e91e63': // Pink
-        return QuanityaPalette.primary.textPrimary;
-      default:
-        // Fallback to interactable color for unknown colors
-        return QuanityaPalette.primary.interactableColor;
-    }
+    final hex = accents.first.replaceFirst('#', '');
+    if (hex.length != 6) return QuanityaPalette.primary.textSecondary;
+    final parsed = int.tryParse(hex, radix: 16);
+    if (parsed == null) return QuanityaPalette.primary.textSecondary;
+    return Color(parsed + 0xFF000000);
   }
 
   @override

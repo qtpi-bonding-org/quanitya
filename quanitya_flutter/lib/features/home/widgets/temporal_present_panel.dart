@@ -12,7 +12,9 @@ import '../../templates/widgets/list/template_list_widget.dart';
 /// This panel is the main workspace where users manage their tracker templates.
 /// It's the "now" - what templates are available for logging.
 class TemporalPresentPanel extends StatelessWidget {
-  const TemporalPresentPanel({super.key});
+  final bool showHidden;
+
+  const TemporalPresentPanel({super.key, this.showHidden = false});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +35,7 @@ class TemporalPresentPanel extends StatelessWidget {
             ),
           ),
           VSpace.x2,
-          const Expanded(child: TemplateListWidget()),
+          Expanded(child: TemplateListWidget(showHidden: showHidden)),
         ],
       ),
     );

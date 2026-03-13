@@ -162,6 +162,10 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                       ),
                     ),
 
+                    // Privacy toggle
+                    if (isEditing)
+                      _buildPrivateToggle(context, state),
+
                     // Extra space at bottom so content isn't hidden behind sticky bar
                     VSpace.x4,
                   ],
@@ -255,6 +259,40 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
           AppNavigation.back(context);
         }
       },
+    );
+  }
+
+  Widget _buildPrivateToggle(
+    BuildContext context,
+    TemplateEditorState state,
+  ) {
+    final isHidden = state.template?.isHidden ?? false;
+    return Padding(
+      padding: AppPadding.verticalSingle,
+      child: Row(
+        children: [
+          Icon(
+            isHidden ? Icons.lock : Icons.lock_open,
+            size: AppSizes.iconMedium,
+            color: context.colors.textSecondary,
+          ),
+          HSpace.x2,
+          Expanded(
+            child: Text(
+              context.l10n.templatePrivateLabel,
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.textPrimary,
+              ),
+            ),
+          ),
+          Switch.adaptive(
+            value: isHidden,
+            activeTrackColor: context.colors.interactableColor,
+            onChanged: (_) =>
+                context.read<TemplateEditorCubit>().toggleHidden(),
+          ),
+        ],
+      ),
     );
   }
 

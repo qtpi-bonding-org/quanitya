@@ -44,6 +44,13 @@ class TemplateListCubit extends QuanityaCubit<TemplateListState> {
     });
   }
 
+  /// Set hidden visibility directly (driven by external toggle, no auth).
+  void setShowHidden(bool showHidden) {
+    if (state.showingHidden == showHidden) return;
+    emit(state.copyWith(showingHidden: showHidden));
+    load();
+  }
+
   /// Toggle visibility of hidden templates (requires local auth).
   Future<void> toggleShowHidden() async {
     if (state.showingHidden) {

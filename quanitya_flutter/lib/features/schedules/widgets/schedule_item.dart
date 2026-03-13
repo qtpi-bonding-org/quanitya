@@ -5,6 +5,7 @@ import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/group.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
+import '../../../support/extensions/color_extensions.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../support/utils/icon_resolver.dart';
 import '../../templates/widgets/editor/schedule_section.dart';
@@ -123,8 +124,11 @@ class _ScheduleItemState extends State<ScheduleItem> {
     final iconString = aesthetics?.icon;
     final iconEmoji = aesthetics?.emoji;
 
-    // Use neutral1 (blue-grey) for all timeline icons
-    final iconColor = palette.textSecondary;
+    // Use aesthetic accent color if available, fallback to textSecondary
+    final accentHex = aesthetics?.palette.accents.firstOrNull;
+    final iconColor = accentHex != null
+        ? accentHex.toColor()
+        : palette.textSecondary;
 
     return QuanityaGroup(
       onTap: widget.onTap,
@@ -154,11 +158,13 @@ class _ScheduleItemState extends State<ScheduleItem> {
                     width: AppSizes.size36,
                     height: AppSizes.size36,
                     decoration: BoxDecoration(
-                      color: palette.backgroundPrimary,
+                      color: template.isHidden
+                          ? palette.textPrimary.withValues(alpha: 0.25)
+                          : Colors.transparent,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: palette.textSecondary.withValues(alpha: 0.3),
-                        width: AppSizes.borderWidth,
+                        color: palette.interactableColor,
+                        width: 2,
                       ),
                     ),
                     alignment: Alignment.center,

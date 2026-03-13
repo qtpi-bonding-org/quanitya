@@ -9,7 +9,7 @@ import '../models/analysis_output.dart';
 import '../models/matrix_vector_scalar/time_series_matrix.dart';
 import '../models/matrix_vector_scalar/field_value.dart';
 import '../enums/analysis_output_mode.dart';
-import '../../../data/dao/log_entry_query_dao.dart';
+import '../../../data/interfaces/analysis_script_interface.dart';
 import '../exceptions/analysis_exceptions.dart';
 
 /// Hardened WASM Analysis Service with:
@@ -24,26 +24,29 @@ abstract class IWasmAnalysisService {
 
 @Injectable(as: IWasmAnalysisService)
 class WasmAnalysisService implements IWasmAnalysisService {
-  final LogEntryQueryDao _logEntryDao;
+  final IAnalysisScriptRepository _repo;
 
   // Performance: Cache heavy library strings in memory
   static String? _cachedShell;
   static String? _cachedStatsLib;
 
-  WasmAnalysisService(this._logEntryDao);
+  WasmAnalysisService(this._repo);
 
   @override
   Future<AnalysisOutput> execute(AnalysisScriptModel script) async {
     try {
       // 1. Parallel: Fetch data + ensure assets loaded
-      final dataFuture = _fetchFieldData(script.fieldId);
+      final dataFuture = _repo.fetchFieldTimeSeries(script.fieldId);
       await _ensureAssetsLoaded();
 
       final data = await dataFuture;
 
       // Early return if no data — avoid JS errors on empty arrays
       if (data.values.isEmpty) {
-        throw AnalysisException('No data found for this field. Log some entries first.');
+        throw AnalysisException(
+          'No numeric values extracted for this field. '
+          'Log some entries first, or check the field name matches.',
+        );
       }
 
       // 2. Execute JS via platform channel (already native/off-thread)
@@ -135,62 +138,6 @@ class WasmAnalysisService implements IWasmAnalysisService {
     } finally {
       await javascript.dispose();
     }
-  }
-
-  Future<({List<double> values, List<DateTime> timestamps})> _fetchFieldData(
-    String fieldId,
-  ) async {
-    // Parse fieldId format: "templateId:fieldName"
-    final parts = fieldId.split(':');
-    if (parts.length != 2) {
-      throw AnalysisException('Invalid fieldId format: $fieldId');
-    }
-
-    final templateId = parts[0];
-    final fieldName = parts[1];
-
-    // Fetch log entries from last 90 days
-    final endDate = DateTime.now();
-    final startDate = endDate.subtract(const Duration(days: 90));
-    final entries = await _logEntryDao.findByTemplateIdInRange(
-      templateId,
-      startDate,
-      endDate,
-    );
-
-    // ignore: avoid_print
-    debugPrint('WasmAnalysis: fieldId=$fieldId, templateId=$templateId, fieldName=$fieldName, entries=${entries.length}');
-
-    if (entries.isEmpty) {
-      return (values: <double>[], timestamps: <DateTime>[]);
-    }
-
-    final values = <double>[];
-    final timestamps = <DateTime>[];
-
-    for (final entry in entries) {
-      final ts = entry.occurredAt ?? entry.scheduledFor;
-      if (ts == null) continue;
-
-      final val = _extractNumericValue(entry.data, fieldName);
-      if (val != null) {
-        values.add(val);
-        timestamps.add(ts);
-      }
-    }
-
-    return (values: values, timestamps: timestamps);
-  }
-
-  double? _extractNumericValue(Map<String, dynamic> data, String fieldName) {
-    final value = data[fieldName];
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value);
-    if (value is Map && value.containsKey('value')) {
-      final v = value['value'];
-      if (v is num) return v.toDouble();
-    }
-    return null;
   }
 
   AnalysisOutput _boxResult(
