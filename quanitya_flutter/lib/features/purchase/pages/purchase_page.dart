@@ -125,6 +125,7 @@ class PurchaseTabContent extends StatelessWidget {
                   context.read<PurchaseCubit>().recoverPurchases(),
             ),
           ),
+          VSpace.x3,
 
           // Validation result feedback
           BlocBuilder<PurchaseCubit, PurchaseState>(
