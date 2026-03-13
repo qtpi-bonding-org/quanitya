@@ -37,17 +37,22 @@ class LlmProviderSection extends StatelessWidget {
                 ),
               )
             else
-              ...state.configs.map((config) => Padding(
+              ...state.configs.map((config) {
+                final isTested = state.availableModels.any(
+                    (m) => m.id == config.modelId && m.tested);
+                return Padding(
                     padding: AppPadding.verticalSingle,
                     child: _ConfigRow(
                       config: config,
                       isActive: config.id == state.activeConfig?.id,
+                      isTested: isTested,
                       onTap: () => context
                           .read<LlmProviderCubit>()
                           .selectConfig(config.id),
                       onEdit: () => _showConfigSheet(context, config),
                     ),
-                  )),
+                  );
+              }),
 
             VSpace.x2,
             Center(
@@ -74,12 +79,14 @@ class LlmProviderSection extends StatelessWidget {
 class _ConfigRow extends StatelessWidget {
   final LlmProviderConfigModel config;
   final bool isActive;
+  final bool isTested;
   final VoidCallback onTap;
   final VoidCallback onEdit;
 
   const _ConfigRow({
     required this.config,
     required this.isActive,
+    required this.isTested,
     required this.onTap,
     required this.onEdit,
   });
@@ -111,34 +118,33 @@ class _ConfigRow extends StatelessWidget {
                   : Icons.computer,
               size: AppSizes.iconMedium,
               color: isActive
-                  ? context.colors.interactableColor
-                  : context.colors.textSecondary,
+                  ? context.colors.textPrimary
+                  : context.colors.interactableColor,
             ),
             HSpace.x2,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '$displayUrl — ${config.modelId}',
+                  Text.rich(
+                    TextSpan(
+                      text: '$displayUrl — ${config.modelId}',
+                      children: [
+                        if (isTested)
+                          TextSpan(
+                            text: ' (Quanitya Tested)',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                      ],
+                    ),
                     style: context.text.bodyLarge?.copyWith(
                       color: context.colors.textPrimary,
                     ),
                   ),
                 ],
               ),
-            ),
-            if (isActive)
-              Icon(
-                Icons.check_circle,
-                size: AppSizes.iconSmall,
-                color: context.colors.successColor,
-              ),
-            HSpace.x1,
-            Icon(
-              Icons.chevron_right,
-              size: AppSizes.iconSmall,
-              color: context.colors.textSecondary,
             ),
           ],
         ),

@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../design_system/structures/group.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
@@ -21,53 +22,28 @@ class LlmConfigSheet {
     required LlmProviderCubit cubit,
     LlmProviderConfigModel? config,
   }) async {
-    final baseUrlController =
-        TextEditingController(text: config?.baseUrl ?? 'https://openrouter.ai/api/v1');
-    final modelController =
-        TextEditingController(text: config?.modelId ?? '');
-    final formKey = GlobalKey<FormState>();
-
-    final result = await LooseInsertSheet.show<bool>(
+    final result = await LooseInsertSheet.show<LlmProviderConfigModel>(
       context: context,
       title: config != null
           ? context.l10n.actionEdit
           : context.l10n.llmProviderAddConfig,
       builder: (sheetContext) => _LlmConfigForm(
-        formKey: formKey,
-        baseUrlController: baseUrlController,
-        modelController: modelController,
         cubit: cubit,
         config: config,
       ),
     );
 
-    if (result == true) {
-      final newConfig = LlmProviderConfigModel(
-        id: config?.id ?? _uuid.v4(),
-        baseUrl: baseUrlController.text.trim(),
-        modelId: modelController.text.trim(),
-        apiKeyId: config?.apiKeyId,
-        lastUsedAt: DateTime.now(),
-      );
-      await cubit.saveConfig(newConfig);
+    if (result != null) {
+      await cubit.saveConfig(result);
     }
-
-    baseUrlController.dispose();
-    modelController.dispose();
   }
 }
 
 class _LlmConfigForm extends StatefulWidget {
-  final GlobalKey<FormState> formKey;
-  final TextEditingController baseUrlController;
-  final TextEditingController modelController;
   final LlmProviderCubit cubit;
   final LlmProviderConfigModel? config;
 
   const _LlmConfigForm({
-    required this.formKey,
-    required this.baseUrlController,
-    required this.modelController,
     required this.cubit,
     required this.config,
   });
@@ -77,93 +53,156 @@ class _LlmConfigForm extends StatefulWidget {
 }
 
 class _LlmConfigFormState extends State<_LlmConfigForm> {
+  late final TextEditingController _baseUrlController;
+  late final TextEditingController _modelController;
+  final _formKey = GlobalKey<FormState>();
   String _searchQuery = '';
+  String? _selectedProvider;
+  List<OpenRouterModelRecord> _models = [];
+  List<String> _providers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _baseUrlController = TextEditingController(
+      text: widget.config?.baseUrl ?? 'https://openrouter.ai/api/v1',
+    );
+    _modelController = TextEditingController(
+      text: widget.config?.modelId ?? '',
+    );
+    _loadModels();
+  }
+
+  Future<void> _loadModels() async {
+    await widget.cubit.fetchOpenRouterModels();
+    if (mounted) {
+      final models = widget.cubit.state.availableModels;
+      final providers = models
+          .map((m) => m.id.contains('/') ? m.id.split('/').first : null)
+          .whereType<String>()
+          .toSet()
+          .toList()
+        ..sort();
+      setState(() {
+        _models = models;
+        _providers = providers;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _baseUrlController.dispose();
+    _modelController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final models = widget.cubit.state.availableModels;
+    final byProvider = _selectedProvider != null
+        ? _models.where((m) => m.id.startsWith('$_selectedProvider/'))
+        : _models;
     final filtered = _searchQuery.isEmpty
-        ? models
-        : models
+        ? <OpenRouterModelRecord>[]
+        : byProvider
             .where((m) =>
                 m.id.toLowerCase().contains(_searchQuery.toLowerCase()))
+            .take(10)
             .toList();
 
-    return Form(
-      key: widget.formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          QuanityaTextFormField(
-            controller: widget.baseUrlController,
-            labelText: context.l10n.llmProviderBaseUrl,
-            hintText: 'https://openrouter.ai/api/v1',
-            validator: (v) => (v == null || v.isEmpty)
-                ? context.l10n.validationRequired
-                : null,
-          ),
-          VSpace.x2,
-          QuanityaTextFormField(
-            controller: widget.modelController,
-            labelText: context.l10n.llmProviderModel,
-            hintText: context.l10n.llmProviderSearchModels,
-            onChanged: (v) => setState(() => _searchQuery = v),
-            validator: (v) => (v == null || v.isEmpty)
-                ? context.l10n.validationRequired
-                : null,
-          ),
-          if (filtered.isNotEmpty) ...[
-            VSpace.x1,
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 200),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: filtered.length,
-                itemBuilder: (context, index) {
-                  final model = filtered[index];
-                  return _ModelTile(
-                    model: model,
-                    onTap: () {
-                      widget.modelController.text = model.id;
-                      setState(() => _searchQuery = '');
-                    },
-                  );
-                },
+    return Flexible(
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              QuanityaTextFormField(
+                controller: _baseUrlController,
+                labelText: context.l10n.llmProviderBaseUrl,
+                hintText: 'https://openrouter.ai/api/v1',
+                validator: (v) => (v == null || v.isEmpty)
+                    ? context.l10n.validationRequired
+                    : null,
               ),
-            ),
-          ],
-          VSpace.x3,
-          Row(
+              VSpace.x2,
+              if (_providers.isNotEmpty) ...[
+                Wrap(
+                  spacing: AppSizes.space * 0.5,
+                  runSpacing: AppSizes.space * 0.5,
+                  children: _providers.map((provider) {
+                    return PenCircledChip(
+                      label: provider,
+                      isSelected: _selectedProvider == provider,
+                      onTap: () => setState(() {
+                        _selectedProvider =
+                            _selectedProvider == provider ? null : provider;
+                      }),
+                    );
+                  }).toList(),
+                ),
+                VSpace.x2,
+              ],
+              QuanityaTextFormField(
+                controller: _modelController,
+                labelText: context.l10n.llmProviderModel,
+                hintText: context.l10n.llmProviderSearchModels,
+                onChanged: (v) => setState(() => _searchQuery = v),
+                validator: (v) => (v == null || v.isEmpty)
+                    ? context.l10n.validationRequired
+                    : null,
+              ),
+              if (filtered.isNotEmpty) ...[
+                VSpace.x1,
+                ...filtered.map((model) => _ModelTile(
+                      model: model,
+                      onTap: () {
+                        _modelController.text = model.id;
+                        setState(() => _searchQuery = '');
+                      },
+                    )),
+              ],
+              VSpace.x3,
+              Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (widget.config != null)
+              if (widget.config case final existingConfig?)
                 QuanityaTextButton(
                   text: context.l10n.actionDelete,
                   isDestructive: true,
                   onPressed: () {
-                    widget.cubit.deleteConfig(widget.config!.id);
-                    Navigator.of(context).pop(false);
+                    widget.cubit.deleteConfig(existingConfig.id);
+                    Navigator.of(context).pop();
                   },
                 ),
               const Spacer(),
-              QuanityaTextButton(
-                text: context.l10n.llmProviderTestConnection,
-                onPressed: widget.config != null
-                    ? () => widget.cubit.testConnection(widget.config!.id)
-                    : null,
-              ),
+              if (widget.config case final existingConfig?)
+                QuanityaTextButton(
+                  text: context.l10n.llmProviderTestConnection,
+                  onPressed: () =>
+                      widget.cubit.testConnection(existingConfig.id),
+                ),
               QuanityaTextButton(
                 text: context.l10n.actionSave,
                 onPressed: () {
-                  if (widget.formKey.currentState!.validate()) {
-                    Navigator.of(context).pop(true);
+                  if (_formKey.currentState?.validate() ?? false) {
+                    final result = LlmProviderConfigModel(
+                      id: widget.config?.id ?? _uuid.v4(),
+                      baseUrl: _baseUrlController.text.trim(),
+                      modelId: _modelController.text.trim(),
+                      apiKeyId: widget.config?.apiKeyId,
+                      lastUsedAt: DateTime.now(),
+                    );
+                    Navigator.of(context).pop(result);
                   }
                 },
               ),
             ],
           ),
-        ],
+          ],
+        ),
+      ),
       ),
     );
   }
@@ -190,22 +229,11 @@ class _ModelTile extends StatelessWidget {
             ),
           ),
           if (model.tested)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.check_circle,
-                  size: AppSizes.iconSmall,
-                  color: context.colors.successColor,
-                ),
-                HSpace.x05,
-                Text(
-                  context.l10n.llmProviderModelTested,
-                  style: context.text.bodySmall?.copyWith(
-                    color: context.colors.successColor,
-                  ),
-                ),
-              ],
+            Text(
+              context.l10n.llmProviderModelTested,
+              style: context.text.bodySmall?.copyWith(
+                color: context.colors.textPrimary,
+              ),
             ),
         ],
       ),
