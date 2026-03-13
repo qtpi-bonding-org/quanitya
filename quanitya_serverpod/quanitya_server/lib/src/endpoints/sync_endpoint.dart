@@ -24,6 +24,13 @@ class SyncEndpoint extends Endpoint {
     final uuidId = UuidValue.fromString(id);
 
     final existing = await EncryptedTemplate.db.findById(session, uuidId);
+    final delta = encryptedData.length -
+        (existing != null && existing.accountId == accountId
+            ? existing.encryptedData.length
+            : 0);
+    if (delta > 0) {
+      await StorageQuotaService.enforceQuota(session, accountId, delta);
+    }
 
     if (existing != null && existing.accountId == accountId) {
       final oldSize = existing.encryptedData.length;
@@ -83,6 +90,13 @@ class SyncEndpoint extends Endpoint {
     final uuidId = UuidValue.fromString(id);
 
     final existing = await EncryptedEntry.db.findById(session, uuidId);
+    final delta = encryptedData.length -
+        (existing != null && existing.accountId == accountId
+            ? existing.encryptedData.length
+            : 0);
+    if (delta > 0) {
+      await StorageQuotaService.enforceQuota(session, accountId, delta);
+    }
 
     if (existing != null && existing.accountId == accountId) {
       final oldSize = existing.encryptedData.length;
@@ -142,6 +156,13 @@ class SyncEndpoint extends Endpoint {
     final uuidId = UuidValue.fromString(id);
 
     final existing = await EncryptedSchedule.db.findById(session, uuidId);
+    final delta = encryptedData.length -
+        (existing != null && existing.accountId == accountId
+            ? existing.encryptedData.length
+            : 0);
+    if (delta > 0) {
+      await StorageQuotaService.enforceQuota(session, accountId, delta);
+    }
 
     if (existing != null && existing.accountId == accountId) {
       final oldSize = existing.encryptedData.length;
@@ -269,6 +290,13 @@ class SyncEndpoint extends Endpoint {
 
     final existing =
         await EncryptedAnalysisScript.db.findById(session, uuidId);
+    final delta = encryptedData.length -
+        (existing != null && existing.accountId == accountId
+            ? existing.encryptedData.length
+            : 0);
+    if (delta > 0) {
+      await StorageQuotaService.enforceQuota(session, accountId, delta);
+    }
 
     if (existing != null && existing.accountId == accountId) {
       final oldSize = existing.encryptedData.length;

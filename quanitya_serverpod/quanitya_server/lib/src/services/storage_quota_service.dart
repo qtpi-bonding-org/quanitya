@@ -4,9 +4,35 @@ import '../generated/protocol.dart';
 /// Per-account storage usage tracking.
 ///
 /// Tracks bytes used and row count across all encrypted tables (entries,
-/// templates, schedules, analysis scripts). No quota enforcement —
-/// self-hosted users have unlimited storage.
+/// templates, schedules, analysis scripts).
+///
+/// Cloud deployments set [storageLimitProvider] at startup to enforce
+/// tier-based storage limits. Self-hosted has no limit (provider is null).
 class StorageQuotaService {
+  /// Optional callback that returns the storage limit in bytes for an account.
+  /// Set by the cloud server at startup. Null means no limit (self-hosted).
+  static Future<int> Function(Session session, int accountId)?
+      storageLimitProvider;
+
+  /// Check if writing [additionalBytes] would exceed the account's storage
+  /// limit. Throws if over quota. No-op if no [storageLimitProvider] is set
+  /// (self-hosted).
+  static Future<void> enforceQuota(
+    Session session,
+    int accountId,
+    int additionalBytes,
+  ) async {
+    if (storageLimitProvider == null) return;
+
+    final limitBytes = await storageLimitProvider!(session, accountId);
+    if (limitBytes <= 0) return; // no active tier
+
+    final usage = await getUsage(session, accountId);
+    if (usage.bytesUsed + additionalBytes > limitBytes) {
+      throw Exception('Storage quota exceeded');
+    }
+  }
+
   /// Get or create usage record for account.
   static Future<AccountStorageUsage> getUsage(
     Session session,

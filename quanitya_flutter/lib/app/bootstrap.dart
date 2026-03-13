@@ -14,8 +14,10 @@ import '../data/repositories/e2ee_puller.dart';
 import '../data/sync/powersync_service.dart';
 import '../infrastructure/auth/auth_service.dart';
 import '../infrastructure/config/dev_config.dart';
+import '../infrastructure/platform/platform_capability_service.dart';
 import '../infrastructure/purchase/i_purchase_provider.dart';
 import '../infrastructure/purchase/i_purchase_service.dart';
+import '../infrastructure/purchase/purchase_models.dart';
 import '../infrastructure/error_reporting/error_reporter_service.dart';
 import '../infrastructure/feedback/exception_mapper.dart';
 import '../infrastructure/fonts/font_preloader_service.dart';
@@ -92,19 +94,34 @@ Future<void> bootstrap() async {
       debugPrint('Bootstrap: AuthService initialized');
     }
 
-    // 5.5. Initialize PurchaseService and recover pending purchases
-    if (getIt.isRegistered<IPurchaseService>() &&
-        getIt.isRegistered<IPurchaseProvider>()) {
+    // 5.5. Initialize PurchaseService — register providers for supported rails
+    if (getIt.isRegistered<IPurchaseService>()) {
       debugPrint('Bootstrap: Initializing PurchaseService...');
       final purchaseService = getIt<IPurchaseService>();
-      final provider = getIt<IPurchaseProvider>();
-      if (await provider.isAvailable()) {
-        await provider.initialize();
-        purchaseService.registerProvider(provider);
-        await purchaseService.recoverPendingPurchases();
-        debugPrint('Bootstrap: PurchaseService initialized');
+      final platformCaps = getIt<PlatformCapabilityService>();
+      final supportedRails = platformCaps.supportedPurchaseRails;
+      debugPrint('Bootstrap: Supported purchase rails: $supportedRails');
+
+      if (supportedRails.isNotEmpty &&
+          getIt.isRegistered<IPurchaseProvider>()) {
+        final provider = getIt<IPurchaseProvider>();
+        if (supportedRails.contains(provider.rail) &&
+            await provider.isAvailable()) {
+          await provider.initialize();
+          purchaseService.registerProvider(provider);
+          await purchaseService.recoverPendingPurchases();
+          debugPrint(
+            'Bootstrap: Registered ${provider.rail.name} purchase provider',
+          );
+        } else {
+          debugPrint(
+            'Bootstrap: Provider ${provider.rail.name} not in supported rails or unavailable',
+          );
+        }
       } else {
-        debugPrint('Bootstrap: IAP provider not available on this platform');
+        debugPrint(
+          'Bootstrap: No purchase providers to register for this platform',
+        );
       }
     }
 
