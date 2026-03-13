@@ -80,7 +80,9 @@ Future<T> tryMethod<T, E extends Exception>(
 ) async {
   try {
     return await method();
-  } on E {
+  } on E catch (e, stackTrace) {
+    debugPrint('🔴 tryMethod[$methodName] caught ${e.runtimeType}: $e');
+    debugPrint('🔴 tryMethod[$methodName] stack: $stackTrace');
     rethrow; // Preserves original stack trace for typed exceptions
   } catch (e, stackTrace) {
     // Debug: Print actual error for development debugging
