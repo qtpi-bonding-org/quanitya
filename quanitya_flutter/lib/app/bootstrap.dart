@@ -103,6 +103,7 @@ Future<void> bootstrap() async {
       debugPrint('Bootstrap: Supported purchase rails: $supportedRails');
 
       if (supportedRails.isNotEmpty &&
+          !kIsWeb &&
           getIt.isRegistered<IPurchaseProvider>()) {
         final provider = getIt<IPurchaseProvider>();
         if (supportedRails.contains(provider.rail) &&

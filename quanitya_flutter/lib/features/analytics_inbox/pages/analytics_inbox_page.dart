@@ -29,13 +29,6 @@ class AnalyticsTabContent extends StatelessWidget {
             title: context.l10n.analyticsInboxEmpty,
             description: context.l10n.analyticsInboxEmptyDescription,
           ),
-          banner: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              OutboxPrivacyBanner(text: context.l10n.analyticsInboxPrivacyNotice),
-              _AutoSendToggle(),
-            ],
-          ),
           content: _EventList(),
           bottomAction: _BottomActions(),
         );
@@ -91,12 +84,21 @@ class _EventList extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AnalyticsInboxCubit, AnalyticsInboxState>(
       builder: (context, state) {
+        final headerWidgets = <Widget>[
+          OutboxPrivacyBanner(text: context.l10n.analyticsInboxPrivacyNotice),
+          _AutoSendToggle(),
+        ];
+        final totalCount = headerWidgets.length + state.groupedEvents.length;
+
         return ListView.separated(
           padding: AppPadding.page,
-          itemCount: state.groupedEvents.length,
+          itemCount: totalCount,
           separatorBuilder: (_, _) => VSpace.x2,
           itemBuilder: (context, index) {
-            final event = state.groupedEvents[index];
+            if (index < headerWidgets.length) {
+              return headerWidgets[index];
+            }
+            final event = state.groupedEvents[index - headerWidgets.length];
             return _EventCard(event: event);
           },
         );

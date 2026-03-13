@@ -234,11 +234,20 @@ class InAppPurchaseProvider implements IPurchaseProvider {
   ) {
     return tryMethod(
       () async {
+        debugPrint('validateWithServer: starting for '
+            'rail=${purchase.rail}, '
+            'productId=${purchase.productId}, '
+            'transactionId=${purchase.transactionId}, '
+            'status=${purchase.status}');
+
         final publicKeyHex =
             await _keyRepository.getDeviceSigningPublicKeyHex();
         if (publicKeyHex == null) {
           throw const PurchaseException('Device key not found');
         }
+
+        debugPrint('validateWithServer: device key found, '
+            'requesting auth challenge...');
 
         final challenge = await _client.modules.anonaccount.device
             .generateAuthChallenge(publicKeyHex);
@@ -246,24 +255,37 @@ class InAppPurchaseProvider implements IPurchaseProvider {
         final authResult = await _client.modules.anonaccount.device
             .authenticateDevice(challenge, signature);
 
-        if (!authResult.success || authResult.accountId == null) {
+        debugPrint('validateWithServer: auth result='
+            'success=${authResult.success}, '
+            'accountId=${authResult.accountId}');
+
+        final accountId = authResult.accountId;
+        if (!authResult.success || accountId == null) {
           throw const PurchaseException('Authentication failed');
         }
-
-        final accountId = authResult.accountId!;
         Map<String, dynamic> result;
 
         if (purchase.rail == PurchaseRail.appleIap) {
+          final txnId = purchase.transactionId ?? '';
+          debugPrint('validateWithServer: calling validateAppleTransaction '
+              'txnId=$txnId, '
+              'productId=${purchase.productId}, '
+              'accountId=$accountId');
           result =
               await _client.modules.anonaccred.iAP.validateAppleTransaction(
             publicKeyHex,
             signature,
-            purchase.transactionId ?? '',
+            txnId,
             purchase.productId,
             accountId,
             internalTransactionId: purchase.transactionId,
           );
         } else {
+          debugPrint('validateWithServer: calling validateGooglePurchase '
+              'packageName=${purchase.packageName}, '
+              'productId=${purchase.productId}, '
+              'purchaseToken=${purchase.purchaseToken != null ? '${purchase.purchaseToken?.substring(0, 20)}...' : 'null'}, '
+              'accountId=$accountId');
           result =
               await _client.modules.anonaccred.iAP.validateGooglePurchase(
             publicKeyHex,
@@ -276,11 +298,14 @@ class InAppPurchaseProvider implements IPurchaseProvider {
           );
         }
 
+        debugPrint('validateWithServer: server response=$result');
+
         final success = result['success'] as bool? ?? false;
         if (success) {
           final rawDetails = _rawPurchaseDetails.remove(purchase.productId);
           if (rawDetails != null) {
             await _iapInstance.completePurchase(rawDetails);
+            debugPrint('validateWithServer: completePurchase called');
           }
         }
 
