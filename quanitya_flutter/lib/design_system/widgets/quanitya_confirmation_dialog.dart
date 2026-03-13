@@ -75,6 +75,7 @@ class QuanityaConfirmationDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       scopesRoute: true,
+      explicitChildNodes: true,
       namesRoute: true,
       label: title,
       child: Material(
