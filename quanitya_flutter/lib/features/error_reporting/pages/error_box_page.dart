@@ -21,6 +21,12 @@ class ErrorsTabContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ErrorBoxCubit, ErrorBoxState>(
       builder: (context, state) {
+        final headerWidgets = [
+          OutboxPrivacyBanner(text: context.l10n.errorBoxPrivacyBanner),
+          _AutoSendToggle(),
+        ];
+        final totalCount = headerWidgets.length + state.unsentErrors.length;
+
         return OutboxTabContent(
           isEmpty: state.unsentErrors.isEmpty,
           emptyState: OutboxEmptyState(
@@ -28,19 +34,16 @@ class ErrorsTabContent extends StatelessWidget {
             title: context.l10n.errorBoxNoReports,
             description: context.l10n.errorBoxNoReportsDescription,
           ),
-          banner: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              OutboxPrivacyBanner(text: context.l10n.errorBoxPrivacyBanner),
-              _AutoSendToggle(),
-            ],
-          ),
           content: ListView.separated(
             padding: AppPadding.page,
-            itemCount: state.unsentErrors.length,
+            itemCount: totalCount,
             separatorBuilder: (context, index) => VSpace.x3,
             itemBuilder: (context, index) {
-              final error = state.unsentErrors[index];
+              if (index < headerWidgets.length) {
+                return headerWidgets[index];
+              }
+              final errorIndex = index - headerWidgets.length;
+              final error = state.unsentErrors[errorIndex];
               return ErrorEntryCard(
                 error: error.errorData,
                 occurrenceCount: error.occurrenceCount,

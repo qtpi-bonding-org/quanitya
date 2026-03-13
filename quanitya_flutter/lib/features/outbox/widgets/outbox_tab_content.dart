@@ -12,9 +12,6 @@ import '../../../support/extensions/context_extensions.dart';
 /// Each outbox tab (Feedback, Analytics, Errors) plugs its specific
 /// widgets into these slots.
 class OutboxTabContent extends StatelessWidget {
-  /// Optional banner shown at the top (e.g. privacy notice).
-  final Widget? banner;
-
   /// The main content area — fills available space.
   final Widget content;
 
@@ -32,7 +29,6 @@ class OutboxTabContent extends StatelessWidget {
 
   const OutboxTabContent({
     super.key,
-    this.banner,
     required this.content,
     this.bottomAction,
     this.emptyState,
@@ -52,7 +48,6 @@ class OutboxTabContent extends StatelessWidget {
 
     return Column(
       children: [
-        if (banner != null) banner!,
         Expanded(child: content),
         if (bottomAction != null) bottomAction!,
       ],
