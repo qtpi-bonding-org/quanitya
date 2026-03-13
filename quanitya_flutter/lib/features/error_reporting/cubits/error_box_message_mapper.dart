@@ -22,6 +22,8 @@ class ErrorBoxMessageMapper implements IStateMessageMapper<ErrorBoxState> {
           MessageKey.success(L10nKeys.errorBoxDeleteSuccess),
         ErrorBoxOperation.deleteAll =>
           MessageKey.success(L10nKeys.errorBoxClearedSuccess),
+        ErrorBoxOperation.toggleAutoSend =>
+          MessageKey.success(L10nKeys.errorBoxToggleAutoSendSuccess),
       };
     }
 

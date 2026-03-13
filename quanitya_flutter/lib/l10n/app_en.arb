@@ -503,7 +503,7 @@
   "feedbackTypeBug": "Bug",
   "feedbackTypeGeneral": "General",
   "feedbackHint": "What's on your mind",
-  "feedbackPrivacyNotice": "Feedback is anonymous and helps improve the app.",
+  "feedbackPrivacyNotice": "Feedback is anonymous and helps improve Quanitya.",
   "feedbackSubmitButton": "Submit Feedback",
   "errorPageTitle": "Error",
   "errorPageNotFound": "Page not found: {location}",
@@ -552,9 +552,9 @@
   "analyticsInboxTitle": "Analytics Inbox",
   "analyticsInboxPrivacyNotice": "Events include: action name, timestamp, and platform. No personal data or content is ever sent.",
   "analyticsInboxAutoSend": "Auto-send on startup",
-  "analyticsInboxAutoSendDescription": "Batch-send all events when the app opens.",
+  "analyticsInboxAutoSendDescription": "Batch-send all events when Quanitya opens.",
   "analyticsInboxEmpty": "No Pending Events",
-  "analyticsInboxEmptyDescription": "Analytics events will appear here as you use the app.",
+  "analyticsInboxEmptyDescription": "Analytics events will appear here as you use Quanitya.",
   "analyticsInboxClearAll": "Clear All",
   "analyticsInboxSendAll": "Send All ({count})",
   "@analyticsInboxSendAll": {
@@ -719,7 +719,20 @@
   "errorBoxNoReports": "No Error Reports",
   "errorBoxNoReportsDescription": "Error reports will appear here as you encounter errors.",
   "errorBoxPrivacyBanner": "Privacy-first: Only technical error data, no personal information",
-  "errorBoxSendAllReports": "Send All Reports",
+  "errorBoxSendAll": "Send All ({count})",
+  "@errorBoxSendAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorBoxClearAll": "Clear All",
+  "errorBoxClearAllTitle": "Clear All Error Reports?",
+  "errorBoxClearAllMessage": "This will permanently remove all error reports from the inbox.",
+  "errorBoxAutoSend": "Auto-send on startup",
+  "errorBoxAutoSendDescription": "Automatically send error reports when Quanitya starts",
+  "errorBoxToggleAutoSendSuccess": "Auto-send preference updated",
 
   "notificationMarkAsRead": "Mark as Read",
   "notificationOpen": "Open",

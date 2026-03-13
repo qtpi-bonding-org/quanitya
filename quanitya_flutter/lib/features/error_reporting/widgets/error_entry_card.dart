@@ -6,8 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
-import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
@@ -38,26 +38,15 @@ class ErrorEntryCard extends StatelessWidget {
         ? context.l10n.errorOccurrenceTimes(occurrenceCount)
         : context.l10n.errorOccurrenceOnce;
 
-    return Container(
+    return Padding(
       padding: AppPadding.allDouble,
-      decoration: BoxDecoration(
-        color: QuanityaPalette.primary.backgroundPrimary,
-        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-      ),
       child: NotebookFold(
         header: Row(
           children: [
-            Container(
-              padding: EdgeInsets.all(AppSizes.space * 0.75),
-              decoration: BoxDecoration(
-                color: context.colors.errorColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-              ),
-              child: Icon(
-                Icons.error_outline,
-                size: AppSizes.iconMedium,
-                color: context.colors.errorColor,
-              ),
+            Icon(
+              Icons.error_outline,
+              size: AppSizes.iconMedium,
+              color: context.colors.errorColor,
             ),
             HSpace.x2,
             Expanded(
@@ -125,13 +114,8 @@ class _ErrorDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return Padding(
       padding: AppPadding.allDouble,
-      decoration: BoxDecoration(
-        color: context.colors.textSecondary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -158,23 +142,12 @@ class _ErrorDetails extends StatelessWidget {
             ],
           ),
           VSpace.x1,
-          Container(
-            width: double.infinity,
-            padding: AppPadding.allDouble,
-            decoration: BoxDecoration(
-              color: context.colors.backgroundPrimary,
-              borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-              border: Border.all(
-                color: context.colors.textSecondary.withValues(alpha: 0.2),
-              ),
-            ),
-            child: Text(
-              error.stackTrace,
-              style: context.text.bodySmall?.copyWith(
-                fontFamily: QuanityaFonts.bodyFamily,
-                color: context.colors.textPrimary,
-                height: 1.4,
-              ),
+          Text(
+            error.stackTrace,
+            style: context.text.bodySmall?.copyWith(
+              fontFamily: QuanityaFonts.bodyFamily,
+              color: context.colors.textPrimary,
+              height: 1.4,
             ),
           ),
         ],

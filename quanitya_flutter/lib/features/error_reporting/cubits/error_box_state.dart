@@ -11,6 +11,7 @@ enum ErrorBoxOperation {
   markAllAsSent,
   delete,
   deleteAll,
+  toggleAutoSend,
 }
 
 @freezed
@@ -24,5 +25,6 @@ class ErrorBoxState with _$ErrorBoxState, UiFlowStateMixin implements IUiFlowSta
     @Default([]) List<ErrorBoxEntry> unsentErrors,
     @Default([]) List<String> lastSentIds,
     @Default(0) int lastSentCount,
+    @Default(false) bool autoSendEnabled,
   }) = _ErrorBoxState;
 }

@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../support/extensions/context_extensions.dart';
-import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
@@ -50,16 +49,8 @@ class _AutoSendToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AnalyticsInboxCubit, AnalyticsInboxState>(
       builder: (context, state) {
-        return Container(
+        return Padding(
           padding: AppPadding.page,
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: context.colors.textSecondary.withValues(alpha: 0.1),
-                width: 1,
-              ),
-            ),
-          ),
           child: Row(
             children: [
               Expanded(
@@ -123,25 +114,14 @@ class _EventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat.yMd().add_jm();
 
-    return Container(
+    return Padding(
       padding: AppPadding.allDouble,
-      decoration: BoxDecoration(
-        color: context.colors.textSecondary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-      ),
       child: Row(
         children: [
-          Container(
-            padding: AppPadding.listItem,
-            decoration: BoxDecoration(
-              color: context.colors.interactableColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-            ),
-            child: Text(
-              '${event.count}',
-              style: context.text.titleMedium?.copyWith(
-                color: context.colors.interactableColor,
-              ),
+          Text(
+            '${event.count}',
+            style: context.text.titleMedium?.copyWith(
+              color: context.colors.textPrimary,
             ),
           ),
           HSpace.x3,
@@ -186,18 +166,8 @@ class _BottomActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AnalyticsInboxCubit, AnalyticsInboxState>(
       builder: (context, state) {
-        return Container(
-          width: double.infinity,
+        return Padding(
           padding: AppPadding.allDouble,
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            border: Border(
-              top: BorderSide(
-                color: context.colors.textSecondary.withValues(alpha: 0.2),
-                width: 1,
-              ),
-            ),
-          ),
           child: SafeArea(
             top: false,
             child: Row(

@@ -24,12 +24,8 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Padding(
       padding: AppPadding.allDouble,
-      decoration: BoxDecoration(
-        color: QuanityaPalette.primary.backgroundPrimary,
-        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      ),
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -128,14 +124,7 @@ class _NotificationIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final config = _getIconConfig(type, context);
     
-    return Container(
-      padding: EdgeInsets.all(AppSizes.space * 0.75),
-      decoration: BoxDecoration(
-        color: config.color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      ),
-      child: Icon(config.icon, size: AppSizes.iconMedium, color: config.color),
-    );
+    return Icon(config.icon, size: AppSizes.iconMedium, color: config.color);
   }
 
   ({IconData icon, Color color}) _getIconConfig(String type, BuildContext context) {

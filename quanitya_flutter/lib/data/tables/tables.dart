@@ -344,6 +344,10 @@ class AppOperatingSettings extends Table {
   BoolColumn get analyticsAutoSend =>
       boolean().named('analytics_auto_send').withDefault(const Constant(false))();
 
+  /// Whether error reports are auto-sent on app startup (default: off)
+  BoolColumn get errorAutoSend =>
+      boolean().named('error_auto_send').withDefault(const Constant(false))();
+
   /// Timestamp of record creation
   DateTimeColumn get createdAt =>
       dateTime().named('created_at').withDefault(currentDateAndTime)();

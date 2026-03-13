@@ -6,6 +6,7 @@ import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../data/repositories/error_box_repository.dart';
+import '../../../features/app_operating_mode/repositories/app_operating_repository.dart';
 import '../../../infrastructure/error_reporting/error_reporter_service.dart';
 import 'error_box_state.dart';
 
@@ -13,15 +14,32 @@ import 'error_box_state.dart';
 class ErrorBoxCubit extends QuanityaCubit<ErrorBoxState> {
   final ErrorBoxRepository _repo;
   final ErrorReporterService _reporter;
+  final AppOperatingRepository _settingsRepo;
 
   StreamSubscription<List<ErrorBoxEntry>>? _errorsSub;
 
-  ErrorBoxCubit(this._repo, this._reporter) : super(const ErrorBoxState());
+  ErrorBoxCubit(this._repo, this._reporter, this._settingsRepo)
+      : super(const ErrorBoxState());
 
-  /// Start watching unsent errors.
-  void load() {
+  /// Start watching unsent errors and load auto-send preference.
+  Future<void> load() async {
+    final autoSend = await _settingsRepo.getErrorAutoSend();
+    emit(state.copyWith(autoSendEnabled: autoSend));
+
     _errorsSub = _repo.watchUnsentErrors().listen((errors) {
       emit(state.copyWith(unsentErrors: errors));
+    });
+  }
+
+  /// Toggle auto-send preference.
+  Future<void> toggleAutoSend(bool enabled) async {
+    await tryOperation(() async {
+      await _settingsRepo.updateErrorAutoSend(enabled);
+      return state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: ErrorBoxOperation.toggleAutoSend,
+        autoSendEnabled: enabled,
+      );
     });
   }
 

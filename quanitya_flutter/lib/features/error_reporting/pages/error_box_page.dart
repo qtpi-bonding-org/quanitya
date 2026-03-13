@@ -6,6 +6,7 @@ import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../cubits/error_box_cubit.dart';
 import '../cubits/error_box_state.dart';
@@ -21,15 +22,18 @@ class ErrorsTabContent extends StatelessWidget {
     return BlocBuilder<ErrorBoxCubit, ErrorBoxState>(
       builder: (context, state) {
         return OutboxTabContent(
-          isLoading: state.status == UiFlowStatus.loading,
           isEmpty: state.unsentErrors.isEmpty,
           emptyState: OutboxEmptyState(
             icon: Icons.bug_report_outlined,
             title: context.l10n.errorBoxNoReports,
             description: context.l10n.errorBoxNoReportsDescription,
           ),
-          banner: OutboxPrivacyBanner(
-            text: context.l10n.errorBoxPrivacyBanner,
+          banner: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OutboxPrivacyBanner(text: context.l10n.errorBoxPrivacyBanner),
+              _AutoSendToggle(),
+            ],
           ),
           content: ListView.separated(
             padding: AppPadding.page,
@@ -71,30 +75,76 @@ class ErrorsTabContent extends StatelessWidget {
   }
 }
 
+class _AutoSendToggle extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ErrorBoxCubit, ErrorBoxState>(
+      builder: (context, state) {
+        return Padding(
+          padding: AppPadding.page,
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.errorBoxAutoSend,
+                      style: context.text.bodyLarge?.copyWith(
+                        color: context.colors.textPrimary,
+                      ),
+                    ),
+                    VSpace.x05,
+                    Text(
+                      context.l10n.errorBoxAutoSendDescription,
+                      style: context.text.bodySmall?.copyWith(
+                        color: context.colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              QuanityaToggle(
+                value: state.autoSendEnabled,
+                onChanged: (value) =>
+                    context.read<ErrorBoxCubit>().toggleAutoSend(value),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _BottomActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ErrorBoxCubit, ErrorBoxState>(
       builder: (context, state) {
-        return Container(
-          width: double.infinity,
+        return Padding(
           padding: AppPadding.allDouble,
-          decoration: BoxDecoration(
-            color: context.colors.backgroundPrimary,
-            border: Border(
-              top: BorderSide(
-                color: context.colors.textSecondary.withValues(alpha: 0.2),
-                width: 1,
-              ),
-            ),
-          ),
           child: SafeArea(
             top: false,
-            child: QuanityaTextButton(
-              text: context.l10n.errorBoxSendAllReports,
-              onPressed: state.status == UiFlowStatus.loading
-                  ? null
-                  : () => _sendAllAndPromptClear(context),
+            child: Row(
+              children: [
+                Expanded(
+                  child: QuanityaTextButton(
+                    text: context.l10n.errorBoxClearAll,
+                    isDestructive: true,
+                    onPressed: () => _confirmClearAll(context),
+                  ),
+                ),
+                HSpace.x3,
+                Expanded(
+                  child: QuanityaTextButton(
+                    text: context.l10n.errorBoxSendAll(state.unsentErrors.length),
+                    onPressed: state.status == UiFlowStatus.loading
+                        ? null
+                        : () => _sendAndPromptClear(context),
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -102,7 +152,7 @@ class _BottomActions extends StatelessWidget {
     );
   }
 
-  Future<void> _sendAllAndPromptClear(BuildContext context) async {
+  Future<void> _sendAndPromptClear(BuildContext context) async {
     final cubit = context.read<ErrorBoxCubit>();
     await cubit.sendAll();
 
@@ -121,5 +171,20 @@ class _BottomActions extends StatelessWidget {
         onConfirm: () => cubit.deleteErrors(sentIds),
       );
     }
+  }
+
+  void _confirmClearAll(BuildContext context) {
+    QuanityaConfirmationDialog.show(
+      context: context,
+      title: context.l10n.errorBoxClearAllTitle,
+      message: context.l10n.errorBoxClearAllMessage,
+      confirmText: context.l10n.errorBoxClearAll,
+      isDestructive: true,
+      onConfirm: () {
+        final cubit = context.read<ErrorBoxCubit>();
+        final ids = cubit.state.unsentErrors.map((e) => e.id).toList();
+        cubit.deleteErrors(ids);
+      },
+    );
   }
 }

@@ -108,6 +108,31 @@ class AppOperatingRepository {
     }, AppOperatingException.new, 'updateAnalyticsAutoSend');
   }
 
+  /// Get whether error auto-send is enabled
+  Future<bool> getErrorAutoSend() {
+    return tryMethod(() async {
+      await _ensureInitialized();
+      final settings = await _db.select(_db.appOperatingSettings).getSingle();
+      return settings.errorAutoSend;
+    }, AppOperatingException.new, 'getErrorAutoSend');
+  }
+
+  /// Update error auto-send preference
+  Future<void> updateErrorAutoSend(bool enabled) {
+    return tryMethod(() async {
+      final updated = await _db.update(_db.appOperatingSettings).write(
+        AppOperatingSettingsCompanion(
+          errorAutoSend: Value(enabled),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+
+      if (updated == 0) {
+        throw const AppOperatingException('Failed to update error auto-send');
+      }
+    }, AppOperatingException.new, 'updateErrorAutoSend');
+  }
+
   /// Ensure database has initial settings (local mode)
   /// Called on every app startup - idempotent
   Future<void> _ensureInitialized() async {

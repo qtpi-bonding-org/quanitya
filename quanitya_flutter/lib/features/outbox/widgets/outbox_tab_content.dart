@@ -68,8 +68,7 @@ class OutboxPrivacyBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return Padding(
       padding: AppPadding.allDouble,
       child: Row(
         children: [

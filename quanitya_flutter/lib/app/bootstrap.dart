@@ -209,6 +209,13 @@ Future<void> bootstrap() async {
       _autoSendAnalytics();
     }
 
+    // 13. Auto-send error reports if enabled (non-blocking)
+    if (getIt.isRegistered<ErrorReporterService>() &&
+        getIt.isRegistered<ErrorBoxRepository>() &&
+        getIt.isRegistered<AppOperatingRepository>()) {
+      _autoSendErrors();
+    }
+
     debugPrint('Bootstrap: Complete');
   } catch (e, stack) {
     debugPrint('Bootstrap: FAILED - $e');
@@ -261,6 +268,30 @@ void _autoSendAnalytics() {
       debugPrint('Bootstrap: Auto-sent $sent analytics events');
     } catch (e) {
       debugPrint('Bootstrap: Analytics auto-send failed (non-critical): $e');
+    }
+  });
+}
+
+/// Auto-send error reports if the user has opted in.
+/// Runs in the background — never blocks startup.
+void _autoSendErrors() {
+  Future(() async {
+    try {
+      final settingsRepo = getIt<AppOperatingRepository>();
+      final autoSend = await settingsRepo.getErrorAutoSend();
+      if (!autoSend) return;
+
+      final repo = getIt<ErrorBoxRepository>();
+      final reporter = getIt<ErrorReporterService>();
+      final errors = await repo.getUnsentErrors();
+      if (errors.isEmpty) return;
+
+      debugPrint('Bootstrap: Auto-sending ${errors.length} error reports...');
+      final entries = errors.map((e) => e.errorData).toList();
+      final sent = await reporter.sendErrorReports(entries);
+      debugPrint('Bootstrap: Auto-sent $sent error reports');
+    } catch (e) {
+      debugPrint('Bootstrap: Error auto-send failed (non-critical): $e');
     }
   });
 }
