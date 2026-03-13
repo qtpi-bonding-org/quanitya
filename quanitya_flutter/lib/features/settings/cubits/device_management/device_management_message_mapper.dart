@@ -12,6 +12,7 @@ class DeviceManagementMessageMapper implements IStateMessageMapper<DeviceManagem
       return switch (state.lastOperation!) {
         DeviceManagementOperation.load => null, // No toast for load
         DeviceManagementOperation.revoke => MessageKey.success(L10nKeys.settingsDevicesRevoked),
+        DeviceManagementOperation.recreateCrossDevice => MessageKey.success(L10nKeys.enableICloudSync),
       };
     }
     return null; // Use global exception mapping for errors
