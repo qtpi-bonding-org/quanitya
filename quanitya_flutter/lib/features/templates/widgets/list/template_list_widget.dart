@@ -9,53 +9,19 @@ import '../../../log_entry/widgets/log_entry_sheet.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/widgets/quanitya_empty_or.dart';
 import '../../../../support/extensions/context_extensions.dart';
+import '../../../hidden_visibility/cubits/hidden_visibility_cubit.dart';
 import '../../cubits/list/template_list_cubit.dart';
 import '../../cubits/list/template_list_state.dart';
 import 'dashboard_header.dart';
 import 'tracker_card.dart';
 
-class TemplateListWidget extends StatefulWidget {
-  /// When provided, drives hidden visibility from an external toggle
-  /// (e.g. the lock icon on the home page).
-  final bool showHidden;
-
-  const TemplateListWidget({super.key, this.showHidden = false});
-
-  @override
-  State<TemplateListWidget> createState() => _TemplateListWidgetState();
-}
-
-class _TemplateListWidgetState extends State<TemplateListWidget> {
-  late final TemplateListCubit _cubit;
-
-  @override
-  void initState() {
-    super.initState();
-    _cubit = GetIt.I<TemplateListCubit>();
-    if (widget.showHidden) {
-      _cubit.setShowHidden(true);
-    }
-    _cubit.load();
-  }
-
-  @override
-  void didUpdateWidget(covariant TemplateListWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.showHidden != widget.showHidden) {
-      _cubit.setShowHidden(widget.showHidden);
-    }
-  }
-
-  @override
-  void dispose() {
-    _cubit.close();
-    super.dispose();
-  }
+class TemplateListWidget extends StatelessWidget {
+  const TemplateListWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: _cubit,
+    return BlocProvider(
+      create: (_) => GetIt.I<TemplateListCubit>()..load(),
       child: SafeArea(
           child: Column(
             children: [
@@ -91,13 +57,19 @@ class _TemplateListWidgetState extends State<TemplateListWidget> {
                        return const Center(child: CircularProgressIndicator());
                     }
 
+                    // Filter by HiddenVisibilityCubit
+                    final showHidden = context.watch<HiddenVisibilityCubit>().state.showingHidden;
+                    final visible = showHidden
+                        ? state.templates
+                        : state.templates.where((t) => !t.template.isHidden).toList();
+
                     return QuanityaEmptyOr(
-                      isEmpty: state.templates.isEmpty,
+                      isEmpty: visible.isEmpty,
                       child: SingleChildScrollView(
                         padding: AppPadding.page,
                         child: LayoutGroup.grid(
                           minItemWidth: 20,
-                          children: state.templates.map((item) {
+                          children: visible.map((item) {
                             final cubit = context.read<TemplateListCubit>();
                             return TrackerCard(
                               title: item.template.name,

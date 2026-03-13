@@ -3,8 +3,6 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 part 'temporal_timeline_state.freezed.dart';
 
-enum TemporalTimelineOperation { toggleHidden }
-
 @freezed
 class TemporalTimelineState
     with _$TemporalTimelineState, UiFlowStateMixin
@@ -14,12 +12,9 @@ class TemporalTimelineState
   const factory TemporalTimelineState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,
-    TemporalTimelineOperation? lastOperation,
-    
+    @Default(null) Null lastOperation,
+
     // UI Navigation State
     @Default(1) int currentPageIndex, // 0=Past, 1=Present, 2=Future
-    
-    // Hidden templates visibility (requires auth to enable)
-    @Default(false) bool showingHidden,
   }) = _TemporalTimelineState;
 }

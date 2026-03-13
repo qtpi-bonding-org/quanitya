@@ -544,7 +544,7 @@
   "purchaseLoadFailed": "Could not load products",
   "actionRetry": "Retry",
   "errorPurchaseFailed": "Purchase failed. Please try again.",
-  "errorEntitlementFailed": "Could not load account details",
+  "errorEntitlementFailed": "Account details unavailable — using local mode",
   "settingsPurchase": "Purchases",
   "settingsErrorReports": "Error Reports",
   "settingsAnalyticsInbox": "Analytics Inbox",

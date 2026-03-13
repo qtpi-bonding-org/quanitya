@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
 
-import '../../../../infrastructure/platform/platform_local_auth.dart';
 import '../../../../logic/log_entries/models/log_entry.dart';
 import '../../../../logic/log_entries/services/log_entry_service.dart';
 import '../../../../logic/templates/enums/field_enum.dart';
@@ -17,23 +16,18 @@ import 'template_list_state.dart';
 class TemplateListCubit extends QuanityaCubit<TemplateListState> {
   final TemplateWithAestheticsRepository _repository;
   final LogEntryService _logEntryService;
-  final PlatformLocalAuth _localAuthService;
   StreamSubscription? _subscription;
 
   TemplateListCubit(
     this._repository,
     this._logEntryService,
-    this._localAuthService,
   ) : super(const TemplateListState());
 
+  /// Always loads all templates (including hidden). UI filters visibility
+  /// based on HiddenVisibilityCubit.
   void load() {
     _subscription?.cancel();
-    // When showingHidden is true, show all (null filter includes hidden)
-    // When false, explicitly exclude hidden
-    _subscription = _repository.watch(
-      isArchived: false,
-      isHidden: state.showingHidden ? null : false,
-    ).listen((templates) {
+    _subscription = _repository.watch(isArchived: false).listen((templates) {
       emit(
         state.copyWith(
           templates: templates,
@@ -42,38 +36,6 @@ class TemplateListCubit extends QuanityaCubit<TemplateListState> {
         ),
       );
     });
-  }
-
-  /// Set hidden visibility directly (driven by external toggle, no auth).
-  void setShowHidden(bool showHidden) {
-    if (state.showingHidden == showHidden) return;
-    emit(state.copyWith(showingHidden: showHidden));
-    load();
-  }
-
-  /// Toggle visibility of hidden templates (requires local auth).
-  Future<void> toggleShowHidden() async {
-    if (state.showingHidden) {
-      // Locking doesn't require auth
-      emit(state.copyWith(showingHidden: false));
-      load();
-      return;
-    }
-
-    // Unlocking requires authentication
-    final result = await _localAuthService.authenticate(
-      reason: 'Authenticate to view hidden templates',
-    );
-
-    if (result) {
-      emit(state.copyWith(
-        showingHidden: true,
-        status: UiFlowStatus.success,
-        lastOperation: TemplateListOperation.toggleHiddenView,
-      ));
-      load();
-    }
-    // If auth failed/cancelled, do nothing - stay locked
   }
 
   /// Hide a template (requires auth to view again).

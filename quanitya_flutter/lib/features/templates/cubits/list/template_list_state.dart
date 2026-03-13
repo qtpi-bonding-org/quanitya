@@ -5,7 +5,7 @@ import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 
 part 'template_list_state.freezed.dart';
 
-enum TemplateListOperation { load, archive, delete, instantLog, hide, unhide, toggleHiddenView }
+enum TemplateListOperation { load, archive, delete, instantLog, hide, unhide }
 
 @freezed
 class TemplateListState
@@ -18,7 +18,5 @@ class TemplateListState
     Object? error,
     TemplateListOperation? lastOperation,
     @Default([]) List<TemplateWithAesthetics> templates,
-    /// Whether hidden templates are currently visible (requires auth to enable)
-    @Default(false) bool showingHidden,
   }) = _TemplateListState;
 }

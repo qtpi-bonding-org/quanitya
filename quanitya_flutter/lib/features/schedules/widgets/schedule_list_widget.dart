@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/widgets/quanitya_empty_or.dart';
+import '../../hidden_visibility/cubits/hidden_visibility_cubit.dart';
 import '../../templates/widgets/editor/schedule_section.dart';
 import '../cubits/schedule_list_cubit.dart';
 import '../cubits/schedule_list_state.dart';
@@ -29,7 +30,11 @@ class ScheduleListWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ScheduleListCubit, ScheduleListState>(
       builder: (context, state) {
-        final schedules = state.schedules;
+        // Filter by HiddenVisibilityCubit
+        final showHidden = context.watch<HiddenVisibilityCubit>().state.showingHidden;
+        final schedules = showHidden
+            ? state.schedules
+            : state.schedules.where((s) => !s.template.isHidden).toList();
 
         return QuanityaEmptyOr(
           isEmpty: schedules.isEmpty,

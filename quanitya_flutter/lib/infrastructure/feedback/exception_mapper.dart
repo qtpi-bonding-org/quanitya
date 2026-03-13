@@ -105,7 +105,7 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
 
       // Purchase exceptions
       PurchaseException() => const MessageKey.error(L10nKeys.errorPurchaseFailed),
-      EntitlementException() => const MessageKey.error(L10nKeys.errorEntitlementFailed),
+      EntitlementException() => const MessageKey.info(L10nKeys.errorEntitlementFailed),
 
       // LLM exceptions
       LlmException() => const MessageKey.error(L10nKeys.errorLlmFailed),

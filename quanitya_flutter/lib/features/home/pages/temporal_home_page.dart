@@ -9,6 +9,7 @@ import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/swipeable_page_shell.dart';
 import '../../../dev/dev_module.dart';
 import '../../../support/extensions/context_extensions.dart';
+import '../../hidden_visibility/cubits/hidden_visibility_cubit.dart';
 import '../cubits/temporal_timeline_cubit.dart';
 import '../cubits/temporal_timeline_state.dart';
 import '../cubits/timeline_data_cubit.dart';
@@ -34,8 +35,6 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
   double _futureScrollOffset = 0.0;
 
   TemporalTimelineCubit? _timelineCubit;
-  TimelineDataCubit? _dataCubit;
-  ScheduleListCubit? _scheduleCubit;
 
   @override
   void initState() {
@@ -79,42 +78,24 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
           },
         ),
         BlocProvider(
-          create: (context) {
-            _dataCubit = getIt.get<TimelineDataCubit>();
-            return _dataCubit!;
-          },
+          create: (context) => getIt.get<TimelineDataCubit>(),
         ),
         BlocProvider(
-          create: (context) {
-            _scheduleCubit = getIt.get<ScheduleListCubit>()..load();
-            return _scheduleCubit!;
-          },
+          create: (context) => getIt.get<ScheduleListCubit>()..load(),
         ),
       ],
-      child: MultiBlocListener(
-        listeners: [
-          BlocListener<TemporalTimelineCubit, TemporalTimelineState>(
-            listenWhen: (previous, current) =>
-              previous.showingHidden != current.showingHidden,
-            listener: (context, state) {
-              _dataCubit?.setIncludeHidden(state.showingHidden);
-              _scheduleCubit?.setShowHidden(state.showingHidden);
-            },
-          ),
-          BlocListener<TemporalTimelineCubit, TemporalTimelineState>(
-            listenWhen: (previous, current) =>
-              previous.currentPageIndex != current.currentPageIndex,
-            listener: (context, state) {
-              if (state.currentPageIndex != _currentIndex) {
-                _pageController.animateToPage(
-                  state.currentPageIndex,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              }
-            },
-          ),
-        ],
+      child: BlocListener<TemporalTimelineCubit, TemporalTimelineState>(
+        listenWhen: (previous, current) =>
+          previous.currentPageIndex != current.currentPageIndex,
+        listener: (context, state) {
+          if (state.currentPageIndex != _currentIndex) {
+            _pageController.animateToPage(
+              state.currentPageIndex,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        },
         child: SwipeablePageShell(
             controller: _pageController,
             initialPage: 1,
@@ -129,12 +110,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                   setState(() => _pastScrollOffset = offset);
                 },
               ),
-              Builder(
-                builder: (context) {
-                  final showHidden = context.watch<TemporalTimelineCubit>().state.showingHidden;
-                  return TemporalPresentPanel(showHidden: showHidden);
-                },
-              ),
+              const TemporalPresentPanel(),
               TemporalFuturePanel(
                 onScrollOffsetChanged: (offset) {
                   setState(() => _futureScrollOffset = offset);
@@ -173,7 +149,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                                   tooltip: context.l10n.tooltipSortAndTime,
                                   onPressed: () => SortOptionsSheet.show(
                                     context,
-                                    _dataCubit!,
+                                    context.read<TimelineDataCubit>(),
                                   ),
                                 ),
                                 QuanityaIconButton(
@@ -184,7 +160,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                                   tooltip: context.l10n.tooltipFilterByTemplate,
                                   onPressed: () => TemplateFilterSheet.show(
                                     context,
-                                    _dataCubit!,
+                                    context.read<TimelineDataCubit>(),
                                   ),
                                 ),
                               ],
@@ -196,21 +172,21 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                 ),
               ),
 
-              // Lock Icon (top-left)
+              // Lock Icon (top-left) — driven by HiddenVisibilityCubit
               Positioned(
                 top: 0,
                 left: 0,
                 child: SafeArea(
                   child: Builder(
                     builder: (context) {
-                      final state = context.watch<TemporalTimelineCubit>().state;
+                      final state = context.watch<HiddenVisibilityCubit>().state;
 
                       return QuanityaIconButton(
                         icon: state.showingHidden ? Icons.lock_open : Icons.lock,
                         iconSize: AppSizes.iconMedium,
                         color: palette.interactableColor,
                         tooltip: state.showingHidden ? context.l10n.tooltipHidePrivate : context.l10n.tooltipShowPrivate,
-                        onPressed: () => _timelineCubit?.toggleShowHidden(),
+                        onPressed: () => context.read<HiddenVisibilityCubit>().toggleShowHidden(),
                       );
                     },
                   ),

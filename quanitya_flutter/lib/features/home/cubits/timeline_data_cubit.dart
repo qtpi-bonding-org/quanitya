@@ -51,7 +51,7 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
 
     // Watch past entries
     _pastSubscription = _logEntryRepo
-        .watchPastEntriesWithContext(includeHidden: state.filters.includeHidden)
+        .watchPastEntriesWithContext(includeHidden: true)
         .listen(
           (entries) {
             debugPrint(
@@ -69,9 +69,7 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
 
     // Watch future entries
     _futureSubscription = _logEntryRepo
-        .watchUpcomingEntriesWithContext(
-          includeHidden: state.filters.includeHidden,
-        )
+        .watchUpcomingEntriesWithContext(includeHidden: true)
         .listen(
           (entries) {
             debugPrint(
@@ -93,10 +91,7 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
   void _subscribeToTemplates() {
     _templatesSubscription?.cancel();
     _templatesSubscription = _templateQueryDao
-        .watch(
-          isArchived: false,
-          isHidden: state.filters.includeHidden ? null : false,
-        )
+        .watch(isArchived: false)
         .listen((templates) {
           debugPrint(
             'TimelineDataCubit: Received ${templates.length} templates',
@@ -126,15 +121,6 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
     emit(state.copyWith(filters: newFilters));
     _invalidateDateCache();
     _processAndEmit();
-  }
-
-  void setIncludeHidden(bool includeHidden) {
-    final newFilters = state.filters.copyWith(includeHidden: includeHidden);
-    emit(state.copyWith(filters: newFilters));
-
-    // Resubscribe to get different data
-    _subscribeToEntries();
-    _subscribeToTemplates();
   }
 
   void setPastSort({TimelineSortType? type, bool? ascending}) {

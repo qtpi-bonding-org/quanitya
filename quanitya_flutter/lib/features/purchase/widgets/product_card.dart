@@ -47,29 +47,26 @@ class ProductCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             VSpace.x2,
-            Row(
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppSizes.space,
               children: [
-                Expanded(
-                  child: Text(
-                    product.localizedPrice ?? '\$${product.priceUsd.toStringAsFixed(2)}',
-                    style: context.text.titleLarge,
-                  ),
+                Text(
+                  product.localizedPrice ?? '\$${product.priceUsd.toStringAsFixed(2)}',
+                  style: context.text.titleLarge,
                 ),
-                HSpace.x1,
-                SizedBox(
-                  height: AppSizes.buttonHeight,
-                  child: FilledButton(
-                    onPressed: isLoading ? null : onBuy,
-                    child: isLoading
-                        ? SizedBox(
-                            width: AppSizes.iconSmall,
-                            height: AppSizes.iconSmall,
-                            child: const CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(_isSubscription
-                            ? context.l10n.purchaseSubscribe
-                            : context.l10n.purchaseBuy),
-                  ),
+                FilledButton(
+                  onPressed: isLoading ? null : onBuy,
+                  child: isLoading
+                      ? SizedBox(
+                          width: AppSizes.iconSmall,
+                          height: AppSizes.iconSmall,
+                          child: const CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(_isSubscription
+                          ? context.l10n.purchaseSubscribe
+                          : context.l10n.purchaseBuy),
                 ),
               ],
             ),

@@ -41,7 +41,6 @@ class TimelineFilters with _$TimelineFilters {
     String? templateId,
     DateTime? customStartDate,
     DateTime? customEndDate,
-    @Default(false) bool includeHidden,
   }) = _TimelineFilters;
 }
 
