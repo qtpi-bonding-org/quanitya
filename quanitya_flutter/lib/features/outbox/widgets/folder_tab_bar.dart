@@ -42,36 +42,39 @@ class FolderTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppSizes.space,
-        ),
-        child: Row(
-          children: List.generate(tabs.length, (index) {
-            final isSelected = index == currentIndex;
-            return Expanded(
-              child: Semantics(
-                button: true,
-                selected: isSelected,
-                label: tabs[index].label,
-                child: GestureDetector(
-                  onTap: () => onTabSelected(index),
-                  behavior: HitTestBehavior.opaque,
-                  child: _FolderTabWidget(
-                    tab: tabs[index],
-                    isSelected: isSelected,
-                    position: index == 0
-                        ? _TabPosition.first
-                        : index == tabs.length - 1
-                            ? _TabPosition.last
-                            : _TabPosition.middle,
+    return Container(
+      color: QuanityaPalette.primary.backgroundPrimary,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSizes.space,
+          ),
+          child: Row(
+            children: List.generate(tabs.length, (index) {
+              final isSelected = index == currentIndex;
+              return Expanded(
+                child: Semantics(
+                  button: true,
+                  selected: isSelected,
+                  label: tabs[index].label,
+                  child: GestureDetector(
+                    onTap: () => onTabSelected(index),
+                    behavior: HitTestBehavior.opaque,
+                    child: _FolderTabWidget(
+                      tab: tabs[index],
+                      isSelected: isSelected,
+                      position: index == 0
+                          ? _TabPosition.first
+                          : index == tabs.length - 1
+                              ? _TabPosition.last
+                              : _TabPosition.middle,
+                    ),
                   ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ),
     );
