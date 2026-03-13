@@ -45,27 +45,6 @@ class _SortOptionsContent extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── Sort by ──────────────────────────────────────────────
-              _SectionHeader(label: context.l10n.sortByHeader),
-              _OptionRow(
-                label: context.l10n.sortByDate,
-                isSelected: dataState.pastSort.type == TimelineSortType.date,
-                palette: palette,
-                onTap: () =>
-                    cubit.setPastSort(type: TimelineSortType.date),
-              ),
-              _OptionRow(
-                label: context.l10n.sortByTemplate,
-                isSelected:
-                    dataState.pastSort.type == TimelineSortType.template,
-                palette: palette,
-                onTap: () =>
-                    cubit.setPastSort(type: TimelineSortType.template),
-              ),
-
-              VSpace.x1,
-              Divider(color: palette.textSecondary.withAlpha(51)),
-
               // ── Direction ────────────────────────────────────────────
               _OptionRow(
                 label: dataState.pastSort.ascending
