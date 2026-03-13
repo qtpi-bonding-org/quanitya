@@ -36,4 +36,25 @@ class HealthSyncCubit extends QuanityaCubit<HealthSyncState> {
       );
     }, emitLoading: true);
   }
+
+  /// Single action: request permissions then sync.
+  Future<void> importHealthData(List<HealthDataType> types) async {
+    await tryOperation(() async {
+      final granted = await _permissionService.ensureHealth(types);
+      if (!granted) {
+        return state.copyWith(
+          status: UiFlowStatus.success,
+          lastOperation: HealthSyncOperation.import_,
+        );
+      }
+      final count = await _syncService.sync(types);
+      analytics?.trackHealthSynced();
+      return state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: HealthSyncOperation.import_,
+        permissionsGranted: true,
+        lastImportCount: count,
+      );
+    }, emitLoading: true);
+  }
 }

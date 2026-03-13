@@ -123,7 +123,7 @@ class _OfficePageState extends State<OfficePage> {
             ],
             labels: [
               _buildLabel(
-                  context, l10n.officeTabPreferences, _currentIndex == 0),
+                  context, l10n.officeTabSettings, _currentIndex == 0),
               _buildLabel(
                   context, l10n.officeTabPurchases, _currentIndex == 1),
               _buildLabel(

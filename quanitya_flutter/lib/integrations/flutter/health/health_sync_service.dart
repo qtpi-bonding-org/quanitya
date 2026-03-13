@@ -28,9 +28,6 @@ class HealthSyncService {
 
   final Health _health;
 
-  /// In-memory cache: adapterId → templateId
-  final Map<String, String> _templateIdCache = {};
-
   HealthSyncService(
     this._adapterFactory,
     this._ingestionService,
@@ -152,19 +149,13 @@ class HealthSyncService {
   }
 
   /// Find existing template by name or create from adapter.
+  ///
+  /// Find existing template by name or create from adapter.
   Future<String> _ensureTemplate(
     FlutterDataSourceAdapter<HealthDataPoint> adapter,
   ) async {
-    // Check in-memory cache
-    final cached = _templateIdCache[adapter.adapterId];
-    if (cached != null) return cached;
-
-    // Check database
     final existing = await _templateQueryDao.findByName(adapter.displayName);
-    if (existing != null) {
-      _templateIdCache[adapter.adapterId] = existing.id;
-      return existing.id;
-    }
+    if (existing != null) return existing.id;
 
     // Create new template from adapter
     final template = adapter.deriveTemplate();
@@ -175,8 +166,6 @@ class HealthSyncService {
     await _templateRepo.save(
       TemplateWithAesthetics(template: template, aesthetics: aesthetics),
     );
-
-    _templateIdCache[adapter.adapterId] = template.id;
     return template.id;
   }
 }

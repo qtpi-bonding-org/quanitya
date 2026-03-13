@@ -622,7 +622,7 @@
   "outboxTabAnalytics": "Analytics",
   "outboxTabErrors": "Errors",
   "postageTabNotices": "Notices",
-  "officeTabPreferences": "Preferences",
+  "officeTabSettings": "Settings",
   "officeTabPurchases": "Purchases",
   "officeTabInfo": "Info",
   "noticesEmpty": "No Notices",
@@ -682,11 +682,8 @@
   "errorRecoveryFailed": "Account recovery failed",
   "errorDeviceRevocationFailed": "Device revocation failed",
 
-  "settingsHealthMetrics": "Health Metrics",
-  "healthAccessGranted": "Health data access granted",
-  "healthAccessNotRequested": "Health data access not yet requested",
-  "healthRequestPermissions": "Request Permissions",
-  "healthSyncData": "Sync Health Data",
+  "settingsHealthData": "Health Data",
+  "healthImportData": "Import Health Data",
   "healthEntriesImported": "{count} entries imported",
   "@healthEntriesImported": {
     "placeholders": {

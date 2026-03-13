@@ -89,7 +89,7 @@ class SettingsContent extends StatelessWidget {
               header: Row(children: [
                 Icon(Icons.monitor_heart, size: AppSizes.iconMedium, color: context.colors.textPrimary),
                 HSpace.x2,
-                Text(context.l10n.settingsHealthMetrics, style: context.text.titleMedium),
+                Text(context.l10n.settingsHealthData, style: context.text.titleMedium),
               ]),
               child: const _HealthConnectSection(),
             ),
@@ -150,37 +150,18 @@ class _HealthConnectSection extends StatelessWidget {
     return BlocProvider(
       create: (_) => GetIt.instance<HealthSyncCubit>(),
       child: BlocBuilder<HealthSyncCubit, HealthSyncState>(
-      builder: (context, state) {
-        final cubit = context.read<HealthSyncCubit>();
-        final isLoading = state.status == UiFlowStatus.loading;
+        builder: (context, state) {
+          final cubit = context.read<HealthSyncCubit>();
+          final isLoading = state.status == UiFlowStatus.loading;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              state.permissionsGranted
-                  ? context.l10n.healthAccessGranted
-                  : context.l10n.healthAccessNotRequested,
-              style: context.text.bodyMedium?.copyWith(
-                color: state.permissionsGranted
-                    ? context.colors.successColor
-                    : context.colors.textSecondary,
-              ),
-            ),
-            VSpace.x3,
-            if (!state.permissionsGranted)
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               QuanityaTextButton(
-                text: context.l10n.healthRequestPermissions,
+                text: context.l10n.healthImportData,
                 onPressed: isLoading
                     ? null
-                    : () => cubit.requestPermissions(_defaultHealthTypes),
-              ),
-            if (state.permissionsGranted) ...[
-              QuanityaTextButton(
-                text: context.l10n.healthSyncData,
-                onPressed: isLoading
-                    ? null
-                    : () => cubit.sync(_defaultHealthTypes),
+                    : () => cubit.importHealthData(_defaultHealthTypes),
               ),
               if (state.lastImportCount > 0) ...[
                 VSpace.x2,
@@ -191,23 +172,22 @@ class _HealthConnectSection extends StatelessWidget {
                   ),
                 ),
               ],
-            ],
-            if (isLoading) ...[
-              VSpace.x2,
-              const Center(child: CircularProgressIndicator()),
-            ],
-            if (state.status == UiFlowStatus.failure && state.error != null) ...[
-              VSpace.x2,
-              Text(
-                state.error.toString(),
-                style: context.text.bodySmall?.copyWith(
-                  color: context.colors.errorColor,
+              if (isLoading) ...[
+                VSpace.x2,
+                const Center(child: CircularProgressIndicator()),
+              ],
+              if (state.status == UiFlowStatus.failure && state.error != null) ...[
+                VSpace.x2,
+                Text(
+                  state.error.toString(),
+                  style: context.text.bodySmall?.copyWith(
+                    color: context.colors.errorColor,
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
-        );
-      },
+          );
+        },
       ),
     );
   }
