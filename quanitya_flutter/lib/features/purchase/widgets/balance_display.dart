@@ -15,10 +15,14 @@ class BalanceDisplay extends StatelessWidget {
     super.key,
     required this.entitlements,
     required this.hasSyncAccess,
+    this.storageBytes,
+    this.entryCount,
   });
 
   final List<AccountEntitlement> entitlements;
   final bool hasSyncAccess;
+  final int? storageBytes;
+  final int? entryCount;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +56,13 @@ class BalanceDisplay extends StatelessWidget {
               ),
             ],
           ),
+
+          // Storage usage
+          if (storageBytes != null || entryCount != null) ...[
+            VSpace.x1,
+            _buildStorageRow(context),
+          ],
+
           if (entitlements.isNotEmpty) ...[
             VSpace.x2,
             // Pen-drawn divider
@@ -90,6 +101,40 @@ class BalanceDisplay extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildStorageRow(BuildContext context) {
+    final parts = <String>[];
+
+    final bytes = storageBytes;
+    if (bytes != null) {
+      parts.add('~${_formatBytes(bytes)}');
+    }
+
+    final count = entryCount;
+    if (count != null) {
+      parts.add('$count entries');
+    }
+
+    return Text(
+      parts.join(' · '),
+      style: context.text.bodySmall?.copyWith(
+        color: context.colors.textSecondary,
+      ),
+    );
+  }
+
+  static String _formatBytes(int bytes) {
+    if (bytes >= 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+    }
+    if (bytes >= 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    if (bytes >= 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    return '$bytes B';
   }
 }
 

@@ -116,10 +116,10 @@ class PowerSyncService implements IPowerSyncService {
     }
 
     try {
-      debugPrint('PowerSync: Connecting via Serverpod backend...');
-      debugPrint('PowerSync: Creating connector with client...');
+      // Disconnect first to avoid "Stream already listened to" on hot restart
+      await _powerSyncDb!.disconnect();
+
       final connector = _ServerpodConnector(serverpodClient);
-      debugPrint('PowerSync: Calling powerSyncDb.connect...');
       await _powerSyncDb!.connect(connector: connector);
       _isConnected = true;
       debugPrint('PowerSync: Connected successfully');

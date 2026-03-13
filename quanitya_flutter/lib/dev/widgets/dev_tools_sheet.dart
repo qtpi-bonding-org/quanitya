@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' as cubit_ui_flow;
 
 import '../../app_router.dart';
+import '../../data/db/app_database.dart';
 import '../../design_system/primitives/app_sizes.dart';
 import '../../design_system/primitives/app_spacings.dart';
 import '../../design_system/primitives/quanitya_palette.dart';
@@ -211,6 +212,13 @@ class DevToolsSheet extends StatelessWidget {
               ),
               VSpace.x2,
 
+              // Measure encrypted entry sizes
+              _DevToolRow(
+                label: 'Encrypted Entry Sizes',
+                child: _MeasureEntrySizesButton(),
+              ),
+              VSpace.x2,
+
               // Navigation shortcuts
               const Divider(),
               VSpace.x2,
@@ -408,6 +416,120 @@ class _DevWipeKeysButtonState extends State<_DevWipeKeysButton> {
           if (mounted) setState(() => _isLoading = false);
         }
       },
+    );
+  }
+}
+
+/// Measures encrypted entry blob sizes and shows results in a dialog.
+class _MeasureEntrySizesButton extends StatefulWidget {
+  @override
+  State<_MeasureEntrySizesButton> createState() =>
+      _MeasureEntrySizesButtonState();
+}
+
+class _MeasureEntrySizesButtonState extends State<_MeasureEntrySizesButton> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return SizedBox(
+        width: AppSizes.iconMedium,
+        height: AppSizes.iconMedium,
+        child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
+      );
+    }
+
+    return QuanityaTextButton(
+      text: 'Measure',
+      onPressed: () async {
+        setState(() => _isLoading = true);
+        try {
+          final db = GetIt.instance<AppDatabase>();
+          final result = await db.customSelect(
+            'SELECT '
+            'COUNT(*) AS cnt, '
+            'SUM(LENGTH(encrypted_data)) AS total_bytes, '
+            'AVG(LENGTH(encrypted_data)) AS avg_bytes, '
+            'MIN(LENGTH(encrypted_data)) AS min_bytes, '
+            'MAX(LENGTH(encrypted_data)) AS max_bytes '
+            'FROM encrypted_entries',
+          ).getSingle();
+
+          final count = result.read<int>('cnt');
+          if (count == 0) {
+            if (mounted) {
+              _showReport(context, 'No encrypted entries found.');
+            }
+            return;
+          }
+
+          final totalBytes = result.read<int>('total_bytes');
+          final avgBytes = result.read<double>('avg_bytes');
+          final minBytes = result.read<int>('min_bytes');
+          final maxBytes = result.read<int>('max_bytes');
+
+          final report = [
+            'Count:  $count',
+            'Total:  ${(totalBytes / 1024).toStringAsFixed(1)} KB',
+            '',
+            'Avg:    ${avgBytes.toStringAsFixed(0)} bytes',
+            'Min:    $minBytes bytes',
+            'Max:    $maxBytes bytes',
+            '',
+            '500 MB ≈ ${_formatCount((500 * 1024 * 1024 / avgBytes).round())} entries',
+            '1 GB ≈ ${_formatCount((1024 * 1024 * 1024 / avgBytes).round())} entries',
+          ].join('\n');
+
+          if (mounted) {
+            _showReport(context, report);
+          }
+        } catch (e) {
+          if (mounted) {
+            _showReport(context, 'Error: $e');
+          }
+        } finally {
+          if (mounted) setState(() => _isLoading = false);
+        }
+      },
+    );
+  }
+
+  String _formatCount(int count) {
+    if (count >= 1000000) {
+      return '${(count / 1000000).toStringAsFixed(1)}M';
+    }
+    if (count >= 1000) {
+      return '${(count / 1000).toStringAsFixed(0)}K';
+    }
+    return '$count';
+  }
+
+  void _showReport(BuildContext context, String report) {
+    final palette = QuanityaPalette.primary;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: palette.backgroundPrimary,
+        title: Text(
+          'Encrypted Entry Sizes',
+          style: ctx.text.titleMedium,
+        ),
+        content: Text(
+          report,
+          style: ctx.text.bodyMedium?.copyWith(
+            fontFamily: 'monospace',
+            height: 1.6,
+          ),
+        ),
+        actions: [
+          QuanityaTextButton(
+            text: 'OK',
+            onPressed: () => Navigator.pop(ctx),
+          ),
+        ],
+      ),
     );
   }
 }

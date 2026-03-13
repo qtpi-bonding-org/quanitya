@@ -54,7 +54,8 @@ class _OfficePageState extends State<OfficePage> {
       context.read<PurchaseCubit>().loadProducts();
       context.read<EntitlementCubit>()
         ..loadEntitlements()
-        ..checkSyncAccess();
+        ..checkSyncAccess()
+        ..loadStorageUsage();
     }
   }
 

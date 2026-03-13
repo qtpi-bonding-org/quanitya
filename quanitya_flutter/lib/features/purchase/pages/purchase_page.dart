@@ -30,7 +30,8 @@ class PurchaseTabContent extends StatelessWidget {
         context.read<PurchaseCubit>().loadProducts();
         context.read<EntitlementCubit>()
           ..loadEntitlements()
-          ..checkSyncAccess();
+          ..checkSyncAccess()
+          ..loadStorageUsage();
       },
       child: ListView(
         padding: AppPadding.verticalSingle,
@@ -41,6 +42,8 @@ class PurchaseTabContent extends StatelessWidget {
               return BalanceDisplay(
                 entitlements: state.entitlements,
                 hasSyncAccess: state.hasSyncAccess,
+                storageBytes: state.storageBytes,
+                entryCount: state.entryCount,
               );
             },
           ),
