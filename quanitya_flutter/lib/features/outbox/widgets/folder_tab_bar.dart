@@ -119,33 +119,13 @@ class _FolderTabWidget extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (tab.leftIndicator != null)
-                    Padding(
-                      padding: EdgeInsets.only(right: AppSizes.space * 0.25),
-                      child: Icon(
-                        tab.leftIndicator,
-                        size: AppSizes.iconTiny + 2,
-                        color: tabColor,
-                      ),
-                    ),
-                  Icon(
-                    tab.icon,
-                    size: isSelected ? AppSizes.iconMedium : AppSizes.iconSmall + 2,
-                    color: tabColor,
-                  ),
-                  if (tab.rightIndicator != null)
-                    Padding(
-                      padding: EdgeInsets.only(left: AppSizes.space * 0.25),
-                      child: Icon(
-                        tab.rightIndicator,
-                        size: AppSizes.iconTiny + 2,
-                        color: tabColor,
-                      ),
-                    ),
-                ],
+              _IconWithIndicators(
+                icon: tab.icon,
+                iconSize: isSelected ? AppSizes.iconMedium : AppSizes.iconSmall + 2,
+                iconColor: tabColor,
+                leftIndicator: tab.leftIndicator,
+                rightIndicator: tab.rightIndicator,
+                indicatorSize: AppSizes.iconTiny + 2,
               ),
               if (isSelected) ...[
                 VSpace.x05,
@@ -162,6 +142,60 @@ class _FolderTabWidget extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Icon with optional left/right indicator arrows positioned via a Stack
+/// so they never shift the main icon off-center.
+class _IconWithIndicators extends StatelessWidget {
+  final IconData icon;
+  final double iconSize;
+  final Color iconColor;
+  final IconData? leftIndicator;
+  final IconData? rightIndicator;
+  final double indicatorSize;
+
+  const _IconWithIndicators({
+    required this.icon,
+    required this.iconSize,
+    required this.iconColor,
+    this.leftIndicator,
+    this.rightIndicator,
+    required this.indicatorSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Always reserve space for both arrows so the icon stays centered
+    // regardless of which indicators are active.
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Opacity(
+          opacity: leftIndicator != null ? 1.0 : 0.0,
+          child: Padding(
+            padding: EdgeInsets.only(right: AppSizes.space * 0.25),
+            child: Icon(
+              leftIndicator ?? Icons.south,
+              size: indicatorSize,
+              color: iconColor,
+            ),
+          ),
+        ),
+        Icon(icon, size: iconSize, color: iconColor),
+        Opacity(
+          opacity: rightIndicator != null ? 1.0 : 0.0,
+          child: Padding(
+            padding: EdgeInsets.only(left: AppSizes.space * 0.25),
+            child: Icon(
+              rightIndicator ?? Icons.north,
+              size: indicatorSize,
+              color: iconColor,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
