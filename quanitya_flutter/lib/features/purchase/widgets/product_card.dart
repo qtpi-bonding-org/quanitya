@@ -125,6 +125,10 @@ class ProductCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: palette.backgroundPrimary,
           borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+          border: Border.all(
+            color: palette.textPrimary.withValues(alpha: 0.25),
+            width: AppSizes.borderWidth,
+          ),
           boxShadow: [
             BoxShadow(
               color: palette.textPrimary.withValues(alpha: 0.12),
@@ -158,7 +162,7 @@ class ProductCard extends StatelessWidget {
                 if (parsed.capacity != null) ...[
                   Text(
                     parsed.capacity ?? '',
-                    style: context.text.headlineMedium?.copyWith(
+                    style: context.text.titleMedium?.copyWith(
                       color: palette.textPrimary,
                       fontWeight: FontWeight.w700,
                     ),
@@ -180,7 +184,7 @@ class ProductCard extends StatelessWidget {
                 // Plan name
                 Text(
                   parsed.planName,
-                  style: context.text.titleMedium?.copyWith(
+                  style: context.text.headlineMedium?.copyWith(
                     color: palette.textPrimary,
                     fontWeight: FontWeight.w700,
                   ),
@@ -249,10 +253,16 @@ class _StringHolePainter extends CustomPainter {
       borderRadius + holeRadius + 4,
     );
 
-    final paint = Paint()
+    final fill = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(holeCenter, holeRadius, paint);
+    canvas.drawCircle(holeCenter, holeRadius, fill);
+
+    final stroke = Paint()
+      ..color = color.withValues(alpha: 0.25)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawCircle(holeCenter, holeRadius, stroke);
   }
 
   @override

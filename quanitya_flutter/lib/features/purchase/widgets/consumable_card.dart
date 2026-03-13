@@ -44,6 +44,16 @@ class ConsumableCard extends StatelessWidget {
     return '\$${priceUsd.toStringAsFixed(2)}';
   }
 
+  /// Splits a plan name like "20 AI Calls" into ["20", "AI Calls"].
+  /// If no leading number found, returns the name as a single element.
+  static List<String> _splitPlanName(String name) {
+    final match = RegExp(r'^(\d+)\s+(.+)$').firstMatch(name);
+    if (match != null) {
+      return [match.group(1) ?? name, match.group(2) ?? ''];
+    }
+    return [name];
+  }
+
   /// Extracts capacity (e.g. "500 MB", "1 GB") from the title.
   ({String? capacity, String planName, String? entryEstimate}) _parseTitle() {
     final capacityPattern = RegExp(
@@ -132,6 +142,10 @@ class ConsumableCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: palette.backgroundPrimary,
           borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+          border: Border.all(
+            color: palette.textPrimary.withValues(alpha: 0.25),
+            width: AppSizes.borderWidth,
+          ),
           boxShadow: [
             BoxShadow(
               color: palette.textPrimary.withValues(alpha: 0.12),
@@ -157,7 +171,7 @@ class ConsumableCard extends StatelessWidget {
             padding: EdgeInsets.only(
               left: AppSizes.space * 2,
               right: AppSizes.space * 2,
-              top: AppSizes.space * 1.5,
+              top: AppSizes.space * 3,
               bottom: AppSizes.space * 2,
             ),
             child: Column(
@@ -177,11 +191,11 @@ class ConsumableCard extends StatelessWidget {
 
                 VSpace.x2,
 
-                // Capacity (prominent center)
+                // Capacity — smaller, like old plan name style
                 if (parsed.capacity != null) ...[
                   Text(
                     parsed.capacity ?? '',
-                    style: context.text.headlineMedium?.copyWith(
+                    style: context.text.titleMedium?.copyWith(
                       color: palette.textPrimary,
                       fontWeight: FontWeight.w700,
                     ),
@@ -200,16 +214,18 @@ class ConsumableCard extends StatelessWidget {
                   VSpace.x05,
                 ],
 
-                // Plan name — bold so "20 AI Calls" etc. reads as the headline
-                Text(
-                  parsed.planName,
-                  style: context.text.titleMedium?.copyWith(
-                    color: palette.textPrimary,
-                    fontWeight: FontWeight.w700,
+                // Plan name — number on its own line, label below
+                ..._splitPlanName(parsed.planName).map(
+                  (line) => Text(
+                    line,
+                    style: context.text.headlineMedium?.copyWith(
+                      color: palette.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
 
                 VSpace.x3,
@@ -310,10 +326,16 @@ class _HangTabSlotPainter extends CustomPainter {
       )
       ..close();
 
-    final paint = Paint()
+    final fill = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-    canvas.drawPath(path, paint);
+    canvas.drawPath(path, fill);
+
+    final stroke = Paint()
+      ..color = color.withValues(alpha: 0.25)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawPath(path, stroke);
   }
 
   @override

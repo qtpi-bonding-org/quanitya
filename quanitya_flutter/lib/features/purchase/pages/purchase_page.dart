@@ -347,8 +347,9 @@ class _PeriodColumn extends StatelessWidget {
       children: [
         Text(
           title,
-          style: context.text.titleSmall?.copyWith(
-            color: palette.textSecondary,
+          style: context.text.titleMedium?.copyWith(
+            color: palette.textPrimary,
+            fontWeight: FontWeight.w700,
           ),
           textAlign: TextAlign.center,
         ),
