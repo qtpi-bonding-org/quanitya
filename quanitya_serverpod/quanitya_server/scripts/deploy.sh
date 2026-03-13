@@ -41,17 +41,9 @@ if [ -z "$SERVICE_SECRET" ]; then
     SERVICE_SECRET=$(openssl rand -base64 48 | tr -d '/+=' | head -c 64)
     echo "SERVICE_SECRET=$SERVICE_SECRET" >> .env
 fi
-if [ -z "$EMAIL_SECRET_HASH_PEPPER" ]; then
-    EMAIL_SECRET_HASH_PEPPER=$(openssl rand -base64 24 | tr -d '/+=' | head -c 32)
-    echo "EMAIL_SECRET_HASH_PEPPER=$EMAIL_SECRET_HASH_PEPPER" >> .env
-fi
 if [ -z "$JWT_HMAC_SHA512_PRIVATE_KEY" ]; then
     JWT_HMAC_SHA512_PRIVATE_KEY=$(openssl rand -base64 48 | tr -d '/+=' | head -c 64)
     echo "JWT_HMAC_SHA512_PRIVATE_KEY=$JWT_HMAC_SHA512_PRIVATE_KEY" >> .env
-fi
-if [ -z "$JWT_REFRESH_TOKEN_HASH_PEPPER" ]; then
-    JWT_REFRESH_TOKEN_HASH_PEPPER=$(openssl rand -base64 24 | tr -d '/+=' | head -c 32)
-    echo "JWT_REFRESH_TOKEN_HASH_PEPPER=$JWT_REFRESH_TOKEN_HASH_PEPPER" >> .env
 fi
 
 # Re-source .env to pick up generated secrets
@@ -63,9 +55,7 @@ production:
   database: $POSTGRES_PASSWORD
   redis: ${REDIS_PASSWORD:-changeme}
   serviceSecret: '$SERVICE_SECRET'
-  emailSecretHashPepper: '$EMAIL_SECRET_HASH_PEPPER'
   jwtHmacSha512PrivateKey: '$JWT_HMAC_SHA512_PRIVATE_KEY'
-  jwtRefreshTokenHashPepper: '$JWT_REFRESH_TOKEN_HASH_PEPPER'
 EOF
 
 # Build the server image
