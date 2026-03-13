@@ -40,19 +40,15 @@ class _PostagePageState extends State<PostagePage> {
     final l10n = AppLocalizations.of(context)!;
     final palette = QuanityaPalette.primary;
 
+    // NotificationInboxCubit and ErrorBoxCubit are provided by NotebookShell
+    // (shared with the tab bar for incoming/outgoing indicators).
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (_) => GetIt.instance<NotificationInboxCubit>()..loadNotifications(),
-        ),
         BlocProvider(
           create: (_) => GetIt.instance<FeedbackCubit>(),
         ),
         BlocProvider(
           create: (_) => GetIt.instance<AnalyticsInboxCubit>()..load(),
-        ),
-        BlocProvider(
-          create: (_) => GetIt.instance<ErrorBoxCubit>()..load(),
         ),
       ],
       child: UiFlowStateListener<NotificationInboxCubit, NotificationInboxState>(

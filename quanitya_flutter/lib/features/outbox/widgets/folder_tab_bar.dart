@@ -10,7 +10,18 @@ class FolderTab {
   final IconData icon;
   final String label;
 
-  const FolderTab({required this.icon, required this.label});
+  /// Small arrow shown to the left of the icon (e.g. incoming indicator).
+  final IconData? leftIndicator;
+
+  /// Small arrow shown to the right of the icon (e.g. outgoing indicator).
+  final IconData? rightIndicator;
+
+  const FolderTab({
+    required this.icon,
+    required this.label,
+    this.leftIndicator,
+    this.rightIndicator,
+  });
 }
 
 /// A tab bar styled like physical file folder tabs.
@@ -108,10 +119,33 @@ class _FolderTabWidget extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                tab.icon,
-                size: isSelected ? AppSizes.iconMedium : AppSizes.iconSmall + 2,
-                color: tabColor,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (tab.leftIndicator != null)
+                    Padding(
+                      padding: EdgeInsets.only(right: AppSizes.space * 0.25),
+                      child: Icon(
+                        tab.leftIndicator,
+                        size: AppSizes.iconTiny + 2,
+                        color: tabColor,
+                      ),
+                    ),
+                  Icon(
+                    tab.icon,
+                    size: isSelected ? AppSizes.iconMedium : AppSizes.iconSmall + 2,
+                    color: tabColor,
+                  ),
+                  if (tab.rightIndicator != null)
+                    Padding(
+                      padding: EdgeInsets.only(left: AppSizes.space * 0.25),
+                      child: Icon(
+                        tab.rightIndicator,
+                        size: AppSizes.iconTiny + 2,
+                        color: tabColor,
+                      ),
+                    ),
+                ],
               ),
               if (isSelected) ...[
                 VSpace.x05,
