@@ -184,8 +184,8 @@ class _HeaderSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final secondaryText = context.colors.textSecondary;
-    final bodyStyle = context.text.bodyMedium!.copyWith(color: secondaryText);
-    final boldStyle = bodyStyle.copyWith(fontWeight: FontWeight.bold);
+    final bodyStyle = context.text.bodyMedium?.copyWith(color: secondaryText);
+    final boldStyle = bodyStyle?.copyWith(fontWeight: FontWeight.bold);
 
     return QuanityaColumn(
       spacing: VSpace.x2,
@@ -200,7 +200,7 @@ class _HeaderSection extends StatelessWidget {
         ),
         Text(
           context.l10n.aboutPronunciation,
-          style: bodyStyle.copyWith(fontStyle: FontStyle.italic),
+          style: bodyStyle?.copyWith(fontStyle: FontStyle.italic),
         ),
       ],
     );
@@ -243,7 +243,7 @@ class _DefinitionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bodyStyle = context.text.bodyMedium!.copyWith(
+    final bodyStyle = context.text.bodyMedium?.copyWith(
       color: context.colors.textSecondary,
     );
 
@@ -268,7 +268,7 @@ class _DefinitionItem extends StatelessWidget {
               HSpace.x1,
               Text(
                 subtitle,
-                style: bodyStyle.copyWith(
+                style: bodyStyle?.copyWith(
                   letterSpacing: 1.5,
                   fontWeight: FontWeight.bold,
                 ),
@@ -327,7 +327,7 @@ class _FeatureItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bodyStyle = context.text.bodyMedium!.copyWith(
+    final bodyStyle = context.text.bodyMedium?.copyWith(
       color: context.colors.textSecondary,
     );
 

@@ -43,14 +43,17 @@ class LlmService {
           );
 
           // Execute via Serverpod Endpoint
-          final result = await _serverpodClient.cloudLlm.generateStructured(cloudRequest);
+          final jsonString = await _serverpodClient.cloudLlm.generateStructured(cloudRequest);
 
           if (kDebugMode) {
              debugPrint('☁️☁️☁️ CLOUD PROXY SUCCESS ☁️☁️☁️\n');
           }
 
+          // Decode the JSON string returned directly by the endpoint
+          final data = jsonDecode(jsonString) as Map<String, dynamic>;
+
           return LlmResponse(
-            data: result,
+            data: data,
             model: config.model,
             tokensUsed: 0, // Server doesn't return usage yet, can add later
           );

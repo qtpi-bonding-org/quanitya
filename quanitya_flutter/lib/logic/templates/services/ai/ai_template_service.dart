@@ -33,7 +33,7 @@ class AiTemplateService {
     String? systemPrompt,
   }) async {
     try {
-      // Generate schema using existing pipeline
+      // Generate schema using existing script
       final schema = _schemaGenerator.generateSchema();
 
       final response = await _llm.execute(

@@ -3,10 +3,15 @@ import 'package:flutter/material.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
 import '../../../support/extensions/context_extensions.dart';
 
-/// Displays a single purchasable product with title, description, price, and buy button.
+/// Displays a purchasable product as a solid washi-white price tag.
+///
+/// Manuscript aesthetic: solid fill with subtle shadow (the only
+/// place in the app that uses elevation/shadow), string hole detail,
+/// capacity prominently displayed above the plan name.
 class ProductCard extends StatelessWidget {
   const ProductCard({
     super.key,
@@ -22,50 +27,248 @@ class ProductCard extends StatelessWidget {
   bool get _isSubscription =>
       product.productType == StoreProductType.subscription;
 
+  /// Extracts capacity (e.g. "500 MB", "1 GB") from the title.
+  /// Returns (capacity, planName, entryEstimate).
+  /// If no capacity found, (null, fullTitle, null).
+  ({String? capacity, String planName, String? entryEstimate}) _parseTitle() {
+    final capacityPattern = RegExp(
+      r'(\d+(?:\.\d+)?)\s*(KB|MB|GB|TB)',
+      caseSensitive: false,
+    );
+    final match = capacityPattern.firstMatch(product.title);
+    if (match != null) {
+      final number = match.group(1);
+      final unit = match.group(2);
+      if (number != null && unit != null) {
+        final capacityStr = '${match.group(0)}';
+        final remainder = product.title
+            .replaceFirst(capacityStr, '')
+            .replaceAll(
+              RegExp(r'\b(monthly|yearly|annual)\b', caseSensitive: false),
+              '',
+            )
+            .trim();
+        return (
+          capacity: capacityStr,
+          planName: remainder.isNotEmpty ? remainder : product.title,
+          entryEstimate: _estimateEntries(double.tryParse(number), unit),
+        );
+      }
+    }
+    return (capacity: null, planName: product.title, entryEstimate: null);
+  }
+
+  /// Estimates how many log entries fit in the given capacity.
+  ///
+  /// Assumes ~4 KB per entry on the server: encrypted blob (~1 KB in
+  /// SQLite) × 4 for PostgreSQL with PowerSync (oplog, indexes,
+  /// row overhead, WAL).
+  static String? _estimateEntries(double? value, String unit) {
+    if (value == null) return null;
+
+    final bytesPerEntry = 4096; // ~4 KB server-side
+    final bytes = switch (unit.toUpperCase()) {
+      'KB' => value * 1024,
+      'MB' => value * 1024 * 1024,
+      'GB' => value * 1024 * 1024 * 1024,
+      'TB' => value * 1024 * 1024 * 1024 * 1024,
+      _ => null,
+    };
+    if (bytes == null) return null;
+
+    final entries = (bytes / bytesPerEntry).round();
+    final rounded = (entries / 1000).round() * 1000;
+    if (rounded >= 1000000) {
+      final millions = rounded / 1000000;
+      return '~${millions.toStringAsFixed(millions.truncateToDouble() == millions ? 0 : 1)}M entries';
+    }
+    if (rounded >= 1000) {
+      return '~${rounded ~/ 1000}K entries';
+    }
+    return '~$entries entries';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: AppPadding.listItem,
-      child: Padding(
-        padding: AppPadding.allDouble,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(product.title, style: context.text.titleMedium),
-            VSpace.x05,
-            Text(
-              product.description,
-              style: context.text.bodyMedium?.copyWith(
-                color: context.colors.textSecondary,
-              ),
+    final palette = QuanityaPalette.primary;
+    final parsed = _parseTitle();
+    final price =
+        product.localizedPrice ?? '\$${product.priceUsd.toStringAsFixed(2)}';
+
+    final holeRadius = AppSizes.space * 0.75;
+
+    final buttonLabel = _isSubscription
+        ? context.l10n.purchaseSubscribe
+        : context.l10n.purchaseBuy;
+
+    // Build a full semantic description for screen readers
+    final semanticParts = <String>[
+      parsed.planName,
+      if (parsed.capacity != null) parsed.capacity ?? '',
+      if (parsed.entryEstimate != null) parsed.entryEstimate ?? '',
+      price,
+      if (_isSubscription &&
+          product.subscriptionPeriod == SubscriptionPeriod.monthly)
+        context.l10n.purchasePeriodMonthly,
+      if (_isSubscription &&
+          product.subscriptionPeriod == SubscriptionPeriod.yearly)
+        context.l10n.purchasePeriodYearly,
+      buttonLabel,
+    ];
+
+    return Semantics(
+      button: true,
+      enabled: !isLoading,
+      label: semanticParts.join(', '),
+      excludeSemantics: true,
+      child: Container(
+        decoration: BoxDecoration(
+          color: palette.backgroundPrimary,
+          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+          border: Border.all(
+            color: palette.textPrimary.withValues(alpha: 0.25),
+            width: AppSizes.borderWidth,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: palette.textPrimary.withValues(alpha: 0.12),
+              blurRadius: AppSizes.space * 2,
+              offset: Offset(0, AppSizes.space * 0.5),
             ),
-            VSpace.x2,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  product.localizedPrice ?? '\$${product.priceUsd.toStringAsFixed(2)}',
-                  style: context.text.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                FilledButton(
-                  onPressed: isLoading ? null : onBuy,
-                  child: isLoading
-                      ? SizedBox(
-                          width: AppSizes.iconSmall,
-                          height: AppSizes.iconSmall,
-                          child: const CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(_isSubscription
-                          ? context.l10n.purchaseSubscribe
-                          : context.l10n.purchaseBuy),
-                ),
-              ],
+            BoxShadow(
+              color: palette.textPrimary.withValues(alpha: 0.06),
+              blurRadius: AppSizes.space * 0.5,
+              offset: Offset(0, AppSizes.space * 0.25),
             ),
           ],
         ),
+        child: CustomPaint(
+          painter: _StringHolePainter(
+            color: palette.textPrimary.withValues(alpha: 0.12),
+            holeRadius: holeRadius,
+            borderRadius: AppSizes.radiusSmall,
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: AppSizes.space * 2,
+              right: AppSizes.space * 2,
+              top: AppSizes.space * 3.5,
+              bottom: AppSizes.space * 2,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Capacity (prominent, if extractable)
+                if (parsed.capacity != null) ...[
+                  Text(
+                    parsed.capacity ?? '',
+                    style: context.text.titleMedium?.copyWith(
+                      color: palette.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (parsed.entryEstimate != null) ...[
+                    VSpace.x025,
+                    Text(
+                      parsed.entryEstimate ?? '',
+                      style: context.text.bodySmall?.copyWith(
+                        color: palette.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                  VSpace.x05,
+                ],
+
+                // Plan name
+                Text(
+                  parsed.planName,
+                  style: context.text.headlineMedium?.copyWith(
+                    color: palette.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                VSpace.x2,
+
+                // Price
+                Text(
+                  price,
+                  style: context.text.titleLarge?.copyWith(
+                    color: palette.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                VSpace.x2,
+
+                // Action
+                if (isLoading)
+                  SizedBox(
+                    width: AppSizes.iconSmall,
+                    height: AppSizes.iconSmall,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: palette.interactableColor,
+                    ),
+                  )
+                else
+                  QuanityaTextButton(
+                    text: buttonLabel,
+                    onPressed: onBuy,
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
+  }
+}
+
+/// Painter that draws a filled string hole at the top of the price tag.
+///
+/// The hole is a solid dark circle — same tone as the card shadow —
+/// suggesting a punched-out hole in the tag.
+class _StringHolePainter extends CustomPainter {
+  final Color color;
+  final double holeRadius;
+  final double borderRadius;
+
+  _StringHolePainter({
+    required this.color,
+    required this.holeRadius,
+    required this.borderRadius,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final holeCenter = Offset(
+      size.width / 2,
+      borderRadius + holeRadius + 4,
+    );
+
+    final fill = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(holeCenter, holeRadius, fill);
+
+    final stroke = Paint()
+      ..color = color.withValues(alpha: 0.25)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawCircle(holeCenter, holeRadius, stroke);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    if (oldDelegate is! _StringHolePainter) return true;
+    return oldDelegate.color != color ||
+        oldDelegate.holeRadius != holeRadius;
   }
 }

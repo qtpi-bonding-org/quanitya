@@ -1,0 +1,22 @@
+# EncryptedAnalysisScript: E2EE encrypted analysis script data
+# Client encrypts script data before upload, server stores opaque blob
+# PowerSync syncs this to client SQLite for offline access
+class: EncryptedAnalysisScript
+table: encrypted_analysis_scripts
+fields:
+  # UUID primary key for PowerSync syncing (generated on client)
+  id: UuidValue, defaultModel=random
+
+  # Foreign key to account (for sync bucket filtering)
+  # References anon_account table from anonaccred module
+  accountId: int
+
+  # Client-encrypted analysis script data (JSON blob encrypted with data key)
+  encryptedData: String
+
+  # Last update timestamp for sync conflict resolution
+  updatedAt: DateTime, default=now
+indexes:
+  encrypted_analysis_script_account_idx:
+    fields: accountId
+    unique: false

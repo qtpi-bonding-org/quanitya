@@ -131,36 +131,41 @@ class _ZenChipState<T> extends State<_ZenChip<T>>
   Widget build(BuildContext context) {
     final color = widget.isSelected ? widget.selectedColor : widget.unselectedColor;
 
-    return GestureDetector(
-      onTap: widget.onChanged != null ? () => widget.onChanged!(widget.option) : null,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _PenCirclePainter(
-              progress: _animation.value,
-              color: widget.selectedColor,
-              borderRadius: AppSizes.size20,
-              strokeWidth: 1.5,
-              startAngle: _startAngle,
+    return Semantics(
+      button: true,
+      toggled: widget.isSelected,
+      label: widget.labelBuilder(widget.option),
+      child: GestureDetector(
+        onTap: widget.onChanged != null ? () => widget.onChanged!(widget.option) : null,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedBuilder(
+          animation: _animation,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: _PenCirclePainter(
+                progress: _animation.value,
+                color: widget.selectedColor,
+                borderRadius: AppSizes.size20,
+                strokeWidth: 1.5,
+                startAngle: _startAngle,
+              ),
+              child: child,
+            );
+          },
+          child: Container(
+            constraints: BoxConstraints(minHeight: AppSizes.buttonHeight),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSizes.space * 1.5,
+              vertical: AppSizes.space,
             ),
-            child: child,
-          );
-        },
-        child: Container(
-          constraints: BoxConstraints(minHeight: AppSizes.buttonHeight),
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSizes.space * 1.5,
-            vertical: AppSizes.space,
-          ),
-          child: Text(
-            widget.labelBuilder(widget.option),
-            style: TextStyle(
-              fontFamily: QuanityaFonts.bodyFamily,
-              fontSize: AppSizes.fontStandard,
-              color: color,
-              fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
+            child: Text(
+              widget.labelBuilder(widget.option),
+              style: TextStyle(
+                fontFamily: QuanityaFonts.bodyFamily,
+                fontSize: AppSizes.fontStandard,
+                color: color,
+                fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
             ),
           ),
         ),

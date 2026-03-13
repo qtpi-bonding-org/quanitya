@@ -7,7 +7,7 @@ library;
 export 'models/matrix_vector_scalar/matrix_vector_scalar.dart';
 
 // Updated analysis models
-export 'models/analysis_pipeline.dart';
+export 'models/analysis_script.dart';
 
 // Analysis engine
 export 'services/analysis_engine.dart';

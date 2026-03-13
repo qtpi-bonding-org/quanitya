@@ -25,14 +25,16 @@ import 'package:quanitya_server/src/generated/encrypted_template.dart' as _i9;
 import 'package:quanitya_server/src/generated/encrypted_entry.dart' as _i10;
 import 'package:quanitya_server/src/generated/encrypted_schedule.dart' as _i11;
 import 'package:quanitya_server/src/generated/template_aesthetics.dart' as _i12;
-import 'package:quanitya_server/src/generated/encrypted_analysis_pipeline.dart'
+import 'package:quanitya_server/src/generated/encrypted_analysis_script.dart'
     as _i13;
-import 'package:quanitya_server/src/generated/greeting.dart' as _i14;
+import 'package:quanitya_server/src/generated/storage_usage_response.dart'
+    as _i14;
+import 'package:quanitya_server/src/generated/greeting.dart' as _i15;
 import 'package:quanitya_server/src/generated/future_calls_generated_models/monthly_archival_future_call_run_monthly_archival_model.dart'
-    as _i15;
-import 'package:quanitya_server/src/generated/future_calls.dart' as _i16;
+    as _i16;
+import 'package:quanitya_server/src/generated/future_calls.dart' as _i17;
 import 'package:quanitya_server/src/generated/future_calls_generated_models/monthly_archival_future_call_initialize_schedule_model.dart'
-    as _i17;
+    as _i18;
 import 'package:quanitya_server/src/generated/protocol.dart';
 import 'package:quanitya_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -1020,7 +1022,7 @@ class _SyncEndpoint {
     });
   }
 
-  _i3.Future<_i13.EncryptedAnalysisPipeline> upsertEncryptedAnalysisPipeline(
+  _i3.Future<_i13.EncryptedAnalysisScript> upsertEncryptedAnalysisScript(
     _i1.TestSessionBuilder sessionBuilder,
     String id,
     String encryptedData,
@@ -1029,13 +1031,13 @@ class _SyncEndpoint {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'sync',
-            method: 'upsertEncryptedAnalysisPipeline',
+            method: 'upsertEncryptedAnalysisScript',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'sync',
-          methodName: 'upsertEncryptedAnalysisPipeline',
+          methodName: 'upsertEncryptedAnalysisScript',
           parameters: _i1.testObjectToJson({
             'id': id,
             'encryptedData': encryptedData,
@@ -1047,7 +1049,7 @@ class _SyncEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.EncryptedAnalysisPipeline>);
+                as _i3.Future<_i13.EncryptedAnalysisScript>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1055,7 +1057,7 @@ class _SyncEndpoint {
     });
   }
 
-  _i3.Future<bool> deleteEncryptedAnalysisPipeline(
+  _i3.Future<bool> deleteEncryptedAnalysisScript(
     _i1.TestSessionBuilder sessionBuilder,
     String id,
   ) async {
@@ -1063,13 +1065,13 @@ class _SyncEndpoint {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'sync',
-            method: 'deleteEncryptedAnalysisPipeline',
+            method: 'deleteEncryptedAnalysisScript',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'sync',
-          methodName: 'deleteEncryptedAnalysisPipeline',
+          methodName: 'deleteEncryptedAnalysisScript',
           parameters: _i1.testObjectToJson({'id': id}),
           serializationManager: _serializationManager,
         );
@@ -1086,7 +1088,7 @@ class _SyncEndpoint {
     });
   }
 
-  _i3.Future<Map<String, dynamic>> getStorageUsage(
+  _i3.Future<_i14.StorageUsageResponse> getStorageUsage(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -1108,7 +1110,7 @@ class _SyncEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<Map<String, dynamic>>);
+                as _i3.Future<_i14.StorageUsageResponse>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1127,7 +1129,7 @@ class _GreetingEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i14.Greeting> hello(
+  _i3.Future<_i15.Greeting> hello(
     _i1.TestSessionBuilder sessionBuilder,
     String name,
   ) async {
@@ -1150,7 +1152,7 @@ class _GreetingEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.Greeting>);
+                as _i3.Future<_i15.Greeting>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -1164,13 +1166,13 @@ class _MonthlyArchivalFutureCall {
     _i1.TestSessionBuilder sessionBuilder,
     int iteration,
   ) async {
-    var object = _i15.MonthlyArchivalFutureCallRunMonthlyArchivalModel(
+    var object = _i16.MonthlyArchivalFutureCallRunMonthlyArchivalModel(
       iteration: iteration,
     );
     var _localUniqueSession = (sessionBuilder as _i1.InternalTestSessionBuilder)
         .internalBuild();
     try {
-      await _i16.MonthlyArchivalRunMonthlyArchivalFutureCall().invoke(
+      await _i17.MonthlyArchivalRunMonthlyArchivalFutureCall().invoke(
         _localUniqueSession,
         object,
       );
@@ -1183,13 +1185,13 @@ class _MonthlyArchivalFutureCall {
     _i1.TestSessionBuilder sessionBuilder,
     int iteration,
   ) async {
-    var object = _i17.MonthlyArchivalFutureCallInitializeScheduleModel(
+    var object = _i18.MonthlyArchivalFutureCallInitializeScheduleModel(
       iteration: iteration,
     );
     var _localUniqueSession = (sessionBuilder as _i1.InternalTestSessionBuilder)
         .internalBuild();
     try {
-      await _i16.MonthlyArchivalInitializeScheduleFutureCall().invoke(
+      await _i17.MonthlyArchivalInitializeScheduleFutureCall().invoke(
         _localUniqueSession,
         object,
       );

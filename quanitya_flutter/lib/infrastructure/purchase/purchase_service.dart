@@ -1,7 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
+    show Client, RailCatalogEntry;
 
 import '../core/try_operation.dart';
+import '../platform/platform_capability_service.dart';
+import '../public_submission/public_submission_service.dart';
 import 'i_entitlement_service.dart';
 import 'i_purchase_provider.dart';
 import 'i_purchase_service.dart';
@@ -11,9 +15,17 @@ import 'purchase_models.dart';
 @LazySingleton(as: IPurchaseService)
 class PurchaseService implements IPurchaseService {
   final IEntitlementService _entitlementService;
+  final PublicSubmissionService _submissionService;
+  final Client _client;
+  final PlatformCapabilityService _platformCaps;
   final Map<PurchaseRail, IPurchaseProvider> _providers = {};
 
-  PurchaseService(this._entitlementService);
+  PurchaseService(
+    this._entitlementService,
+    this._submissionService,
+    this._client,
+    this._platformCaps,
+  );
 
   @override
   void registerProvider(IPurchaseProvider provider) {
@@ -105,6 +117,33 @@ class PurchaseService implements IPurchaseService {
       },
       PurchaseException.new,
       'recoverPendingPurchases',
+    );
+  }
+
+  @override
+  Future<List<RailCatalogEntry>> getRailCatalog() {
+    return tryMethod(
+      () async {
+        final platformId = _platformCaps.platformId;
+        final catalog = await _submissionService
+            .queryWithVerification<List<RailCatalogEntry>>(
+          endpoint: 'productCatalog',
+          payload: platformId,
+          queryCallback: (challenge, proofOfWork, publicKeyHex, signature) async {
+            final response = await _client.productCatalog.getCatalog(
+              challenge,
+              proofOfWork,
+              publicKeyHex,
+              signature,
+              platformId,
+            );
+            return response.rails;
+          },
+        );
+        return catalog;
+      },
+      PurchaseException.new,
+      'getRailCatalog',
     );
   }
 

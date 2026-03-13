@@ -100,49 +100,54 @@ class _PenCircledChipState extends State<PenCircledChip>
         ? palette.textPrimary
         : palette.interactableColor;
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _PenCirclePainter(
-              progress: _animation.value,
-              color: palette.textPrimary, // Circle always in black ink
-              borderRadius: radius,
-              strokeWidth: 1.5,
-              startAngle: _startAngle,
-            ),
-            child: child,
-          );
-        },
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSizes.space * 1.5,
-            vertical: AppSizes.space,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.icon != null) ...[
-                Icon(
-                  widget.icon,
-                  size: AppSizes.iconSmall,
-                  color: textColor,
-                ),
-                HSpace.x05,
-              ],
-              Text(
-                widget.label,
-                style: context.text.bodyMedium?.copyWith(
-                  color: textColor,
-                  fontWeight: widget.isSelected
-                      ? FontWeight.w600
-                      : FontWeight.normal,
-                ),
+    return Semantics(
+      button: true,
+      toggled: widget.isSelected,
+      label: widget.label,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedBuilder(
+          animation: _animation,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: _PenCirclePainter(
+                progress: _animation.value,
+                color: palette.textPrimary, // Circle always in black ink
+                borderRadius: radius,
+                strokeWidth: 1.5,
+                startAngle: _startAngle,
               ),
-            ],
+              child: child,
+            );
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSizes.space * 1.5,
+              vertical: AppSizes.space,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.icon != null) ...[
+                  Icon(
+                    widget.icon,
+                    size: AppSizes.iconSmall,
+                    color: textColor,
+                  ),
+                  HSpace.x05,
+                ],
+                Text(
+                  widget.label,
+                  style: context.text.bodyMedium?.copyWith(
+                    color: textColor,
+                    fontWeight: widget.isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -231,34 +236,39 @@ class _PenCircledDotState extends State<PenCircledDot>
         ? palette.textPrimary
         : palette.interactableColor;
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _PenCirclePainter(
-              progress: _animation.value,
-              color: palette.textPrimary, // Circle always in black ink
-              isCircle: true,
-              strokeWidth: 1.5,
-              startAngle: _startAngle,
-            ),
-            child: child,
-          );
-        },
-        child: SizedBox(
-          width: widget.size,
-          height: widget.size,
-          child: Center(
-            child: Text(
-              widget.label,
-              style: context.text.bodyMedium?.copyWith(
-                color: textColor,
-                fontWeight: widget.isSelected
-                    ? FontWeight.w600
-                    : FontWeight.normal,
+    return Semantics(
+      button: true,
+      toggled: widget.isSelected,
+      label: widget.label,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedBuilder(
+          animation: _animation,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: _PenCirclePainter(
+                progress: _animation.value,
+                color: palette.textPrimary, // Circle always in black ink
+                isCircle: true,
+                strokeWidth: 1.5,
+                startAngle: _startAngle,
+              ),
+              child: child,
+            );
+          },
+          child: SizedBox(
+            width: widget.size,
+            height: widget.size,
+            child: Center(
+              child: Text(
+                widget.label,
+                style: context.text.bodyMedium?.copyWith(
+                  color: textColor,
+                  fontWeight: widget.isSelected
+                      ? FontWeight.w600
+                      : FontWeight.normal,
+                ),
               ),
             ),
           ),

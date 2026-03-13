@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 
@@ -10,12 +9,10 @@ void main() {
         storage: SharedPrefsErrorBoxStorage(),
         reporter: (errorEntry) async {
           // Mock reporter - just complete successfully
+          return true;
         },
         errorCodeMapper: ErrorCodeMapper.mapError,
         exceptionMapper: (error) => null, // Mock exception mapper
-        showToast: false,
-        toastBuilder: const _MockErrorToastBuilder(),
-        pageBuilder: const _MockErrorBoxPageBuilder(),
       ));
 
       // Assert
@@ -33,23 +30,4 @@ void main() {
       expect(ErrorCodeMapper.mapError('Unknown error'), equals('ERR_STRING'));
     });
   });
-}
-
-// Mock implementations for testing
-class _MockErrorToastBuilder extends ErrorToastBuilder {
-  const _MockErrorToastBuilder();
-
-  @override
-  void show(context, message, {required onDismiss, required onSend}) {
-    // Mock implementation - do nothing
-  }
-}
-
-class _MockErrorBoxPageBuilder extends ErrorBoxPageBuilder {
-  const _MockErrorBoxPageBuilder();
-
-  @override
-  Widget build(context) {
-    return Container(); // Mock implementation
-  }
 }

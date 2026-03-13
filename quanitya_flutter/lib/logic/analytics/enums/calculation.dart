@@ -3,10 +3,6 @@ enum Calculation {
   extractField,      // Extract specific field from matrix
   extractTimestamps, // Extract timestamp column from matrix
   
-  // === MATRIX TRANSFORMERS (Matrix → Matrix) ===
-  matrixRollingAverage, // Rolling average on matrix data
-  matrixFilter,         // Filter matrix rows by criteria
-  
   // === VALUE VECTOR AGGREGATORS (Vector → Scalar) ===
   vectorMean,           // Mean of vector values
   vectorMedian,         // Median of vector values

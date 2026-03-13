@@ -3,7 +3,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:async';
 
-import '../../../data/interfaces/analysis_pipeline_interface.dart';
+import '../../../data/interfaces/analysis_script_interface.dart';
 import '../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../infrastructure/llm/models/llm_types.dart';
 import '../../../logic/templates/enums/field_enum.dart';
@@ -13,20 +13,22 @@ import '../enums/analysis_output_mode.dart';
 import '../enums/calculation.dart';
 import '../models/analysis_enums.dart';
 import '../models/matrix_vector_scalar/analysis_data_type.dart';
-import '../models/analysis_pipeline.dart';
+import '../models/analysis_script.dart';
 import '../services/field_context_service.dart';
 import '../services/ai/ai_analysis_orchestrator.dart';
 import '../services/streaming_analytics_service.dart';
+import '../services/wasm_analysis_service.dart';
 import '../models/analysis_output.dart';
 import 'analysis_builder_state.dart';
 
 @injectable
 class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
-  final IAnalysisPipelineRepository _repository;
+  final IAnalysisScriptRepository _repository;
   final TemplateWithAestheticsRepository _templateRepository;
   final AiAnalysisOrchestrator _aiOrchestrator;
   final FieldContextService _fieldContextService;
   final StreamingAnalyticsService _streamingService;
+  final IWasmAnalysisService _wasmService;
 
   AnalysisBuilderCubit(
     this._repository,
@@ -34,11 +36,12 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     this._aiOrchestrator,
     this._fieldContextService,
     this._streamingService,
+    this._wasmService,
   ) : super(const AnalysisBuilderState());
 
   StreamSubscription<AnalysisOutput>? _liveResultsSubscription;
 
-  /// Initialize the pipeline builder for a specific field and template
+  /// Initialize the script builder for a specific field and template
   Future<void> initializeForField(
     String fieldId,
     TimeResolution? timeResolution, {
@@ -59,14 +62,28 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         }
       }
 
+      // Load existing scripts for this field using composite fieldId
+      final compositeFieldId = templateId != null
+          ? '$templateId:$fieldId'
+          : fieldId;
+      var existing = await _repository.getScriptsForField(compositeFieldId);
+      if (existing.isEmpty && templateId != null) {
+        // Fallback: show all scripts for this template
+        final all = await _repository.getAllScripts();
+        existing = all.where((p) => p.fieldId.startsWith('$templateId:')).toList();
+      }
+      final script = existing.isNotEmpty ? existing.first : null;
+
       return state.copyWith(
         fieldId: fieldId,
         templateId: templateId,
         availableFieldNames: availableFields,
-        snippet: '',
-        reasoning: '',
-        outputMode: AnalysisOutputMode.scalar,
-        snippetLanguage: AnalysisSnippetLanguage.js,
+        availableScripts: existing,
+        selectedScriptId: script?.id,
+        snippet: script?.snippet ?? '',
+        reasoning: script?.reasoning ?? '',
+        outputMode: script?.outputMode ?? AnalysisOutputMode.scalar,
+        snippetLanguage: script?.snippetLanguage ?? AnalysisSnippetLanguage.js,
         previewResult: null,
         liveResults: null,
         status: UiFlowStatus.success,
@@ -81,6 +98,80 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       FieldEnum.dimension => true,
       _ => false,
     };
+  }
+
+  /// Select a different script to edit
+  void selectScript(String scriptId) {
+    final script = state.availableScripts
+        .where((p) => p.id == scriptId)
+        .firstOrNull;
+    if (script == null) return;
+
+    emit(state.copyWith(
+      selectedScriptId: scriptId,
+      snippet: script.snippet,
+      reasoning: script.reasoning ?? '',
+      outputMode: script.outputMode,
+      snippetLanguage: script.snippetLanguage,
+    ));
+
+    if (state.livePreviewEnabled) {
+      startLivePreview();
+    }
+  }
+
+  /// Clear editor and start a new script from scratch.
+  void newScript() {
+    emit(state.copyWith(
+      selectedScriptId: null,
+      snippet: '',
+      reasoning: '',
+      outputMode: AnalysisOutputMode.scalar,
+      snippetLanguage: AnalysisSnippetLanguage.js,
+      previewResult: null,
+    ));
+  }
+
+  /// Execute the current snippet and store results.
+  Future<void> runScript() async {
+    if (state.snippet.isEmpty) return;
+
+    await tryOperation(() async {
+      // Use selected script's fieldId (already in templateId:fieldName format),
+      // or construct it from state if editing a new script.
+      final selectedScript = state.selectedScriptId != null
+          ? state.availableScripts
+              .where((p) => p.id == state.selectedScriptId)
+              .firstOrNull
+          : null;
+      final effectiveFieldId = selectedScript?.fieldId ??
+          (state.templateId != null && state.fieldId != null
+              ? '${state.templateId}:${state.fieldId}'
+              : state.fieldId ?? '');
+
+      final script = AnalysisScriptModel(
+        id: state.selectedScriptId ?? 'temp-${DateTime.now().millisecondsSinceEpoch}',
+        name: 'Preview',
+        fieldId: effectiveFieldId,
+        outputMode: state.outputMode,
+        snippetLanguage: state.snippetLanguage,
+        snippet: state.snippet,
+        updatedAt: DateTime.now(),
+      );
+
+      final result = await _wasmService.execute(script);
+
+      return state.copyWith(
+        previewResult: result,
+        status: UiFlowStatus.success,
+        lastOperation: ScriptBuilderOperation.loadPreview,
+      );
+    }, emitLoading: true);
+  }
+
+  /// Update the output mode
+  void setOutputMode(AnalysisOutputMode mode) {
+    emit(state.copyWith(outputMode: mode));
   }
 
   /// Update the current snippet
@@ -105,7 +196,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         outputMode: outputMode,
         snippetLanguage: snippetLanguage,
         status: UiFlowStatus.success,
-        lastOperation: PipelineBuilderOperation.applyAiSuggestion,
+        lastOperation: ScriptBuilderOperation.applyAiSuggestion,
       ),
     );
 
@@ -156,17 +247,20 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     }
   }
 
-  /// Save pipeline
-  Future<void> savePipeline(String name) async {
+  /// Save script
+  Future<void> saveScript(String name) async {
     await tryOperation(() async {
-      if (state.fieldId == null) {
-        throw Exception('Cannot save pipeline without field selection');
-      }
+      // Build the composite fieldId (templateId:fieldName) if possible
+      final effectiveFieldId = state.templateId != null && state.fieldId != null
+          ? '${state.templateId}:${state.fieldId}'
+          : state.fieldId ?? '';
 
-      final pipeline = AnalysisPipelineModel(
-        id: const Uuid().v4(),
+      final scriptId = state.selectedScriptId ?? const Uuid().v4();
+
+      final script = AnalysisScriptModel(
+        id: scriptId,
         name: name,
-        fieldId: state.fieldId!,
+        fieldId: effectiveFieldId,
         outputMode: state.outputMode,
         snippetLanguage: state.snippetLanguage,
         snippet: state.snippet,
@@ -174,17 +268,25 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         updatedAt: DateTime.now(),
       );
 
-      await _repository.savePipeline(pipeline);
+      await _repository.saveScript(script);
+
+      // Reload scripts list so the new/updated one appears in the selector
+      var scripts = await _repository.getScriptsForField(effectiveFieldId);
+      if (scripts.isEmpty) {
+        scripts = await _repository.getAllScripts();
+      }
 
       return state.copyWith(
+        availableScripts: scripts,
+        selectedScriptId: scriptId,
         status: UiFlowStatus.success,
-        lastOperation: PipelineBuilderOperation.savePipeline,
+        lastOperation: ScriptBuilderOperation.saveScript,
       );
     }, emitLoading: true);
   }
 
-  /// Generate AI pipeline recommendation
-  Future<void> generateAndApplyAiPipeline({
+  /// Generate AI script recommendation
+  Future<void> generateAndApplyAiScript({
     required String fieldId,
     required String userIntent,
     required LlmConfig llmConfig,

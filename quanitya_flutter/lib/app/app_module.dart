@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     as quanitya_cloud_client;
 import 'package:serverpod_flutter/serverpod_flutter.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../data/db/app_database.dart';
 import '../data/sync/powersync_service.dart';
@@ -30,14 +29,10 @@ abstract class AppModule {
 
   @singleton
   quanitya_cloud_client.Client get serverpodClient {
-    var serverUrl = dotenv.env['SERVERPOD_URL'];
+    var serverUrl = const String.fromEnvironment('SERVERPOD_URL');
 
-    if (serverUrl == null || serverUrl.isEmpty) {
-      serverUrl = const String.fromEnvironment('SERVERPOD_URL');
-    }
-
-    if (serverUrl == null || serverUrl.isEmpty) {
-      serverUrl = 'http://$localhost:8090/';
+    if (serverUrl.isEmpty) {
+      serverUrl = 'http://$localhost:8080/';
     }
 
     debugPrint('🔗 Serverpod Client connecting to: $serverUrl');

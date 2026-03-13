@@ -4,9 +4,9 @@ import 'matrix_vector_scalar/time_series_matrix.dart';
 part 'analysis_output.freezed.dart';
 // part 'analysis_output.g.dart'; // We parse manually in service for now to avoid generation complexity
 
-/// Strict output model for Analysis Pipeline.
+/// Strict output model for Analysis Script.
 ///
-/// A pipeline MUST be configured to produce exactly one of these types.
+/// A script MUST be configured to produce exactly one of these types.
 /// The content is always a LIST of that type (e.g. Multi-Scalar, Multi-Vector).
 @freezed
 class AnalysisOutput with _$AnalysisOutput {

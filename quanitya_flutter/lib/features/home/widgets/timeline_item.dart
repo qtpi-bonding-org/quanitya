@@ -67,15 +67,18 @@ class TimelineItem extends StatelessWidget {
                             color: QuanityaPalette.primary.textPrimary,
                           ),
                   ),
-                  // Icon Bubble - uses template's accent color
+                  // Icon Bubble - accent-colored icon, interactable border
                   Container(
                     width: AppSizes.size36,
                     height: AppSizes.size36,
                     decoration: BoxDecoration(
-                      color: accentColor.withValues(alpha: 0.1),
+                      color: template.isHidden
+                          ? QuanityaPalette.primary.textPrimary
+                              .withValues(alpha: 0.25)
+                          : Colors.transparent,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: accentColor,
+                        color: QuanityaPalette.primary.interactableColor,
                         width: 2,
                       ),
                     ),
@@ -124,7 +127,7 @@ class TimelineItem extends StatelessWidget {
                     // Data Summary (Preview of first valid field)
                     if (entry.data.isNotEmpty)
                       Text(
-                        _formatEntryData(entry.data),
+                        _formatEntryData(context, entry.data),
                         style: context.text.bodyMedium,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -158,8 +161,8 @@ class TimelineItem extends StatelessWidget {
     return context.text.bodyLarge ?? const TextStyle();
   }
 
-  String _formatEntryData(Map<String, dynamic> data) {
-    if (data.isEmpty) return 'No details';
+  String _formatEntryData(BuildContext context, Map<String, dynamic> data) {
+    if (data.isEmpty) return context.l10n.timelineNoDetails;
     // Just grab the first value for now as a preview
     final firstValue = data.values.first;
     return firstValue.toString();

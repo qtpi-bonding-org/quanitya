@@ -382,7 +382,10 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         // Defensive check: prevent duplicate key generation
         if (await hasExistingKeys()) {
           CryptoLogger.logSecurityEvent('BLOCKED: Attempted to generate keys when keys already exist');
-          throw const KeyGenerationException('Keys already exist on this device. Cannot generate new keys.');
+          throw const KeyGenerationException(
+            'Keys already exist on this device. Cannot generate new keys.',
+            kind: KeyGenerationFailure.keysAlreadyExist,
+          );
         }
         
         CryptoLogger.logOperationStart('generateAccountKeys');
@@ -394,7 +397,7 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         // Verify ultimate key works (sign/verify + encrypt/decrypt roundtrips)
         final ultimateKey = _ultimateKey;
         if (ultimateKey == null) {
-          throw const KeyGenerationException('Ultimate key generation returned null');
+          throw const KeyGenerationException('Ultimate key generation returned null', kind: KeyGenerationFailure.verificationFailed);
         }
         
         // Test signing roundtrip
@@ -402,18 +405,18 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         final signature = await ultimateKey.sign(testData);
         final signatureValid = await ultimateKey.verifySignature(testData, signature);
         if (!signatureValid) {
-          throw const KeyGenerationException('Ultimate key signature verification failed');
+          throw const KeyGenerationException('Ultimate key signature verification failed', kind: KeyGenerationFailure.verificationFailed);
         }
         
         // Test encryption roundtrip
         final encrypted = await ultimateKey.encrypt(testData);
         final decrypted = await ultimateKey.decrypt(encrypted);
         if (testData.length != decrypted.length) {
-          throw const KeyGenerationException('Ultimate key encryption verification failed: length mismatch');
+          throw const KeyGenerationException('Ultimate key encryption verification failed: length mismatch', kind: KeyGenerationFailure.verificationFailed);
         }
         for (int i = 0; i < testData.length; i++) {
           if (testData[i] != decrypted[i]) {
-            throw const KeyGenerationException('Ultimate key encryption verification failed: data mismatch');
+            throw const KeyGenerationException('Ultimate key encryption verification failed: data mismatch', kind: KeyGenerationFailure.verificationFailed);
           }
         }
         CryptoLogger.logSuccess('ultimateKey verified');
@@ -432,17 +435,17 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         final deviceSignature = await deviceKey.sign(deviceTestData);
         final deviceSignatureValid = await deviceKey.verifySignature(deviceTestData, deviceSignature);
         if (!deviceSignatureValid) {
-          throw const KeyGenerationException('Device key signature verification failed');
+          throw const KeyGenerationException('Device key signature verification failed', kind: KeyGenerationFailure.verificationFailed);
         }
-        
+
         final deviceEncrypted = await deviceKey.encrypt(deviceTestData);
         final deviceDecrypted = await deviceKey.decrypt(deviceEncrypted);
         if (deviceTestData.length != deviceDecrypted.length) {
-          throw const KeyGenerationException('Device key encryption verification failed: length mismatch');
+          throw const KeyGenerationException('Device key encryption verification failed: length mismatch', kind: KeyGenerationFailure.verificationFailed);
         }
         for (int i = 0; i < deviceTestData.length; i++) {
           if (deviceTestData[i] != deviceDecrypted[i]) {
-            throw const KeyGenerationException('Device key encryption verification failed: data mismatch');
+            throw const KeyGenerationException('Device key encryption verification failed: data mismatch', kind: KeyGenerationFailure.verificationFailed);
           }
         }
         CryptoLogger.logSuccess('deviceKey verified');
@@ -464,7 +467,7 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         CryptoLogger.logSuccess('generateAccountKeys');
         CryptoLogger.logSecurityEvent('Ultimate key held in memory - must retrieve via getUltimateKeyJwkOnce()');
       },
-      KeyGenerationException.new,
+      (message, [cause]) => KeyGenerationException(message, cause: cause),
       'generateAccountKeys',
     );
   }
@@ -483,11 +486,11 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
     final decrypted = await aesKey.decryptBytes(encrypted, iv);
     
     if (testData.length != decrypted.length) {
-      throw const KeyGenerationException('Symmetric key verification failed: length mismatch');
+      throw const KeyGenerationException('Symmetric key verification failed: length mismatch', kind: KeyGenerationFailure.verificationFailed);
     }
     for (int i = 0; i < testData.length; i++) {
       if (testData[i] != decrypted[i]) {
-        throw const KeyGenerationException('Symmetric key verification failed: data mismatch');
+        throw const KeyGenerationException('Symmetric key verification failed: data mismatch', kind: KeyGenerationFailure.verificationFailed);
       }
     }
   }
@@ -750,17 +753,17 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         final deviceSignature = await deviceKey.sign(deviceTestData);
         final deviceSignatureValid = await deviceKey.verifySignature(deviceTestData, deviceSignature);
         if (!deviceSignatureValid) {
-          throw const KeyGenerationException('Device key signature verification failed');
+          throw const KeyGenerationException('Device key signature verification failed', kind: KeyGenerationFailure.verificationFailed);
         }
-        
+
         final deviceEncrypted = await deviceKey.encrypt(deviceTestData);
         final deviceDecrypted = await deviceKey.decrypt(deviceEncrypted);
         if (deviceTestData.length != deviceDecrypted.length) {
-          throw const KeyGenerationException('Device key encryption verification failed: length mismatch');
+          throw const KeyGenerationException('Device key encryption verification failed: length mismatch', kind: KeyGenerationFailure.verificationFailed);
         }
         for (int i = 0; i < deviceTestData.length; i++) {
           if (deviceTestData[i] != deviceDecrypted[i]) {
-            throw const KeyGenerationException('Device key encryption verification failed: data mismatch');
+            throw const KeyGenerationException('Device key encryption verification failed: data mismatch', kind: KeyGenerationFailure.verificationFailed);
           }
         }
         CryptoLogger.logSuccess('deviceKey verified');
@@ -772,7 +775,7 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         
         CryptoLogger.logSuccess('generateAndStoreDeviceKey');
       },
-      KeyGenerationException.new,
+      (message, [cause]) => KeyGenerationException(message, cause: cause),
       'generateAndStoreDeviceKey',
     );
   }
@@ -827,7 +830,7 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         CryptoLogger.logOperationStart('generateUltimateKey (ECDH P-256)');
         return await GenerationService.generateKeyDuo();
       },
-      KeyGenerationException.new,
+      (message, [cause]) => KeyGenerationException(message, cause: cause),
       'generateUltimateKey',
     );
   }
@@ -840,7 +843,7 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         final keyDuo = await GenerationService.generateKeyDuo();
         return keyDuo;
       },
-      KeyGenerationException.new,
+      (message, [cause]) => KeyGenerationException(message, cause: cause),
       'generateDeviceKey',
     );
   }
@@ -860,7 +863,7 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
           'alg': 'A256GCM',                                        // Algorithm: AES-256-GCM
         });
       },
-      KeyGenerationException.new,
+      (message, [cause]) => KeyGenerationException(message, cause: cause),
       'generateSymmetricKeyJwk',
     );
   }

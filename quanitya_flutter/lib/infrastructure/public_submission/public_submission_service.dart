@@ -1,13 +1,13 @@
-import 'package:injectable/injectable.dart';
-import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
-import 'package:flutter/foundation.dart' show Uint8List, debugPrint;
 import 'dart:convert';
+
+import 'package:injectable/injectable.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
+    show Client, PublicChallengeResponse, ServerException, ServerErrorCode;
+import 'package:flutter/foundation.dart' show Uint8List, debugPrint;
 
 import '../crypto/crypto_key_repository.dart';
 import '../crypto/utils/hashcash.dart';
 import '../core/try_operation.dart';
-import 'models/challenge_response.dart';
-import 'models/submission_response.dart';
 import 'exceptions/public_submission_exceptions.dart';
 import 'interfaces/i_public_submission_service.dart';
 
@@ -39,14 +39,12 @@ class PublicSubmissionService implements IPublicSubmissionService {
   /// - [payload]: Data to sign (format: 'challenge:field1:field2:...')
   /// - [submitCallback]: Function that submits to server with credentials
   ///
-  /// Returns: SubmissionResponse with success status and data
-  ///
-  /// Throws: PublicSubmissionException on any failure
+  /// Completes normally on success. Throws domain exceptions on failure.
   @override
-  Future<SubmissionResponse> submitWithVerification({
+  Future<void> submitWithVerification({
     required String endpoint,
     required String payload,
-    required Future<Map<String, dynamic>> Function(
+    required Future<void> Function(
       String challenge,
       String proofOfWork,
       String publicKeyHex,
@@ -56,54 +54,139 @@ class PublicSubmissionService implements IPublicSubmissionService {
     return tryMethod(
       () async {
         // Step 1: Get challenge from server
+        debugPrint('📤 [$endpoint] Step 1: Getting challenge...');
         final challengeResponse = await _getChallenge(endpoint);
-        
+        debugPrint('📤 [$endpoint] Step 1: Got challenge (difficulty: ${challengeResponse.difficulty})');
+
         // Step 2: Mine proof-of-work
+        debugPrint('📤 [$endpoint] Step 2: Mining PoW...');
         final proofOfWork = await _mineProofOfWork(
           challengeResponse.challenge,
           challengeResponse.difficulty,
         );
-        
+        debugPrint('📤 [$endpoint] Step 2: PoW complete');
+
         // Step 3: Get device signing key
+        debugPrint('📤 [$endpoint] Step 3: Getting device key...');
         final publicKeyHex = await _getDevicePublicKeyHex();
-        
+        debugPrint('📤 [$endpoint] Step 3: Got key (${publicKeyHex.substring(0, 8)}...)');
+
         // Step 4: Sign payload (prepend challenge)
+        debugPrint('📤 [$endpoint] Step 4: Signing payload...');
         final fullPayload = '${challengeResponse.challenge}:$payload';
         final signature = await _signPayload(fullPayload);
-        
+        debugPrint('📤 [$endpoint] Step 4: Signed (${signature.substring(0, 8)}...)');
+
         // Step 5: Submit to server
-        final result = await submitCallback(
-          challengeResponse.challenge,
-          proofOfWork,
-          publicKeyHex,
-          signature,
-        );
-        
-        return SubmissionResponse.fromServerResponse(result);
+        debugPrint('📤 [$endpoint] Step 5: Submitting to server...');
+        try {
+          await submitCallback(
+            challengeResponse.challenge,
+            proofOfWork,
+            publicKeyHex,
+            signature,
+          );
+        } on ServerException catch (e) {
+          switch (e.code) {
+            case ServerErrorCode.rateLimitExceeded:
+              throw RateLimitExceededException(e.message);
+            case ServerErrorCode.challengeExpired:
+              throw ChallengeRequestException(e.message);
+            case ServerErrorCode.invalidProofOfWork:
+              throw ProofOfWorkException(e.message);
+            case ServerErrorCode.invalidSignature:
+              throw SignatureException(e.message);
+            default:
+              throw PublicSubmissionException(e.message);
+          }
+        }
+        debugPrint('📤 [$endpoint] Step 5: Submission successful');
       },
       PublicSubmissionException.new,
       'submitWithVerification',
     );
   }
   
+  @override
+  Future<T> queryWithVerification<T>({
+    required String endpoint,
+    required String payload,
+    required Future<T> Function(
+      String challenge,
+      String proofOfWork,
+      String publicKeyHex,
+      String signature,
+    ) queryCallback,
+  }) {
+    return tryMethod(
+      () async {
+        debugPrint('📤 [$endpoint] Step 1: Getting challenge...');
+        final challengeResponse = await _getChallenge(endpoint);
+        debugPrint('📤 [$endpoint] Step 1: Got challenge (difficulty: ${challengeResponse.difficulty})');
+
+        debugPrint('📤 [$endpoint] Step 2: Mining PoW...');
+        final proofOfWork = await _mineProofOfWork(
+          challengeResponse.challenge,
+          challengeResponse.difficulty,
+        );
+        debugPrint('📤 [$endpoint] Step 2: PoW complete');
+
+        debugPrint('📤 [$endpoint] Step 3: Getting device key...');
+        final publicKeyHex = await _getDevicePublicKeyHex();
+        debugPrint('📤 [$endpoint] Step 3: Got key (${publicKeyHex.substring(0, 8)}...)');
+
+        debugPrint('📤 [$endpoint] Step 4: Signing payload...');
+        final fullPayload = '${challengeResponse.challenge}:$payload';
+        final signature = await _signPayload(fullPayload);
+        debugPrint('📤 [$endpoint] Step 4: Signed (${signature.substring(0, 8)}...)');
+
+        debugPrint('📤 [$endpoint] Step 5: Querying server...');
+        try {
+          final result = await queryCallback(
+            challengeResponse.challenge,
+            proofOfWork,
+            publicKeyHex,
+            signature,
+          );
+          debugPrint('📤 [$endpoint] Step 5: Query successful');
+          return result;
+        } on ServerException catch (e) {
+          switch (e.code) {
+            case ServerErrorCode.rateLimitExceeded:
+              throw RateLimitExceededException(e.message);
+            case ServerErrorCode.challengeExpired:
+              throw ChallengeRequestException(e.message);
+            case ServerErrorCode.invalidProofOfWork:
+              throw ProofOfWorkException(e.message);
+            case ServerErrorCode.invalidSignature:
+              throw SignatureException(e.message);
+            default:
+              throw PublicSubmissionException(e.message);
+          }
+        }
+      },
+      PublicSubmissionException.new,
+      'queryWithVerification',
+    );
+  }
+
   /// Get challenge from server for specific endpoint.
-  Future<ChallengeResponse> _getChallenge(String endpoint) async {
+  Future<PublicChallengeResponse> _getChallenge(String endpoint) async {
     try {
-      final Map<String, dynamic> response;
-      
       switch (endpoint) {
         case 'errorReport':
-          response = await _client.errorReport.getChallenge();
-          break;
+          return await _client.errorReport.getChallenge();
         case 'feedback':
-          response = await _client.feedback.getChallenge();
-          break;
+          return await _client.feedback.getChallenge();
+        case 'analyticsEvent':
+          return await _client.analyticsEvent.getChallenge();
+        case 'productCatalog':
+          return await _client.productCatalog.getChallenge();
         default:
           throw PublicSubmissionException('Unknown endpoint: $endpoint');
       }
-      
-      return ChallengeResponse.fromServerResponse(response);
     } catch (e) {
+      if (e is PublicSubmissionException) rethrow;
       throw PublicSubmissionException('Failed to get challenge: $e');
     }
   }

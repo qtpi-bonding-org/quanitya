@@ -20,6 +20,10 @@ import 'package:flutter_color_palette/flutter_color_palette.dart';
 /// 
 /// Destructive color:
 /// - destructive: #BC4B41 (Dark red - for delete icons/text)
+///
+/// State colors (for toggles/switches - on/off indicators):
+/// - stateOn: #6B8F71 (Sage green - "active/enabled")
+/// - stateOff: #A0978B (Warm stone grey - "inactive/disabled")
 class QuanityaPalette {
   static final IColorPalette primary = AppColorPalette(
     colors: {
@@ -40,6 +44,10 @@ class QuanityaPalette {
       
       // Destructive color (for delete icons/text)
       'destructive': const Color(0xFFBC4B41), // Dark red
+
+      // State colors (for toggles/switches)
+      'stateOn': const Color(0xFF6B8F71),   // Sage green - active/enabled
+      'stateOff': const Color(0xFFA0978B),  // Warm stone grey - inactive/disabled
     },
     name: 'Quanitya Primary',
   );
@@ -47,19 +55,18 @@ class QuanityaPalette {
   /// Automatic dark mode via luminance inversion
   static IColorPalette get dark => primary.symmetricPalette;
   
-  /// Zen Data Palette - 10 harmonious colors for charts and data visualization
-  /// Inspired by traditional Japanese colors with good contrast
-  static const List<Color> zenDataPalette = [
-    Color(0xFF006280), // 1. Tetsu (Iron Teal) - Primary
-    Color(0xFFBC4B41), // 2. Shu (Vermilion) - Destructive
-    Color(0xFFD4A017), // 3. Karashi (Mustard) - Earthy Yellow
-    Color(0xFF4A5D23), // 4. Matsu (Pine) - Deep Green
-    Color(0xFF374F6B), // 5. Ai (Indigo) - Deep Blue
-    Color(0xFFCC5D2B), // 6. Kaki (Persimmon) - Burnt Orange
-    Color(0xFF7A6B8E), // 7. Fuji (Wisteria) - Dusty Purple
-    Color(0xFF5C6F7C), // 8. Sora (Slate) - Storm Grey
-    Color(0xFF8D5B4C), // 9. Kurumi (Walnut) - Red-Brown
-    Color(0xFF7C9473), // 10. Take (Bamboo) - Soft Green
+  /// D3 / Mathematica category10 — standard data visualization palette
+  static const List<Color> category10 = [
+    Color(0xFF1F77B4), // blue
+    Color(0xFFFF7F0E), // orange
+    Color(0xFF2CA02C), // green
+    Color(0xFFD62728), // red
+    Color(0xFF9467BD), // purple
+    Color(0xFF8C564B), // brown
+    Color(0xFFE377C2), // pink
+    Color(0xFF7F7F7F), // gray
+    Color(0xFFBCBD22), // olive
+    Color(0xFF17BECF), // cyan
   ];
 }
 
@@ -88,4 +95,8 @@ extension QuanityaColors on IColorPalette {
   
   // Destructive color (for delete icons/text)
   Color get destructiveColor => getColor('destructive')!;
+
+  // State colors (for toggles/switches)
+  Color get stateOnColor => getColor('stateOn')!;
+  Color get stateOffColor => getColor('stateOff')!;
 }

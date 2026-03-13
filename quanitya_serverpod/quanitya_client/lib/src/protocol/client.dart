@@ -24,9 +24,11 @@ import 'package:quanitya_client/src/protocol/encrypted_template.dart' as _i9;
 import 'package:quanitya_client/src/protocol/encrypted_entry.dart' as _i10;
 import 'package:quanitya_client/src/protocol/encrypted_schedule.dart' as _i11;
 import 'package:quanitya_client/src/protocol/template_aesthetics.dart' as _i12;
-import 'package:quanitya_client/src/protocol/encrypted_analysis_pipeline.dart'
+import 'package:quanitya_client/src/protocol/encrypted_analysis_script.dart'
     as _i13;
-import 'package:quanitya_client/src/protocol/greeting.dart' as _i14;
+import 'package:quanitya_client/src/protocol/storage_usage_response.dart'
+    as _i14;
+import 'package:quanitya_client/src/protocol/greeting.dart' as _i15;
 
 /// Archive retrieval endpoint for accessing historical data
 ///
@@ -112,7 +114,8 @@ class EndpointArchive extends _i1.EndpointRef {
   /// Manual archival trigger for testing and maintenance
   ///
   /// Triggers the monthly archival process manually.
-  /// Useful for testing and one-off archival operations.
+  /// Requires the caller's account ID to be listed in the
+  /// ADMIN_ACCOUNT_IDS environment variable (comma-separated).
   _i2.Future<String> runManualArchival() => caller.callServerEndpoint<String>(
     'quanitya.archive',
     'runManualArchival',
@@ -371,7 +374,6 @@ class EndpointPowerSync extends _i1.EndpointRef {
 ///
 /// Handles CRUD operations for E2EE encrypted data and template aesthetics.
 /// All operations require authentication via AnonAccred device key.
-/// New inserts are gated by per-account storage quota.
 /// {@category Endpoint}
 class EndpointSync extends _i1.EndpointRef {
   EndpointSync(_i1.EndpointCaller caller) : super(caller);
@@ -477,30 +479,30 @@ class EndpointSync extends _i1.EndpointRef {
         {'id': id},
       );
 
-  /// Upsert encrypted analysis pipeline
-  _i2.Future<_i13.EncryptedAnalysisPipeline> upsertEncryptedAnalysisPipeline(
+  /// Upsert encrypted analysis script
+  _i2.Future<_i13.EncryptedAnalysisScript> upsertEncryptedAnalysisScript(
     String id,
     String encryptedData,
-  ) => caller.callServerEndpoint<_i13.EncryptedAnalysisPipeline>(
+  ) => caller.callServerEndpoint<_i13.EncryptedAnalysisScript>(
     'quanitya.sync',
-    'upsertEncryptedAnalysisPipeline',
+    'upsertEncryptedAnalysisScript',
     {
       'id': id,
       'encryptedData': encryptedData,
     },
   );
 
-  /// Delete encrypted analysis pipeline
-  _i2.Future<bool> deleteEncryptedAnalysisPipeline(String id) =>
+  /// Delete encrypted analysis script
+  _i2.Future<bool> deleteEncryptedAnalysisScript(String id) =>
       caller.callServerEndpoint<bool>(
         'quanitya.sync',
-        'deleteEncryptedAnalysisPipeline',
+        'deleteEncryptedAnalysisScript',
         {'id': id},
       );
 
   /// Get storage usage for authenticated user
-  _i2.Future<Map<String, dynamic>> getStorageUsage() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i14.StorageUsageResponse> getStorageUsage() =>
+      caller.callServerEndpoint<_i14.StorageUsageResponse>(
         'quanitya.sync',
         'getStorageUsage',
         {},
@@ -517,8 +519,8 @@ class EndpointGreeting extends _i1.EndpointRef {
   String get name => 'quanitya.greeting';
 
   /// Returns a personalized greeting message: "Hello {name}".
-  _i2.Future<_i14.Greeting> hello(String name) =>
-      caller.callServerEndpoint<_i14.Greeting>(
+  _i2.Future<_i15.Greeting> hello(String name) =>
+      caller.callServerEndpoint<_i15.Greeting>(
         'quanitya.greeting',
         'hello',
         {'name': name},

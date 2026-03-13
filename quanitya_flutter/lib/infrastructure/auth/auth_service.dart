@@ -72,11 +72,18 @@ class AccountCreationResult {
   const AccountCreationResult({required this.ultimatePrivateKey});
 }
 
+/// Describes why an auth operation failed.
+enum AuthFailure {
+  networkError,
+  general,
+}
+
 /// Exception thrown when authentication operations fail
 class AuthException implements Exception {
-  const AuthException(this.message, [this.cause]);
+  const AuthException(this.message, {this.kind = AuthFailure.general, this.cause});
 
   final String message;
+  final AuthFailure kind;
   final Object? cause;
 
   @override
@@ -86,7 +93,7 @@ class AuthException implements Exception {
 
 /// Exception thrown when account creation fails
 class AccountCreationException extends AuthException {
-  const AccountCreationException(super.message, [super.cause]);
+  const AccountCreationException(super.message, {super.kind, super.cause});
 
   @override
   String toString() =>
@@ -95,7 +102,7 @@ class AccountCreationException extends AuthException {
 
 /// Exception thrown when account recovery fails
 class AccountRecoveryException extends AuthException {
-  const AccountRecoveryException(super.message, [super.cause]);
+  const AccountRecoveryException(super.message, {super.kind, super.cause});
 
   @override
   String toString() =>
@@ -104,11 +111,23 @@ class AccountRecoveryException extends AuthException {
 
 /// Exception thrown when device authentication fails
 class DeviceAuthenticationException extends AuthException {
-  const DeviceAuthenticationException(super.message, [super.cause]);
+  const DeviceAuthenticationException(super.message, {super.kind, super.cause});
 
   @override
   String toString() =>
       'DeviceAuthenticationException: $message${cause != null ? ' (caused by: $cause)' : ''}';
+}
+
+/// Wraps an error as an [AuthException], detecting network errors from the cause.
+AuthException _wrapAuthError(String message, [Object? cause]) {
+  final causeStr = cause?.toString() ?? '';
+  final isNetwork = causeStr.contains('SocketException') ||
+      causeStr.contains('Connection refused');
+  return AuthException(
+    message,
+    kind: isNetwork ? AuthFailure.networkError : AuthFailure.general,
+    cause: cause,
+  );
 }
 
 /// Orchestrator for authentication with the Serverpod anonaccred backend
@@ -158,7 +177,7 @@ class AuthService {
 
         _isInitialized = true;
       },
-      AuthException.new,
+      _wrapAuthError,
       'initialize',
     );
   }
@@ -170,7 +189,7 @@ class AuthService {
         final status = await _keyRepository.getKeyStatus();
         return status == CryptoKeyStatus.ready;
       },
-      AuthException.new,
+      _wrapAuthError,
       'isAuthenticated',
     );
   }
@@ -281,7 +300,7 @@ class AuthService {
         // SECURITY: This NEVER gets sent to server
         return AccountCreationResult(ultimatePrivateKey: ultimatePrivateKey);
       },
-      AccountCreationException.new,
+      (message, [cause]) => AccountCreationException(message, cause: cause),
       'createAccount',
     );
   }
@@ -426,7 +445,7 @@ class AuthService {
           rethrow;
         }
       },
-      AccountCreationException.new,
+      (message, [cause]) => AccountCreationException(message, cause: cause),
       'registerAccountWithServer',
     );
   }
@@ -529,7 +548,7 @@ class AuthService {
 
         // Note: Ultimate key is NOT stored - it was only used for this recovery operation
       },
-      AccountRecoveryException.new,
+      (message, [cause]) => AccountRecoveryException(message, cause: cause),
       'recoverAccount',
     );
   }
@@ -575,7 +594,7 @@ class AuthService {
 
         return result;
       },
-      DeviceAuthenticationException.new,
+      (message, [cause]) => DeviceAuthenticationException(message, cause: cause),
       'authenticateDevice',
     );
   }
@@ -588,7 +607,7 @@ class AuthService {
       () async {
         return await _client.modules.anonaccount.device.listDevices();
       },
-      AuthException.new,
+      _wrapAuthError,
       'listDevices',
     );
   }
@@ -601,7 +620,7 @@ class AuthService {
       () async {
         await _client.modules.anonaccount.device.revokeDevice(deviceId);
       },
-      AuthException.new,
+      _wrapAuthError,
       'revokeDevice',
     );
   }
@@ -614,7 +633,7 @@ class AuthService {
       () async {
         await _keyRepository.clearKeys();
       },
-      AuthException.new,
+      _wrapAuthError,
       'signOut',
     );
   }
@@ -629,7 +648,7 @@ class AuthService {
       () async {
         await _keyRepository.validateUltimateKeyJwk(jwk);
       },
-      AccountRecoveryException.new,
+      (message, [cause]) => AccountRecoveryException(message, cause: cause),
       'validateRecoveryKey',
     );
   }
@@ -645,7 +664,7 @@ class AuthService {
       () async {
         return await _keyRepository.getDeviceSigningPublicKeyHex();
       },
-      AuthException.new,
+      _wrapAuthError,
       'getCurrentDevicePublicKeyHex',
     );
   }

@@ -147,70 +147,75 @@ class _ZenRadioOptionState<T> extends State<_ZenRadioOption<T>>
         ? widget.activeColor
         : (widget.textColor ?? widget.inactiveColor);
 
-    return GestureDetector(
-      onTap: widget.onChanged != null ? () => widget.onChanged!(widget.option) : null,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.5),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Radio circle with pen-circle animation
-            AnimatedBuilder(
-              animation: _animation,
-              builder: (context, child) {
-                return CustomPaint(
-                  painter: _PenCirclePainter(
-                    progress: _animation.value,
-                    color: widget.activeColor,
-                    startAngle: _startAngle,
-                  ),
-                  child: child,
-                );
-              },
-              child: SizedBox(
-                width: 32,
-                height: 32,
-                child: Center(
-                  child: Container(
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: color,
-                        width: 1.5,
-                      ),
+    return Semantics(
+      inMutuallyExclusiveGroup: true,
+      selected: widget.isSelected,
+      label: widget.labelBuilder(widget.option),
+      child: GestureDetector(
+        onTap: widget.onChanged != null ? () => widget.onChanged!(widget.option) : null,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: AppSizes.space * 0.5),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Radio circle with pen-circle animation
+              AnimatedBuilder(
+                animation: _animation,
+                builder: (context, child) {
+                  return CustomPaint(
+                    painter: _PenCirclePainter(
+                      progress: _animation.value,
+                      color: widget.activeColor,
+                      startAngle: _startAngle,
                     ),
-                    child: widget.isSelected
-                        ? Center(
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: widget.activeColor,
+                    child: child,
+                  );
+                },
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: Center(
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: color,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: widget.isSelected
+                          ? Center(
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: widget.activeColor,
+                                ),
                               ),
-                            ),
-                          )
-                        : null,
+                            )
+                          : null,
+                    ),
                   ),
                 ),
               ),
-            ),
-            HSpace.x1,
-            Flexible(
-              child: Text(
-                widget.labelBuilder(widget.option),
-                style: TextStyle(
-                  fontFamily: QuanityaFonts.bodyFamily,
-                  fontSize: AppSizes.fontStandard,
-                  color: labelColor,
-                  fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
+              HSpace.x1,
+              Flexible(
+                child: Text(
+                  widget.labelBuilder(widget.option),
+                  style: TextStyle(
+                    fontFamily: QuanityaFonts.bodyFamily,
+                    fontSize: AppSizes.fontStandard,
+                    color: labelColor,
+                    fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -13,10 +13,21 @@ import '../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../infrastructure/crypto/data_encryption_service.dart';
 import '../models/pairing_qr_data.dart';
 
+/// Describes why pairing failed.
+enum PairingFailure {
+  deviceAlreadySetUp,
+  invalidQrCode,
+  monitorFailed,
+  privateKeyUnavailable,
+  symmetricKeyUnavailable,
+  general,
+}
+
 /// Exception for pairing-related errors.
 class PairingException implements Exception {
-  const PairingException(this.message, [this.cause]);
+  const PairingException(this.message, {this.kind = PairingFailure.general, this.cause});
   final String message;
+  final PairingFailure kind;
   final Object? cause;
 
   @override
@@ -108,6 +119,7 @@ class PairingService implements IPairingService {
           );
           throw const PairingException(
             'This device is already set up. Cannot pair again.',
+            kind: PairingFailure.deviceAlreadySetUp,
           );
         }
 
@@ -139,7 +151,7 @@ class PairingService implements IPairingService {
           signingKeyHex: signingKeyHex,
         );
       },
-      PairingException.new,
+      (message, [cause]) => PairingException(message, cause: cause),
       'generatePairingQrData',
     );
   }
@@ -155,14 +167,14 @@ class PairingService implements IPairingService {
         try {
           json = jsonDecode(qrJson) as Map<String, dynamic>;
         } catch (e) {
-          throw PairingException('Invalid QR code format', e);
+          throw PairingException('Invalid QR code format', kind: PairingFailure.invalidQrCode, cause: e);
         }
 
         final qrData = PairingQrData.fromJson(json);
 
         // 2. Validate action
         if (qrData.action != PairingAction.pair) {
-          throw const PairingException('Invalid QR code: not a pairing code');
+          throw const PairingException('Invalid QR code: not a pairing code', kind: PairingFailure.invalidQrCode);
         }
 
         // 3. Import Device B's public key
@@ -183,7 +195,7 @@ class PairingService implements IPairingService {
           encryptionPublicKey: deviceBPublicKey.encryption.publicKey,
         );
       },
-      PairingException.new,
+      (message, [cause]) => PairingException(message, cause: cause),
       'parseQrCode',
     );
   }
@@ -203,7 +215,7 @@ class PairingService implements IPairingService {
       }
     } catch (e) {
       debugPrint('PairingService: Monitor error: $e');
-      throw PairingException('Failed to monitor registration', e);
+      throw PairingException('Failed to monitor registration', kind: PairingFailure.monitorFailed, cause: e);
     }
   }
 
@@ -218,7 +230,7 @@ class PairingService implements IPairingService {
 
         final privateKey = deviceKey.encryption.privateKey;
         if (privateKey == null) {
-          throw const PairingException('Device private key not available');
+          throw const PairingException('Device private key not available', kind: PairingFailure.privateKeyUnavailable);
         }
 
         // 1. Decrypt SDK blob with our private key
@@ -246,7 +258,7 @@ class PairingService implements IPairingService {
 
         debugPrint('PairingService: Pairing completed successfully!');
       },
-      PairingException.new,
+      (message, [cause]) => PairingException(message, cause: cause),
       'completePairing',
     );
   }
@@ -269,7 +281,7 @@ class PairingService implements IPairingService {
           debugPrint(
             'PairingService:   ERROR: Symmetric key not available in repository',
           );
-          throw const PairingException('Symmetric key not available');
+          throw const PairingException('Symmetric key not available', kind: PairingFailure.symmetricKeyUnavailable);
         }
         debugPrint(
           'PairingService:   Symmetric key found (length: ${sdkJwk.length})',
@@ -299,7 +311,7 @@ class PairingService implements IPairingService {
 
         debugPrint('PairingService: Device registered successfully!');
       },
-      PairingException.new,
+      (message, [cause]) => PairingException(message, cause: cause),
       'registerDevice',
     );
   }

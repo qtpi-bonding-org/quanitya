@@ -14,17 +14,58 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
 import 'package:quanitya_cloud_client/src/protocol/admin_signing_key.dart'
     as _i3;
-import 'package:quanitya_cloud_client/src/models/admin_role.dart' as _i4;
-import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_request.dart'
+import 'package:quanitya_cloud_client/src/protocol/admin_role.dart' as _i4;
+import 'package:quanitya_cloud_client/src/protocol/paginated_analytics_events.dart'
     as _i5;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i6;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:quanitya_cloud_client/src/protocol/analytics_event.dart' as _i6;
+import 'package:quanitya_cloud_client/src/protocol/analytics_statistics.dart'
     as _i7;
-import 'package:quanitya_client/quanitya_client.dart' as _i8;
-import 'package:anonaccount_client/anonaccount_client.dart' as _i9;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i10;
-import 'protocol.dart' as _i11;
+import 'package:quanitya_cloud_client/src/protocol/admin_action_result.dart'
+    as _i8;
+import 'package:quanitya_cloud_client/src/protocol/batch_submission_result.dart'
+    as _i9;
+import 'package:quanitya_cloud_client/src/protocol/public_challenge_response.dart'
+    as _i10;
+import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_request.dart'
+    as _i11;
+import 'package:quanitya_cloud_client/src/protocol/paginated_error_reports.dart'
+    as _i12;
+import 'package:quanitya_cloud_client/src/protocol/error_report.dart' as _i13;
+import 'package:quanitya_cloud_client/src/protocol/error_statistics.dart'
+    as _i14;
+import 'package:quanitya_cloud_client/src/protocol/paginated_feedback_reports.dart'
+    as _i15;
+import 'package:quanitya_cloud_client/src/protocol/feedback_type.dart' as _i16;
+import 'package:quanitya_cloud_client/src/protocol/feedback_report.dart'
+    as _i17;
+import 'package:quanitya_cloud_client/src/protocol/feedback_statistics.dart'
+    as _i18;
+import 'package:quanitya_cloud_client/src/protocol/notification_create_result.dart'
+    as _i19;
+import 'package:quanitya_cloud_client/src/protocol/notification_type.dart'
+    as _i20;
+import 'package:quanitya_cloud_client/src/protocol/notification_statistics.dart'
+    as _i21;
+import 'package:quanitya_cloud_client/src/protocol/paginated_notifications.dart'
+    as _i22;
+import 'package:quanitya_cloud_client/src/protocol/notification_details.dart'
+    as _i23;
+import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
+    as _i24;
+import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
+    as _i25;
+import 'package:quanitya_cloud_client/src/protocol/sync_access_info.dart'
+    as _i26;
+import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
+    as _i27;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _i28;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i29;
+import 'package:quanitya_client/quanitya_client.dart' as _i30;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i31;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i32;
+import 'protocol.dart' as _i33;
 
 /// A simple cloud-specific endpoint to verify the cloud server is working.
 /// {@category Endpoint}
@@ -35,6 +76,9 @@ class EndpointCloudHealth extends _i1.EndpointRef {
   String get name => 'cloudHealth';
 
   /// Returns a health check message for the cloud server.
+  ///
+  /// Verifies database connectivity by running a simple query.
+  /// Returns 'ok' on success, throws [ServerException] on failure.
   _i2.Future<String> getHealth() => caller.callServerEndpoint<String>(
     'cloudHealth',
     'getHealth',
@@ -75,7 +119,7 @@ class EndpointAccountDeletion extends _i1.EndpointRef {
 /// Provides CRUD operations for admin and support ECDSA signing keys.
 /// All operations require an existing admin key for authentication.
 /// {@category Endpoint}
-class EndpointAdminKeyManagement extends _i1.EndpointRef {
+class EndpointAdminKeyManagement extends EndpointAdminManagement {
   EndpointAdminKeyManagement(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -188,6 +232,342 @@ class EndpointAdminKeyManagement extends _i1.EndpointRef {
       'keyId': keyId,
     },
   );
+
+  /// Validate admin signature and check permission.
+  ///
+  /// This method performs ECDSA signature verification and returns
+  /// the associated admin role if valid.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature (128 hex chars)
+  /// - [requestBody]: JSON string of request body (excluding signature fields)
+  ///
+  /// Returns:
+  /// - AdminRole if signature is valid and key is active
+  /// - null if signature is invalid or key is inactive
+  ///
+  /// Example:
+  /// ```dart
+  /// final role = await validateAdmin(
+  ///   session,
+  ///   publicKeyHex,
+  ///   signature,
+  ///   requestBody,
+  /// );
+  ///
+  /// if (role == null) {
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
+  ///     message: 'Invalid signature or inactive key',
+  ///   );
+  /// }
+  ///
+  /// if (!role.canSendNotifications()) {
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.insufficientPermissions,
+  ///     message: 'Insufficient permissions',
+  ///   );
+  /// }
+  /// ```
+  @override
+  _i2.Future<_i4.AdminRole?> validateAdmin(
+    String publicKeyHex,
+    String signature,
+    String requestBody,
+  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+    'adminKeyManagement',
+    'validateAdmin',
+    {
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'requestBody': requestBody,
+    },
+  );
+
+  /// Require admin authentication or throw exception.
+  ///
+  /// Convenience method that validates the signature and throws
+  /// an exception if authentication fails.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [publicKeyHex]: ECDSA P-256 public key
+  /// - [signature]: ECDSA signature
+  /// - [requestBody]: JSON string of request body
+  ///
+  /// Returns:
+  /// - AdminRole if authentication successful
+  ///
+  /// Throws:
+  /// - Exception if authentication fails
+  ///
+  /// Example:
+  /// ```dart
+  /// final role = await requireAdmin(
+  ///   session,
+  ///   publicKeyHex,
+  ///   signature,
+  ///   requestBody,
+  /// );
+  /// // If we get here, authentication succeeded
+  /// ```
+  @override
+  _i2.Future<_i4.AdminRole> requireAdmin(
+    String publicKeyHex,
+    String signature,
+    String requestBody,
+  ) => caller.callServerEndpoint<_i4.AdminRole>(
+    'adminKeyManagement',
+    'requireAdmin',
+    {
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'requestBody': requestBody,
+    },
+  );
+}
+
+/// Admin endpoint for managing analytics events
+///
+/// Provides admin and support staff with tools to:
+/// - List analytics events with filtering and pagination
+/// - View detailed event information
+/// - Get analytics statistics (by event name, platform)
+/// - Delete analytics events
+///
+/// Authentication: ECDSA P-256 signature (same as other admin endpoints)
+///
+/// Access Levels:
+/// - Support: Can view events and statistics
+/// - Admin: Can view, get statistics, and delete events
+/// {@category Endpoint}
+class EndpointAnalyticsAdmin extends EndpointAdminManagement {
+  EndpointAnalyticsAdmin(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'analyticsAdmin';
+
+  /// List analytics events with filtering and pagination
+  ///
+  /// Access: Support or Admin
+  ///
+  /// Parameters:
+  /// - [adminPublicKeyHex]: Admin's ECDSA public key
+  /// - [adminSignature]: Signature of request
+  /// - [limit]: Max results per page (default: 50)
+  /// - [offset]: Number of results to skip (default: 0)
+  /// - [eventNameFilter]: Filter by event name (optional)
+  /// - [platformFilter]: Filter by platform (optional)
+  /// - [startDate]: Filter by date range start (optional)
+  /// - [endDate]: Filter by date range end (optional)
+  ///
+  /// Returns:
+  /// - items: List of analytics events
+  /// - total: Total count matching filters
+  /// - limit: Page size used
+  /// - offset: Offset used
+  _i2.Future<_i5.PaginatedAnalyticsEvents> listEvents(
+    String adminPublicKeyHex,
+    String adminSignature, {
+    required int limit,
+    required int offset,
+    String? eventNameFilter,
+    String? platformFilter,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) => caller.callServerEndpoint<_i5.PaginatedAnalyticsEvents>(
+    'analyticsAdmin',
+    'listEvents',
+    {
+      'adminPublicKeyHex': adminPublicKeyHex,
+      'adminSignature': adminSignature,
+      'limit': limit,
+      'offset': offset,
+      'eventNameFilter': eventNameFilter,
+      'platformFilter': platformFilter,
+      'startDate': startDate,
+      'endDate': endDate,
+    },
+  );
+
+  /// Get specific analytics event details
+  ///
+  /// Access: Support or Admin
+  ///
+  /// Parameters:
+  /// - [adminPublicKeyHex]: Admin's ECDSA public key
+  /// - [adminSignature]: Signature of request
+  /// - [eventId]: ID of analytics event to retrieve
+  ///
+  /// Returns:
+  /// - data: Full analytics event details
+  _i2.Future<_i6.AnalyticsEvent> getEventDetails(
+    String adminPublicKeyHex,
+    String adminSignature,
+    int eventId,
+  ) => caller.callServerEndpoint<_i6.AnalyticsEvent>(
+    'analyticsAdmin',
+    'getEventDetails',
+    {
+      'adminPublicKeyHex': adminPublicKeyHex,
+      'adminSignature': adminSignature,
+      'eventId': eventId,
+    },
+  );
+
+  /// Get analytics statistics
+  ///
+  /// Access: Support or Admin
+  ///
+  /// Parameters:
+  /// - [adminPublicKeyHex]: Admin's ECDSA public key
+  /// - [adminSignature]: Signature of request
+  /// - [startDate]: Start of date range (optional)
+  /// - [endDate]: End of date range (optional)
+  ///
+  /// Returns:
+  /// - totalEvents: Total event count
+  /// - byEventName: Count by event name
+  /// - byPlatform: Count by platform
+  /// - recentEvents: Recent events (last 7 days, limit 10)
+  _i2.Future<_i7.AnalyticsStatistics> getStatistics(
+    String adminPublicKeyHex,
+    String adminSignature, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) => caller.callServerEndpoint<_i7.AnalyticsStatistics>(
+    'analyticsAdmin',
+    'getStatistics',
+    {
+      'adminPublicKeyHex': adminPublicKeyHex,
+      'adminSignature': adminSignature,
+      'startDate': startDate,
+      'endDate': endDate,
+    },
+  );
+
+  /// Delete analytics event
+  ///
+  /// Access: Admin only
+  ///
+  /// Parameters:
+  /// - [adminPublicKeyHex]: Admin's ECDSA public key
+  /// - [adminSignature]: Signature of request
+  /// - [eventId]: ID of analytics event to delete
+  ///
+  /// Returns:
+  /// - success: true if deleted
+  /// - message: Success message
+  _i2.Future<_i8.AdminActionResult> deleteEvent(
+    String adminPublicKeyHex,
+    String adminSignature,
+    int eventId,
+  ) => caller.callServerEndpoint<_i8.AdminActionResult>(
+    'analyticsAdmin',
+    'deleteEvent',
+    {
+      'adminPublicKeyHex': adminPublicKeyHex,
+      'adminSignature': adminSignature,
+      'eventId': eventId,
+    },
+  );
+
+  /// Validate admin signature and check permission.
+  ///
+  /// This method performs ECDSA signature verification and returns
+  /// the associated admin role if valid.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature (128 hex chars)
+  /// - [requestBody]: JSON string of request body (excluding signature fields)
+  ///
+  /// Returns:
+  /// - AdminRole if signature is valid and key is active
+  /// - null if signature is invalid or key is inactive
+  ///
+  /// Example:
+  /// ```dart
+  /// final role = await validateAdmin(
+  ///   session,
+  ///   publicKeyHex,
+  ///   signature,
+  ///   requestBody,
+  /// );
+  ///
+  /// if (role == null) {
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
+  ///     message: 'Invalid signature or inactive key',
+  ///   );
+  /// }
+  ///
+  /// if (!role.canSendNotifications()) {
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.insufficientPermissions,
+  ///     message: 'Insufficient permissions',
+  ///   );
+  /// }
+  /// ```
+  @override
+  _i2.Future<_i4.AdminRole?> validateAdmin(
+    String publicKeyHex,
+    String signature,
+    String requestBody,
+  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+    'analyticsAdmin',
+    'validateAdmin',
+    {
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'requestBody': requestBody,
+    },
+  );
+
+  /// Require admin authentication or throw exception.
+  ///
+  /// Convenience method that validates the signature and throws
+  /// an exception if authentication fails.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [publicKeyHex]: ECDSA P-256 public key
+  /// - [signature]: ECDSA signature
+  /// - [requestBody]: JSON string of request body
+  ///
+  /// Returns:
+  /// - AdminRole if authentication successful
+  ///
+  /// Throws:
+  /// - Exception if authentication fails
+  ///
+  /// Example:
+  /// ```dart
+  /// final role = await requireAdmin(
+  ///   session,
+  ///   publicKeyHex,
+  ///   signature,
+  ///   requestBody,
+  /// );
+  /// // If we get here, authentication succeeded
+  /// ```
+  @override
+  _i2.Future<_i4.AdminRole> requireAdmin(
+    String publicKeyHex,
+    String signature,
+    String requestBody,
+  ) => caller.callServerEndpoint<_i4.AdminRole>(
+    'analyticsAdmin',
+    'requireAdmin',
+    {
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'requestBody': requestBody,
+    },
+  );
 }
 
 /// Analytics Event Endpoint for privacy-first usage analytics.
@@ -195,36 +575,135 @@ class EndpointAdminKeyManagement extends _i1.EndpointRef {
 /// Accepts lightweight, PII-free event names (e.g. "template_created")
 /// and stores them in Postgres for aggregate usage insights.
 ///
-/// No authentication required — events contain no user content,
-/// just action counters. No proof-of-work overhead since the
-/// payload is fixed-vocabulary event names, not free-form text.
+/// Protected by Hashcash proof-of-work + ECDSA signature for rate limiting.
+/// Events are submitted in batches — one PoW covers the whole batch.
 /// {@category Endpoint}
-class EndpointAnalyticsEvent extends _i1.EndpointRef {
+class EndpointAnalyticsEvent extends EndpointPublicSubmission {
   EndpointAnalyticsEvent(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'analyticsEvent';
 
-  /// Submit a single analytics event.
+  /// Submit a batch of analytics events with proof-of-work and signature.
   ///
   /// Parameters:
-  /// - [eventName]: Action that occurred (e.g. "template_created")
-  /// - [clientTimestamp]: When the event occurred on the client
-  /// - [platform]: Client platform (iOS, Android, macOS, etc.)
-  /// - [props]: Optional JSON-encoded properties
-  _i2.Future<void> submitEvent({
-    required String eventName,
-    required DateTime clientTimestamp,
-    String? platform,
-    String? props,
-  }) => caller.callServerEndpoint<void>(
+  /// - [challenge]: Challenge string from getChallenge()
+  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature of "challenge:analytics:{eventCount}"
+  /// - [eventsJson]: JSON-encoded list of event objects, each with:
+  ///   - eventName: Action that occurred (e.g. "template_created")
+  ///   - clientTimestamp: ISO 8601 timestamp
+  ///   - platform: Client platform (optional)
+  ///   - props: JSON-encoded properties (optional)
+  ///
+  /// Throws [ServerException] on validation, rate limit, or internal errors.
+  _i2.Future<_i9.BatchSubmissionResult> submitEvents({
+    required String challenge,
+    required String proofOfWork,
+    required String publicKeyHex,
+    required String signature,
+    required String eventsJson,
+  }) => caller.callServerEndpoint<_i9.BatchSubmissionResult>(
     'analyticsEvent',
-    'submitEvent',
+    'submitEvents',
     {
-      'eventName': eventName,
-      'clientTimestamp': clientTimestamp,
-      'platform': platform,
-      'props': props,
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'eventsJson': eventsJson,
+    },
+  );
+
+  /// Get challenge for proof-of-work.
+  ///
+  /// This method is inherited by all public endpoints and provides
+  /// a consistent way to generate challenges.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  ///
+  /// Returns a map with:
+  /// - challenge: Random challenge string (32 hex chars)
+  /// - difficulty: Number of leading zero bits required (20)
+  /// - expiresAt: Unix timestamp when challenge expires
+  ///
+  /// Example:
+  /// ```dart
+  /// final challenge = await getChallenge(session);
+  /// // Returns: {
+  /// //   'challenge': 'abc123...',
+  /// //   'difficulty': 20,
+  /// //   'expiresAt': 1234567890
+  /// // }
+  /// ```
+  @override
+  _i2.Future<_i10.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i10.PublicChallengeResponse>(
+        'analyticsEvent',
+        'getChallenge',
+        {},
+      );
+
+  /// Verify submission (PoW + signature + rate limit).
+  ///
+  /// This method performs all verification steps:
+  /// 1. Verifies proof-of-work solution
+  /// 2. Verifies ECDSA signature
+  /// 3. Checks and enforces rate limits
+  ///
+  /// Throws an exception if any verification step fails.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [challenge]: Challenge string from getChallenge()
+  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature (128 hex chars)
+  /// - [payload]: Original payload that was signed
+  ///
+  /// Throws:
+  /// - Exception if proof-of-work is invalid
+  /// - Exception if signature is invalid
+  /// - RateLimitExceededException if rate limit exceeded
+  ///
+  /// Example:
+  /// ```dart
+  /// try {
+  ///   await verifySubmission(
+  ///     session,
+  ///     challenge,
+  ///     proofOfWork,
+  ///     publicKeyHex,
+  ///     signature,
+  ///     payload,
+  ///   );
+  ///   // Verification successful, process submission
+  /// } catch (e) {
+  ///   // Handle verification failure
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
+  ///     message: e.toString(),
+  ///   );
+  /// }
+  /// ```
+  @override
+  _i2.Future<void> verifySubmission(
+    String challenge,
+    String proofOfWork,
+    String publicKeyHex,
+    String signature,
+    String payload,
+  ) => caller.callServerEndpoint<void>(
+    'analyticsEvent',
+    'verifySubmission',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'payload': payload,
     },
   );
 }
@@ -245,38 +724,24 @@ class EndpointAnalyticsEvent extends _i1.EndpointRef {
 /// Usage:
 /// ```dart
 /// class NotificationAdminEndpoint extends AdminManagementEndpoint {
-///   Future<Map<String, dynamic>> createNotification(
+///   Future<String> createNotification(
 ///     Session session,
 ///     String publicKeyHex,
-///     String signature,
-///     String requestBody,
-///     Map<String, dynamic> notificationData,
-///   ) async {
-///     // Validate admin signature and get role
-///     final role = await validateAdmin(
-///       session,
-///       publicKeyHex,
-///       signature,
-///       requestBody,
-///     );
-///
-///     if (role == null) {
-///       return ResponseBuilder.authError(
-///         message: 'Invalid signature or inactive key',
-///       );
-///     }
-///
-///     if (!role.canSendNotifications()) {
-///       return ResponseBuilder.permissionError(
-///         message: 'Insufficient permissions',
-///       );
-///     }
+///     String signature, {
+///     required String title,
+///   }) async {
+///     final role = await requireAdmin(session, publicKeyHex, signature, body);
 ///
 ///     // Process the admin operation...
-///     return ResponseBuilder.success(data: {'notificationId': id});
+///     return jsonEncode({'notificationId': id});
 ///   }
 /// }
 /// ```
+///
+/// **IMPORTANT**: Never return `Map<String, dynamic>` from Serverpod endpoints.
+/// Serverpod cannot deserialize `dynamic`. Use typed protocol models or
+/// `String` (JSON-encoded) for complex responses. For errors, throw
+/// `ServerException` with an appropriate `ServerErrorCode`.
 /// {@category Endpoint}
 abstract class EndpointAdminManagement extends _i1.EndpointRef {
   EndpointAdminManagement(_i1.EndpointCaller caller) : super(caller);
@@ -306,13 +771,15 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
   /// );
   ///
   /// if (role == null) {
-  ///   return ResponseBuilder.authError(
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
   ///     message: 'Invalid signature or inactive key',
   ///   );
   /// }
   ///
   /// if (!role.canSendNotifications()) {
-  ///   return ResponseBuilder.permissionError(
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.insufficientPermissions,
   ///     message: 'Insufficient permissions',
   ///   );
   /// }
@@ -375,7 +842,7 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
 ///   @override
 ///   String get endpointType => 'error_report';
 ///
-///   Future<Map<String, dynamic>> submitReport(
+///   Future<void> submitReport(
 ///     Session session,
 ///     String challenge,
 ///     String proofOfWork,
@@ -383,21 +850,19 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
 ///     String signature,
 ///     String payload,
 ///   ) async {
-///     // Verify submission (PoW + signature + rate limit)
 ///     await verifySubmission(
-///       session,
-///       challenge,
-///       proofOfWork,
-///       publicKeyHex,
-///       signature,
-///       payload,
+///       session, challenge, proofOfWork, publicKeyHex, signature, payload,
 ///     );
 ///
 ///     // Process the submission...
-///     return ResponseBuilder.success(data: {'reportId': reportId});
 ///   }
 /// }
 /// ```
+///
+/// **IMPORTANT**: Never return `Map<String, dynamic>` from Serverpod endpoints.
+/// Serverpod cannot deserialize `dynamic`. Use typed protocol models or
+/// `String` (JSON-encoded) for complex responses. For errors, throw
+/// `ServerException` with an appropriate `ServerErrorCode`.
 /// {@category Endpoint}
 abstract class EndpointPublicSubmission extends _i1.EndpointRef {
   EndpointPublicSubmission(_i1.EndpointCaller caller) : super(caller);
@@ -424,7 +889,7 @@ abstract class EndpointPublicSubmission extends _i1.EndpointRef {
   /// //   'expiresAt': 1234567890
   /// // }
   /// ```
-  _i2.Future<Map<String, dynamic>> getChallenge();
+  _i2.Future<_i10.PublicChallengeResponse> getChallenge();
 
   /// Verify submission (PoW + signature + rate limit).
   ///
@@ -462,8 +927,8 @@ abstract class EndpointPublicSubmission extends _i1.EndpointRef {
   ///   // Verification successful, process submission
   /// } catch (e) {
   ///   // Handle verification failure
-  ///   return ResponseBuilder.error(
-  ///     code: ResponseBuilder.errorAuthFailed,
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
   ///     message: e.toString(),
   ///   );
   /// }
@@ -496,27 +961,12 @@ class EndpointCloudAnalysis extends _i1.EndpointRef {
 
   /// Request statistical analysis
   ///
-  /// MVP: This feature is disabled. Returns 503 error.
-  _i2.Future<Map<String, dynamic>> requestAnalysis(
-    String analysisType,
-    Map<String, dynamic> data, {
-    Map<String, String>? headers,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
-    'cloudAnalysis',
-    'requestAnalysis',
-    {
-      'analysisType': analysisType,
-      'data': data,
-      'headers': headers,
-    },
-  );
-
-  /// Get AnonAccount configuration status
-  _i2.Future<Map<String, dynamic>> getAnonAccountConfig() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  /// MVP: This feature is disabled. Throws [ServerException].
+  _i2.Future<void> requestAnalysis(String analysisType) =>
+      caller.callServerEndpoint<void>(
         'cloudAnalysis',
-        'getAnonAccountConfig',
-        {},
+        'requestAnalysis',
+        {'analysisType': analysisType},
       );
 }
 
@@ -535,128 +985,35 @@ class EndpointCloudLlm extends _i1.EndpointRef {
   ///
   /// This endpoint acts as a proxy for paid users to access OpenRouter
   /// without needing their own API key (BYOK).
-  _i2.Future<Map<String, dynamic>> generateStructured(
-    _i5.CloudLlmStructuredRequest request,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ///
+  /// Returns JSON string containing the LLM's
+  /// structured JSON output (shape defined by caller's schema).
+  _i2.Future<String> generateStructured(
+    _i11.CloudLlmStructuredRequest request,
+  ) => caller.callServerEndpoint<String>(
     'cloudLlm',
     'generateStructured',
     {'request': request},
   );
 }
 
-/// Consumable management endpoint for Quanitya Cloud
+/// Admin endpoint for managing account entitlements (credits, sync days, etc.)
 ///
-/// Provides API access to consumable balances and feature access checking.
-/// User-facing operations require AnonAccred authentication.
-/// Admin operations (addCredits, consumeCredits) require admin API key.
+/// Requires ECDSA P-256 admin signature for all operations.
 /// {@category Endpoint}
-class EndpointConsumable extends _i1.EndpointRef {
-  EndpointConsumable(_i1.EndpointCaller caller) : super(caller);
+class EndpointEntitlementAdmin extends EndpointAdminManagement {
+  EndpointEntitlementAdmin(_i1.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'consumable';
+  String get name => 'entitlementAdmin';
 
-  /// Get all consumable balances for the authenticated user
-  ///
-  /// Returns map of consumable types (int) to current balances
-  _i2.Future<Map<int, double>> getBalances() =>
-      caller.callServerEndpoint<Map<int, double>>(
-        'consumable',
-        'getBalances',
-        {},
-      );
-
-  /// Get feature access summary for the authenticated user
-  ///
-  /// Returns comprehensive feature access information including:
-  /// - hasSync: boolean sync access
-  /// - hasIntegrations: boolean integration access
-  /// - syncDaysRemaining: days of sync left
-  /// - integrationDaysRemaining: days of integrations left
-  /// - analysisCredits: analysis credits available
-  /// - llmCalls: LLM call credits available
-  /// - balances: raw balance map
-  _i2.Future<Map<String, dynamic>> getFeatureAccess() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
-        'consumable',
-        'getFeatureAccess',
-        {},
-      );
-
-  /// Get balance for a specific consumable type
-  ///
-  /// [consumableType] - Type of consumable to check (int)
-  ///
-  /// Returns current balance or 0.0 if none exists
-  _i2.Future<double> getBalance(int consumableType) =>
-      caller.callServerEndpoint<double>(
-        'consumable',
-        'getBalance',
-        {'consumableType': consumableType},
-      );
-
-  /// Check if user has sufficient credits for an operation
-  ///
-  /// [consumableType] - Type of consumable to check (int)
-  /// [requiredAmount] - Amount required for the operation
-  ///
-  /// Returns true if user has sufficient balance
-  _i2.Future<bool> hasSufficientCredits(
-    int consumableType,
-    double requiredAmount,
-  ) => caller.callServerEndpoint<bool>(
-    'consumable',
-    'hasSufficientCredits',
-    {
-      'consumableType': consumableType,
-      'requiredAmount': requiredAmount,
-    },
-  );
-
-  /// Check if user has active sync access
-  ///
-  /// Returns true if user has sync_days > 0
-  _i2.Future<bool> hasActiveSyncAccess() => caller.callServerEndpoint<bool>(
-    'consumable',
-    'hasActiveSyncAccess',
-    {},
-  );
-
-  /// Check if user has integration access
-  ///
-  /// Returns true if user has integration_days > 0
-  _i2.Future<bool> hasIntegrationAccess() => caller.callServerEndpoint<bool>(
-    'consumable',
-    'hasIntegrationAccess',
-    {},
-  );
-
-  /// Get analysis cost for a specific analysis type
-  ///
-  /// [analysisType] - Type of analysis to get cost for
-  ///
-  /// Returns credit cost for the analysis type
-  _i2.Future<double> getAnalysisCost(String analysisType) =>
-      caller.callServerEndpoint<double>(
-        'consumable',
-        'getAnalysisCost',
-        {'analysisType': analysisType},
-      );
-
-  /// Add credits to user inventory (for purchases/top-ups)
-  ///
-  /// This endpoint is typically called after successful payment processing
-  /// to add purchased consumables to the user's inventory.
-  ///
-  /// Requires admin or support role.
+  /// Add credits to an account's entitlement balance.
   ///
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
   /// [accountId] - Target account ID
-  /// [consumableType] - Type of consumable to add (int)
+  /// [consumableType] - Entitlement ID to add to
   /// [amount] - Amount to add (must be positive)
-  ///
-  /// Returns success message
   _i2.Future<String> addCredits(
     String adminPublicKeyHex,
     String adminSignature,
@@ -664,7 +1021,7 @@ class EndpointConsumable extends _i1.EndpointRef {
     int consumableType,
     double amount,
   ) => caller.callServerEndpoint<String>(
-    'consumable',
+    'entitlementAdmin',
     'addCredits',
     {
       'adminPublicKeyHex': adminPublicKeyHex,
@@ -675,20 +1032,13 @@ class EndpointConsumable extends _i1.EndpointRef {
     },
   );
 
-  /// Manual credit consumption (for testing/admin purposes)
-  ///
-  /// This endpoint allows manual consumption of credits, typically used
-  /// for testing or administrative operations.
-  ///
-  /// Requires admin or support role.
+  /// Consume credits from an account's entitlement balance.
   ///
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
   /// [accountId] - Target account ID
-  /// [consumableType] - Type of consumable to consume (int)
+  /// [consumableType] - Entitlement ID to consume from
   /// [amount] - Amount to consume (must be positive)
-  ///
-  /// Returns success message
   _i2.Future<String> consumeCredits(
     String adminPublicKeyHex,
     String adminSignature,
@@ -696,7 +1046,7 @@ class EndpointConsumable extends _i1.EndpointRef {
     int consumableType,
     double amount,
   ) => caller.callServerEndpoint<String>(
-    'consumable',
+    'entitlementAdmin',
     'consumeCredits',
     {
       'adminPublicKeyHex': adminPublicKeyHex,
@@ -707,15 +1057,100 @@ class EndpointConsumable extends _i1.EndpointRef {
     },
   );
 
-  /// Get list of valid consumable types
+  /// Validate admin signature and check permission.
   ///
-  /// Returns array of supported consumable type IDs (int)
-  _i2.Future<List<int>> getValidConsumableTypes() =>
-      caller.callServerEndpoint<List<int>>(
-        'consumable',
-        'getValidConsumableTypes',
-        {},
-      );
+  /// This method performs ECDSA signature verification and returns
+  /// the associated admin role if valid.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature (128 hex chars)
+  /// - [requestBody]: JSON string of request body (excluding signature fields)
+  ///
+  /// Returns:
+  /// - AdminRole if signature is valid and key is active
+  /// - null if signature is invalid or key is inactive
+  ///
+  /// Example:
+  /// ```dart
+  /// final role = await validateAdmin(
+  ///   session,
+  ///   publicKeyHex,
+  ///   signature,
+  ///   requestBody,
+  /// );
+  ///
+  /// if (role == null) {
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
+  ///     message: 'Invalid signature or inactive key',
+  ///   );
+  /// }
+  ///
+  /// if (!role.canSendNotifications()) {
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.insufficientPermissions,
+  ///     message: 'Insufficient permissions',
+  ///   );
+  /// }
+  /// ```
+  @override
+  _i2.Future<_i4.AdminRole?> validateAdmin(
+    String publicKeyHex,
+    String signature,
+    String requestBody,
+  ) => caller.callServerEndpoint<_i4.AdminRole?>(
+    'entitlementAdmin',
+    'validateAdmin',
+    {
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'requestBody': requestBody,
+    },
+  );
+
+  /// Require admin authentication or throw exception.
+  ///
+  /// Convenience method that validates the signature and throws
+  /// an exception if authentication fails.
+  ///
+  /// Parameters:
+  /// - [session]: Serverpod session
+  /// - [publicKeyHex]: ECDSA P-256 public key
+  /// - [signature]: ECDSA signature
+  /// - [requestBody]: JSON string of request body
+  ///
+  /// Returns:
+  /// - AdminRole if authentication successful
+  ///
+  /// Throws:
+  /// - Exception if authentication fails
+  ///
+  /// Example:
+  /// ```dart
+  /// final role = await requireAdmin(
+  ///   session,
+  ///   publicKeyHex,
+  ///   signature,
+  ///   requestBody,
+  /// );
+  /// // If we get here, authentication succeeded
+  /// ```
+  @override
+  _i2.Future<_i4.AdminRole> requireAdmin(
+    String publicKeyHex,
+    String signature,
+    String requestBody,
+  ) => caller.callServerEndpoint<_i4.AdminRole>(
+    'entitlementAdmin',
+    'requireAdmin',
+    {
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'requestBody': requestBody,
+    },
+  );
 }
 
 /// Admin endpoint for managing error reports
@@ -757,7 +1192,7 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// - total: Total count matching filters
   /// - limit: Page size used
   /// - offset: Offset used
-  _i2.Future<Map<String, dynamic>> listErrorReports(
+  _i2.Future<_i12.PaginatedErrorReports> listErrorReports(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -766,7 +1201,7 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
     String? errorCodeFilter,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i12.PaginatedErrorReports>(
     'errorReportAdmin',
     'listErrorReports',
     {
@@ -792,11 +1227,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - data: Full error report details
-  _i2.Future<Map<String, dynamic>> getErrorReportDetails(
+  _i2.Future<_i13.ErrorReport> getErrorReportDetails(
     String adminPublicKeyHex,
     String adminSignature,
     int errorReportId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i13.ErrorReport>(
     'errorReportAdmin',
     'getErrorReportDetails',
     {
@@ -818,12 +1253,12 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - data: Statistics including totalErrors, errorsByType, errorsByCode, errorsByPlatform, recentErrors
-  _i2.Future<Map<String, dynamic>> getErrorStatistics(
+  _i2.Future<_i14.ErrorStatistics> getErrorStatistics(
     String adminPublicKeyHex,
     String adminSignature, {
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i14.ErrorStatistics>(
     'errorReportAdmin',
     'getErrorStatistics',
     {
@@ -846,11 +1281,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// Returns:
   /// - success: true if deleted
   /// - message: Success message
-  _i2.Future<Map<String, dynamic>> deleteErrorReport(
+  _i2.Future<_i8.AdminActionResult> deleteErrorReport(
     String adminPublicKeyHex,
     String adminSignature,
     int errorReportId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i8.AdminActionResult>(
     'errorReportAdmin',
     'deleteErrorReport',
     {
@@ -885,13 +1320,15 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// );
   ///
   /// if (role == null) {
-  ///   return ResponseBuilder.authError(
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
   ///     message: 'Invalid signature or inactive key',
   ///   );
   /// }
   ///
   /// if (!role.canSendNotifications()) {
-  ///   return ResponseBuilder.permissionError(
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.insufficientPermissions,
   ///     message: 'Insufficient permissions',
   ///   );
   /// }
@@ -1004,11 +1441,8 @@ class EndpointErrorReport extends EndpointPublicSubmission {
   /// - [platform]: Optional platform info (iOS, Android, etc.)
   /// - [deviceInfo]: Optional device info (already sanitized)
   ///
-  /// Returns:
-  /// - success: true if report was stored
-  /// - data: Contains reportId and timestamp
-  /// - message: Success or error message
-  _i2.Future<Map<String, dynamic>> submitErrorReport({
+  /// Throws [ServerException] on validation, rate limit, or internal errors.
+  _i2.Future<void> submitErrorReport({
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
@@ -1017,12 +1451,12 @@ class EndpointErrorReport extends EndpointPublicSubmission {
     required String errorType,
     required String errorCode,
     required String stackTrace,
-    required DateTime clientTimestamp,
+    required String clientTimestamp,
     String? userMessage,
     String? appVersion,
     String? platform,
     String? deviceInfo,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<void>(
     'errorReport',
     'submitErrorReport',
     {
@@ -1039,6 +1473,34 @@ class EndpointErrorReport extends EndpointPublicSubmission {
       'appVersion': appVersion,
       'platform': platform,
       'deviceInfo': deviceInfo,
+    },
+  );
+
+  /// Submit a batch of error reports with a single proof-of-work and signature.
+  ///
+  /// Parameters:
+  /// - [challenge]: Challenge string from getChallenge()
+  /// - [proofOfWork]: Hashcash stamp
+  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
+  /// - [signature]: ECDSA signature of "challenge:errorReports:{count}"
+  /// - [reportsJson]: JSON-encoded list of error report objects
+  ///
+  /// Throws [ServerException] on validation, rate limit, or internal errors.
+  _i2.Future<_i9.BatchSubmissionResult> submitErrorReports({
+    required String challenge,
+    required String proofOfWork,
+    required String publicKeyHex,
+    required String signature,
+    required String reportsJson,
+  }) => caller.callServerEndpoint<_i9.BatchSubmissionResult>(
+    'errorReport',
+    'submitErrorReports',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+      'publicKeyHex': publicKeyHex,
+      'signature': signature,
+      'reportsJson': reportsJson,
     },
   );
 
@@ -1065,8 +1527,8 @@ class EndpointErrorReport extends EndpointPublicSubmission {
   /// // }
   /// ```
   @override
-  _i2.Future<Map<String, dynamic>> getChallenge() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i10.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i10.PublicChallengeResponse>(
         'errorReport',
         'getChallenge',
         {},
@@ -1108,8 +1570,8 @@ class EndpointErrorReport extends EndpointPublicSubmission {
   ///   // Verification successful, process submission
   /// } catch (e) {
   ///   // Handle verification failure
-  ///   return ResponseBuilder.error(
-  ///     code: ResponseBuilder.errorAuthFailed,
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
   ///     message: e.toString(),
   ///   );
   /// }
@@ -1169,15 +1631,15 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Paginated response with feedback reports
-  _i2.Future<Map<String, dynamic>> listFeedback(
+  _i2.Future<_i15.PaginatedFeedbackReports> listFeedback(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
     required int offset,
-    String? feedbackTypeFilter,
+    _i16.FeedbackType? feedbackTypeFilter,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i15.PaginatedFeedbackReports>(
     'feedbackAdmin',
     'listFeedback',
     {
@@ -1202,11 +1664,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Feedback report details
-  _i2.Future<Map<String, dynamic>> getFeedbackDetails(
+  _i2.Future<_i17.FeedbackReport> getFeedbackDetails(
     String adminPublicKeyHex,
     String adminSignature,
     int feedbackId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i17.FeedbackReport>(
     'feedbackAdmin',
     'getFeedbackDetails',
     {
@@ -1230,12 +1692,12 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   /// - totalFeedback: Total feedback count
   /// - byType: Count by feedback type
   /// - recentFeedback: Recent feedback (last 7 days, limit 10)
-  _i2.Future<Map<String, dynamic>> getFeedbackStatistics(
+  _i2.Future<_i18.FeedbackStatistics> getFeedbackStatistics(
     String adminPublicKeyHex,
     String adminSignature, {
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i18.FeedbackStatistics>(
     'feedbackAdmin',
     'getFeedbackStatistics',
     {
@@ -1257,11 +1719,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Success message
-  _i2.Future<Map<String, dynamic>> deleteFeedback(
+  _i2.Future<_i8.AdminActionResult> deleteFeedback(
     String adminPublicKeyHex,
     String adminSignature,
     int feedbackId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i8.AdminActionResult>(
     'feedbackAdmin',
     'deleteFeedback',
     {
@@ -1296,13 +1758,15 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   /// );
   ///
   /// if (role == null) {
-  ///   return ResponseBuilder.authError(
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
   ///     message: 'Invalid signature or inactive key',
   ///   );
   /// }
   ///
   /// if (!role.canSendNotifications()) {
-  ///   return ResponseBuilder.permissionError(
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.insufficientPermissions,
   ///     message: 'Insufficient permissions',
   ///   );
   /// }
@@ -1399,19 +1863,16 @@ class EndpointFeedback extends EndpointPublicSubmission {
   /// - [feedbackType]: Type of feedback ('feature_request', 'bug', 'general')
   /// - [metadata]: Optional JSON metadata (app version, platform, etc.)
   ///
-  /// Returns:
-  /// - success: true if feedback was stored
-  /// - data: Contains feedbackId and timestamp
-  /// - message: Success or error message
-  _i2.Future<Map<String, dynamic>> submitFeedback({
+  /// Throws [ServerException] on validation, rate limit, or internal errors.
+  _i2.Future<void> submitFeedback({
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
     required String feedbackText,
-    required String feedbackType,
+    required _i16.FeedbackType feedbackType,
     String? metadata,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<void>(
     'feedback',
     'submitFeedback',
     {
@@ -1448,8 +1909,8 @@ class EndpointFeedback extends EndpointPublicSubmission {
   /// // }
   /// ```
   @override
-  _i2.Future<Map<String, dynamic>> getChallenge() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i10.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i10.PublicChallengeResponse>(
         'feedback',
         'getChallenge',
         {},
@@ -1491,8 +1952,8 @@ class EndpointFeedback extends EndpointPublicSubmission {
   ///   // Verification successful, process submission
   /// } catch (e) {
   ///   // Handle verification failure
-  ///   return ResponseBuilder.error(
-  ///     code: ResponseBuilder.errorAuthFailed,
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
   ///     message: e.toString(),
   ///   );
   /// }
@@ -1549,17 +2010,17 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - List of created notification IDs
-  _i2.Future<Map<String, dynamic>> createNotifications(
+  _i2.Future<_i19.NotificationCreateResult> createNotifications(
     String adminPublicKeyHex,
     String adminSignature, {
     List<int>? accountIds,
     required String title,
     required String message,
-    required String type,
+    required _i20.NotificationType type,
     required int expiresInDays,
     String? actionUrl,
     String? actionLabel,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i19.NotificationCreateResult>(
     'notificationAdmin',
     'createNotifications',
     {
@@ -1587,10 +2048,10 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// - total: Total notification count
   /// - marked: Count of marked notifications
   /// - unmarked: Count of unmarked notifications
-  _i2.Future<Map<String, dynamic>> getStatistics(
+  _i2.Future<_i21.NotificationStatistics> getStatistics(
     String adminPublicKeyHex,
     String adminSignature,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i21.NotificationStatistics>(
     'notificationAdmin',
     'getStatistics',
     {
@@ -1615,7 +2076,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Paginated response with notifications
-  _i2.Future<Map<String, dynamic>> listNotifications(
+  _i2.Future<_i22.PaginatedNotifications> listNotifications(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -1624,7 +2085,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
     bool? isExpired,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<Map<String, dynamic>>(
+  }) => caller.callServerEndpoint<_i22.PaginatedNotifications>(
     'notificationAdmin',
     'listNotifications',
     {
@@ -1652,11 +2113,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// - notification: Notification details
   /// - receiptCount: Number of receipts
   /// - receipts: List of receipts (who acknowledged)
-  _i2.Future<Map<String, dynamic>> getNotificationDetails(
+  _i2.Future<_i23.NotificationDetails> getNotificationDetails(
     String adminPublicKeyHex,
     String adminSignature,
     String notificationId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i23.NotificationDetails>(
     'notificationAdmin',
     'getNotificationDetails',
     {
@@ -1677,11 +2138,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Success message
-  _i2.Future<Map<String, dynamic>> deleteNotification(
+  _i2.Future<_i8.AdminActionResult> deleteNotification(
     String adminPublicKeyHex,
     String adminSignature,
     String notificationId,
-  ) => caller.callServerEndpoint<Map<String, dynamic>>(
+  ) => caller.callServerEndpoint<_i8.AdminActionResult>(
     'notificationAdmin',
     'deleteNotification',
     {
@@ -1716,13 +2177,15 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// );
   ///
   /// if (role == null) {
-  ///   return ResponseBuilder.authError(
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
   ///     message: 'Invalid signature or inactive key',
   ///   );
   /// }
   ///
   /// if (!role.canSendNotifications()) {
-  ///   return ResponseBuilder.permissionError(
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.insufficientPermissions,
   ///     message: 'Insufficient permissions',
   ///   );
   /// }
@@ -1785,13 +2248,13 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   );
 }
 
-/// Product catalog endpoint — returns active store product IDs.
+/// Product catalog endpoint — returns platform-specific rail statuses and products.
 ///
 /// Protected by HashCash proof-of-work + ECDSA signature (inherited from
 /// PublicSubmissionEndpoint). No IP addresses are stored or used.
 ///
-/// The actual product data lives in AnonAccred's rail_product table.
-/// This endpoint wraps the query with Quanitya's PoW protection.
+/// Rail configuration is read from Redis (seeded from platform_rails.csv).
+/// Product data lives in AnonAccred's rail_product table.
 /// {@category Endpoint}
 class EndpointProductCatalog extends EndpointPublicSubmission {
   EndpointProductCatalog(_i1.EndpointCaller caller) : super(caller);
@@ -1799,33 +2262,34 @@ class EndpointProductCatalog extends EndpointPublicSubmission {
   @override
   String get name => 'productCatalog';
 
-  /// Get active store product IDs for a given payment rail.
+  /// Get the product catalog for a platform.
   ///
-  /// Requires HashCash proof-of-work and ECDSA signature.
+  /// Returns rail statuses and active product IDs for each rail
+  /// configured for the given platform.
   ///
   /// Parameters:
   /// - [challenge]: Challenge string from getChallenge()
   /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
   /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature of "challenge:railName"
-  /// - [railName]: Payment rail name (e.g. 'apple_iap', 'google_iap')
+  /// - [signature]: ECDSA signature of "challenge:platformName"
+  /// - [platformName]: Platform identifier (e.g. 'ios', 'android', 'web')
   ///
-  /// Returns: List of active store product ID strings.
-  _i2.Future<List<String>> getActiveStoreProductIds(
+  /// Returns: PlatformCatalogResponse with rails and their product IDs.
+  _i2.Future<_i24.PlatformCatalogResponse> getCatalog(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
-    String railName,
-  ) => caller.callServerEndpoint<List<String>>(
+    String platformName,
+  ) => caller.callServerEndpoint<_i24.PlatformCatalogResponse>(
     'productCatalog',
-    'getActiveStoreProductIds',
+    'getCatalog',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
       'publicKeyHex': publicKeyHex,
       'signature': signature,
-      'railName': railName,
+      'platformName': platformName,
     },
   );
 
@@ -1852,8 +2316,8 @@ class EndpointProductCatalog extends EndpointPublicSubmission {
   /// // }
   /// ```
   @override
-  _i2.Future<Map<String, dynamic>> getChallenge() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i10.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i10.PublicChallengeResponse>(
         'productCatalog',
         'getChallenge',
         {},
@@ -1895,8 +2359,8 @@ class EndpointProductCatalog extends EndpointPublicSubmission {
   ///   // Verification successful, process submission
   /// } catch (e) {
   ///   // Handle verification failure
-  ///   return ResponseBuilder.error(
-  ///     code: ResponseBuilder.errorAuthFailed,
+  ///   throw ServerException(
+  ///     code: ServerErrorCode.authenticationFailed,
   ///     message: e.toString(),
   ///   );
   /// }
@@ -1939,7 +2403,7 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   ///
   /// Returns JWT token string
   ///
-  /// Throws PaymentException if no sync days remaining
+  /// Throws ServerException if no sync days remaining
   _i2.Future<String> generatePowerSyncToken() =>
       caller.callServerEndpoint<String>(
         'syncAccess',
@@ -1954,8 +2418,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// - syncDaysRemaining: days of sync remaining
   /// - accessExpiry: estimated expiry date
   /// - needsTopUp: whether user needs to purchase more sync days
-  _i2.Future<Map<String, dynamic>> checkSyncAccess() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i25.SyncAccessStatus> checkSyncAccess() =>
+      caller.callServerEndpoint<_i25.SyncAccessStatus>(
         'syncAccess',
         'checkSyncAccess',
         {},
@@ -1973,12 +2437,12 @@ class EndpointSyncAccess extends _i1.EndpointRef {
     {},
   );
 
-  /// Get sync access requirements and pricing
+  /// Get sync access status and balance across all tiers.
   ///
-  /// Returns information about sync access pricing and requirements
-  /// for display in the client app.
-  _i2.Future<Map<String, dynamic>> getSyncAccessInfo() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  /// Returns typed model with current balances per sync tier and overall access status.
+  /// Pricing is sourced from the app stores — not served from the backend.
+  _i2.Future<_i26.SyncAccessInfo> getSyncAccessInfo() =>
+      caller.callServerEndpoint<_i26.SyncAccessInfo>(
         'syncAccess',
         'getSyncAccessInfo',
         {},
@@ -1998,8 +2462,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// Get sync usage statistics for authenticated user
   ///
   /// Returns usage information and consumption history
-  _i2.Future<Map<String, dynamic>> getSyncUsageStats() =>
-      caller.callServerEndpoint<Map<String, dynamic>>(
+  _i2.Future<_i27.SyncUsageStats> getSyncUsageStats() =>
+      caller.callServerEndpoint<_i27.SyncUsageStats>(
         'syncAccess',
         'getSyncUsageStats',
         {},
@@ -2008,22 +2472,22 @@ class EndpointSyncAccess extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i6.Caller(client);
-    serverpod_auth_core = _i7.Caller(client);
-    community = _i8.Caller(client);
-    anonaccount = _i9.Caller(client);
-    anonaccred = _i10.Caller(client);
+    serverpod_auth_idp = _i28.Caller(client);
+    serverpod_auth_core = _i29.Caller(client);
+    community = _i30.Caller(client);
+    anonaccount = _i31.Caller(client);
+    anonaccred = _i32.Caller(client);
   }
 
-  late final _i6.Caller serverpod_auth_idp;
+  late final _i28.Caller serverpod_auth_idp;
 
-  late final _i7.Caller serverpod_auth_core;
+  late final _i29.Caller serverpod_auth_core;
 
-  late final _i8.Caller community;
+  late final _i30.Caller community;
 
-  late final _i9.Caller anonaccount;
+  late final _i31.Caller anonaccount;
 
-  late final _i10.Caller anonaccred;
+  late final _i32.Caller anonaccred;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -2046,7 +2510,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i11.Protocol(),
+         _i33.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -2058,10 +2522,11 @@ class Client extends _i1.ServerpodClientShared {
     cloudHealth = EndpointCloudHealth(this);
     accountDeletion = EndpointAccountDeletion(this);
     adminKeyManagement = EndpointAdminKeyManagement(this);
+    analyticsAdmin = EndpointAnalyticsAdmin(this);
     analyticsEvent = EndpointAnalyticsEvent(this);
     cloudAnalysis = EndpointCloudAnalysis(this);
     cloudLlm = EndpointCloudLlm(this);
-    consumable = EndpointConsumable(this);
+    entitlementAdmin = EndpointEntitlementAdmin(this);
     errorReportAdmin = EndpointErrorReportAdmin(this);
     errorReport = EndpointErrorReport(this);
     feedbackAdmin = EndpointFeedbackAdmin(this);
@@ -2078,13 +2543,15 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointAdminKeyManagement adminKeyManagement;
 
+  late final EndpointAnalyticsAdmin analyticsAdmin;
+
   late final EndpointAnalyticsEvent analyticsEvent;
 
   late final EndpointCloudAnalysis cloudAnalysis;
 
   late final EndpointCloudLlm cloudLlm;
 
-  late final EndpointConsumable consumable;
+  late final EndpointEntitlementAdmin entitlementAdmin;
 
   late final EndpointErrorReportAdmin errorReportAdmin;
 
@@ -2107,10 +2574,11 @@ class Client extends _i1.ServerpodClientShared {
     'cloudHealth': cloudHealth,
     'accountDeletion': accountDeletion,
     'adminKeyManagement': adminKeyManagement,
+    'analyticsAdmin': analyticsAdmin,
     'analyticsEvent': analyticsEvent,
     'cloudAnalysis': cloudAnalysis,
     'cloudLlm': cloudLlm,
-    'consumable': consumable,
+    'entitlementAdmin': entitlementAdmin,
     'errorReportAdmin': errorReportAdmin,
     'errorReport': errorReport,
     'feedbackAdmin': feedbackAdmin,

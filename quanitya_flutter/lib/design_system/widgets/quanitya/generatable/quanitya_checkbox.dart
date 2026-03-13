@@ -20,6 +20,7 @@ class QuanityaCheckbox extends StatefulWidget {
 
   final bool value;
   final ValueChanged<bool?>? onChanged;
+  final String? semanticLabel;
 
   const QuanityaCheckbox({
     super.key,
@@ -28,6 +29,7 @@ class QuanityaCheckbox extends StatefulWidget {
     required this.borderColor,
     required this.value,
     this.onChanged,
+    this.semanticLabel,
   });
 
   @override
@@ -89,46 +91,50 @@ class _QuanityaCheckboxState extends State<QuanityaCheckbox>
   Widget build(BuildContext context) {
     final color = widget.value ? widget.activeColor : widget.borderColor;
 
-    return SizedBox(
-      width: AppSizes.buttonHeight,
-      height: AppSizes.buttonHeight,
-      child: GestureDetector(
-        onTap: widget.onChanged != null
-            ? () => widget.onChanged!(!widget.value)
-            : null,
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedBuilder(
-          animation: _animation,
-          builder: (context, child) {
-            return CustomPaint(
-              painter: _PenCirclePainter(
-                progress: _animation.value,
-                color: widget.activeColor,
-                borderRadius: 4,
-                strokeWidth: 1.5,
-                startAngle: _startAngle,
-              ),
-              child: child,
-            );
-          },
-          child: Center(
-            child: Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: color,
-                  width: 1.5,
+    return Semantics(
+      checked: widget.value,
+      label: widget.semanticLabel,
+      child: SizedBox(
+        width: AppSizes.buttonHeight,
+        height: AppSizes.buttonHeight,
+        child: GestureDetector(
+          onTap: widget.onChanged != null
+              ? () => widget.onChanged!(!widget.value)
+              : null,
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return CustomPaint(
+                painter: _PenCirclePainter(
+                  progress: _animation.value,
+                  color: widget.activeColor,
+                  borderRadius: 4,
+                  strokeWidth: 1.5,
+                  startAngle: _startAngle,
                 ),
+                child: child,
+              );
+            },
+            child: Center(
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusTiny),
+                  border: Border.all(
+                    color: color,
+                    width: 1.5,
+                  ),
+                ),
+                child: widget.value
+                    ? Icon(
+                        Icons.check,
+                        size: AppSizes.fontSmall,
+                        color: widget.checkColor,
+                      )
+                    : null,
               ),
-              child: widget.value
-                  ? Icon(
-                      Icons.check,
-                      size: 14,
-                      color: widget.checkColor,
-                    )
-                  : null,
             ),
           ),
         ),

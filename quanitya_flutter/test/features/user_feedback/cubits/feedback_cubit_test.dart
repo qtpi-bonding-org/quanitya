@@ -7,7 +7,6 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:quanitya_flutter/features/user_feedback/cubits/feedback_cubit.dart';
 import 'package:quanitya_flutter/features/user_feedback/cubits/feedback_state.dart';
 import 'package:quanitya_flutter/infrastructure/user_feedback/feedback_submission_service.dart';
-import 'package:quanitya_flutter/infrastructure/user_feedback/models/feedback_submission.dart';
 import 'package:quanitya_flutter/infrastructure/user_feedback/exceptions/feedback_exceptions.dart';
 
 @GenerateMocks([FeedbackSubmissionService])
@@ -43,12 +42,6 @@ void main() {
         )).thenAnswer((_) async {
           // Simulate some delay
           await Future.delayed(const Duration(milliseconds: 100));
-          return FeedbackSubmission(
-            feedbackId: 123,
-            timestamp: DateTime.now(),
-            feedbackText: 'Test feedback',
-            feedbackType: 'general',
-          );
         });
         return cubit;
       },
@@ -77,14 +70,7 @@ void main() {
           feedbackText: anyNamed('feedbackText'),
           feedbackType: anyNamed('feedbackType'),
           metadata: anyNamed('metadata'),
-        )).thenAnswer((_) async {
-          return FeedbackSubmission(
-            feedbackId: 456,
-            timestamp: DateTime.now(),
-            feedbackText: 'Success feedback',
-            feedbackType: 'feature_request',
-          );
-        });
+        )).thenAnswer((_) async {});
         return cubit;
       },
       act: (cubit) => cubit.submitFeedback(
@@ -147,14 +133,7 @@ void main() {
           feedbackText: anyNamed('feedbackText'),
           feedbackType: anyNamed('feedbackType'),
           metadata: anyNamed('metadata'),
-        )).thenAnswer((_) async {
-          return FeedbackSubmission(
-            feedbackId: 789,
-            timestamp: DateTime.now(),
-            feedbackText: 'Operation test',
-            feedbackType: 'bug',
-          );
-        });
+        )).thenAnswer((_) async {});
         return cubit;
       },
       act: (cubit) => cubit.submitFeedback(
@@ -186,14 +165,7 @@ void main() {
           feedbackText: anyNamed('feedbackText'),
           feedbackType: anyNamed('feedbackType'),
           metadata: anyNamed('metadata'),
-        )).thenAnswer((_) async {
-          return FeedbackSubmission(
-            feedbackId: 999,
-            timestamp: DateTime.now(),
-            feedbackText: 'Multi-type test',
-            feedbackType: 'general',
-          );
-        });
+        )).thenAnswer((_) async {});
         return cubit;
       },
       act: (cubit) async {

@@ -6,9 +6,10 @@ import 'package:intl/intl.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
-import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
+import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart' as btn;
 
@@ -34,29 +35,18 @@ class ErrorEntryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final formattedTime = DateFormat.yMd().add_jm().format(error.timestamp);
     final occurrenceText = occurrenceCount > 1
-        ? '$occurrenceCount times'
-        : 'Once';
+        ? context.l10n.errorOccurrenceTimes(occurrenceCount)
+        : context.l10n.errorOccurrenceOnce;
 
-    return Container(
+    return Padding(
       padding: AppPadding.allDouble,
-      decoration: BoxDecoration(
-        color: QuanityaPalette.primary.backgroundPrimary,
-        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-      ),
       child: NotebookFold(
         header: Row(
           children: [
-            Container(
-              padding: EdgeInsets.all(AppSizes.space * 0.75),
-              decoration: BoxDecoration(
-                color: context.colors.errorColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-              ),
-              child: Icon(
-                Icons.error_outline,
-                size: AppSizes.iconMedium,
-                color: context.colors.errorColor,
-              ),
+            Icon(
+              Icons.error_outline,
+              size: AppSizes.iconMedium,
+              color: context.colors.errorColor,
             ),
             HSpace.x2,
             Expanded(
@@ -72,7 +62,7 @@ class ErrorEntryCard extends StatelessWidget {
                   ),
                   VSpace.x025,
                   Text(
-                    'From ${error.source}',
+                    context.l10n.errorFromSource(error.source),
                     style: context.text.bodySmall?.copyWith(
                       color: context.colors.interactableColor,
                     ),
@@ -124,26 +114,21 @@ class _ErrorDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return Padding(
       padding: AppPadding.allDouble,
-      decoration: BoxDecoration(
-        color: context.colors.textSecondary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildDetailRow('Error Type', error.errorType),
-          _buildDetailRow('Error Code', error.errorCode),
-          _buildDetailRow('Source Cubit', error.source),
+          _buildDetailRow(context.l10n.errorDetailErrorType, error.errorType),
+          _buildDetailRow(context.l10n.errorDetailErrorCode, error.errorCode),
+          _buildDetailRow(context.l10n.errorDetailSourceCubit, error.source),
           if (error.userMessage != null)
-            _buildDetailRow('User Message', error.userMessage!),
+            _buildDetailRow(context.l10n.errorDetailUserMessage, error.userMessage!),
           VSpace.x2,
           Row(
             children: [
               Text(
-                'Stack Trace',
+                context.l10n.errorDetailStackTrace,
                 style: context.text.bodyMedium?.copyWith(
                   color: context.colors.textPrimary,
                   fontWeight: FontWeight.w600,
@@ -151,29 +136,18 @@ class _ErrorDetails extends StatelessWidget {
               ),
               const Spacer(),
               btn.QuanityaTextButton(
-                text: 'Copy',
+                text: context.l10n.actionCopy,
                 onPressed: () => _copyToClipboard(context, error.stackTrace),
               ),
             ],
           ),
           VSpace.x1,
-          Container(
-            width: double.infinity,
-            padding: AppPadding.allDouble,
-            decoration: BoxDecoration(
-              color: context.colors.backgroundPrimary,
-              borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-              border: Border.all(
-                color: context.colors.textSecondary.withValues(alpha: 0.2),
-              ),
-            ),
-            child: Text(
-              error.stackTrace,
-              style: context.text.bodySmall?.copyWith(
-                fontFamily: QuanityaFonts.bodyFamily,
-                color: context.colors.textPrimary,
-                height: 1.4,
-              ),
+          Text(
+            error.stackTrace,
+            style: context.text.bodySmall?.copyWith(
+              fontFamily: QuanityaFonts.bodyFamily,
+              color: context.colors.textPrimary,
+              height: 1.4,
             ),
           ),
         ],
@@ -214,12 +188,9 @@ class _ErrorDetails extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.stackTraceCopied),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    PostItToast.show(context,
+        message: context.l10n.stackTraceCopied,
+        type: PostItType.success);
   }
 }
 
@@ -238,14 +209,14 @@ class _ActionButtons extends StatelessWidget {
       children: [
         Expanded(
           child: btn.QuanityaTextButton(
-            text: 'Delete',
+            text: context.l10n.actionDelete,
             onPressed: onDelete,
           ),
         ),
         HSpace.x2,
         Expanded(
           child: QuanityaTextButton(
-            text: 'Send Report',
+            text: context.l10n.actionSendReport,
             onPressed: onSend,
           ),
         ),

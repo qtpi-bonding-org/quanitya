@@ -189,6 +189,12 @@ abstract class ILogEntryRepository {
   /// Gets the total count of all entries.
   Future<int> countAllEntries();
 
+  /// Gets entry count and last logged date for all templates.
+  Future<List<TemplateSummary>> getTemplateSummaries();
+
+  /// Watches entry count and last logged date for all templates.
+  Stream<List<TemplateSummary>> watchTemplateSummaries();
+
   // ─────────────────────────────────────────────────────────────────────────
   // Ingestion Support Methods
   // ─────────────────────────────────────────────────────────────────────────

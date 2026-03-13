@@ -71,10 +71,13 @@ class TimelineWidget extends StatelessWidget {
   ) {
     final template = entryWithContext.template;
     
-    return GestureDetector(
-      onTap: onItemTap != null ? () => onItemTap!(item) : null,
-      child: IntrinsicHeight(
-        child: Row(
+    return Semantics(
+      button: true,
+      label: 'View log entry',
+      child: GestureDetector(
+        onTap: onItemTap != null ? () => onItemTap!(item) : null,
+        child: IntrinsicHeight(
+          child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Timeline Column - matches original structure
@@ -91,15 +94,18 @@ class TimelineWidget extends StatelessWidget {
                             color: QuanityaPalette.primary.textPrimary,
                           ),
                   ),
-                  // Icon Bubble - uses pre-computed color and icon
+                  // Icon Bubble - accent-colored icon, interactable border
                   Container(
                     width: AppSizes.size36,
                     height: AppSizes.size36,
                     decoration: BoxDecoration(
-                      color: accentColor.withValues(alpha: 0.1),
+                      color: entryWithContext.template.isHidden
+                          ? QuanityaPalette.primary.textPrimary
+                              .withValues(alpha: 0.25)
+                          : Colors.transparent,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: accentColor,
+                        color: QuanityaPalette.primary.interactableColor,
                         width: 2,
                       ),
                     ),
@@ -169,6 +175,7 @@ class TimelineWidget extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 

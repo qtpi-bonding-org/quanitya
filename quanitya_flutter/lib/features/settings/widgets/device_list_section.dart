@@ -14,6 +14,7 @@ import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../features/app_operating_mode/cubits/app_operating_cubit.dart';
 import '../../../features/app_operating_mode/models/app_operating_mode.dart';
+import '../../../infrastructure/auth/auth_service.dart' show AuthException, AuthFailure;
 import '../cubits/device_management/device_management_cubit.dart';
 import '../cubits/device_management/device_management_state.dart';
 
@@ -38,11 +39,8 @@ class _DeviceListSectionState extends State<DeviceListSection> {
 
   /// Check if error is a connection/offline error
   bool _isOfflineError(Object? error) {
-    if (error == null) return false;
-    final errorStr = error.toString();
-    return errorStr.contains('Connection refused') ||
-        errorStr.contains('SocketException') ||
-        errorStr.contains('Network is unreachable');
+    if (error is AuthException) return error.kind == AuthFailure.networkError;
+    return false;
   }
 
   @override
@@ -317,7 +315,9 @@ class _DeviceCard extends StatelessWidget {
       confirmText: context.l10n.revoke,
       isDestructive: true,
       onConfirm: () {
-        context.read<DeviceManagementCubit>().revokeDevice(device.id!);
+        final deviceId = device.id;
+        if (deviceId == null) return;
+        context.read<DeviceManagementCubit>().revokeDevice(deviceId);
       },
     );
   }

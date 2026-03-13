@@ -45,27 +45,6 @@ class _SortOptionsContent extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── Sort by ──────────────────────────────────────────────
-              _SectionHeader(label: context.l10n.sortByHeader),
-              _OptionRow(
-                label: context.l10n.sortByDate,
-                isSelected: dataState.pastSort.type == TimelineSortType.date,
-                palette: palette,
-                onTap: () =>
-                    cubit.setPastSort(type: TimelineSortType.date),
-              ),
-              _OptionRow(
-                label: context.l10n.sortByTemplate,
-                isSelected:
-                    dataState.pastSort.type == TimelineSortType.template,
-                palette: palette,
-                onTap: () =>
-                    cubit.setPastSort(type: TimelineSortType.template),
-              ),
-
-              VSpace.x1,
-              Divider(color: palette.textSecondary.withAlpha(51)),
-
               // ── Direction ────────────────────────────────────────────
               _OptionRow(
                 label: dataState.pastSort.ascending
@@ -84,7 +63,7 @@ class _SortOptionsContent extends StatelessWidget {
               // ── Time range ───────────────────────────────────────────
               _SectionHeader(label: context.l10n.timeRangeHeader),
               ...TimelineTimeRange.values.map((range) {
-                String label = range.name.toUpperCase();
+                String label = _getTimeRangeLabel(context, range);
                 if (range == TimelineTimeRange.custom &&
                     dataState.filters.customStartDate != null) {
                   final start = dataState.filters.customStartDate!;
@@ -131,6 +110,16 @@ class _SortOptionsContent extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _getTimeRangeLabel(BuildContext context, TimelineTimeRange range) {
+    return switch (range) {
+      TimelineTimeRange.all => context.l10n.timeRangeAll,
+      TimelineTimeRange.today => context.l10n.timeRangeToday,
+      TimelineTimeRange.week => context.l10n.timeRangeWeek,
+      TimelineTimeRange.month => context.l10n.timeRangeMonth,
+      TimelineTimeRange.custom => context.l10n.timeRangeCustom,
+    };
   }
 }
 
@@ -179,24 +168,29 @@ class _OptionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: AppSizes.space,
-          horizontal: AppSizes.space * 0.5,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon ?? (isSelected ? Icons.check : null),
-              size: AppSizes.iconSmall,
-              color: palette.interactableColor,
-            ),
-            HSpace.x1,
-            Expanded(child: Text(label)),
-          ],
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: AppSizes.space,
+            horizontal: AppSizes.space * 0.5,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon ?? (isSelected ? Icons.check : null),
+                size: AppSizes.iconSmall,
+                color: palette.interactableColor,
+              ),
+              HSpace.x1,
+              Expanded(child: Text(label)),
+            ],
+          ),
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'app_sizes.dart';
 
 /// Predefined, responsive EdgeInsets using the design system spacing.
@@ -42,9 +43,15 @@ class AppPadding {
 }
 
 /// Vertical spacer widget using design system spacing.
-class VSpace extends StatelessWidget {
+class VSpace extends StatelessWidget implements ResponsiveSpace {
   final double height;
   const VSpace._(this.height);
+
+  @override
+  double get size => height / AppSizes.space;
+
+  @override
+  Axis get axis => Axis.vertical;
 
   static VSpace get x025 => VSpace._(AppSizes.space * 0.25); // 2px (Tiny glue)
   static VSpace get x05 => VSpace._(AppSizes.space * 0.5);
@@ -61,9 +68,15 @@ class VSpace extends StatelessWidget {
 }
 
 /// Horizontal spacer widget using design system spacing.
-class HSpace extends StatelessWidget {
+class HSpace extends StatelessWidget implements ResponsiveSpace {
   final double width;
   const HSpace._(this.width);
+
+  @override
+  double get size => width / AppSizes.space;
+
+  @override
+  Axis get axis => Axis.horizontal;
 
   static HSpace get x025 => HSpace._(AppSizes.space * 0.25);
   static HSpace get x05 => HSpace._(AppSizes.space * 0.5);

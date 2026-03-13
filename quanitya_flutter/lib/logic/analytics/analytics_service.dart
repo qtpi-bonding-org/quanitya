@@ -6,6 +6,7 @@ import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 import '../../data/repositories/analytics_inbox_repository.dart';
+import '../../infrastructure/public_submission/public_submission_service.dart';
 
 /// Privacy-first analytics service with local-first storage.
 ///
@@ -19,8 +20,9 @@ import '../../data/repositories/analytics_inbox_repository.dart';
 class AnalyticsService {
   final Client _client;
   final AnalyticsInboxRepository _inbox;
+  final PublicSubmissionService _submissionService;
 
-  AnalyticsService(this._client, this._inbox);
+  AnalyticsService(this._client, this._inbox, this._submissionService);
 
   // ── Template lifecycle ──
   void trackTemplateCreated() => _track('template_created');
@@ -70,39 +72,56 @@ class AnalyticsService {
 
   /// Batch-send all unsent events to the server.
   ///
-  /// Sends in chunks of 100. Each chunk is sent as individual events
-  /// and marked as sent only after successful delivery.
+  /// Sends in chunks of 100. Each chunk is sent with a single
+  /// PoW + ECDSA verification for spam prevention.
   /// Returns the number of events successfully sent.
   Future<int> sendAllUnsent() async {
+    final allEvents = await _inbox.getUnsentEvents();
+    if (allEvents.isEmpty) return 0;
+
     var totalSent = 0;
 
-    while (true) {
-      final batch = await _inbox.getUnsentEvents(limit: 100);
-      if (batch.isEmpty) break;
+    // Send in chunks of 100
+    for (var i = 0; i < allEvents.length; i += 100) {
+      final batch = allEvents.sublist(
+        i,
+        i + 100 > allEvents.length ? allEvents.length : i + 100,
+      );
 
-      final sentIds = <int>[];
-      for (final event in batch) {
-        try {
-          await _client.analyticsEvent.submitEvent(
-            eventName: event.eventName,
-            clientTimestamp: event.clientTimestamp,
-            platform: event.platform,
-            props: event.props,
-          );
-          sentIds.add(event.id);
-        } catch (_) {
-          // Stop sending on first failure (server likely unreachable)
-          break;
-        }
+      try {
+        // Serialize batch to JSON
+        final eventsJson = jsonEncode(
+          batch.map((e) => {
+            'eventName': e.eventName,
+            'clientTimestamp': e.clientTimestamp.toIso8601String(),
+            'platform': e.platform,
+            'props': e.props,
+          }).toList(),
+        );
+
+        // Build payload suffix for signing: "analytics:{count}"
+        final payloadSuffix = 'analytics:${batch.length}';
+
+        // Submit via PublicSubmissionService (challenge + PoW + signature)
+        await _submissionService.submitWithVerification(
+          endpoint: 'analyticsEvent',
+          payload: payloadSuffix,
+          submitCallback: (challenge, proofOfWork, publicKeyHex, signature) async {
+            await _client.analyticsEvent.submitEvents(
+              challenge: challenge,
+              proofOfWork: proofOfWork,
+              publicKeyHex: publicKeyHex,
+              signature: signature,
+              eventsJson: eventsJson,
+            );
+          },
+        );
+
+        totalSent += batch.length;
+      } catch (e) {
+        debugPrint('Analytics batch send error: $e');
+        break;
       }
-
-      if (sentIds.isEmpty) break;
-
-      await _inbox.markAsSent(sentIds);
-      totalSent += sentIds.length;
-
-      // If we didn't send the full batch, server is having issues
-      if (sentIds.length < batch.length) break;
     }
 
     return totalSent;

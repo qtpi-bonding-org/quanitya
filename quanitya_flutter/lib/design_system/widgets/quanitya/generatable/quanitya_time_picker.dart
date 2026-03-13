@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorable/flutter_colorable.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../primitives/app_sizes.dart';
 import '../../../primitives/quanitya_fonts.dart';
+import '../../../primitives/quanitya_palette.dart';
 
 /// Zen-styled time picker - no outlines, just an underline and clean appearance.
 ///
@@ -42,43 +44,48 @@ class QuanityaTimePicker extends StatelessWidget {
     final hasValue = value != null;
     final displayText = hasValue
         ? _formatTime(value!)
-        : (hintText ?? 'Select time');
+        : (hintText ?? AppLocalizations.of(context)?.selectTime ?? 'Select time');
 
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        onTap: onChanged != null ? () => _showPicker(context) : null,
-        child: Container(
-          constraints: BoxConstraints(minHeight: AppSizes.buttonHeight),
-          decoration: BoxDecoration(
-            // Zen style: underline only, no box
-            border: Border(
-              bottom: BorderSide(
-                color: borderColor.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  displayText,
-                  style: TextStyle(
-                    fontFamily: QuanityaFonts.bodyFamily,
-                    fontSize: AppSizes.fontStandard,
-                    color: hasValue
-                        ? (textColor ?? Colors.black87)
-                        : borderColor.withValues(alpha: 0.6),
-                  ),
+    return Semantics(
+      button: true,
+      label: hintText,
+      value: hasValue ? displayText : null,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onChanged != null ? () => _showPicker(context) : null,
+          child: Container(
+            constraints: BoxConstraints(minHeight: AppSizes.buttonHeight),
+            decoration: BoxDecoration(
+              // Zen style: underline only, no box
+              border: Border(
+                bottom: BorderSide(
+                  color: borderColor.withValues(alpha: 0.3),
+                  width: 1,
                 ),
               ),
-              Icon(
-                Icons.access_time_outlined,
-                color: primaryColor,
-                size: AppSizes.iconSmall,
-              ),
-            ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    displayText,
+                    style: TextStyle(
+                      fontFamily: QuanityaFonts.bodyFamily,
+                      fontSize: AppSizes.fontStandard,
+                      color: hasValue
+                          ? (textColor ?? QuanityaPalette.primary.textPrimary)
+                          : borderColor.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.access_time_outlined,
+                  color: primaryColor,
+                  size: AppSizes.iconSmall,
+                ),
+              ],
+            ),
           ),
         ),
       ),

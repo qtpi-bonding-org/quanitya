@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
@@ -96,12 +95,10 @@ void main() {
         storage: SharedPrefsErrorBoxStorage(),
         reporter: (errorEntry) async {
           // Test Reporter: Would send error in real implementation
+          return true;
         },
         errorCodeMapper: ErrorCodeMapper.mapError,
         exceptionMapper: (error) => null,
-        showToast: false,
-        toastBuilder: const _MockErrorToastBuilder(),
-        pageBuilder: const _MockErrorBoxPageBuilder(),
       ));
 
       cubit = ManualErrorTestCubit();
@@ -110,18 +107,18 @@ void main() {
     test('should capture network errors', () async {
       // Act
       cubit.triggerNetworkError();
-      
+
       // Wait a bit for async operations
       await Future.delayed(const Duration(milliseconds: 100));
-      
+
       // Assert
       final unsentErrors = await ErrorPrivserver.getUnsentErrors();
       expect(unsentErrors, isNotEmpty);
-      
+
       final networkError = unsentErrors.firstWhere(
         (e) => e.errorData.source == 'ManualErrorTestCubit',
       );
-      
+
       expect(networkError.errorData.errorType, equals('_Exception')); // Dart internal type name
       expect(networkError.errorData.errorCode, equals('NET_UNKNOWN')); // Should map to network error
       expect(networkError.errorData.stackTrace, contains('triggerNetworkError'));
@@ -130,19 +127,19 @@ void main() {
     test('should capture validation errors', () async {
       // Act
       cubit.triggerValidationError();
-      
+
       // Wait a bit for async operations
       await Future.delayed(const Duration(milliseconds: 100));
-      
+
       // Assert
       final unsentErrors = await ErrorPrivserver.getUnsentErrors();
       expect(unsentErrors, isNotEmpty);
-      
+
       final validationError = unsentErrors.firstWhere(
-        (e) => e.errorData.source == 'ManualErrorTestCubit' && 
+        (e) => e.errorData.source == 'ManualErrorTestCubit' &&
                e.errorData.errorCode == 'VAL_003',
       );
-      
+
       expect(validationError.errorData.errorType, equals('ArgumentError'));
       expect(validationError.errorData.stackTrace, contains('triggerValidationError'));
     });
@@ -150,19 +147,19 @@ void main() {
     test('should capture state errors', () async {
       // Act
       cubit.triggerStateError();
-      
+
       // Wait a bit for async operations
       await Future.delayed(const Duration(milliseconds: 100));
-      
+
       // Assert
       final unsentErrors = await ErrorPrivserver.getUnsentErrors();
       expect(unsentErrors, isNotEmpty);
-      
+
       final stateError = unsentErrors.firstWhere(
-        (e) => e.errorData.source == 'ManualErrorTestCubit' && 
+        (e) => e.errorData.source == 'ManualErrorTestCubit' &&
                e.errorData.errorCode == 'STATE_001',
       );
-      
+
       expect(stateError.errorData.errorType, equals('StateError'));
       expect(stateError.errorData.stackTrace, contains('triggerStateError'));
     });
@@ -174,40 +171,21 @@ void main() {
       cubit.triggerNetworkError();
       await Future.delayed(const Duration(milliseconds: 50));
       cubit.triggerNetworkError();
-      
+
       // Wait a bit for async operations
       await Future.delayed(const Duration(milliseconds: 200));
-      
+
       // Assert - should be deduplicated into one entry with count
       final unsentErrors = await ErrorPrivserver.getUnsentErrors();
       final networkErrors = unsentErrors.where(
-        (e) => e.errorData.source == 'ManualErrorTestCubit' && 
+        (e) => e.errorData.source == 'ManualErrorTestCubit' &&
                e.errorData.errorCode == 'NET_UNKNOWN',
       ).toList();
-      
+
       expect(networkErrors.length, equals(1)); // Deduplicated
       // Note: Deduplication count might be 1 if errors are processed as separate entries
       // This is acceptable behavior - the important thing is that errors are captured
       expect(networkErrors.first.occurrenceCount, greaterThanOrEqualTo(1));
     });
   });
-}
-
-// Mock implementations for testing
-class _MockErrorToastBuilder extends ErrorToastBuilder {
-  const _MockErrorToastBuilder();
-
-  @override
-  void show(context, message, {required onDismiss, required onSend}) {
-    // Mock implementation - do nothing
-  }
-}
-
-class _MockErrorBoxPageBuilder extends ErrorBoxPageBuilder {
-  const _MockErrorBoxPageBuilder();
-
-  @override
-  Widget build(context) {
-    return Container(); // Mock implementation
-  }
 }

@@ -1,66 +1,20 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 
-import '../../../app_router.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
-import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
-import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../data/dao/analytics_inbox_dao.dart';
 import '../cubits/analytics_inbox_cubit.dart';
 import '../cubits/analytics_inbox_state.dart';
-import '../cubits/analytics_inbox_message_mapper.dart';
 import '../../outbox/widgets/outbox_tab_content.dart';
 
-/// Analytics Inbox Page - Review and send usage analytics events
-///
-/// Shows grouped analytics events with counts and timestamps.
-/// Users can toggle auto-send, send all, or clear events.
-class AnalyticsInboxPage extends StatelessWidget {
-  const AnalyticsInboxPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GetIt.instance<AnalyticsInboxCubit>()..load(),
-      child: const _AnalyticsInboxView(),
-    );
-  }
-}
-
-class _AnalyticsInboxView extends StatelessWidget {
-  const _AnalyticsInboxView();
-
-  @override
-  Widget build(BuildContext context) {
-    return UiFlowListener<AnalyticsInboxCubit, AnalyticsInboxState>(
-      mapper: GetIt.instance<AnalyticsInboxMessageMapper>(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            context.l10n.analyticsInboxTitle,
-            style: context.text.headlineMedium,
-          ),
-          leading: QuanityaIconButton(
-            icon: Icons.arrow_back,
-            onPressed: () => AppNavigation.back(context),
-          ),
-        ),
-        body: const AnalyticsTabContent(),
-      ),
-    );
-  }
-}
-
-/// Reusable analytics inbox content — used in both standalone AnalyticsInboxPage
-/// and the unified OutboxPage tab.
+/// Analytics inbox content — embedded in [NotebookShell] via PostagePage.
 class AnalyticsTabContent extends StatelessWidget {
   const AnalyticsTabContent({super.key});
 
@@ -95,16 +49,8 @@ class _AutoSendToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AnalyticsInboxCubit, AnalyticsInboxState>(
       builder: (context, state) {
-        return Container(
+        return Padding(
           padding: AppPadding.page,
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: context.colors.textSecondary.withValues(alpha: 0.1),
-                width: 1,
-              ),
-            ),
-          ),
           child: Row(
             children: [
               Expanded(
@@ -127,11 +73,10 @@ class _AutoSendToggle extends StatelessWidget {
                   ],
                 ),
               ),
-              Switch(
+              QuanityaToggle(
                 value: state.autoSendEnabled,
                 onChanged: (value) =>
                     context.read<AnalyticsInboxCubit>().toggleAutoSend(value),
-                activeThumbColor: context.colors.successColor,
               ),
             ],
           ),
@@ -169,26 +114,14 @@ class _EventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat.yMd().add_jm();
 
-    return Container(
+    return Padding(
       padding: AppPadding.allDouble,
-      decoration: BoxDecoration(
-        color: context.colors.textSecondary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-      ),
       child: Row(
         children: [
-          Container(
-            padding: AppPadding.listItem,
-            decoration: BoxDecoration(
-              color: context.colors.interactableColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-            ),
-            child: Text(
-              '${event.count}',
-              style: context.text.titleMedium?.copyWith(
-                color: context.colors.interactableColor,
-                fontWeight: FontWeight.bold,
-              ),
+          Text(
+            '${event.count}',
+            style: context.text.titleMedium?.copyWith(
+              color: context.colors.textPrimary,
             ),
           ),
           HSpace.x3,
@@ -233,18 +166,8 @@ class _BottomActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AnalyticsInboxCubit, AnalyticsInboxState>(
       builder: (context, state) {
-        return Container(
-          width: double.infinity,
+        return Padding(
           padding: AppPadding.allDouble,
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            border: Border(
-              top: BorderSide(
-                color: context.colors.textSecondary.withValues(alpha: 0.2),
-                width: 1,
-              ),
-            ),
-          ),
           child: SafeArea(
             top: false,
             child: Row(
@@ -262,7 +185,7 @@ class _BottomActions extends StatelessWidget {
                     text: context.l10n.analyticsInboxSendAll(state.unsentCount),
                     onPressed: state.status == UiFlowStatus.loading
                         ? null
-                        : () => context.read<AnalyticsInboxCubit>().sendAll(),
+                        : () => _sendAndPromptClear(context),
                   ),
                 ),
               ],
@@ -271,6 +194,27 @@ class _BottomActions extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _sendAndPromptClear(BuildContext context) async {
+    final cubit = context.read<AnalyticsInboxCubit>();
+    await cubit.sendAll();
+
+    if (!context.mounted) return;
+
+    // Only prompt to clear if send was successful
+    final state = cubit.state;
+    if (state.status == UiFlowStatus.success &&
+        state.lastOperation == AnalyticsInboxOperation.sendAll &&
+        state.lastSentCount > 0) {
+      QuanityaConfirmationDialog.show(
+        context: context,
+        title: context.l10n.analyticsInboxClearSentTitle,
+        message: context.l10n.analyticsInboxClearSentMessage(state.lastSentCount),
+        confirmText: context.l10n.analyticsInboxClearSent,
+        onConfirm: () => cubit.clearAll(),
+      );
+    }
   }
 
   void _confirmClearAll(BuildContext context) {

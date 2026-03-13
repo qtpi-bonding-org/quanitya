@@ -1,8 +1,8 @@
 import 'package:injectable/injectable.dart';
 
-import '../../../data/interfaces/analysis_pipeline_interface.dart';
+import '../../../data/interfaces/analysis_script_interface.dart';
 import '../exceptions/analysis_exceptions.dart';
-import '../models/analysis_pipeline.dart';
+import '../models/analysis_script.dart';
 import '../models/analysis_enums.dart';
 import '../models/analysis_output.dart';
 import '../enums/analysis_output_mode.dart';
@@ -10,7 +10,7 @@ import '../services/analysis_engine.dart';
 
 /// Service for real-time streaming analytics calculations.
 ///
-/// Streams pipeline definitions and log entries from database,
+/// Streams script definitions and log entries from database,
 /// calculates results in real-time, and emits results.
 ///
 /// Follows data flow consistency pattern:
@@ -19,42 +19,42 @@ import '../services/analysis_engine.dart';
 /// - Always fresh calculations from source data
 @injectable
 class StreamingAnalyticsService {
-  final IAnalysisPipelineRepository _pipelineRepo;
+  final IAnalysisScriptRepository _scriptRepo;
   final AnalysisEngine _analysisEngine;
 
-  const StreamingAnalyticsService(this._pipelineRepo, this._analysisEngine);
+  const StreamingAnalyticsService(this._scriptRepo, this._analysisEngine);
 
-  /// Stream scalar results for a saved pipeline.
+  /// Stream scalar results for a saved script.
   ///
-  /// Combines pipeline definition stream with template data stream,
-  /// executes pipeline in real-time when either changes,
+  /// Combines script definition stream with template data stream,
+  /// executes script in real-time when either changes,
   /// and emits only scalar results.
-  Stream<Map<String, double>> streamScalarResults(String pipelineId) {
-    return _pipelineRepo
-        .watchAllPipelines()
+  Stream<Map<String, double>> streamScalarResults(String scriptId) {
+    return _scriptRepo
+        .watchAllScripts()
         .map(
-          (pipelines) => pipelines.where((p) => p.id == pipelineId).firstOrNull,
+          (scripts) => scripts.where((s) => s.id == scriptId).firstOrNull,
         )
         .distinct()
-        .asyncExpand((pipeline) {
-          if (pipeline == null) {
+        .asyncExpand((script) {
+          if (script == null) {
             return Stream.value(<String, double>{});
           }
 
           // Extract templateId from fieldId (format: "templateId:fieldName")
-          final templateId = _extractTemplateId(pipeline.fieldId);
+          final templateId = _extractTemplateId(script.fieldId);
 
           return _streamTemplateData(templateId)
-              .asyncMap((_) => _executeAndExtractScalars(pipeline))
+              .asyncMap((_) => _executeAndExtractScalars(script))
               .handleError((error) {
                 throw AnalysisException('streamScalarResults failed: $error');
               });
         });
   }
 
-  /// Stream full results for current pipeline being built.
+  /// Stream full results for current script being built.
   ///
-  /// Used by pipeline builder for live preview functionality.
+  /// Used by script builder for live preview functionality.
   /// Takes current steps and field info, streams template data,
   /// and calculates results in real-time.
   Stream<AnalysisOutput> streamResultsForLivePreview({
@@ -75,8 +75,8 @@ class StreamingAnalyticsService {
     return _streamTemplateData(actualTemplateId)
         .asyncMap((_) async {
           try {
-            // Create a temporary pipeline model for execution
-            final pipeline = AnalysisPipelineModel(
+            // Create a temporary script model for execution
+            final script = AnalysisScriptModel(
               id: 'temp-${DateTime.now().millisecondsSinceEpoch}',
               name: 'Live Preview',
               fieldId: fieldId,
@@ -86,7 +86,7 @@ class StreamingAnalyticsService {
               updatedAt: DateTime.now(),
             );
 
-            return await _analysisEngine.execute(pipeline);
+            return await _analysisEngine.execute(script);
           } catch (error) {
             throw AnalysisException(
               'streamResultsForLivePreview failed: $error',
@@ -98,13 +98,13 @@ class StreamingAnalyticsService {
         });
   }
 
-  /// Execute pipeline and extract scalar results.
+  /// Execute script and extract scalar results.
   Future<Map<String, double>> _executeAndExtractScalars(
-    AnalysisPipelineModel pipeline,
+    AnalysisScriptModel script,
   ) async {
     try {
-      // Execute pipeline using AnalysisEngine
-      final result = await _analysisEngine.execute(pipeline);
+      // Execute script using AnalysisEngine
+      final result = await _analysisEngine.execute(script);
 
       // Extract results into a labeled map for UI consumption
       return result.when(
@@ -113,7 +113,7 @@ class StreamingAnalyticsService {
         matrix: (matrices) => {}, // Matrices are complex
       );
     } catch (error) {
-      throw AnalysisException('Pipeline execution failed: $error');
+      throw AnalysisException('Script execution failed: $error');
     }
   }
 

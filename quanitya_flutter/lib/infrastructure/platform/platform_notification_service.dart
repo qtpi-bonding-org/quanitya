@@ -15,11 +15,13 @@ import 'platform_capability_service.dart';
 class PlatformNotificationService {
   final PlatformCapabilityService _capabilities;
   final NotificationService? _notificationService;
-  
-  PlatformNotificationService(this._capabilities) 
-    : _notificationService = _capabilities.supportsLocalNotifications 
-        ? NotificationService() 
-        : null;
+
+  PlatformNotificationService(
+    this._capabilities,
+    NotificationService notificationService,
+  ) : _notificationService = _capabilities.supportsLocalNotifications
+            ? notificationService
+            : null;
 
   /// Initialize the notification service.
   Future<bool> initialize() {
@@ -70,12 +72,17 @@ class PlatformNotificationService {
   }
 
   /// Schedule a notification for the future.
+  ///
+  /// [category] - Optional notification category for action buttons.
+  /// On platforms that don't support actions, the category is ignored
+  /// and the notification is shown without action buttons.
   Future<void> scheduleNotification({
     required int id,
     required String title,
     required String body,
     required DateTime scheduledDate,
     String? payload,
+    String? category,
   }) {
     return tryMethod(
       () async {
@@ -83,7 +90,7 @@ class PlatformNotificationService {
           debugPrint('⚠️ ${_capabilities.platformName}: Skipping scheduled notification - $title at $scheduledDate');
           return;
         }
-        
+
         if (_notificationService == null) {
           throw StateError('NotificationService not initialized');
         }
@@ -93,6 +100,8 @@ class PlatformNotificationService {
           body: body,
           scheduledAt: scheduledDate,
           payload: payload,
+          // Only pass category on platforms that support action buttons
+          category: _capabilities.supportsNotificationActions ? category : null,
         );
       },
       NotificationException.new,

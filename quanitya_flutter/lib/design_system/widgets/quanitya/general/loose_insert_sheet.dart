@@ -49,16 +49,18 @@ class LooseInsertSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle bar
-          Padding(
-            padding: EdgeInsets.only(top: AppSizes.space),
-            child: Center(
-              child: Container(
-                width: AppSizes.space * 5,
-                height: AppSizes.space * 0.5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withAlpha(77),
-                  borderRadius: BorderRadius.circular(AppSizes.space * 0.25),
+          // Handle bar — purely decorative
+          ExcludeSemantics(
+            child: Padding(
+              padding: EdgeInsets.only(top: AppSizes.space),
+              child: Center(
+                child: Container(
+                  width: AppSizes.space * 5,
+                  height: AppSizes.space * 0.5,
+                  decoration: BoxDecoration(
+                    color: QuanityaPalette.primary.textSecondary.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(AppSizes.space * 0.25),
+                  ),
                 ),
               ),
             ),

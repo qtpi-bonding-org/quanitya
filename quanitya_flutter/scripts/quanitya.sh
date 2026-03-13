@@ -55,7 +55,6 @@ Options:
     echo -e "${YELLOW}Environment Variables:${NC}"
     echo "  Automatically loads .env file and injects as --dart-define:"
     echo "  • SERVERPOD_URL → SERVERPOD_URL"
-    echo "  • POWERSYNC_URL → POWERSYNC_URL"
     echo "  • OPENROUTER_API_KEY, OPENROUTER_MODEL, GEMINI_API_KEY"
     echo ""
     echo -e "${YELLOW}Examples:${NC}"
@@ -171,10 +170,6 @@ get_dart_defines() {
     # Map environment variables to dart-define arguments
     if [[ -n "$SERVERPOD_URL" ]]; then
         dart_defines+=("--dart-define=SERVERPOD_URL=$SERVERPOD_URL")
-    fi
-    
-    if [[ -n "$POWERSYNC_URL" ]]; then
-        dart_defines+=("--dart-define=POWERSYNC_URL=$POWERSYNC_URL")
     fi
     
     # Add other environment variables as needed
@@ -428,17 +423,37 @@ cmd_run() {
             ;;
         ios)
             log_info "Starting on iOS simulator/device..."
-            if [[ "$WIPE" == true ]]; then
-                log_warning "Wiping iOS app data and resetting keychain for com.quanitya.quanitya..."
-                local target_device="${DEVICE_ID:-booted}"
-                # Wipe app sandbox (database, documents)
-                xcrun simctl uninstall "$target_device" com.quanitya.quanitya || log_warning "Failed to uninstall (maybe app not installed?)"
-                # Nuke keychain (where Encryption Keys are stored)
-                xcrun simctl keychain "$target_device" reset
-                log_info "iOS factory reset complete."
+
+            # Auto-detect iOS device if none specified
+            if [[ -z "$DEVICE_ID" ]]; then
+                # Try to find a connected physical iOS device first
+                local detected_id
+                detected_id=$(flutter devices 2>/dev/null | grep '• ios ' | head -1 | sed 's/.*• \([^ ]*\) *• ios.*/\1/')
+                if [[ -n "$detected_id" ]]; then
+                    DEVICE_ID="$detected_id"
+                    log_info "Auto-detected iOS device: $DEVICE_ID"
+                else
+                    DEVICE_ID="ios"
+                fi
             fi
 
-            flutter run -d "${DEVICE_ID:-ios}" "${dart_defines[@]}"
+            if [[ "$WIPE" == true ]]; then
+                log_warning "Wiping iOS app data for com.quanitya.quanitya..."
+                # Detect if this is a simulator or physical device
+                if xcrun simctl list devices 2>/dev/null | grep -q "$DEVICE_ID"; then
+                    # Simulator: use simctl
+                    xcrun simctl uninstall "$DEVICE_ID" com.quanitya.quanitya || log_warning "Failed to uninstall (maybe app not installed?)"
+                    xcrun simctl keychain "$DEVICE_ID" reset
+                    log_info "Simulator factory reset complete."
+                else
+                    # Physical device: no CLI uninstall available
+                    log_warning "Physical device: please delete Quanitya from the Home Screen to reset permissions + data."
+                    log_info "Waiting 10s for you to delete the app..."
+                    sleep 10
+                fi
+            fi
+
+            flutter run -d "$DEVICE_ID" "${dart_defines[@]}"
             ;;
         android)
             log_info "Starting on Android emulator/device..."

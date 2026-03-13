@@ -14,13 +14,13 @@ import '../../models/matrix_vector_scalar/analysis_data_type.dart';
 import '../../exceptions/analysis_exceptions.dart';
 
 /// Simple suggestion model for AI-generated analysis scripts
-class PipelineSuggestion {
+class ScriptSuggestion {
   final String snippet;
   final String reasoning;
   final AnalysisOutputMode outputMode;
   final AnalysisSnippetLanguage snippetLanguage;
 
-  const PipelineSuggestion({
+  const ScriptSuggestion({
     required this.snippet,
     required this.reasoning,
     required this.outputMode,
@@ -31,7 +31,7 @@ class PipelineSuggestion {
 /// AI orchestrator for generating script-based analysis suggestions.
 @injectable
 class AiAnalysisOrchestrator
-    extends AiStructuredOutputOrchestrator<AnalysisInput, PipelineSuggestion> {
+    extends AiStructuredOutputOrchestrator<AnalysisInput, ScriptSuggestion> {
   final LlmService _llmService;
 
   AiAnalysisOrchestrator(super.llmService) : _llmService = llmService;
@@ -55,11 +55,11 @@ class AiAnalysisOrchestrator
   }
 
   @override
-  PipelineSuggestion parseResponse(
+  ScriptSuggestion parseResponse(
     Map<String, dynamic> json,
     AnalysisInput input,
   ) {
-    return PipelineSuggestion(
+    return ScriptSuggestion(
       reasoning: json['reasoning'] as String,
       snippet: json['logic_fragment'] as String,
       outputMode: AnalysisOutputMode.values.byName(
@@ -69,7 +69,7 @@ class AiAnalysisOrchestrator
     );
   }
 
-  Future<PipelineSuggestion> generateSuggestion({
+  Future<ScriptSuggestion> generateSuggestion({
     required String intent,
     required FieldAnalysisContext fieldContext,
     required LlmConfig llmConfig,

@@ -4,7 +4,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 part 'health_sync_state.freezed.dart';
 
 /// Operations tracked by [HealthSyncCubit].
-enum HealthSyncOperation { requestPermissions, sync }
+enum HealthSyncOperation { requestPermissions, sync, import_ }
 
 @freezed
 class HealthSyncState with _$HealthSyncState, UiFlowStateMixin implements IUiFlowState {

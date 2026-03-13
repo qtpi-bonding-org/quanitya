@@ -10,7 +10,18 @@ class FolderTab {
   final IconData icon;
   final String label;
 
-  const FolderTab({required this.icon, required this.label});
+  /// Small arrow shown to the left of the icon (e.g. incoming indicator).
+  final IconData? leftIndicator;
+
+  /// Small arrow shown to the right of the icon (e.g. outgoing indicator).
+  final IconData? rightIndicator;
+
+  const FolderTab({
+    required this.icon,
+    required this.label,
+    this.leftIndicator,
+    this.rightIndicator,
+  });
 }
 
 /// A tab bar styled like physical file folder tabs.
@@ -31,33 +42,39 @@ class FolderTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: EdgeInsets.only(
-          left: AppSizes.space,
-          right: AppSizes.space,
-          bottom: AppSizes.space,
-        ),
-        child: Row(
-          children: List.generate(tabs.length, (index) {
-            final isSelected = index == currentIndex;
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => onTabSelected(index),
-                behavior: HitTestBehavior.opaque,
-                child: _FolderTabWidget(
-                  tab: tabs[index],
-                  isSelected: isSelected,
-                  position: index == 0
-                      ? _TabPosition.first
-                      : index == tabs.length - 1
-                          ? _TabPosition.last
-                          : _TabPosition.middle,
+    return Container(
+      color: QuanityaPalette.primary.backgroundPrimary,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSizes.space,
+          ),
+          child: Row(
+            children: List.generate(tabs.length, (index) {
+              final isSelected = index == currentIndex;
+              return Expanded(
+                child: Semantics(
+                  button: true,
+                  selected: isSelected,
+                  label: tabs[index].label,
+                  child: GestureDetector(
+                    onTap: () => onTabSelected(index),
+                    behavior: HitTestBehavior.opaque,
+                    child: _FolderTabWidget(
+                      tab: tabs[index],
+                      isSelected: isSelected,
+                      position: index == 0
+                          ? _TabPosition.first
+                          : index == tabs.length - 1
+                              ? _TabPosition.last
+                              : _TabPosition.middle,
+                    ),
+                  ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ),
     );
@@ -79,8 +96,9 @@ class _FolderTabWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tabColor = context.colors.textSecondary;
-    final borderColor = context.colors.textSecondary.withValues(alpha: 0.3);
+    final palette = QuanityaPalette.primary;
+    final tabColor = isSelected ? palette.textPrimary : palette.interactableColor;
+    final borderColor = (isSelected ? palette.textPrimary : palette.interactableColor).withValues(alpha: 0.3);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -104,10 +122,13 @@ class _FolderTabWidget extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                tab.icon,
-                size: isSelected ? AppSizes.iconMedium : AppSizes.iconSmall + 2,
-                color: tabColor,
+              _IconWithIndicators(
+                icon: tab.icon,
+                iconSize: isSelected ? AppSizes.iconMedium : AppSizes.iconSmall + 2,
+                iconColor: tabColor,
+                leftIndicator: tab.leftIndicator,
+                rightIndicator: tab.rightIndicator,
+                indicatorSize: AppSizes.iconTiny + 2,
               ),
               if (isSelected) ...[
                 VSpace.x05,
@@ -124,6 +145,60 @@ class _FolderTabWidget extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Icon with optional left/right indicator arrows positioned via a Stack
+/// so they never shift the main icon off-center.
+class _IconWithIndicators extends StatelessWidget {
+  final IconData icon;
+  final double iconSize;
+  final Color iconColor;
+  final IconData? leftIndicator;
+  final IconData? rightIndicator;
+  final double indicatorSize;
+
+  const _IconWithIndicators({
+    required this.icon,
+    required this.iconSize,
+    required this.iconColor,
+    this.leftIndicator,
+    this.rightIndicator,
+    required this.indicatorSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Always reserve space for both arrows so the icon stays centered
+    // regardless of which indicators are active.
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Opacity(
+          opacity: leftIndicator != null ? 1.0 : 0.0,
+          child: Padding(
+            padding: EdgeInsets.only(right: AppSizes.space * 0.25),
+            child: Icon(
+              leftIndicator ?? Icons.south,
+              size: indicatorSize,
+              color: iconColor,
+            ),
+          ),
+        ),
+        Icon(icon, size: iconSize, color: iconColor),
+        Opacity(
+          opacity: rightIndicator != null ? 1.0 : 0.0,
+          child: Padding(
+            padding: EdgeInsets.only(left: AppSizes.space * 0.25),
+            child: Icon(
+              rightIndicator ?? Icons.north,
+              size: indicatorSize,
+              color: iconColor,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

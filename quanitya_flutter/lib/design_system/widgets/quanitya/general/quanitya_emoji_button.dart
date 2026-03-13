@@ -66,6 +66,10 @@ class QuanityaEmojiButton extends StatelessWidget {
       );
     }
 
-    return button;
+    return Semantics(
+      button: true,
+      label: tooltip ?? emoji,
+      child: button,
+    );
   }
 }

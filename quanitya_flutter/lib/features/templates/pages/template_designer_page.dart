@@ -1,0 +1,137 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+
+import '../../../data/repositories/template_with_aesthetics_repository.dart';
+import '../../../design_system/widgets/ui_flow_listener.dart';
+import '../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
+import '../../../support/extensions/context_extensions.dart';
+import '../cubits/editor/template_editor_cubit.dart';
+import '../cubits/editor/template_editor_state.dart';
+import '../../../logic/templates/services/shared/template_editor_message_mapper.dart';
+import '../cubits/sharing/template_sharing_export_cubit.dart';
+import '../../../logic/templates/models/shared/shareable_template.dart';
+import '../widgets/editor/template_editor_form.dart';
+import '../widgets/shared/template_preview.dart';
+
+/// Template designer page — create or edit tracker templates.
+///
+/// Simple and agnostic approach:
+/// - TemplateDesignerPage() - Create new template
+/// - TemplateDesignerPage(templateWithAesthetics) - Edit existing template
+class TemplateDesignerPage extends StatelessWidget {
+  final TemplateWithAesthetics? templateWithAesthetics;
+
+  const TemplateDesignerPage({
+    super.key,
+    this.templateWithAesthetics,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) {
+        final cubit = GetIt.I<TemplateEditorCubit>();
+        if (templateWithAesthetics != null) {
+          cubit.loadTemplate(templateWithAesthetics!);
+        } else {
+          cubit.createNew();
+        }
+        return cubit;
+      },
+      child: UiFlowListener<TemplateEditorCubit, TemplateEditorState>(
+        mapper: GetIt.I<TemplateEditorMessageMapper>(),
+        child: Scaffold(
+          appBar: _buildAppBar(context),
+          body: BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+            builder: (context, state) {
+              return TemplateEditorForm(
+                onPreview: state.completeTemplate != null
+                    ? () => _showPreview(context, state)
+                    : () {},
+                onSave: () => context.read<TemplateEditorCubit>().save(),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      title: BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+        builder: (context, state) {
+          final title = state.template != null
+              ? context.l10n.editTemplateTitle
+              : context.l10n.createTemplateTitle;
+          return Text(title, style: context.text.headlineMedium);
+        },
+      ),
+      actions: [
+        BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+          builder: (context, state) {
+            if (state.template == null) return const SizedBox.shrink();
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                QuanityaIconButton(
+                  icon: Icons.share,
+                  onPressed: () => _shareTemplate(context, state),
+                ),
+                QuanityaIconButton(
+                  icon: state.template!.isHidden
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                  onPressed: () =>
+                      context.read<TemplateEditorCubit>().toggleHidden(),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  void _showPreview(BuildContext context, TemplateEditorState state) {
+    final completeTemplate = state.completeTemplate!;
+    final cubit = context.read<TemplateEditorCubit>();
+
+    LooseInsertSheet.show(
+      context: context,
+      title: completeTemplate.template.name,
+      builder: (sheetContext) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.85,
+        child: TemplatePreview.editor(
+          template: completeTemplate.template,
+          aesthetics: completeTemplate.aesthetics,
+          editLabel: context.l10n.templatePreviewEdit,
+          saveLabel: context.l10n.templatePreviewSave,
+          initialValues: state.previewValues,
+          onEdit: () => Navigator.pop(sheetContext),
+          onSave: () {
+            cubit.save();
+            Navigator.pop(sheetContext);
+          },
+          onValuesChanged: (values) {
+            for (final entry in values.entries) {
+              cubit.updatePreviewValue(entry.key, entry.value);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _shareTemplate(BuildContext context, TemplateEditorState state) {
+    final completeTemplate = state.completeTemplate;
+    if (completeTemplate == null) return;
+    final exportCubit = GetIt.instance<TemplateSharingExportCubit>();
+    exportCubit.exportTemplate(
+      templateWithAesthetics: completeTemplate,
+      author: AuthorCredit.create(name: context.l10n.templateDefaultAuthor),
+    );
+  }
+}

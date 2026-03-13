@@ -20,7 +20,7 @@ void main() {
     });
 
     group('Property 1: Schema generation completeness', () {
-      test('**Feature: integration-end-to-end-pipeline, Property 1: Schema generation completeness** - **Validates: Requirements 1.1, 1.2, 1.3, 1.4**', () {
+      test('**Feature: integration-end-to-end-script, Property 1: Schema generation completeness** - **Validates: Requirements 1.1, 1.2, 1.3, 1.4**', () {
         for (int i = 0; i < testIterations; i++) {
           // Generate schema
           final schema = generator.generateSchema();
@@ -77,7 +77,7 @@ void main() {
     });
 
     group('Property 2: Schema generation consistency', () {
-      test('**Feature: integration-end-to-end-pipeline, Property 2: Schema generation consistency**', () {
+      test('**Feature: integration-end-to-end-script, Property 2: Schema generation consistency**', () {
         for (int i = 0; i < testIterations; i++) {
           // Generate schema twice
           final schema1 = generator.generateSchema();

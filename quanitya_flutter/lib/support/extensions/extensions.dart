@@ -4,5 +4,6 @@
 /// for easy importing throughout the application.
 library;
 
+export 'color_extensions.dart';
 export 'cubit_ui_flow_extension.dart';
 export 'context_extensions.dart';

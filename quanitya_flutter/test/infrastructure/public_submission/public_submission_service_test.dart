@@ -21,21 +21,21 @@ import 'public_submission_service_test.mocks.dart';
 class FakeClient extends Fake implements Client {
   @override
   final FakeEndpointErrorReport errorReport = FakeEndpointErrorReport();
-  
+
   @override
   final FakeEndpointFeedback feedback = FakeEndpointFeedback();
 }
 
 // Fake endpoint classes that we can control
 class FakeEndpointErrorReport extends Fake implements EndpointErrorReport {
-  Future<Map<String, dynamic>> Function()? _getChallengeImpl;
-  
-  void setChallengeResponse(Future<Map<String, dynamic>> Function() impl) {
+  Future<PublicChallengeResponse> Function()? _getChallengeImpl;
+
+  void setChallengeResponse(Future<PublicChallengeResponse> Function() impl) {
     _getChallengeImpl = impl;
   }
-  
+
   @override
-  Future<Map<String, dynamic>> getChallenge() async {
+  Future<PublicChallengeResponse> getChallenge() async {
     if (_getChallengeImpl != null) {
       return _getChallengeImpl!();
     }
@@ -44,14 +44,14 @@ class FakeEndpointErrorReport extends Fake implements EndpointErrorReport {
 }
 
 class FakeEndpointFeedback extends Fake implements EndpointFeedback {
-  Future<Map<String, dynamic>> Function()? _getChallengeImpl;
-  
-  void setChallengeResponse(Future<Map<String, dynamic>> Function() impl) {
+  Future<PublicChallengeResponse> Function()? _getChallengeImpl;
+
+  void setChallengeResponse(Future<PublicChallengeResponse> Function() impl) {
     _getChallengeImpl = impl;
   }
-  
+
   @override
-  Future<Map<String, dynamic>> getChallenge() async {
+  Future<PublicChallengeResponse> getChallenge() async {
     if (_getChallengeImpl != null) {
       return _getChallengeImpl!();
     }
@@ -64,210 +64,195 @@ void main() {
   late FakeClient fakeClient;
   late MockICryptoKeyRepository mockCryptoRepo;
   late MockKeyDuo mockKeyDuo;
-  
+
   setUp(() {
     fakeClient = FakeClient();
     mockCryptoRepo = MockICryptoKeyRepository();
     mockKeyDuo = MockKeyDuo();
-    
+
     service = PublicSubmissionService(fakeClient, mockCryptoRepo);
   });
-  
+
   group('PublicSubmissionService', () {
     test('submitWithVerification completes full flow successfully', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 16, // Lower difficulty for faster test
-        'expiresAt': 1234567890,
-      });
-      
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 16, // Lower difficulty for faster test
+        expiresAt: 1234567890,
+      ));
+
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => 'a' * 128, // 128 hex chars
       );
-      
+
       when(mockCryptoRepo.getDeviceKey()).thenAnswer(
         (_) async => mockKeyDuo,
       );
-      
+
       // Mock signature generation
       when(mockKeyDuo.sign(any)).thenAnswer(
         (_) async => Uint8List.fromList(List.generate(64, (i) => i)),
       );
-      
-      // Act
-      final response = await service.submitWithVerification(
+
+      // Act - completes without throwing means success
+      await service.submitWithVerification(
         endpoint: 'errorReport',
         payload: 'test:payload',
         submitCallback: (challenge, pow, pubKey, sig) async {
-          return {
-            'success': true,
-            'message': 'Success',
-            'data': {'reportId': 123},
-          };
+          // void callback - success
         },
       );
-      
-      // Assert
-      expect(response.success, true);
-      expect(response.message, 'Success');
-      expect(response.data?['reportId'], 123);
-      
-      // Verify crypto methods were called
+
+      // Assert - verify crypto methods were called
       verify(mockCryptoRepo.getDeviceSigningPublicKeyHex()).called(1);
       verify(mockCryptoRepo.getDeviceKey()).called(1);
       verify(mockKeyDuo.sign(any)).called(1);
     });
-    
+
     test('throws exception when device key not found', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 16,
-        'expiresAt': 1234567890,
-      });
-      
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 16,
+        expiresAt: 1234567890,
+      ));
+
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => null, // Key not found
       );
-      
+
       // Act & Assert
       expect(
         () => service.submitWithVerification(
           endpoint: 'errorReport',
           payload: 'test:payload',
-          submitCallback: (_, __, ___, _) async => {},
+          submitCallback: (_, __, ___, ____) async {},
         ),
         throwsA(isA<PublicSubmissionException>()),
       );
-      
-      // Note: No verify() call here because exception is thrown before method completes
     });
-    
+
     test('throws exception when challenge request fails', () async {
       // Arrange
       fakeClient.errorReport.setChallengeResponse(() async {
         throw Exception('Network error');
       });
-      
+
       // Act & Assert
       expect(
         () => service.submitWithVerification(
           endpoint: 'errorReport',
           payload: 'test:payload',
-          submitCallback: (_, __, ___, _) async => {},
+          submitCallback: (_, __, ___, ____) async {},
         ),
         throwsA(isA<PublicSubmissionException>()),
       );
     });
-    
+
     test('throws exception when proof-of-work fails', () async {
       // Arrange - Use impossibly high difficulty to force failure
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 256, // Impossibly high difficulty
-        'expiresAt': 1234567890,
-      });
-      
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 256, // Impossibly high difficulty
+        expiresAt: 1234567890,
+      ));
+
       // Act & Assert
       // Note: This test may take a while or timeout, which is expected behavior
       expect(
         () => service.submitWithVerification(
           endpoint: 'errorReport',
           payload: 'test:payload',
-          submitCallback: (_, __, ___, _) async => {},
+          submitCallback: (_, __, ___, ____) async {},
         ),
         throwsA(isA<PublicSubmissionException>()),
       );
     }, timeout: const Timeout(Duration(seconds: 5)), skip: 'Expected timeout with difficulty 256 - test validates exception type but takes too long');
-    
+
     test('throws exception when signature fails', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 16,
-        'expiresAt': 1234567890,
-      });
-      
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 16,
+        expiresAt: 1234567890,
+      ));
+
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => 'a' * 128,
       );
-      
+
       when(mockCryptoRepo.getDeviceKey()).thenAnswer(
         (_) async => null, // Device key not found for signing
       );
-      
+
       // Act & Assert
       expect(
         () => service.submitWithVerification(
           endpoint: 'errorReport',
           payload: 'test:payload',
-          submitCallback: (_, __, ___, _) async => {},
+          submitCallback: (_, __, ___, ____) async {},
         ),
         throwsA(isA<PublicSubmissionException>()),
       );
-      
-      // Note: No verify() calls here because exception is thrown before methods complete
     });
-    
-    test('handles rate limit exceeded (429 error)', () async {
+
+    test('translates ServerException with rateLimitExceeded to RateLimitExceededException', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 16,
-        'expiresAt': 1234567890,
-      });
-      
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 16,
+        expiresAt: 1234567890,
+      ));
+
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => 'a' * 128,
       );
-      
+
       when(mockCryptoRepo.getDeviceKey()).thenAnswer(
         (_) async => mockKeyDuo,
       );
-      
+
       when(mockKeyDuo.sign(any)).thenAnswer(
         (_) async => Uint8List.fromList(List.generate(64, (i) => i)),
       );
-      
-      // Act
-      final response = await service.submitWithVerification(
-        endpoint: 'errorReport',
-        payload: 'test:payload',
-        submitCallback: (challenge, pow, pubKey, sig) async {
-          return {
-            'success': false,
-            'message': 'Rate limit exceeded',
-            'data': null,
-          };
-        },
+
+      // Act & Assert
+      expect(
+        () => service.submitWithVerification(
+          endpoint: 'errorReport',
+          payload: 'test:payload',
+          submitCallback: (challenge, pow, pubKey, sig) async {
+            throw ServerException(
+              code: ServerErrorCode.rateLimitExceeded,
+              message: 'Rate limit exceeded',
+            );
+          },
+        ),
+        throwsA(isA<RateLimitExceededException>()),
       );
-      
-      // Assert
-      expect(response.success, false);
-      expect(response.message, 'Rate limit exceeded');
     });
-    
+
     test('handles network errors gracefully', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => {
-        'challenge': 'test-challenge',
-        'difficulty': 16,
-        'expiresAt': 1234567890,
-      });
-      
+      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'test-challenge',
+        difficulty: 16,
+        expiresAt: 1234567890,
+      ));
+
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => 'a' * 128,
       );
-      
+
       when(mockCryptoRepo.getDeviceKey()).thenAnswer(
         (_) async => mockKeyDuo,
       );
-      
+
       when(mockKeyDuo.sign(any)).thenAnswer(
         (_) async => Uint8List.fromList(List.generate(64, (i) => i)),
       );
-      
+
       // Act & Assert
       expect(
         () => service.submitWithVerification(
@@ -280,52 +265,47 @@ void main() {
         throwsA(isA<PublicSubmissionException>()),
       );
     });
-    
+
     test('works with feedback endpoint', () async {
       // Arrange
-      fakeClient.feedback.setChallengeResponse(() async => {
-        'challenge': 'feedback-challenge',
-        'difficulty': 16,
-        'expiresAt': 1234567890,
-      });
-      
+      fakeClient.feedback.setChallengeResponse(() async => PublicChallengeResponse(
+        challenge: 'feedback-challenge',
+        difficulty: 16,
+        expiresAt: 1234567890,
+      ));
+
       when(mockCryptoRepo.getDeviceSigningPublicKeyHex()).thenAnswer(
         (_) async => 'b' * 128,
       );
-      
+
       when(mockCryptoRepo.getDeviceKey()).thenAnswer(
         (_) async => mockKeyDuo,
       );
-      
+
       when(mockKeyDuo.sign(any)).thenAnswer(
         (_) async => Uint8List.fromList(List.generate(64, (i) => i + 1)),
       );
-      
-      // Act
-      final response = await service.submitWithVerification(
+
+      // Act - completes without throwing means success
+      await service.submitWithVerification(
         endpoint: 'feedback',
         payload: 'general:100',
         submitCallback: (challenge, pow, pubKey, sig) async {
-          return {
-            'success': true,
-            'message': 'Feedback received',
-            'data': {'feedbackId': 456},
-          };
+          // void callback - success
         },
       );
-      
-      // Assert
-      expect(response.success, true);
-      expect(response.data?['feedbackId'], 456);
+
+      // Assert - verify crypto was used
+      verify(mockCryptoRepo.getDeviceSigningPublicKeyHex()).called(1);
     });
-    
+
     test('throws exception for unknown endpoint', () async {
       // Act & Assert
       expect(
         () => service.submitWithVerification(
           endpoint: 'unknown',
           payload: 'test:payload',
-          submitCallback: (_, __, ___, _) async => {},
+          submitCallback: (_, __, ___, ____) async {},
         ),
         throwsA(isA<PublicSubmissionException>()),
       );

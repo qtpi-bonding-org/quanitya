@@ -30,6 +30,9 @@ class TemplateEditorMessageMapper
         TemplateEditorOperation.save => MessageKey.success(L10nKeys.templateSaved),
         TemplateEditorOperation.discard =>
           MessageKey.info(L10nKeys.templateDiscarded),
+        TemplateEditorOperation.toggleHidden => state.template?.isHidden == true
+          ? MessageKey.info(L10nKeys.templateHidden)
+          : MessageKey.info(L10nKeys.templateUnhidden),
       };
     }
     return null; // Use global exception mapping for errors

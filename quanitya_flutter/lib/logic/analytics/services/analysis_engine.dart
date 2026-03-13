@@ -1,5 +1,5 @@
 import 'package:injectable/injectable.dart';
-import '../models/analysis_pipeline.dart';
+import '../models/analysis_script.dart';
 import '../models/matrix_vector_scalar/mvs_union.dart';
 import '../models/matrix_vector_scalar/stat_scalar.dart';
 import '../models/matrix_vector_scalar/value_vector.dart';
@@ -16,15 +16,15 @@ class AnalysisEngine {
 
   const AnalysisEngine(this._wasmService);
 
-  /// Execute an analysis pipeline using the WASM engine.
-  Future<AnalysisOutput> execute(AnalysisPipelineModel pipeline) {
-    return _wasmService.execute(pipeline);
+  /// Execute an analysis script using the WASM engine.
+  Future<AnalysisOutput> execute(AnalysisScriptModel script) {
+    return _wasmService.execute(script);
   }
 
-  Future<Map<String, MvsUnion>> executePipelineWithContext(
-    AnalysisPipelineModel pipeline,
+  Future<Map<String, MvsUnion>> executeScriptWithContext(
+    AnalysisScriptModel script,
   ) async {
-    final result = await execute(pipeline);
+    final result = await execute(script);
 
     final mvs = result.when(
       scalar: (scalars) => scalars.isNotEmpty
@@ -38,12 +38,12 @@ class AnalysisEngine {
           : MvsUnion.valueVector(const ValueVector([])), // Fallback
     );
 
-    return {pipeline.name: mvs};
+    return {script.name: mvs};
   }
 
-  /// @deprecated Use executePipelineWithContext
-  Future<MvsUnion> executePipeline(AnalysisPipelineModel pipeline) async {
-    final map = await executePipelineWithContext(pipeline);
+  /// @deprecated Use executeScriptWithContext
+  Future<MvsUnion> executeScript(AnalysisScriptModel script) async {
+    final map = await executeScriptWithContext(script);
     return map.values.first;
   }
 }

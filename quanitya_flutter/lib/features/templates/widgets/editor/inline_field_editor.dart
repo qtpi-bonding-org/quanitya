@@ -13,6 +13,7 @@ import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya_text_field.dart';
+import '../../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../../support/extensions/context_extensions.dart';
@@ -166,9 +167,9 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         color: draftColor,
       ),
       middle: Text(
-        widget.isEditing 
-            ? 'Edit ${widget.fieldType.displayName}'
-            : 'Add ${widget.fieldType.displayName}',
+        widget.isEditing
+            ? context.l10n.editFieldType(widget.fieldType.displayName)
+            : context.l10n.addFieldType(widget.fieldType.displayName),
         style: context.text.titleSmall?.copyWith(
           color: draftColor,
         ),
@@ -193,7 +194,6 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
           children: _validWidgets.map((w) => _DraftChip(
             label: _getWidgetDisplayName(context, w),
             isSelected: _selectedWidget == w,
-            draftColor: draftColor,
             onTap: () => setState(() => _selectedWidget = w),
           )).toList(),
         ),
@@ -258,8 +258,11 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   }
 
   Widget _buildListToggle(BuildContext context, Color draftColor) {
-    return InkWell(
-      onTap: () => setState(() => _isList = !_isList),
+    return Semantics(
+      toggled: _isList,
+      label: 'Allow multiple values',
+      child: InkWell(
+        onTap: () => setState(() => _isList = !_isList),
       borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
       child: Padding(
         padding: AppPadding.verticalSingle,
@@ -291,6 +294,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -384,7 +388,6 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         _DraftChip(
           label: context.l10n.booleanTrue,
           isSelected: _defaultValue == true,
-          draftColor: draftColor,
           onTap: () => setState(() {
             _defaultValue = _defaultValue == true ? null : true;
             _defaultValueError = null;
@@ -394,7 +397,6 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         _DraftChip(
           label: context.l10n.booleanFalse,
           isSelected: _defaultValue == false,
-          draftColor: draftColor,
           onTap: () => setState(() {
             _defaultValue = _defaultValue == false ? null : false;
             _defaultValueError = null;
@@ -402,14 +404,9 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         ),
         HSpace.x2,
         if (_defaultValue != null)
-          GestureDetector(
-            onTap: () => setState(() => _defaultValue = null),
-            child: Text(
-              context.l10n.actionClear,
-              style: context.text.bodySmall?.copyWith(
-                color: context.colors.interactableColor,
-              ),
-            ),
+          QuanityaTextButton(
+            text: context.l10n.actionClear,
+            onPressed: () => setState(() => _defaultValue = null),
           ),
       ],
     );
@@ -417,9 +414,12 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
 
   Widget _buildDateTimeDefaultInput(BuildContext context, Color draftColor) {
     final hasValue = _defaultValue != null;
-    
-    return InkWell(
-      onTap: () async {
+
+    return Semantics(
+      button: true,
+      label: 'Set default date/time',
+      child: InkWell(
+        onTap: () async {
         final now = DateTime.now();
         final date = await showDatePicker(
           context: context,
@@ -467,16 +467,19 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
               ),
             ),
             if (hasValue)
-              GestureDetector(
-                onTap: () => setState(() {
+              QuanityaIconButtonSizes.small(
+                icon: Icons.close,
+                tooltip: context.l10n.actionClear,
+                color: draftColor,
+                onPressed: () => setState(() {
                   _defaultValue = null;
                   _defaultValueController.clear();
                 }),
-                child: Icon(Icons.close, size: AppSizes.iconSmall, color: draftColor),
               ),
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -496,7 +499,6 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       children: _options.map((option) => _DraftChip(
         label: option,
         isSelected: _defaultValue == option,
-        draftColor: draftColor,
         onTap: () => setState(() {
           _defaultValue = _defaultValue == option ? null : option;
           _defaultValueError = null;
@@ -626,42 +628,20 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
 class _DraftChip extends StatelessWidget {
   final String label;
   final bool isSelected;
-  final Color draftColor;
   final VoidCallback onTap;
 
   const _DraftChip({
     required this.label,
     required this.isSelected,
-    required this.draftColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return PenCircledChip(
+      label: label,
+      isSelected: isSelected,
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppSizes.space * 1.5,
-          vertical: AppSizes.space,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(AppSizes.size20),
-          border: Border.all(
-            color: isSelected ? draftColor : draftColor.withValues(alpha: 0.3),
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Text(
-          label,
-          style: context.text.bodyMedium?.copyWith(
-            color: draftColor,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ),
     );
   }
 }

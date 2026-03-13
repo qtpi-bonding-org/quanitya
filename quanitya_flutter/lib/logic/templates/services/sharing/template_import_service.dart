@@ -5,25 +5,25 @@ import 'package:uuid/uuid.dart';
 
 import '../../models/shared/shareable_template.dart';
 import '../../models/shared/template_aesthetics.dart';
-import '../../../analytics/models/analysis_pipeline.dart';
+import '../../../analytics/models/analysis_script.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
-import '../../../../data/interfaces/analysis_pipeline_interface.dart';
+import '../../../../data/interfaces/analysis_script_interface.dart';
 
 /// Service for importing templates from shareable JSON format.
 ///
 /// Supports GitHub Gists, repository raw URLs, and direct JSON URLs.
 /// Validates, sanitizes, and imports templates with optional aesthetics
-/// and analysis pipelines.
+/// and analysis scripts.
 @injectable
 class TemplateImportService {
   final http.Client _httpClient;
   final TemplateWithAestheticsRepository _templateRepository;
-  final IAnalysisPipelineRepository? _pipelineRepository;
+  final IAnalysisScriptRepository? _scriptRepository;
 
   TemplateImportService(
     this._httpClient,
     this._templateRepository,
-    this._pipelineRepository,
+    this._scriptRepository,
   );
 
   /// Import template from URL.
@@ -232,33 +232,33 @@ class TemplateImportService {
     // Save template and aesthetics
     await _templateRepository.save(templateWithAesthetics);
 
-    // Import analysis pipelines if present and repository available
-    if (shareableTemplate.analysisPipelines != null &&
-        shareableTemplate.analysisPipelines!.isNotEmpty &&
-        _pipelineRepository != null) {
-      await _importAnalysisPipelines(shareableTemplate.analysisPipelines!);
+    // Import analysis scripts if present and repository available
+    if (shareableTemplate.analysisScripts != null &&
+        shareableTemplate.analysisScripts!.isNotEmpty &&
+        _scriptRepository != null) {
+      await _importAnalysisScripts(shareableTemplate.analysisScripts!);
     }
 
     return templateWithAesthetics;
   }
 
-  /// Import analysis pipelines for the template.
-  Future<void> _importAnalysisPipelines(
-    List<AnalysisPipelineModel> pipelines,
+  /// Import analysis scripts for the template.
+  Future<void> _importAnalysisScripts(
+    List<AnalysisScriptModel> scripts,
   ) async {
-    if (_pipelineRepository == null) return;
+    if (_scriptRepository == null) return;
 
-    for (final pipeline in pipelines) {
+    for (final script in scripts) {
       try {
-        // Create new pipeline with new ID but preserve other data
-        final localPipeline = pipeline.copyWith(
+        // Create new script with new ID but preserve other data
+        final localScript = script.copyWith(
           id: const Uuid().v4(),
           updatedAt: DateTime.now(),
         );
 
-        await _pipelineRepository.savePipeline(localPipeline);
+        await _scriptRepository.saveScript(localScript);
       } catch (e) {
-        // Skip failed pipeline imports, don't fail entire template import
+        // Skip failed script imports, don't fail entire template import
         continue;
       }
     }

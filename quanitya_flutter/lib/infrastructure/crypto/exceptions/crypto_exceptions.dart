@@ -14,10 +14,19 @@ abstract class CryptoException implements Exception {
   String toString() => 'CryptoException: $message${cause != null ? ' (caused by: $cause)' : ''}';
 }
 
+/// Describes why key generation failed.
+enum KeyGenerationFailure {
+  keysAlreadyExist,
+  verificationFailed,
+  generationFailed,
+}
+
 /// Thrown when key generation fails
 class KeyGenerationException extends CryptoException {
-  const KeyGenerationException(super.message, [super.cause]);
-  
+  const KeyGenerationException(String message, {this.kind = KeyGenerationFailure.generationFailed, Object? cause}) : super(message, cause);
+
+  final KeyGenerationFailure kind;
+
   @override
   String toString() => 'KeyGenerationException: $message${cause != null ? ' (caused by: $cause)' : ''}';
 }

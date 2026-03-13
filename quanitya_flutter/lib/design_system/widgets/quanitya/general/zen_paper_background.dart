@@ -11,11 +11,23 @@ class ZenPaperBackground extends StatefulWidget {
   final Color? baseColor;
   final double? scrollOffset;
 
+  /// Horizontal position of this background in a multi-strip layout.
+  /// Used to align the dot grid across adjacent strips so dots tile
+  /// continuously at strip boundaries. Defaults to 0.0 (standalone use).
+  final double stripOriginX;
+
+  /// Total width of the combined multi-strip surface.
+  /// The dot grid is centered across this total width rather than
+  /// each individual strip. Defaults to 0.0 (use own width for centering).
+  final double totalStripWidth;
+
   const ZenPaperBackground({
     super.key,
     required this.child,
     this.baseColor,
     this.scrollOffset,
+    this.stripOriginX = 0.0,
+    this.totalStripWidth = 0.0,
   });
 
   @override
@@ -87,10 +99,19 @@ class _ZenPaperBackgroundState extends State<ZenPaperBackground> {
     final minChunk = ((-paperTopY) / chunkHeight).floor();
     final maxChunk = ((screenHeight - paperTopY) / chunkHeight).floor();
 
-    // Calculate horizontal offset to center the grid
-    // This ensures the grid is symmetric on the screen
+    // Calculate horizontal offset for dot grid alignment.
+    // In multi-strip mode, center the grid across the total strip width
+    // and offset each strip so dots tile continuously at boundaries.
     final dotSpacing = ZenGridConstants.dotSpacing;
-    final horizontalOffset = (screenWidth % dotSpacing) / 2;
+    final double horizontalOffset;
+    if (widget.totalStripWidth > 0) {
+      // Multi-strip: center grid across total width, then adjust for this strip's position
+      final globalCenterOffset = (widget.totalStripWidth % dotSpacing) / 2;
+      horizontalOffset = (globalCenterOffset - widget.stripOriginX) % dotSpacing;
+    } else {
+      // Standalone: center within own width
+      horizontalOffset = (screenWidth % dotSpacing) / 2;
+    }
 
     final widgets = <Widget>[];
 
@@ -103,12 +124,14 @@ class _ZenPaperBackgroundState extends State<ZenPaperBackground> {
           left: 0,
           right: 0,
           height: chunkHeight,
-          child: RepaintBoundary(
-            child: CustomPaint(
-              painter: _StaticChunkPainter(
-                color: color,
-                chunkIndex: i,
-                horizontalOffset: horizontalOffset,
+          child: ExcludeSemantics(
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: _StaticChunkPainter(
+                  color: color,
+                  chunkIndex: i,
+                  horizontalOffset: horizontalOffset,
+                ),
               ),
             ),
           ),

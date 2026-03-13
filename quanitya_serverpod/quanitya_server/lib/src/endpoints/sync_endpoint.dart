@@ -1,13 +1,11 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
-import '../exceptions/storage_quota_exception.dart';
 import '../services/storage_quota_service.dart';
 
 /// Sync endpoint for PowerSync data operations
 ///
 /// Handles CRUD operations for E2EE encrypted data and template aesthetics.
 /// All operations require authentication via AnonAccred device key.
-/// New inserts are gated by per-account storage quota.
 class SyncEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
@@ -26,9 +24,15 @@ class SyncEndpoint extends Endpoint {
     final uuidId = UuidValue.fromString(id);
 
     final existing = await EncryptedTemplate.db.findById(session, uuidId);
+    final delta = encryptedData.length -
+        (existing != null && existing.accountId == accountId
+            ? existing.encryptedData.length
+            : 0);
+    if (delta > 0) {
+      await StorageQuotaService.enforceQuota(session, accountId, delta);
+    }
 
     if (existing != null && existing.accountId == accountId) {
-      // UPDATE — always allowed
       final oldSize = existing.encryptedData.length;
       final updated = existing.copyWith(
         encryptedData: encryptedData,
@@ -40,12 +44,6 @@ class SyncEndpoint extends Endpoint {
       );
       return result;
     } else {
-      // INSERT — check quota
-      if (!await StorageQuotaService.canWrite(
-        session, accountId, encryptedData.length,
-      )) {
-        throw StorageQuotaExceededException(accountId: accountId);
-      }
       final template = EncryptedTemplate(
         id: uuidId,
         accountId: accountId,
@@ -92,6 +90,13 @@ class SyncEndpoint extends Endpoint {
     final uuidId = UuidValue.fromString(id);
 
     final existing = await EncryptedEntry.db.findById(session, uuidId);
+    final delta = encryptedData.length -
+        (existing != null && existing.accountId == accountId
+            ? existing.encryptedData.length
+            : 0);
+    if (delta > 0) {
+      await StorageQuotaService.enforceQuota(session, accountId, delta);
+    }
 
     if (existing != null && existing.accountId == accountId) {
       final oldSize = existing.encryptedData.length;
@@ -105,11 +110,6 @@ class SyncEndpoint extends Endpoint {
       );
       return result;
     } else {
-      if (!await StorageQuotaService.canWrite(
-        session, accountId, encryptedData.length,
-      )) {
-        throw StorageQuotaExceededException(accountId: accountId);
-      }
       final entry = EncryptedEntry(
         id: uuidId,
         accountId: accountId,
@@ -156,6 +156,13 @@ class SyncEndpoint extends Endpoint {
     final uuidId = UuidValue.fromString(id);
 
     final existing = await EncryptedSchedule.db.findById(session, uuidId);
+    final delta = encryptedData.length -
+        (existing != null && existing.accountId == accountId
+            ? existing.encryptedData.length
+            : 0);
+    if (delta > 0) {
+      await StorageQuotaService.enforceQuota(session, accountId, delta);
+    }
 
     if (existing != null && existing.accountId == accountId) {
       final oldSize = existing.encryptedData.length;
@@ -169,11 +176,6 @@ class SyncEndpoint extends Endpoint {
       );
       return result;
     } else {
-      if (!await StorageQuotaService.canWrite(
-        session, accountId, encryptedData.length,
-      )) {
-        throw StorageQuotaExceededException(accountId: accountId);
-      }
       final schedule = EncryptedSchedule(
         id: uuidId,
         accountId: accountId,
@@ -228,6 +230,8 @@ class SyncEndpoint extends Endpoint {
 
     final existing = await TemplateAesthetics.db.findById(session, uuidId);
 
+    final parsedUpdatedAt = _parseDateTime(updatedAt) ?? DateTime.now();
+
     if (existing != null && existing.accountId == accountId) {
       final updated = existing.copyWith(
         templateId: templateId,
@@ -237,9 +241,7 @@ class SyncEndpoint extends Endpoint {
         paletteJson: paletteJson,
         fontConfigJson: fontConfigJson,
         colorMappingsJson: colorMappingsJson,
-        updatedAt: updatedAt != null
-            ? DateTime.parse(updatedAt)
-            : DateTime.now(),
+        updatedAt: parsedUpdatedAt,
       );
       return await TemplateAesthetics.db.updateRow(session, updated);
     } else {
@@ -253,9 +255,7 @@ class SyncEndpoint extends Endpoint {
         paletteJson: paletteJson,
         fontConfigJson: fontConfigJson,
         colorMappingsJson: colorMappingsJson,
-        updatedAt: updatedAt != null
-            ? DateTime.parse(updatedAt)
-            : DateTime.now(),
+        updatedAt: parsedUpdatedAt,
       );
       return await TemplateAesthetics.db.insertRow(session, aesthetics);
     }
@@ -276,11 +276,11 @@ class SyncEndpoint extends Endpoint {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Encrypted Analysis Pipelines
+  // Encrypted Analysis Scripts
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Upsert encrypted analysis pipeline
-  Future<EncryptedAnalysisPipeline> upsertEncryptedAnalysisPipeline(
+  /// Upsert encrypted analysis script
+  Future<EncryptedAnalysisScript> upsertEncryptedAnalysisScript(
     Session session,
     String id,
     String encryptedData,
@@ -289,7 +289,14 @@ class SyncEndpoint extends Endpoint {
     final uuidId = UuidValue.fromString(id);
 
     final existing =
-        await EncryptedAnalysisPipeline.db.findById(session, uuidId);
+        await EncryptedAnalysisScript.db.findById(session, uuidId);
+    final delta = encryptedData.length -
+        (existing != null && existing.accountId == accountId
+            ? existing.encryptedData.length
+            : 0);
+    if (delta > 0) {
+      await StorageQuotaService.enforceQuota(session, accountId, delta);
+    }
 
     if (existing != null && existing.accountId == accountId) {
       final oldSize = existing.encryptedData.length;
@@ -298,25 +305,20 @@ class SyncEndpoint extends Endpoint {
         updatedAt: DateTime.now(),
       );
       final result =
-          await EncryptedAnalysisPipeline.db.updateRow(session, updated);
+          await EncryptedAnalysisScript.db.updateRow(session, updated);
       await StorageQuotaService.adjustUsage(
         session, accountId, encryptedData.length - oldSize, 0,
       );
       return result;
     } else {
-      if (!await StorageQuotaService.canWrite(
-        session, accountId, encryptedData.length,
-      )) {
-        throw StorageQuotaExceededException(accountId: accountId);
-      }
-      final pipeline = EncryptedAnalysisPipeline(
+      final script = EncryptedAnalysisScript(
         id: uuidId,
         accountId: accountId,
         encryptedData: encryptedData,
         updatedAt: DateTime.now(),
       );
       final result =
-          await EncryptedAnalysisPipeline.db.insertRow(session, pipeline);
+          await EncryptedAnalysisScript.db.insertRow(session, script);
       await StorageQuotaService.incrementUsage(
         session, accountId, encryptedData.length, 1,
       );
@@ -324,8 +326,8 @@ class SyncEndpoint extends Endpoint {
     }
   }
 
-  /// Delete encrypted analysis pipeline
-  Future<bool> deleteEncryptedAnalysisPipeline(
+  /// Delete encrypted analysis script
+  Future<bool> deleteEncryptedAnalysisScript(
     Session session,
     String id,
   ) async {
@@ -333,13 +335,13 @@ class SyncEndpoint extends Endpoint {
     final uuidId = UuidValue.fromString(id);
 
     final existing =
-        await EncryptedAnalysisPipeline.db.findById(session, uuidId);
+        await EncryptedAnalysisScript.db.findById(session, uuidId);
     if (existing == null || existing.accountId != accountId) {
       return false;
     }
 
     final removedSize = existing.encryptedData.length;
-    await EncryptedAnalysisPipeline.db.deleteRow(session, existing);
+    await EncryptedAnalysisScript.db.deleteRow(session, existing);
     await StorageQuotaService.decrementUsage(
       session, accountId, removedSize, 1,
     );
@@ -351,17 +353,19 @@ class SyncEndpoint extends Endpoint {
   // ─────────────────────────────────────────────────────────────────────────
 
   /// Get storage usage for authenticated user
-  Future<Map<String, dynamic>> getStorageUsage(Session session) async {
+  Future<StorageUsageResponse> getStorageUsage(Session session) async {
     final accountId = int.parse(session.authenticated!.userIdentifier);
     final usage = await StorageQuotaService.getUsage(session, accountId);
 
-    return {
-      'bytesUsed': usage.bytesUsed,
-      'bytesLimit': usage.bytesLimit,
-      'rowCount': usage.rowCount,
-      'percentUsed': (usage.bytesUsed / usage.bytesLimit * 100).round(),
-      'bytesRemaining':
-          (usage.bytesLimit - usage.bytesUsed).clamp(0, usage.bytesLimit),
-    };
+    return StorageUsageResponse(
+      bytesUsed: usage.bytesUsed,
+      rowCount: usage.rowCount,
+    );
+  }
+
+  /// Safely parse a DateTime string, returning null on invalid input.
+  static DateTime? _parseDateTime(String? value) {
+    if (value == null) return null;
+    return DateTime.tryParse(value);
   }
 }

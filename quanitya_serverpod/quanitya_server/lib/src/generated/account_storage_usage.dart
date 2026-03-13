@@ -19,7 +19,6 @@ abstract class AccountStorageUsage
     required this.accountId,
     required this.bytesUsed,
     required this.rowCount,
-    required this.bytesLimit,
     DateTime? updatedAt,
   }) : updatedAt = updatedAt ?? DateTime.now();
 
@@ -28,7 +27,6 @@ abstract class AccountStorageUsage
     required int accountId,
     required int bytesUsed,
     required int rowCount,
-    required int bytesLimit,
     DateTime? updatedAt,
   }) = _AccountStorageUsageImpl;
 
@@ -38,7 +36,6 @@ abstract class AccountStorageUsage
       accountId: jsonSerialization['accountId'] as int,
       bytesUsed: jsonSerialization['bytesUsed'] as int,
       rowCount: jsonSerialization['rowCount'] as int,
-      bytesLimit: jsonSerialization['bytesLimit'] as int,
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
@@ -58,8 +55,6 @@ abstract class AccountStorageUsage
 
   int rowCount;
 
-  int bytesLimit;
-
   DateTime updatedAt;
 
   @override
@@ -73,7 +68,6 @@ abstract class AccountStorageUsage
     int? accountId,
     int? bytesUsed,
     int? rowCount,
-    int? bytesLimit,
     DateTime? updatedAt,
   });
   @override
@@ -84,7 +78,6 @@ abstract class AccountStorageUsage
       'accountId': accountId,
       'bytesUsed': bytesUsed,
       'rowCount': rowCount,
-      'bytesLimit': bytesLimit,
       'updatedAt': updatedAt.toJson(),
     };
   }
@@ -97,7 +90,6 @@ abstract class AccountStorageUsage
       'accountId': accountId,
       'bytesUsed': bytesUsed,
       'rowCount': rowCount,
-      'bytesLimit': bytesLimit,
       'updatedAt': updatedAt.toJson(),
     };
   }
@@ -140,14 +132,12 @@ class _AccountStorageUsageImpl extends AccountStorageUsage {
     required int accountId,
     required int bytesUsed,
     required int rowCount,
-    required int bytesLimit,
     DateTime? updatedAt,
   }) : super._(
          id: id,
          accountId: accountId,
          bytesUsed: bytesUsed,
          rowCount: rowCount,
-         bytesLimit: bytesLimit,
          updatedAt: updatedAt,
        );
 
@@ -160,7 +150,6 @@ class _AccountStorageUsageImpl extends AccountStorageUsage {
     int? accountId,
     int? bytesUsed,
     int? rowCount,
-    int? bytesLimit,
     DateTime? updatedAt,
   }) {
     return AccountStorageUsage(
@@ -168,7 +157,6 @@ class _AccountStorageUsageImpl extends AccountStorageUsage {
       accountId: accountId ?? this.accountId,
       bytesUsed: bytesUsed ?? this.bytesUsed,
       rowCount: rowCount ?? this.rowCount,
-      bytesLimit: bytesLimit ?? this.bytesLimit,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -190,11 +178,6 @@ class AccountStorageUsageUpdateTable
 
   _i1.ColumnValue<int, int> rowCount(int value) => _i1.ColumnValue(
     table.rowCount,
-    value,
-  );
-
-  _i1.ColumnValue<int, int> bytesLimit(int value) => _i1.ColumnValue(
-    table.bytesLimit,
     value,
   );
 
@@ -221,10 +204,6 @@ class AccountStorageUsageTable extends _i1.Table<int?> {
       'rowCount',
       this,
     );
-    bytesLimit = _i1.ColumnInt(
-      'bytesLimit',
-      this,
-    );
     updatedAt = _i1.ColumnDateTime(
       'updatedAt',
       this,
@@ -240,8 +219,6 @@ class AccountStorageUsageTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt rowCount;
 
-  late final _i1.ColumnInt bytesLimit;
-
   late final _i1.ColumnDateTime updatedAt;
 
   @override
@@ -250,7 +227,6 @@ class AccountStorageUsageTable extends _i1.Table<int?> {
     accountId,
     bytesUsed,
     rowCount,
-    bytesLimit,
     updatedAt,
   ];
 }

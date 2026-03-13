@@ -1,0 +1,6 @@
+# StorageUsageResponse: typed response for getStorageUsage endpoint
+# Returns raw storage usage without limits — self-hosted has unlimited storage.
+class: StorageUsageResponse
+fields:
+  bytesUsed: int
+  rowCount: int

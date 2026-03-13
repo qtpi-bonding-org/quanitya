@@ -35,6 +35,7 @@ class OnboardingPage extends StatelessWidget {
                         child: Image.asset(
                           'assets/quanitya.png',
                           color: context.colors.textPrimary,
+                          excludeFromSemantics: true,
                         ),
                       ),
                       // Title - header style with letter spacing

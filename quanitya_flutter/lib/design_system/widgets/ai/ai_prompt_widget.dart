@@ -76,10 +76,12 @@ class _AiPromptWidgetState extends State<AiPromptWidget> {
         QuanityaRow(
           spacing: HSpace.x1,
           alignment: CrossAxisAlignment.center,
-          start: Icon(
-            Icons.auto_awesome,
-            color: palette.interactableColor,
-            size: AppSizes.iconMedium,
+          start: ExcludeSemantics(
+            child: Icon(
+              Icons.auto_awesome,
+              color: palette.interactableColor,
+              size: AppSizes.iconMedium,
+            ),
           ),
           middle: Text(
             widget.title,
@@ -108,18 +110,22 @@ class _AiPromptWidgetState extends State<AiPromptWidget> {
           onChanged: (_) => setState(() {}), // Rebuild to update send button state
           onSubmitted: (_) => _handleGenerate(),
           suffixIcon: widget.isLoading
-              ? Padding(
-                  padding: EdgeInsets.all(AppSizes.space),
-                  child: SizedBox(
-                    width: AppSizes.iconSmall,
-                    height: AppSizes.iconSmall,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: palette.interactableColor,
+              ? Semantics(
+                  label: 'Generating...',
+                  child: Padding(
+                    padding: EdgeInsets.all(AppSizes.space),
+                    child: SizedBox(
+                      width: AppSizes.iconSmall,
+                      height: AppSizes.iconSmall,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: palette.interactableColor,
+                      ),
                     ),
                   ),
                 )
               : IconButton(
+                  tooltip: context.l10n.aiPromptSend,
                   icon: Icon(
                     Icons.send_rounded,
                     color: _controller.text.trim().isEmpty

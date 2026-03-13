@@ -1,14 +1,37 @@
 import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 
-/// Per-account storage quota tracking and enforcement.
+/// Per-account storage usage tracking.
 ///
-/// Tracks bytes used across all encrypted tables (entries, templates,
-/// schedules, analysis pipelines). Gates new inserts when quota exceeded.
-/// Updates and deletes are always allowed.
+/// Tracks bytes used and row count across all encrypted tables (entries,
+/// templates, schedules, analysis scripts).
+///
+/// Cloud deployments set [storageLimitProvider] at startup to enforce
+/// tier-based storage limits. Self-hosted has no limit (provider is null).
 class StorageQuotaService {
-  /// Default storage limit: 1 GB
-  static const int defaultBytesLimit = 1073741824;
+  /// Optional callback that returns the storage limit in bytes for an account.
+  /// Set by the cloud server at startup. Null means no limit (self-hosted).
+  static Future<int> Function(Session session, int accountId)?
+      storageLimitProvider;
+
+  /// Check if writing [additionalBytes] would exceed the account's storage
+  /// limit. Throws if over quota. No-op if no [storageLimitProvider] is set
+  /// (self-hosted).
+  static Future<void> enforceQuota(
+    Session session,
+    int accountId,
+    int additionalBytes,
+  ) async {
+    if (storageLimitProvider == null) return;
+
+    final limitBytes = await storageLimitProvider!(session, accountId);
+    if (limitBytes <= 0) return; // no active tier
+
+    final usage = await getUsage(session, accountId);
+    if (usage.bytesUsed + additionalBytes > limitBytes) {
+      throw Exception('Storage quota exceeded');
+    }
+  }
 
   /// Get or create usage record for account.
   static Future<AccountStorageUsage> getUsage(
@@ -23,16 +46,6 @@ class StorageQuotaService {
       usage = await _seedUsage(session, accountId);
     }
     return usage;
-  }
-
-  /// Check if account can accept a new write of given size.
-  static Future<bool> canWrite(
-    Session session,
-    int accountId,
-    int newBytes,
-  ) async {
-    final usage = await getUsage(session, accountId);
-    return (usage.bytesUsed + newBytes) <= usage.bytesLimit;
   }
 
   /// Increment after successful insert.
@@ -81,22 +94,6 @@ class StorageQuotaService {
     await adjustUsage(session, accountId, -bytes, -rows);
   }
 
-  /// Update the storage limit for an account (e.g. after tier change).
-  static Future<void> setLimit(
-    Session session,
-    int accountId,
-    int bytesLimit,
-  ) async {
-    final usage = await getUsage(session, accountId);
-    await AccountStorageUsage.db.updateRow(
-      session,
-      usage.copyWith(
-        bytesLimit: bytesLimit,
-        updatedAt: DateTime.now(),
-      ),
-    );
-  }
-
   /// Seed usage from actual data (one-time per account).
   static Future<AccountStorageUsage> _seedUsage(
     Session session,
@@ -113,7 +110,7 @@ class StorageQuotaService {
           UNION ALL
           SELECT "encryptedData" FROM encrypted_schedules WHERE "accountId" = \$1
           UNION ALL
-          SELECT "encryptedData" FROM encrypted_analysis_pipelines WHERE "accountId" = \$1
+          SELECT "encryptedData" FROM encrypted_analysis_scripts WHERE "accountId" = \$1
       ) combined
       ''',
       parameters: QueryParameters.positional([accountId]),
@@ -124,7 +121,6 @@ class StorageQuotaService {
       accountId: accountId,
       bytesUsed: (row[0] as num).toInt(),
       rowCount: (row[1] as num).toInt(),
-      bytesLimit: defaultBytesLimit,
       updatedAt: DateTime.now(),
     );
 
@@ -140,18 +136,9 @@ class StorageQuotaService {
       session,
       where: (t) => t.accountId.equals(accountId),
     );
-    // Preserve custom limit if set
-    final limit = existing?.bytesLimit ?? defaultBytesLimit;
     if (existing != null) {
       await AccountStorageUsage.db.deleteRow(session, existing);
     }
-    final reseeded = await _seedUsage(session, accountId);
-    if (limit != defaultBytesLimit) {
-      await AccountStorageUsage.db.updateRow(
-        session,
-        reseeded.copyWith(bytesLimit: limit),
-      );
-    }
-    return reseeded;
+    return await _seedUsage(session, accountId);
   }
 }

@@ -46,55 +46,55 @@ void main() {
       addTearDown(cubit.close);
 
       expect(cubit.state.status, UiFlowStatus.idle);
-      expect(cubit.state.availablePipelines, isEmpty);
+      expect(cubit.state.availableScripts, isEmpty);
       expect(cubit.state.shareResult, isNull);
       expect(cubit.state.exportedJson, isNull);
       expect(cubit.state.lastOperation, isNull);
       expect(cubit.state.error, isNull);
     });
 
-    group('loadAvailablePipelines', () {
-      final testPipelines = [
-        const AnalysisPipelineInfo(
+    group('loadAvailableScripts', () {
+      final testScripts = [
+        const AnalysisScriptInfo(
           id: 'pipe-1',
-          name: 'Pipeline 1',
-          description: 'Test pipeline',
+          name: 'Script 1',
+          description: 'Test script',
         ),
-        const AnalysisPipelineInfo(
+        const AnalysisScriptInfo(
           id: 'pipe-2',
-          name: 'Pipeline 2',
+          name: 'Script 2',
         ),
       ];
 
       blocTest<TemplateSharingExportCubit, TemplateSharingExportState>(
-        'emits loading then success with pipeline list',
+        'emits loading then success with script list',
         build: () {
-          when(mockExportService.getAvailablePipelines('field-1'))
-              .thenAnswer((_) async => testPipelines);
+          when(mockExportService.getAvailableScripts('field-1'))
+              .thenAnswer((_) async => testScripts);
           return TemplateSharingExportCubit(mockExportService);
         },
-        act: (cubit) => cubit.loadAvailablePipelines('field-1'),
+        act: (cubit) => cubit.loadAvailableScripts('field-1'),
         expect: () => [
           const TemplateSharingExportState(status: UiFlowStatus.loading),
           TemplateSharingExportState(
             status: UiFlowStatus.success,
-            lastOperation: TemplateSharingExportOperation.loadPipelines,
-            availablePipelines: testPipelines,
+            lastOperation: TemplateSharingExportOperation.loadScripts,
+            availableScripts: testScripts,
           ),
         ],
         verify: (_) {
-          verify(mockExportService.getAvailablePipelines('field-1')).called(1);
+          verify(mockExportService.getAvailableScripts('field-1')).called(1);
         },
       );
 
       blocTest<TemplateSharingExportCubit, TemplateSharingExportState>(
         'emits loading then failure on error',
         build: () {
-          when(mockExportService.getAvailablePipelines('field-1'))
+          when(mockExportService.getAvailableScripts('field-1'))
               .thenThrow(Exception('load failed'));
           return TemplateSharingExportCubit(mockExportService);
         },
-        act: (cubit) => cubit.loadAvailablePipelines('field-1'),
+        act: (cubit) => cubit.loadAvailableScripts('field-1'),
         expect: () => [
           const TemplateSharingExportState(status: UiFlowStatus.loading),
           predicate<TemplateSharingExportState>(
@@ -110,7 +110,7 @@ void main() {
           templateWithAesthetics: anyNamed('templateWithAesthetics'),
           author: anyNamed('author'),
           description: anyNamed('description'),
-          includedPipelineIds: anyNamed('includedPipelineIds'),
+          includedScriptIds: anyNamed('includedScriptIds'),
         )).thenAnswer((_) async => '{"version":"1.0"}');
 
         final cubit = TemplateSharingExportCubit(mockExportService);
@@ -124,7 +124,7 @@ void main() {
             templateWithAesthetics: createTestTemplate(),
             author: createTestAuthor(),
             description: 'A test template',
-            pipelineIds: ['pipe-1'],
+            scriptIds: ['pipe-1'],
           );
         } catch (_) {
           // Phase 2 share sheet is not available in unit tests
@@ -143,7 +143,7 @@ void main() {
           templateWithAesthetics: anyNamed('templateWithAesthetics'),
           author: anyNamed('author'),
           description: 'A test template',
-          includedPipelineIds: ['pipe-1'],
+          includedScriptIds: ['pipe-1'],
         )).called(1);
       });
 
@@ -152,7 +152,7 @@ void main() {
           templateWithAesthetics: anyNamed('templateWithAesthetics'),
           author: anyNamed('author'),
           description: anyNamed('description'),
-          includedPipelineIds: anyNamed('includedPipelineIds'),
+          includedScriptIds: anyNamed('includedScriptIds'),
         )).thenThrow(Exception('export failed'));
 
         final cubit = TemplateSharingExportCubit(mockExportService);

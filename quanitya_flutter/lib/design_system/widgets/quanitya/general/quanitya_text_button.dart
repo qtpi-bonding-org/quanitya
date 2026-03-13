@@ -94,42 +94,47 @@ class _QuanityaTextButtonState extends State<QuanityaTextButton>
                 ? palette.textPrimary // Inked when pressed
                 : palette.interactableColor;
 
-    return GestureDetector(
-      onTapDown: _handleTapDown,
-      onTapUp: _handleTapUp,
-      onTapCancel: _handleTapCancel,
-      onTap: widget.onPressed,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _PenCirclePainter(
-              progress: _animation.value,
-              color: widget.isDestructive ? palette.destructiveColor : palette.textPrimary,
-              borderRadius: AppSizes.size20,
-              strokeWidth: 1.5,
-              startAngle: _startAngle,
+    return Semantics(
+      button: true,
+      label: widget.text,
+      enabled: widget.onPressed != null,
+      child: GestureDetector(
+        onTapDown: _handleTapDown,
+        onTapUp: _handleTapUp,
+        onTapCancel: _handleTapCancel,
+        onTap: widget.onPressed,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedBuilder(
+          animation: _animation,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: _PenCirclePainter(
+                progress: _animation.value,
+                color: widget.isDestructive ? palette.destructiveColor : palette.textPrimary,
+                borderRadius: AppSizes.size20,
+                strokeWidth: 1.5,
+                startAngle: _startAngle,
+              ),
+              child: child,
+            );
+          },
+          child: Container(
+            constraints: BoxConstraints(minHeight: AppSizes.buttonHeight),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSizes.space * 1.5,
+              vertical: AppSizes.space,
             ),
-            child: child,
-          );
-        },
-        child: Container(
-          constraints: BoxConstraints(minHeight: AppSizes.buttonHeight),
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSizes.space * 1.5,
-            vertical: AppSizes.space,
-          ),
-          child: Center(
-            child: Text(
-              widget.text,
-              style: widget.style ??
-                  TextStyle(
-                    fontFamily: QuanityaFonts.bodyFamily,
-                    fontSize: 16, // Slightly larger for better readability
-                    fontWeight: _isPressed ? FontWeight.w700 : FontWeight.w600,
-                    color: color,
-                  ),
+            child: Center(
+              child: Text(
+                widget.text,
+                style: widget.style ??
+                    TextStyle(
+                      fontFamily: QuanityaFonts.bodyFamily,
+                      fontSize: AppSizes.fontStandard,
+                      fontWeight: _isPressed ? FontWeight.w700 : FontWeight.w600,
+                      color: color,
+                    ),
+              ),
             ),
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:graphic/graphic.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
@@ -7,6 +8,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/primitives/zen_grid_constants.dart';
 import '../../../design_system/widgets/zen_grid_positioned.dart';
+import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../logic/analytics/models/analysis_output.dart';
 import '../../../logic/analytics/models/matrix_vector_scalar/time_series_matrix.dart';
@@ -56,12 +58,12 @@ class LiveResultsPanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            _buildHeader(context, gridSpacing),
+            _buildHeader(context),
 
             // Results Content
             Expanded(
               child: results == null
-                  ? _buildEmptyState(context, gridSpacing)
+                  ? _buildEmptyState(context)
                   : _buildResultContent(context, gridSpacing),
             ),
           ],
@@ -70,9 +72,9 @@ class LiveResultsPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, double gridSpacing) {
+  Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(gridSpacing * 0.5),
+      padding: AppPadding.allSingle,
       decoration: BoxDecoration(
         color: QuanityaPalette.primary.successColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.only(
@@ -84,12 +86,12 @@ class LiveResultsPanel extends StatelessWidget {
         children: [
           Icon(
             Icons.analytics,
-            size: gridSpacing * 0.6,
+            size: AppSizes.iconSmall,
             color: QuanityaPalette.primary.successColor,
           ),
-          SizedBox(width: gridSpacing * 0.2),
+          HSpace.x05,
           Text(
-            'Live Preview',
+            context.l10n.livePreview,
             style: context.text.bodyMedium?.copyWith(
               color: QuanityaPalette.primary.successColor,
               fontWeight: FontWeight.w600,
@@ -97,13 +99,11 @@ class LiveResultsPanel extends StatelessWidget {
           ),
           const Spacer(),
           if (onClose != null)
-            GestureDetector(
-              onTap: onClose,
-              child: Icon(
-                Icons.close,
-                size: gridSpacing * 0.5,
-                color: QuanityaPalette.primary.textSecondary,
-              ),
+            QuanityaIconButton(
+              icon: Icons.close,
+              iconSize: AppSizes.iconSmall,
+              tooltip: context.l10n.actionClose,
+              onPressed: onClose,
             ),
         ],
       ),
@@ -112,42 +112,36 @@ class LiveResultsPanel extends StatelessWidget {
 
   Widget _buildResultContent(BuildContext context, double gridSpacing) {
     return results!.when(
-      scalar: (scalars) => _buildScalarList(context, gridSpacing, scalars),
+      scalar: (scalars) => _buildScalarList(context, scalars),
       vector: (vectors) => _buildVectorList(context, gridSpacing, vectors),
-      matrix: (matrices) => _buildMatrixList(context, gridSpacing, matrices),
+      matrix: (matrices) => _buildMatrixList(context, matrices),
     );
   }
 
   // --- SCALAR VIEW (List of Cards) ---
   Widget _buildScalarList(
     BuildContext context,
-    double gridSpacing,
     List<AnalysisScalar> scalars,
   ) {
-    if (scalars.isEmpty) return _buildEmptyState(context, gridSpacing);
+    if (scalars.isEmpty) return _buildEmptyState(context);
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(gridSpacing * 0.5),
-      child: Center(
-        child: Wrap(
-          spacing: gridSpacing * 0.5,
-          runSpacing: gridSpacing * 0.5,
-          alignment: WrapAlignment.center,
-          children: scalars
-              .map((s) => _buildScalarCard(context, gridSpacing, s))
-              .toList(),
-        ),
+      padding: AppPadding.allSingle,
+      child: LayoutGroup.grid(
+        minItemWidth: 15,
+        children: scalars
+            .map((s) => _buildScalarCard(context, s))
+            .toList(),
       ),
     );
   }
 
   Widget _buildScalarCard(
     BuildContext context,
-    double gridSpacing,
     AnalysisScalar scalar,
   ) {
     return Container(
-      padding: EdgeInsets.all(gridSpacing * 0.4),
+      padding: AppPadding.allSingle,
       decoration: BoxDecoration(
         color: QuanityaPalette.primary.backgroundPrimary,
         borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
@@ -160,7 +154,7 @@ class LiveResultsPanel extends StatelessWidget {
         children: [
           Text(
             scalar.label,
-            style: context.text.bodySmall?.copyWith(
+            style: context.text.bodyMedium?.copyWith(
               color: QuanityaPalette.primary.textSecondary,
             ),
           ),
@@ -169,14 +163,13 @@ class LiveResultsPanel extends StatelessWidget {
             _formatValue(scalar.value),
             style: context.text.headlineMedium?.copyWith(
               color: QuanityaPalette.primary.textPrimary,
-              fontWeight: FontWeight.bold,
               fontFamily: QuanityaFonts.headerFamily,
             ),
           ),
           if (scalar.unit != null)
             Text(
               scalar.unit!,
-              style: context.text.labelSmall?.copyWith(
+              style: context.text.bodySmall?.copyWith(
                 color: QuanityaPalette.primary.textSecondary,
               ),
             ),
@@ -191,12 +184,12 @@ class LiveResultsPanel extends StatelessWidget {
     double gridSpacing,
     List<AnalysisVector> vectors,
   ) {
-    if (vectors.isEmpty) return _buildEmptyState(context, gridSpacing);
+    if (vectors.isEmpty) return _buildEmptyState(context);
 
     return ListView.separated(
-      padding: EdgeInsets.all(gridSpacing * 0.5),
+      padding: AppPadding.allSingle,
       itemCount: vectors.length,
-      separatorBuilder: (_, __) => SizedBox(height: gridSpacing),
+      separatorBuilder: (_, __) => VSpace.x3,
       itemBuilder: (context, index) {
         final vector = vectors[index];
         final data = vector.values
@@ -212,7 +205,7 @@ class LiveResultsPanel extends StatelessWidget {
             children: [
               Text(
                 vector.label,
-                style: context.text.bodySmall?.copyWith(
+                style: context.text.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -237,32 +230,30 @@ class LiveResultsPanel extends StatelessWidget {
   // --- MATRIX VIEW (List of Matrices) ---
   Widget _buildMatrixList(
     BuildContext context,
-    double gridSpacing,
     List<TimeSeriesMatrix> matrices,
   ) {
-    if (matrices.isEmpty) return _buildEmptyState(context, gridSpacing);
+    if (matrices.isEmpty) return _buildEmptyState(context);
 
     return ListView.separated(
-      padding: EdgeInsets.all(gridSpacing * 0.5),
+      padding: AppPadding.allSingle,
       itemCount: matrices.length,
-      separatorBuilder: (_, __) => SizedBox(height: gridSpacing),
+      separatorBuilder: (_, __) => VSpace.x3,
       itemBuilder: (context, index) {
         final matrix = matrices[index];
-        return _buildMatrixCard(context, gridSpacing, matrix);
+        return _buildMatrixCard(context, matrix);
       },
     );
   }
 
   Widget _buildMatrixCard(
     BuildContext context,
-    double gridSpacing,
     TimeSeriesMatrix matrix,
   ) {
     final colCount = matrix.columnNames.length;
     final rowCount = matrix.data.length;
 
     return Container(
-      padding: EdgeInsets.all(gridSpacing * 0.5),
+      padding: AppPadding.allSingle,
       decoration: BoxDecoration(
         border: Border.all(
           color: QuanityaPalette.primary.textSecondary.withValues(alpha: 0.2),
@@ -273,35 +264,35 @@ class LiveResultsPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Matrix: ${colCount} cols x ${rowCount} rows",
-            style: context.text.bodySmall,
+            context.l10n.matrixDimensions(colCount, rowCount),
+            style: context.text.bodyMedium,
           ),
-          SizedBox(height: gridSpacing * 0.2),
+          VSpace.x05,
           Text(
-            "Columns: ${matrix.columnNames.join(', ')}",
-            style: context.text.labelSmall,
+            context.l10n.matrixColumns(matrix.columnNames.join(', ')),
+            style: context.text.bodySmall,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, double gridSpacing) {
+  Widget _buildEmptyState(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(gridSpacing * 0.5),
+      padding: AppPadding.allSingle,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.hourglass_empty,
-              size: gridSpacing * 0.8,
+              size: AppSizes.iconMedium,
               color: QuanityaPalette.primary.textSecondary,
             ),
-            SizedBox(height: gridSpacing * 0.2),
+            VSpace.x05,
             Text(
-              'Waiting for results...',
-              style: context.text.bodySmall?.copyWith(
+              context.l10n.waitingForResults,
+              style: context.text.bodyMedium?.copyWith(
                 color: QuanityaPalette.primary.textSecondary,
               ),
             ),

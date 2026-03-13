@@ -15,7 +15,7 @@ void main() {
 
     group('Property 7: HealthAdapterFactory generates valid adapters', () {
       test(
-        '**Feature: data-ingestion-pipeline, Property 7: HealthAdapterFactory generates valid adapters** - '
+        '**Feature: data-ingestion-script, Property 7: HealthAdapterFactory generates valid adapters** - '
         '**Validates: Requirements 8.1, 8.2, 8.3**',
         () {
           // Test all HealthDataType values
@@ -124,7 +124,7 @@ void main() {
         // Check required metadata
         expect(entry.data['_sourceAdapter'], equals('health.steps'));
         expect(entry.data['_dedupKey'], equals('health-uuid-123'));
-        expect(entry.data['value'], equals(5432));
+        expect(entry.data['Value'], equals(5432));
 
         // Check additional health metadata
         expect(entry.data['_healthUuid'], equals('health-uuid-123'));

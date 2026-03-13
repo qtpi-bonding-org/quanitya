@@ -38,12 +38,13 @@ class AnalyticsInboxCubit extends QuanityaCubit<AnalyticsInboxState> {
     });
   }
 
-  /// Send all unsent events to the server
+  /// Send all unsent events to the server.
+  ///
+  /// Does NOT auto-clear sent events — the UI should prompt the user
+  /// to clear after a successful send.
   Future<void> sendAll() async {
     await tryOperation(() async {
       final sentCount = await _analyticsService.sendAllUnsent();
-      // Clean up sent events from local storage
-      await _inboxRepo.clearSentEvents();
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: AnalyticsInboxOperation.sendAll,

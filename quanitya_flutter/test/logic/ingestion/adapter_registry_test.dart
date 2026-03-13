@@ -71,7 +71,7 @@ void main() {
 
     group('Property 2: Registry register-get round trip', () {
       test(
-        '**Feature: data-ingestion-pipeline, Property 2: Registry register-get round trip** - '
+        '**Feature: data-ingestion-script, Property 2: Registry register-get round trip** - '
         '**Validates: Requirements 4.1, 4.2**',
         () {
           for (int i = 0; i < kPropertyTestIterations; i++) {
@@ -121,7 +121,7 @@ void main() {
 
     group('Property 3: Registry getByCategory filters correctly', () {
       test(
-        '**Feature: data-ingestion-pipeline, Property 3: Registry getByCategory filters correctly** - '
+        '**Feature: data-ingestion-script, Property 3: Registry getByCategory filters correctly** - '
         '**Validates: Requirements 4.4**',
         () {
           for (int i = 0; i < kPropertyTestIterations; i++) {

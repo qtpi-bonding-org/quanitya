@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_color_palette/flutter_color_palette.dart';
 import '../../../../infrastructure/location/location_service.dart';
 
 import '../../enums/field_enum.dart';
@@ -11,6 +10,7 @@ import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya/generatable/quanitya_date_picker.dart';
 import '../../../../design_system/widgets/quanitya/generatable/quanitya_dropdown.dart';
 import '../../../../design_system/widgets/quanitya/generatable/quanitya_slider.dart';
@@ -30,36 +30,21 @@ class DynamicFieldBuilder {
   /// [field] - The template field definition (must have uiElement set)
   /// [value] - Current value (type depends on field.type, List if isList)
   /// [onChanged] - Callback when value changes
-  /// [palette] - Color palette for styling
   /// [widgetColors] - Optional pre-resolved widget colors
   /// [textStyle] - Optional text style for labels (uses aesthetic fonts)
   static Widget buildField({
     required TemplateField field,
     required dynamic value,
     required ValueChanged<dynamic> onChanged,
-    required IColorPalette palette,
     Map<String, Color>? widgetColors,
     TextStyle? textStyle,
   }) {
-    // Handle legacy fields without uiElement (graceful fallback)
+    // Infer uiElement from field type when not explicitly set
     if (field.uiElement == null) {
-      return Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: palette.getColor('neutral2')?.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: palette.getColor('neutral1')?.withValues(alpha: 0.2) ?? Colors.grey,
-          ),
-        ),
-        child: Text(
-          'No UI element selected: ${field.label}\nValue: ${value?.toString() ?? 'No value'}',
-          style: textStyle?.copyWith(
-            color: palette.getColor('neutral1')?.withValues(alpha: 0.6),
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      );
+      final inferred = _inferUiElement(field.type);
+      if (inferred != null) {
+        field = field.copyWith(uiElement: inferred);
+      }
     }
 
     // Handle list fields
@@ -68,7 +53,6 @@ class DynamicFieldBuilder {
         field: field,
         values: (value as List<dynamic>?) ?? [],
         onChanged: onChanged,
-        palette: palette,
         widgetColors: widgetColors,
         textStyle: textStyle,
       );
@@ -79,7 +63,6 @@ class DynamicFieldBuilder {
       field: field,
       value: value,
       onChanged: onChanged,
-      palette: palette,
       widgetColors: widgetColors,
       textStyle: textStyle,
     );
@@ -99,12 +82,26 @@ class DynamicFieldBuilder {
   }
 
 
+  /// Infers a default UI element from the field's data type.
+  static UiElementEnum? _inferUiElement(FieldEnum type) {
+    return switch (type) {
+      FieldEnum.text => UiElementEnum.textField,
+      FieldEnum.integer => UiElementEnum.stepper,
+      FieldEnum.float => UiElementEnum.slider,
+      FieldEnum.boolean => UiElementEnum.toggleSwitch,
+      FieldEnum.datetime => UiElementEnum.datetimePicker,
+      FieldEnum.enumerated => UiElementEnum.dropdown,
+      FieldEnum.location => UiElementEnum.locationPicker,
+      FieldEnum.dimension => UiElementEnum.stepper,
+      FieldEnum.reference => null,
+    };
+  }
+
   /// Builds a list field with add/remove controls and bounds enforcement
   static Widget _buildListField({
     required TemplateField field,
     required List<dynamic> values,
     required ValueChanged<dynamic> onChanged,
-    required IColorPalette palette,
     Map<String, Color>? widgetColors,
     TextStyle? textStyle,
   }) {
@@ -113,20 +110,18 @@ class DynamicFieldBuilder {
     final minItems = bounds.minItems;
     final canAdd = maxItems == null || values.length < maxItems;
     final canRemove = minItems == null || values.length > minItems;
-    
-    // Use custom accent color from widgetColors, fallback to palette or default
-    final accentColor = widgetColors?['activeColor'] 
-        ?? palette.getColor('color1') 
+
+    // Use custom accent color from widgetColors, fallback to palette
+    final accentColor = widgetColors?['activeColor']
         ?? QuanityaPalette.primary.interactableColor;
     final secondaryTextColor = widgetColors?['borderColor']
-        ?? palette.getColor('neutral1')
         ?? QuanityaPalette.primary.textSecondary;
 
     // Base text style - use provided or create minimal fallback
     final baseTextStyle = textStyle ?? const TextStyle();
     final smallTextStyle = baseTextStyle.copyWith(
-      fontSize: baseTextStyle.fontSize != null 
-          ? baseTextStyle.fontSize! * 0.85 
+      fontSize: baseTextStyle.fontSize != null
+          ? baseTextStyle.fontSize! * 0.85
           : 12,
     );
 
@@ -160,24 +155,27 @@ class DynamicFieldBuilder {
                       updated[i] = newValue;
                       onChanged(updated);
                     },
-                    palette: palette,
                     widgetColors: widgetColors,
                     textStyle: textStyle,
                   ),
                 ),
                 HSpace.x1,
                 // Remove button - disabled if at minItems
-                QuanityaIconButton(
-                  icon: Icons.remove_circle_outline,
-                  onPressed: canRemove
-                      ? () {
-                          final updated = List<dynamic>.from(values)
-                            ..removeAt(i);
-                          onChanged(updated);
-                        }
-                      : null,
-                  isDestructive: canRemove,
-                  tooltip: canRemove ? 'Remove' : 'Minimum items reached',
+                Builder(
+                  builder: (context) => QuanityaIconButton(
+                    icon: Icons.remove_circle_outline,
+                    onPressed: canRemove
+                        ? () {
+                            final updated = List<dynamic>.from(values)
+                              ..removeAt(i);
+                            onChanged(updated);
+                          }
+                        : null,
+                    isDestructive: canRemove,
+                    tooltip: canRemove
+                        ? context.l10n.fieldBuilderTooltipRemove
+                        : context.l10n.fieldBuilderTooltipMinItems,
+                  ),
                 ),
               ],
             ),
@@ -187,24 +185,32 @@ class DynamicFieldBuilder {
 
         // Add button - uses custom accent color
         if (canAdd)
-          TextButton.icon(
-            icon: Icon(Icons.add, color: accentColor),
-            label: Text(
-              'Add ${field.label}',
-              style: baseTextStyle.copyWith(color: accentColor),
+          Builder(
+            builder: (context) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.add, color: accentColor),
+                HSpace.x05,
+                QuanityaTextButton(
+                  text: context.l10n.fieldBuilderAddItem(field.label),
+                  onPressed: () {
+                    final updated = List<dynamic>.from(values)
+                      ..add(_getDefaultValue(field));
+                    onChanged(updated);
+                  },
+                  style: baseTextStyle.copyWith(color: accentColor),
+                ),
+              ],
             ),
-            onPressed: () {
-              final updated = List<dynamic>.from(values)
-                ..add(_getDefaultValue(field));
-              onChanged(updated);
-            },
           )
         else
           Padding(
             padding: AppPadding.verticalSingle,
-            child: Text(
-              'Maximum $maxItems items reached',
-              style: smallTextStyle.copyWith(color: secondaryTextColor),
+            child: Builder(
+              builder: (context) => Text(
+                context.l10n.fieldBuilderMaxItemsReached(maxItems!),
+                style: smallTextStyle.copyWith(color: secondaryTextColor),
+              ),
             ),
           ),
       ],
@@ -212,7 +218,7 @@ class DynamicFieldBuilder {
   }
 
   /// Gets the type-safe default value for adding new list items.
-  /// 
+  ///
   /// For list items, we use the type default (not field.defaultValue)
   /// since the user is adding a new item to the list.
   static dynamic _getDefaultValue(TemplateField field) {
@@ -235,46 +241,47 @@ class DynamicFieldBuilder {
     required TemplateField field,
     required dynamic value,
     required ValueChanged<dynamic> onChanged,
-    required IColorPalette palette,
     Map<String, Color>? widgetColors,
     TextStyle? textStyle,
   }) {
     final uiElement = field.uiElement;
     if (uiElement == null) {
       // Defensive: should be caught by assert in buildField
-      return const Text('No UI element defined');
+      return Builder(
+        builder: (context) => Text(context.l10n.fieldBuilderNoUiElement),
+      );
     }
     return switch (uiElement) {
       UiElementEnum.slider =>
-        _buildSlider(field, value, onChanged, palette, widgetColors),
+        _buildSlider(field, value, onChanged, widgetColors),
       UiElementEnum.stepper =>
-        _buildStepper(field, value, onChanged, palette, widgetColors),
+        _buildStepper(field, value, onChanged, widgetColors),
       UiElementEnum.textField =>
-        _buildTextField(field, value, onChanged, palette, widgetColors, textStyle),
+        _buildTextField(field, value, onChanged, widgetColors, textStyle),
       UiElementEnum.textArea =>
-        _buildTextArea(field, value, onChanged, palette, widgetColors, textStyle),
+        _buildTextArea(field, value, onChanged, widgetColors, textStyle),
       UiElementEnum.toggleSwitch =>
-        _buildToggle(field, value, onChanged, palette, widgetColors),
+        _buildToggle(field, value, onChanged, widgetColors),
       UiElementEnum.checkbox =>
-        _buildToggle(field, value, onChanged, palette, widgetColors),
+        _buildToggle(field, value, onChanged, widgetColors),
       UiElementEnum.dropdown =>
-        _buildDropdown(field, value, onChanged, palette, widgetColors, textStyle),
+        _buildDropdown(field, value, onChanged, widgetColors, textStyle),
       UiElementEnum.radio =>
-        _buildDropdown(field, value, onChanged, palette, widgetColors, textStyle),
+        _buildDropdown(field, value, onChanged, widgetColors, textStyle),
       UiElementEnum.chips =>
-        _buildDropdown(field, value, onChanged, palette, widgetColors, textStyle),
+        _buildDropdown(field, value, onChanged, widgetColors, textStyle),
       UiElementEnum.datePicker =>
-        _buildDatePicker(field, value, onChanged, palette, widgetColors, textStyle),
+        _buildDatePicker(field, value, onChanged, widgetColors, textStyle),
       UiElementEnum.timePicker =>
-        _buildDatePicker(field, value, onChanged, palette, widgetColors, textStyle),
+        _buildDatePicker(field, value, onChanged, widgetColors, textStyle),
       UiElementEnum.datetimePicker =>
-        _buildDatePicker(field, value, onChanged, palette, widgetColors, textStyle),
+        _buildDatePicker(field, value, onChanged, widgetColors, textStyle),
       UiElementEnum.searchField =>
-        _buildTextField(field, value, onChanged, palette, widgetColors, textStyle),
+        _buildTextField(field, value, onChanged, widgetColors, textStyle),
       UiElementEnum.locationPicker =>
-        _buildLocationPicker(field, value, onChanged, palette, widgetColors, textStyle),
+        _buildLocationPicker(field, value, onChanged, widgetColors, textStyle),
       UiElementEnum.timer =>
-        _buildTimer(field, value, onChanged, palette, widgetColors, textStyle),
+        _buildTimer(field, value, onChanged, widgetColors, textStyle),
     };
   }
 
@@ -282,7 +289,6 @@ class DynamicFieldBuilder {
     TemplateField field,
     dynamic value,
     ValueChanged<dynamic> onChanged,
-    IColorPalette palette,
     Map<String, Color>? colors,
   ) {
     final numValue = (value as num?)?.toDouble() ?? 0.0;
@@ -295,11 +301,11 @@ class DynamicFieldBuilder {
       max: constraints.max,
       onChanged: (v) => onChanged(isInteger ? v.toInt() : v),
       activeColor:
-          colors?['activeColor'] ?? palette.getColor('color1') ?? Colors.blue,
+          colors?['activeColor'] ?? QuanityaPalette.primary.interactableColor,
       inactiveColor:
-          colors?['inactiveColor'] ?? palette.getColor('neutral2') ?? Colors.grey,
+          colors?['inactiveColor'] ?? QuanityaPalette.primary.textSecondary,
       thumbColor:
-          colors?['thumbColor'] ?? palette.getColor('color1') ?? Colors.blue,
+          colors?['thumbColor'] ?? QuanityaPalette.primary.interactableColor,
     );
   }
 
@@ -307,7 +313,6 @@ class DynamicFieldBuilder {
     TemplateField field,
     dynamic value,
     ValueChanged<dynamic> onChanged,
-    IColorPalette palette,
     Map<String, Color>? colors,
   ) {
     final intValue = (value as num?)?.toInt() ?? 0;
@@ -319,10 +324,10 @@ class DynamicFieldBuilder {
       max: constraints.max.toInt(),
       onChanged: onChanged,
       buttonColor:
-          colors?['buttonColor'] ?? palette.getColor('color1') ?? Colors.blue,
-      iconColor: colors?['iconColor'] ?? Colors.white,
+          colors?['buttonColor'] ?? QuanityaPalette.primary.interactableColor,
+      iconColor: colors?['iconColor'] ?? QuanityaPalette.primary.backgroundPrimary,
       valueColor:
-          colors?['valueColor'] ?? palette.getColor('neutral1') ?? Colors.black,
+          colors?['valueColor'] ?? QuanityaPalette.primary.textPrimary,
     );
   }
 
@@ -331,25 +336,27 @@ class DynamicFieldBuilder {
     TemplateField field,
     dynamic value,
     ValueChanged<dynamic> onChanged,
-    IColorPalette palette,
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
-    return QuanityaTextField(
-      hintText: 'Enter ${field.label.toLowerCase()}',
-      onChanged: onChanged,
-      style: textStyle,
-      textColor: textStyle?.color,
-      hintColor: colors?['borderColor']?.withValues(alpha: 0.6) 
-          ?? palette.getColor('neutral2')?.withValues(alpha: 0.6),
-      cursorColor:
-          colors?['cursorColor'] ?? palette.getColor('color1') ?? Colors.blue,
-      fillColor: colors?['fillColor'] ?? Colors.white,
-      borderColor:
-          colors?['borderColor'] ?? palette.getColor('neutral2') ?? Colors.grey,
-      focusedBorderColor:
-          colors?['focusedBorderColor'] ?? palette.getColor('color1') ?? Colors.blue,
-      errorBorderColor: colors?['errorBorderColor'] ?? Colors.red,
+    final controller = TextEditingController(text: value?.toString() ?? '');
+    return Builder(
+      builder: (context) => QuanityaTextField(
+        controller: controller,
+        hintText: context.l10n.fieldBuilderEnterHint(field.label.toLowerCase()),
+        onChanged: onChanged,
+        style: textStyle,
+        textColor: textStyle?.color,
+        hintColor: colors?['borderColor']?.withValues(alpha: 0.6),
+        cursorColor:
+            colors?['cursorColor'] ?? QuanityaPalette.primary.interactableColor,
+        fillColor: colors?['fillColor'] ?? QuanityaPalette.primary.backgroundPrimary,
+        borderColor:
+            colors?['borderColor'] ?? QuanityaPalette.primary.textSecondary,
+        focusedBorderColor:
+            colors?['focusedBorderColor'] ?? QuanityaPalette.primary.interactableColor,
+        errorBorderColor: colors?['errorBorderColor'] ?? QuanityaPalette.primary.destructiveColor,
+      ),
     );
   }
 
@@ -357,26 +364,28 @@ class DynamicFieldBuilder {
     TemplateField field,
     dynamic value,
     ValueChanged<dynamic> onChanged,
-    IColorPalette palette,
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
-    return QuanityaTextField(
-      hintText: 'Enter ${field.label.toLowerCase()}',
-      onChanged: onChanged,
-      maxLines: 4,
-      style: textStyle,
-      textColor: textStyle?.color,
-      hintColor: colors?['borderColor']?.withValues(alpha: 0.6) 
-          ?? palette.getColor('neutral2')?.withValues(alpha: 0.6),
-      cursorColor:
-          colors?['cursorColor'] ?? palette.getColor('color1') ?? Colors.blue,
-      fillColor: colors?['fillColor'] ?? Colors.white,
-      borderColor:
-          colors?['borderColor'] ?? palette.getColor('neutral2') ?? Colors.grey,
-      focusedBorderColor:
-          colors?['focusedBorderColor'] ?? palette.getColor('color1') ?? Colors.blue,
-      errorBorderColor: colors?['errorBorderColor'] ?? Colors.red,
+    final controller = TextEditingController(text: value?.toString() ?? '');
+    return Builder(
+      builder: (context) => QuanityaTextField(
+        controller: controller,
+        hintText: context.l10n.fieldBuilderEnterHint(field.label.toLowerCase()),
+        onChanged: onChanged,
+        maxLines: 4,
+        style: textStyle,
+        textColor: textStyle?.color,
+        hintColor: colors?['borderColor']?.withValues(alpha: 0.6),
+        cursorColor:
+            colors?['cursorColor'] ?? QuanityaPalette.primary.interactableColor,
+        fillColor: colors?['fillColor'] ?? QuanityaPalette.primary.backgroundPrimary,
+        borderColor:
+            colors?['borderColor'] ?? QuanityaPalette.primary.textSecondary,
+        focusedBorderColor:
+            colors?['focusedBorderColor'] ?? QuanityaPalette.primary.interactableColor,
+        errorBorderColor: colors?['errorBorderColor'] ?? QuanityaPalette.primary.destructiveColor,
+      ),
     );
   }
 
@@ -384,7 +393,6 @@ class DynamicFieldBuilder {
     TemplateField field,
     dynamic value,
     ValueChanged<dynamic> onChanged,
-    IColorPalette palette,
     Map<String, Color>? colors,
   ) {
     final boolValue = value as bool? ?? false;
@@ -392,12 +400,12 @@ class DynamicFieldBuilder {
     return QuanityaToggle(
       value: boolValue,
       onChanged: onChanged,
-      activeThumbColor: colors?['activeThumbColor'] ?? Colors.white,
+      activeThumbColor: colors?['activeThumbColor'] ?? QuanityaPalette.primary.backgroundPrimary,
       activeTrackColor:
-          colors?['activeTrackColor'] ?? palette.getColor('color1') ?? Colors.blue,
-      inactiveThumbColor: colors?['inactiveThumbColor'] ?? Colors.white,
+          colors?['activeTrackColor'] ?? QuanityaPalette.primary.interactableColor,
+      inactiveThumbColor: colors?['inactiveThumbColor'] ?? QuanityaPalette.primary.backgroundPrimary,
       inactiveTrackColor:
-          colors?['inactiveTrackColor'] ?? palette.getColor('neutral2') ?? Colors.grey,
+          colors?['inactiveTrackColor'] ?? QuanityaPalette.primary.textSecondary,
     );
   }
 
@@ -405,32 +413,36 @@ class DynamicFieldBuilder {
     TemplateField field,
     dynamic value,
     ValueChanged<dynamic> onChanged,
-    IColorPalette palette,
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
     final options = field.options ?? [];
     if (options.isEmpty) {
-      return Text('No options available', style: textStyle);
+      return Builder(
+        builder: (context) =>
+            Text(context.l10n.fieldBuilderNoOptions, style: textStyle),
+      );
     }
 
-    return QuanityaDropdown<String>(
-      value: value as String?,
-      items: options
-          .map((opt) => DropdownMenuItem(
-                value: opt,
-                child: Text(opt, style: textStyle),
-              ))
-          .toList(),
-      onChanged: onChanged,
-      hintText: 'Select ${field.label.toLowerCase()}',
-      style: textStyle,
-      dropdownColor: colors?['dropdownColor'] ?? Colors.white,
-      fillColor: colors?['fillColor'] ?? Colors.white,
-      borderColor:
-          colors?['borderColor'] ?? palette.getColor('neutral2') ?? Colors.grey,
-      iconColor:
-          colors?['iconColor'] ?? palette.getColor('neutral1') ?? Colors.grey,
+    return Builder(
+      builder: (context) => QuanityaDropdown<String>(
+        value: value as String?,
+        items: options
+            .map((opt) => DropdownMenuItem(
+                  value: opt,
+                  child: Text(opt, style: textStyle),
+                ))
+            .toList(),
+        onChanged: onChanged,
+        hintText: context.l10n.fieldBuilderSelectHint(field.label.toLowerCase()),
+        style: textStyle,
+        dropdownColor: colors?['dropdownColor'] ?? QuanityaPalette.primary.backgroundPrimary,
+        fillColor: colors?['fillColor'] ?? QuanityaPalette.primary.backgroundPrimary,
+        borderColor:
+            colors?['borderColor'] ?? QuanityaPalette.primary.textSecondary,
+        iconColor:
+            colors?['iconColor'] ?? QuanityaPalette.primary.textSecondary,
+      ),
     );
   }
 
@@ -438,21 +450,22 @@ class DynamicFieldBuilder {
     TemplateField field,
     dynamic value,
     ValueChanged<dynamic> onChanged,
-    IColorPalette palette,
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
-    return QuanityaDatePicker(
-      value: value as DateTime?,
-      onChanged: onChanged,
-      hintText: 'Select ${field.label.toLowerCase()}',
-      textStyle: textStyle,
-      primaryColor:
-          colors?['primaryColor'] ?? palette.getColor('color1') ?? Colors.blue,
-      backgroundColor: colors?['backgroundColor'] ?? Colors.white,
-      borderColor:
-          colors?['borderColor'] ?? palette.getColor('neutral2') ?? Colors.grey,
-      fillColor: colors?['fillColor'] ?? Colors.white,
+    return Builder(
+      builder: (context) => QuanityaDatePicker(
+        value: value as DateTime?,
+        onChanged: onChanged,
+        hintText: context.l10n.fieldBuilderSelectHint(field.label.toLowerCase()),
+        textStyle: textStyle,
+        primaryColor:
+            colors?['primaryColor'] ?? QuanityaPalette.primary.interactableColor,
+        backgroundColor: colors?['backgroundColor'] ?? QuanityaPalette.primary.backgroundPrimary,
+        borderColor:
+            colors?['borderColor'] ?? QuanityaPalette.primary.textSecondary,
+        fillColor: colors?['fillColor'] ?? QuanityaPalette.primary.backgroundPrimary,
+      ),
     );
   }
 
@@ -460,7 +473,6 @@ class DynamicFieldBuilder {
     TemplateField field,
     dynamic value,
     ValueChanged<dynamic> onChanged,
-    IColorPalette palette,
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
@@ -470,10 +482,8 @@ class DynamicFieldBuilder {
         locationMap.containsKey('longitude');
 
     final accentColor = colors?['activeColor'] ??
-        palette.getColor('color1') ??
         QuanityaPalette.primary.interactableColor;
     final secondaryColor = colors?['borderColor'] ??
-        palette.getColor('neutral1') ??
         QuanityaPalette.primary.textSecondary;
 
     return Column(
@@ -489,24 +499,32 @@ class DynamicFieldBuilder {
               style: textStyle?.copyWith(color: secondaryColor),
             ),
           ),
-        TextButton.icon(
-          icon: Icon(
-            hasLocation ? Icons.my_location : Icons.location_on_outlined,
-            color: accentColor,
+        Builder(
+          builder: (context) => Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                hasLocation ? Icons.my_location : Icons.location_on_outlined,
+                color: accentColor,
+              ),
+              HSpace.x05,
+              QuanityaTextButton(
+                text: hasLocation
+                    ? context.l10n.fieldBuilderUpdateLocation
+                    : context.l10n.fieldBuilderCaptureLocation,
+                onPressed: () async {
+                  try {
+                    final location = await LocationService.captureCurrentPosition();
+                    onChanged(location);
+                  } catch (e) {
+                    // Permission denied or location unavailable — don't crash
+                    debugPrint('Location capture failed: $e');
+                  }
+                },
+                style: textStyle?.copyWith(color: accentColor),
+              ),
+            ],
           ),
-          label: Text(
-            hasLocation ? 'Update Location' : 'Capture Location',
-            style: textStyle?.copyWith(color: accentColor),
-          ),
-          onPressed: () async {
-            try {
-              final location = await LocationService.captureCurrentPosition();
-              onChanged(location);
-            } catch (e) {
-              // Permission denied or location unavailable — don't crash
-              debugPrint('Location capture failed: $e');
-            }
-          },
         ),
       ],
     );
@@ -516,7 +534,6 @@ class DynamicFieldBuilder {
     TemplateField field,
     dynamic value,
     ValueChanged<dynamic> onChanged,
-    IColorPalette palette,
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
@@ -527,10 +544,8 @@ class DynamicFieldBuilder {
       elapsedSeconds: elapsedSeconds,
       onChanged: (seconds) => onChanged(isInteger ? seconds : seconds.toDouble()),
       accentColor: colors?['activeColor'] ??
-          palette.getColor('color1') ??
           QuanityaPalette.primary.interactableColor,
       secondaryColor: colors?['borderColor'] ??
-          palette.getColor('neutral1') ??
           QuanityaPalette.primary.textSecondary,
       textStyle: textStyle,
     );

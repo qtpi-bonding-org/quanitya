@@ -1,44 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:get_it/get_it.dart';
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
-import '../../../design_system/primitives/app_sizes.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/swipeable_page_shell.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../analytics_inbox/cubits/analytics_inbox_cubit.dart';
 import '../../analytics_inbox/cubits/analytics_inbox_state.dart';
 import '../../analytics_inbox/cubits/analytics_inbox_message_mapper.dart';
 import '../../analytics_inbox/pages/analytics_inbox_page.dart';
+import '../../error_reporting/cubits/error_box_cubit.dart';
+import '../../error_reporting/cubits/error_box_state.dart';
+import '../../error_reporting/cubits/error_box_message_mapper.dart';
 import '../../error_reporting/pages/error_box_page.dart';
+import '../../notifications/cubits/notification_inbox_cubit.dart';
+import '../../notifications/mappers/notification_message_mapper.dart';
+import '../../notifications/pages/notification_inbox_page.dart';
 import '../../user_feedback/cubits/feedback_cubit.dart';
 import '../../user_feedback/cubits/feedback_state.dart';
 import '../../user_feedback/mappers/feedback_message_mapper.dart';
 import '../../user_feedback/pages/feedback_page.dart';
 import '../../../l10n/app_localizations.dart';
 
-/// Unified Outbox page with swipeable pages for Feedback, Analytics, and Errors.
-class OutboxPage extends StatefulWidget {
-  const OutboxPage({super.key});
+/// Unified Postage page with swipeable pages for Notices, Feedback, Analytics, and Errors.
+class PostagePage extends StatefulWidget {
+  const PostagePage({super.key});
 
   @override
-  State<OutboxPage> createState() => _OutboxPageState();
+  State<PostagePage> createState() => _PostagePageState();
 }
 
-class _OutboxPageState extends State<OutboxPage> {
+class _PostagePageState extends State<PostagePage> {
   int _currentIndex = 0;
-  final PageController _pageController = PageController();
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final palette = QuanityaPalette.primary;
 
+    // NotificationInboxCubit and ErrorBoxCubit are provided by NotebookShell
+    // (shared with the tab bar for incoming/outgoing indicators).
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -47,80 +50,57 @@ class _OutboxPageState extends State<OutboxPage> {
         BlocProvider(
           create: (_) => GetIt.instance<AnalyticsInboxCubit>()..load(),
         ),
-        BlocProvider(
-          create: (_) => GetIt.instance<ErrorBoxPageCubit>()..loadErrors(),
-        ),
       ],
-      child: UiFlowListener<AnalyticsInboxCubit, AnalyticsInboxState>(
-        mapper: GetIt.instance<AnalyticsInboxMessageMapper>(),
-        child: UiFlowListener<FeedbackCubit, FeedbackState>(
-          mapper: GetIt.instance<FeedbackMessageMapper>(),
-          child: Column(
-            children: [
-              SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSizes.space),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _PageDot(
-                        label: l10n.outboxTabFeedback,
-                        isActive: _currentIndex == 0,
-                      ),
-                      _PageDot(
-                        label: l10n.outboxTabAnalytics,
-                        isActive: _currentIndex == 1,
-                      ),
-                      _PageDot(
-                        label: l10n.outboxTabErrors,
-                        isActive: _currentIndex == 2,
-                      ),
-                    ],
+      child: UiFlowStateListener<NotificationInboxCubit, NotificationInboxState>(
+        mapper: GetIt.instance<NotificationMessageMapper>(),
+        uiService: GetIt.instance<IUiFlowService>(),
+        child: UiFlowListener<AnalyticsInboxCubit, AnalyticsInboxState>(
+          mapper: GetIt.instance<AnalyticsInboxMessageMapper>(),
+          child: UiFlowListener<FeedbackCubit, FeedbackState>(
+            mapper: GetIt.instance<FeedbackMessageMapper>(),
+            child: UiFlowListener<ErrorBoxCubit, ErrorBoxState>(
+              mapper: GetIt.instance<ErrorBoxMessageMapper>(),
+              child: SwipeablePageShell(
+                onPageChanged: (index) => setState(() => _currentIndex = index),
+                pages: const [
+                  NotificationInboxContent(),
+                  FeedbackTabContent(),
+                  AnalyticsTabContent(),
+                  ErrorsTabContent(),
+                ],
+                labels: [
+                  Text(
+                    l10n.postageTabNotices,
+                    style: context.text.bodySmall?.copyWith(
+                      fontWeight: _currentIndex == 0 ? FontWeight.w900 : FontWeight.w500,
+                      color: _currentIndex == 0 ? palette.textPrimary : palette.interactableColor,
+                    ),
                   ),
-                ),
+                  Text(
+                    l10n.outboxTabFeedback,
+                    style: context.text.bodySmall?.copyWith(
+                      fontWeight: _currentIndex == 1 ? FontWeight.w900 : FontWeight.w500,
+                      color: _currentIndex == 1 ? palette.textPrimary : palette.interactableColor,
+                    ),
+                  ),
+                  Text(
+                    l10n.outboxTabAnalytics,
+                    style: context.text.bodySmall?.copyWith(
+                      fontWeight: _currentIndex == 2 ? FontWeight.w900 : FontWeight.w500,
+                      color: _currentIndex == 2 ? palette.textPrimary : palette.interactableColor,
+                    ),
+                  ),
+                  Text(
+                    l10n.outboxTabErrors,
+                    style: context.text.bodySmall?.copyWith(
+                      fontWeight: _currentIndex == 3 ? FontWeight.w900 : FontWeight.w500,
+                      color: _currentIndex == 3 ? palette.textPrimary : palette.interactableColor,
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  physics: const ClampingScrollPhysics(),
-                  onPageChanged: (index) =>
-                      setState(() => _currentIndex = index),
-                  children: const [
-                    FeedbackTabContent(),
-                    AnalyticsTabContent(),
-                    ErrorsTabContent(),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PageDot extends StatelessWidget {
-  const _PageDot({
-    required this.label,
-    required this.isActive,
-  });
-
-  final String label;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Text(
-        label,
-        style: context.text.bodySmall?.copyWith(
-          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-          color: isActive
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
         ),
       ),
     );

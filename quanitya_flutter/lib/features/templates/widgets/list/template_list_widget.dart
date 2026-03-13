@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../../app_router.dart';
+import '../../../log_entry/widgets/log_entry_sheet.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
-import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/widgets/quanitya_empty_or.dart';
 import '../../../../support/extensions/context_extensions.dart';
+import '../../../hidden_visibility/cubits/hidden_visibility_cubit.dart';
 import '../../cubits/list/template_list_cubit.dart';
 import '../../cubits/list/template_list_state.dart';
 import 'dashboard_header.dart';
@@ -54,42 +56,42 @@ class TemplateListWidget extends StatelessWidget {
                     if (state.isLoading && state.templates.isEmpty) {
                        return const Center(child: CircularProgressIndicator());
                     }
-                    
+
+                    // Filter by HiddenVisibilityCubit
+                    final showHidden = context.watch<HiddenVisibilityCubit>().state.showingHidden;
+                    final visible = showHidden
+                        ? state.templates
+                        : state.templates.where((t) => !t.template.isHidden).toList();
+
                     return QuanityaEmptyOr(
-                      isEmpty: state.templates.isEmpty,
-                      child: GridView.builder(
+                      isEmpty: visible.isEmpty,
+                      child: SingleChildScrollView(
                         padding: AppPadding.page,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: AppSizes.space * 2,
-                          mainAxisSpacing: AppSizes.space * 2,
-                          childAspectRatio: 1.0,
+                        child: LayoutGroup.grid(
+                          minItemWidth: 20,
+                          children: visible.map((item) {
+                            final cubit = context.read<TemplateListCubit>();
+                            return TrackerCard(
+                              title: item.template.name,
+                              icon: item.aesthetics.icon,
+                              emoji: item.aesthetics.emoji,
+                              color: item.aesthetics.palette.accents.firstOrNull,
+                              template: item.template,
+                              onIconTap: () {
+                                AppNavigation.toTemplateDesigner(context, item);
+                              },
+                              onEdit: () {
+                                LogEntrySheet.showCreate(
+                                  context: context,
+                                  templateId: item.template.id,
+                                );
+                              },
+                              onQuickAction: () {
+                                cubit.instantLog(item.template);
+                              },
+                            );
+                          }).toList(),
                         ),
-                        itemCount: state.templates.length,
-                        itemBuilder: (context, index) {
-                          final item = state.templates[index];
-                          final cubit = context.read<TemplateListCubit>();
-                          return TrackerCard(
-                            title: item.template.name,
-                            icon: item.aesthetics.icon,
-                            emoji: item.aesthetics.emoji,
-                            // Use accent1 (first accent color) for the card
-                            color: item.aesthetics.palette.accents.firstOrNull,
-                            template: item.template, // Pass template for default checking
-                            onIconTap: () {
-                              // Navigate to template editor
-                              AppNavigation.toTemplateGenerator(context, item);
-                            },
-                            onEdit: () {
-                              // Navigate to log entry form (custom log with review)
-                              AppNavigation.toLogEntry(context, item.template.id);
-                            },
-                            onQuickAction: () {
-                              // Instant log - save immediately with defaults
-                              cubit.instantLog(item.template);
-                            },
-                          );
-                        },
                       ),
                     );
                   },

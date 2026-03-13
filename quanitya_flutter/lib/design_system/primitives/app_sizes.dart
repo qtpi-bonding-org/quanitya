@@ -36,6 +36,7 @@ class AppSizes {
   static double get iconMedium => UiScaler.instance.sp(24.0);
   static double get iconLarge => UiScaler.instance.sp(32.0);
   static double get iconXLarge => UiScaler.instance.sp(48.0);
+  static double get iconXXLarge => UiScaler.instance.sp(64.0);
 
   // --- Radii ---
   static double get radiusTiny => space * 0.25; // 2

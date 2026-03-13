@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -7,14 +10,13 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' as cloud;
 
 import '../../../../app_router.dart';
 import '../../../../support/extensions/context_extensions.dart';
-import '../../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/primitives/quanitya_fonts.dart';
-import '../../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../../infrastructure/webhooks/models/api_key_model.dart';
@@ -22,77 +24,24 @@ import '../../../../infrastructure/webhooks/models/webhook_model.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../app_operating_mode/cubits/app_operating_cubit.dart';
 import '../cubits/data_export/data_export_cubit.dart';
-import '../cubits/data_export/data_export_state.dart';
-import '../cubits/data_export/data_export_message_mapper.dart';
 import '../cubits/recovery_key/recovery_key_cubit.dart';
-import '../cubits/recovery_key/recovery_key_state.dart';
-import '../cubits/recovery_key/recovery_key_message_mapper.dart';
 import '../cubits/device_management/device_management_cubit.dart';
 import '../cubits/webhook/webhook_cubit.dart';
 import '../cubits/webhook/webhook_state.dart';
-import '../cubits/webhook/webhook_message_mapper.dart';
 import '../widgets/import_recovery_key_sheet.dart';
 import '../widgets/device_list_section.dart';
 import '../widgets/webhook_sheet.dart';
+import '../widgets/llm_provider_section.dart';
 import '../widgets/api_key_sheet.dart';
 import '../widgets/table_selection_sheet.dart';
+import 'package:health/health.dart';
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import '../../../integrations/flutter/health/health_sync_cubit.dart';
+import '../../../integrations/flutter/health/health_sync_state.dart';
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
+bool get _supportsHealthData => !kIsWeb && (Platform.isIOS || Platform.isAndroid);
 
-  @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => GetIt.instance<DataExportCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<RecoveryKeyCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<DeviceManagementCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<WebhookCubit>()..load()),
-        BlocProvider.value(value: GetIt.instance<AppOperatingCubit>()),
-      ],
-      child: const SettingsView(),
-    );
-  }
-}
-
-/// Standalone page with Scaffold — used for deep-link / push navigation.
-class SettingsView extends StatelessWidget {
-  const SettingsView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return UiFlowListener<DataExportCubit, DataExportState>(
-      mapper: GetIt.instance<DataExportMessageMapper>(),
-      child: UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
-        mapper: GetIt.instance<RecoveryKeyMessageMapper>(),
-        child: UiFlowListener<WebhookCubit, WebhookState>(
-          mapper: GetIt.instance<WebhookMessageMapper>(),
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text(
-                context.l10n.settingsTitle,
-                style: context.text.headlineMedium,
-              ),
-              leading: QuanityaIconButton(
-                icon: Icons.arrow_back,
-                onPressed: () => AppNavigation.back(context),
-              ),
-              actions: [
-                QuanityaIconButton(
-                  icon: Icons.info,
-                  onPressed: () => AppNavigation.toAppInfo(context),
-                ),
-              ],
-            ),
-            body: const SettingsContent(),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The content body, usable standalone or embedded in [NotebookShell].
+/// Settings content — embedded in [NotebookShell] via OfficePage.
 ///
 /// Expects [DataExportCubit], [RecoveryKeyCubit], [DeviceManagementCubit],
 /// [WebhookCubit], and [AppOperatingCubit] to be available above.
@@ -127,6 +76,28 @@ class SettingsContent extends StatelessWidget {
 
           NotebookFold(
             header: Row(children: [
+              Icon(Icons.smart_toy, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+              HSpace.x2,
+              Text(context.l10n.settingsLlmSection, style: context.text.titleMedium),
+            ]),
+            child: const LlmProviderSection(),
+          ),
+          VSpace.x3,
+
+          if (_supportsHealthData) ...[
+            NotebookFold(
+              header: Row(children: [
+                Icon(Icons.monitor_heart, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+                HSpace.x2,
+                Text(context.l10n.settingsHealthData, style: context.text.titleMedium),
+              ]),
+              child: const _HealthConnectSection(),
+            ),
+            VSpace.x3,
+          ],
+
+          NotebookFold(
+            header: Row(children: [
               Icon(Icons.vpn_key, size: AppSizes.iconMedium, color: context.colors.textPrimary),
               HSpace.x2,
               Text(context.l10n.apiKeysTitle, style: context.text.titleMedium),
@@ -147,31 +118,76 @@ class SettingsContent extends StatelessWidget {
 
           NotebookFold(
             header: Row(children: [
-              Icon(Icons.shopping_bag, size: AppSizes.iconMedium, color: context.colors.textPrimary),
-              HSpace.x2,
-              Text(context.l10n.settingsPurchase, style: context.text.titleMedium),
-            ]),
-            child: Center(
-              child: QuanityaTextButton(
-                text: context.l10n.settingsPurchase,
-                onPressed: () => AppNavigation.toPurchase(context),
-              ),
-            ),
-          ),
-          VSpace.x3,
-
-          NotebookFold(
-            header: Row(children: [
-              Icon(Icons.delete_forever, size: AppSizes.iconMedium, color: context.colors.errorColor),
+              Icon(Icons.delete_forever, size: AppSizes.iconMedium, color: context.colors.destructiveColor),
               HSpace.x2,
               Text(context.l10n.deleteAccountTitle, style: context.text.titleMedium?.copyWith(
-                color: context.colors.errorColor,
+                color: context.colors.destructiveColor,
               )),
             ]),
             child: const _DeleteAccountButton(),
           ),
           VSpace.x2,
         ],
+      ),
+    );
+  }
+}
+
+/// Default health data types to sync.
+const _defaultHealthTypes = [
+  HealthDataType.STEPS,
+  HealthDataType.HEART_RATE,
+  HealthDataType.BLOOD_OXYGEN,
+  HealthDataType.BODY_TEMPERATURE,
+  HealthDataType.WEIGHT,
+];
+
+class _HealthConnectSection extends StatelessWidget {
+  const _HealthConnectSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => GetIt.instance<HealthSyncCubit>(),
+      child: BlocBuilder<HealthSyncCubit, HealthSyncState>(
+        builder: (context, state) {
+          final cubit = context.read<HealthSyncCubit>();
+          final isLoading = state.status == UiFlowStatus.loading;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              QuanityaTextButton(
+                text: context.l10n.healthImportData,
+                onPressed: isLoading
+                    ? null
+                    : () => cubit.importHealthData(_defaultHealthTypes),
+              ),
+              if (state.lastImportCount > 0) ...[
+                VSpace.x2,
+                Text(
+                  context.l10n.healthEntriesImported(state.lastImportCount),
+                  style: context.text.bodySmall?.copyWith(
+                    color: context.colors.textSecondary,
+                  ),
+                ),
+              ],
+              if (isLoading) ...[
+                VSpace.x2,
+                const Center(child: CircularProgressIndicator()),
+              ],
+              if (state.status == UiFlowStatus.failure && state.error != null) ...[
+                VSpace.x2,
+                Text(
+                  state.error.toString(),
+                  style: context.text.bodySmall?.copyWith(
+                    color: context.colors.errorColor,
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -321,62 +337,53 @@ class _ApiKeyRow extends StatelessWidget {
         ? context.l10n.apiKeyTypeBearer
         : '${context.l10n.apiKeyTypeHeader}: ${apiKey.headerName}';
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-      child: Container(
-        padding: AppPadding.allDouble,
-        decoration: BoxDecoration(
-          color: context.colors.textSecondary.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              apiKey.authType == AuthType.bearer ? Icons.vpn_key : Icons.code,
-              size: AppSizes.iconMedium,
-              color: context.colors.interactableColor,
-            ),
-            HSpace.x2,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    apiKey.name,
-                    style: context.text.bodyLarge?.copyWith(
-                      color: context.colors.textPrimary,
-                    ),
-                  ),
-                  VSpace.x025,
-                  Text(
-                    typeLabel,
-                    style: context.text.bodySmall?.copyWith(
-                      color: context.colors.textSecondary,
-                    ),
-                  ),
-                ],
+    return Semantics(
+      button: true,
+      label: 'Edit API key: ${apiKey.name}',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+        child: Container(
+          padding: AppPadding.allDouble,
+          decoration: BoxDecoration(
+            color: context.colors.textSecondary.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                apiKey.authType == AuthType.bearer ? Icons.vpn_key : Icons.code,
+                size: AppSizes.iconMedium,
+                color: context.colors.textPrimary,
               ),
-            ),
-            Icon(
-              Icons.check_circle,
-              size: AppSizes.iconSmall,
-              color: context.colors.successColor,
-            ),
-            HSpace.x1,
-            Text(
-              context.l10n.apiKeyConfigured,
-              style: context.text.bodySmall?.copyWith(
-                color: context.colors.successColor,
+              HSpace.x2,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      apiKey.name,
+                      style: context.text.bodyLarge?.copyWith(
+                        color: context.colors.interactableColor,
+                      ),
+                    ),
+                    VSpace.x025,
+                    Text(
+                      typeLabel,
+                      style: context.text.bodySmall?.copyWith(
+                        color: context.colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            HSpace.x1,
-            Icon(
-              Icons.chevron_right,
-              size: AppSizes.iconSmall,
-              color: context.colors.textSecondary,
-            ),
-          ],
+              Icon(
+                Icons.chevron_right,
+                size: AppSizes.iconSmall,
+                color: context.colors.interactableColor,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -393,6 +400,7 @@ class _WebhooksSection extends StatefulWidget {
 
 class _WebhooksSectionState extends State<_WebhooksSection> {
   List<TemplateWithAesthetics>? _templates;
+  bool _templateLoadFailed = false;
 
   @override
   void initState() {
@@ -401,10 +409,19 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
   }
 
   Future<void> _loadTemplates() async {
-    final repo = GetIt.instance<TemplateWithAestheticsRepository>();
-    final templates = await repo.find(isArchived: false);
-    if (mounted) {
-      setState(() => _templates = templates);
+    try {
+      final repo = GetIt.instance<TemplateWithAestheticsRepository>();
+      final templates = await repo.find(isArchived: false);
+      if (mounted) {
+        setState(() {
+          _templates = templates;
+          _templateLoadFailed = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _templateLoadFailed = true);
+      }
     }
   }
 
@@ -431,16 +448,10 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
             VSpace.x3,
 
             ...state.webhooks.map((webhook) {
-              final templateName = _templates
-                  ?.firstWhere(
+              final match = _templates?.where(
                     (t) => t.template.id == webhook.templateId,
-                    orElse: () => TemplateWithAesthetics(
-                      template: _templates!.first.template.copyWith(name: 'Unknown'),
-                      aesthetics: _templates!.first.aesthetics,
-                    ),
-                  )
-                  .template
-                  .name ?? 'Unknown';
+                  ).firstOrNull;
+              final templateName = match?.template.name ?? 'Unknown';
               
               return Padding(
                 padding: AppPadding.verticalSingle,
@@ -454,14 +465,33 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
               );
             }),
 
-            Center(
-              child: QuanityaTextButton(
-                text: context.l10n.addWebhook,
-                onPressed: _templates != null && _templates!.isNotEmpty
-                    ? () => _showWebhookDialog(context, null)
-                    : null,
+            if (_templateLoadFailed)
+              Center(
+                child: QuanityaTextButton(
+                  text: context.l10n.addWebhook,
+                  onPressed: _loadTemplates,
+                ),
+              )
+            else if (_templates == null)
+              Center(
+                child: Padding(
+                  padding: AppPadding.allDouble,
+                  child: SizedBox(
+                    width: AppSizes.iconMedium,
+                    height: AppSizes.iconMedium,
+                    child: const CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              )
+            else
+              Center(
+                child: QuanityaTextButton(
+                  text: context.l10n.addWebhook,
+                  onPressed: _templates!.isNotEmpty
+                      ? () => _showWebhookDialog(context, null)
+                      : null,
+                ),
               ),
-            ),
           ],
         );
       },
@@ -505,81 +535,84 @@ class _WebhookRow extends StatelessWidget {
         ? DateFormat.yMd().add_jm().format(webhook.lastTriggeredAt!)
         : context.l10n.webhookNeverTriggered;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-      child: Container(
-        padding: AppPadding.allDouble,
-        decoration: BoxDecoration(
-          color: context.colors.textSecondary.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.webhook,
-                  size: AppSizes.iconMedium,
-                  color: webhook.isEnabled 
-                      ? context.colors.interactableColor 
-                      : context.colors.textSecondary,
-                ),
-                HSpace.x2,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        webhook.name,
-                        style: context.text.bodyLarge?.copyWith(
-                          color: context.colors.textPrimary,
-                        ),
-                      ),
-                      VSpace.x025,
-                      Text(
-                        templateName,
-                        style: context.text.bodySmall?.copyWith(
-                          color: context.colors.interactableColor,
-                        ),
-                      ),
-                    ],
+    return Semantics(
+      button: true,
+      label: 'Edit webhook',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+        child: Container(
+          padding: AppPadding.allDouble,
+          decoration: BoxDecoration(
+            color: context.colors.textSecondary.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.webhook,
+                    size: AppSizes.iconMedium,
+                    color: webhook.isEnabled
+                        ? context.colors.interactableColor
+                        : context.colors.textSecondary,
                   ),
-                ),
-                Switch(
-                  value: webhook.isEnabled,
-                  onChanged: onToggle,
-                  activeThumbColor: context.colors.successColor,
-                ),
-              ],
-            ),
-            VSpace.x2,
-            Text(
-              displayUrl,
-              style: context.text.bodySmall?.copyWith(
-                color: context.colors.textSecondary,
-                fontFamily: QuanityaFonts.bodyFamily,
+                  HSpace.x2,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          webhook.name,
+                          style: context.text.bodyLarge?.copyWith(
+                            color: context.colors.interactableColor,
+                          ),
+                        ),
+                        VSpace.x025,
+                        Text(
+                          templateName,
+                          style: context.text.bodySmall?.copyWith(
+                            color: context.colors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  QuanityaToggle(
+                    value: webhook.isEnabled,
+                    onChanged: onToggle,
+                  ),
+                ],
               ),
-              overflow: TextOverflow.ellipsis,
-            ),
-            VSpace.x1,
-            Row(
-              children: [
-                Text(
-                  '${context.l10n.webhookLastTriggered}: $lastTriggered',
-                  style: context.text.bodySmall?.copyWith(
-                    color: context.colors.textSecondary,
+              VSpace.x2,
+              Text(
+                displayUrl,
+                style: context.text.bodySmall?.copyWith(
+                  color: context.colors.textSecondary,
+                  fontFamily: QuanityaFonts.bodyFamily,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              VSpace.x1,
+              Row(
+                children: [
+                  Text(
+                    '${context.l10n.webhookLastTriggered}: $lastTriggered',
+                    style: context.text.bodySmall?.copyWith(
+                      color: context.colors.textSecondary,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                QuanityaTextButton(
-                  text: context.l10n.webhookRetry,
-                  onPressed: webhook.isEnabled ? onRetry : null,
-                ),
-              ],
-            ),
-          ],
+                  const Spacer(),
+                  QuanityaTextButton(
+                    text: context.l10n.webhookRetry,
+                    onPressed: webhook.isEnabled ? onRetry : null,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

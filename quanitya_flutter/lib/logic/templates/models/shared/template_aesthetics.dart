@@ -94,11 +94,13 @@ class TemplateAestheticsModel with _$TemplateAestheticsModel {
   factory TemplateAestheticsModel.defaults({
     required String templateId,
     String? themeName,
+    String? icon,
     String? emoji,
   }) {
     return TemplateAestheticsModel.create(
       templateId: templateId,
       themeName: themeName,
+      icon: icon,
       emoji: emoji,
       palette: ColorPaletteData.defaults(),
       fontConfig: FontConfigData.defaults(),

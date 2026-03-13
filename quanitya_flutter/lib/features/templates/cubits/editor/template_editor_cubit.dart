@@ -10,6 +10,7 @@ import '../../../../logic/templates/enums/ui_element_enum.dart';
 import '../../../../logic/schedules/models/schedule.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../data/repositories/schedule_repository.dart';
+import '../../../../infrastructure/permissions/permission_service.dart';
 import '../../../../logic/templates/enums/field_enum.dart';
 import '../../widgets/editor/schedule_section.dart';
 import 'template_editor_state.dart';
@@ -23,15 +24,16 @@ import 'template_editor_state.dart';
 class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   final TemplateWithAestheticsRepository _repository;
   final ScheduleRepository _scheduleRepository;
+  final PermissionService _permissionService;
 
-  TemplateEditorCubit(this._repository, this._scheduleRepository) : super(const TemplateEditorState());
+  TemplateEditorCubit(this._repository, this._scheduleRepository, this._permissionService) : super(const TemplateEditorState());
 
   // ─────────────────────────────────────────────────────────────────────────
   // Entry Points
   // ─────────────────────────────────────────────────────────────────────────
 
   /// Load a template for editing (from AI, existing, or any source)
-  void loadTemplate(TemplateWithAesthetics templateWithAesthetics) {
+  Future<void> loadTemplate(TemplateWithAesthetics templateWithAesthetics) async {
     emit(
       state.copyWith(
         template: templateWithAesthetics.template,
@@ -44,6 +46,49 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
         status: UiFlowStatus.idle,
       ),
     );
+
+    // Load existing schedule for this template
+    await _loadExistingSchedule(templateWithAesthetics.template.id);
+  }
+
+  /// Load existing schedule from the database and populate editor state.
+  Future<void> _loadExistingSchedule(String templateId) async {
+    final schedules = await _scheduleRepository.getActiveSchedulesForTemplate(templateId);
+    if (schedules.isEmpty) return;
+
+    final schedule = schedules.first;
+    final rule = schedule.recurrenceRule;
+
+    // Parse frequency from RRULE
+    ScheduleFrequency frequency = ScheduleFrequency.off;
+    TimeOfDay? time;
+    List<String> weeklyDays = [];
+
+    if (rule.contains('FREQ=DAILY')) {
+      frequency = ScheduleFrequency.daily;
+    } else if (rule.contains('FREQ=WEEKLY')) {
+      frequency = ScheduleFrequency.weekly;
+      // Parse BYDAY
+      final byDayMatch = RegExp(r'BYDAY=([A-Z,]+)').firstMatch(rule);
+      if (byDayMatch != null) {
+        weeklyDays = byDayMatch.group(1)!.split(',');
+      }
+    }
+
+    // Parse time from BYHOUR and BYMINUTE
+    final hourMatch = RegExp(r'BYHOUR=(\d+)').firstMatch(rule);
+    final minuteMatch = RegExp(r'BYMINUTE=(\d+)').firstMatch(rule);
+    if (hourMatch != null) {
+      final hour = int.parse(hourMatch.group(1)!);
+      final minute = minuteMatch != null ? int.parse(minuteMatch.group(1)!) : 0;
+      time = TimeOfDay(hour: hour, minute: minute);
+    }
+
+    emit(state.copyWith(
+      scheduleFrequency: frequency,
+      scheduleTime: time,
+      scheduleWeeklyDays: weeklyDays,
+    ));
   }
 
   /// Create a new template from scratch
@@ -238,14 +283,10 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   void updateTemplateIcon(String icon) {
     if (state.aesthetics == null) return;
 
-    debugPrint('🎨 updateTemplateIcon: $icon');
-
     final updatedAesthetics = state.aesthetics!.copyWith(
       icon: icon,
       emoji: null, // Clear emoji if setting icon
     );
-
-    debugPrint('🎨 Updated aesthetics icon: ${updatedAesthetics.icon}');
 
     emit(
       state.copyWith(
@@ -396,18 +437,13 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
         throw StateError('Cannot save incomplete template');
       }
 
-      debugPrint('💾 Saving template: ${completeTemplate.template.id}');
-      debugPrint('💾 Aesthetics icon: ${completeTemplate.aesthetics.icon}');
-      debugPrint('💾 Aesthetics emoji: ${completeTemplate.aesthetics.emoji}');
-      debugPrint('💾 Aesthetics id: ${completeTemplate.aesthetics.id}');
-      debugPrint('💾 Aesthetics templateId: ${completeTemplate.aesthetics.templateId}');
-
       await _repository.save(completeTemplate);
-      
-      // Save schedule if enabled
+
+      // Save or delete schedule (request notification permission if creating one)
       if (state.scheduleFrequency != ScheduleFrequency.off) {
-        await _saveSchedule(completeTemplate.template.id);
+        await _permissionService.ensureNotification();
       }
+      await _saveOrDeleteSchedule(completeTemplate.template.id);
 
       return state.copyWith(
         status: UiFlowStatus.success,
@@ -415,34 +451,58 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
       );
     }, emitLoading: true);
   }
-  
-  /// Save the schedule for the template
-  Future<void> _saveSchedule(String templateId) async {
+
+  /// Save or delete the schedule for the template.
+  ///
+  /// If frequency is off, deletes any existing schedule.
+  /// Otherwise, updates the existing schedule or creates a new one.
+  Future<void> _saveOrDeleteSchedule(String templateId) async {
+    final existing = await _scheduleRepository.getSchedulesForTemplate(templateId);
+
+    // If schedule is off, delete any existing schedules
+    if (state.scheduleFrequency == ScheduleFrequency.off) {
+      for (final schedule in existing) {
+        await _scheduleRepository.delete(schedule.id);
+      }
+      return;
+    }
+
     final time = state.scheduleTime ?? const TimeOfDay(hour: 9, minute: 0);
-    
+
     final String recurrenceRule;
     switch (state.scheduleFrequency) {
       case ScheduleFrequency.daily:
         recurrenceRule = 'FREQ=DAILY;BYHOUR=${time.hour};BYMINUTE=${time.minute}';
-        break;
       case ScheduleFrequency.weekly:
-        final days = state.scheduleWeeklyDays.isNotEmpty 
+        final days = state.scheduleWeeklyDays.isNotEmpty
             ? state.scheduleWeeklyDays.join(',')
-            : 'MO,TU,WE,TH,FR'; // Default to weekdays
+            : 'MO,TU,WE,TH,FR';
         recurrenceRule = 'FREQ=WEEKLY;BYDAY=$days;BYHOUR=${time.hour};BYMINUTE=${time.minute}';
-        break;
       case ScheduleFrequency.custom:
       case ScheduleFrequency.off:
-        return; // No schedule to save
+        return;
     }
-    
-    final schedule = ScheduleModel.create(
-      templateId: templateId,
-      recurrenceRule: recurrenceRule,
-      reminderOffsetMinutes: 0, // Remind at due time
-    );
-    
-    await _scheduleRepository.save(schedule);
+
+    if (existing.isNotEmpty) {
+      // Update existing schedule
+      final updated = existing.first
+          .updateRule(recurrenceRule)
+          .updateReminder(0);
+      await _scheduleRepository.save(updated);
+
+      // Delete any extra duplicates from the append bug
+      for (var i = 1; i < existing.length; i++) {
+        await _scheduleRepository.delete(existing[i].id);
+      }
+    } else {
+      // Create new schedule
+      final schedule = ScheduleModel.create(
+        templateId: templateId,
+        recurrenceRule: recurrenceRule,
+        reminderOffsetMinutes: 0,
+      );
+      await _scheduleRepository.save(schedule);
+    }
   }
 
   /// Discard changes and reset
@@ -452,6 +512,38 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
         lastOperation: TemplateEditorOperation.discard,
       ),
     );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Visibility Management
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Toggle the hidden state of the template.
+  /// Hidden templates require biometric auth to view.
+  Future<void> toggleHidden() async {
+    final templateId = state.template?.id;
+    if (templateId == null) return;
+
+    await tryOperation(() async {
+      if (state.template!.isHidden) {
+        await _repository.unhide(templateId);
+      } else {
+        await _repository.hide(templateId);
+      }
+
+      final updated = await _repository.findById(templateId);
+      if (updated != null) {
+        return state.copyWith(
+          template: updated.template,
+          status: UiFlowStatus.success,
+          lastOperation: TemplateEditorOperation.toggleHidden,
+        );
+      }
+      return state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: TemplateEditorOperation.toggleHidden,
+      );
+    }, emitLoading: false);
   }
 
   // ─────────────────────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@ import 'package:flutter_color_palette/flutter_color_palette.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../support/extensions/context_extensions.dart';
+import '../../hidden_visibility/cubits/hidden_visibility_cubit.dart';
 import '../cubits/timeline_data_cubit.dart';
 import '../cubits/timeline_data_state.dart';
 
@@ -38,6 +39,7 @@ class _TemplateFilterContent extends StatelessWidget {
     return BlocBuilder<TimelineDataCubit, TimelineDataState>(
       builder: (context, dataState) {
         final cubit = context.read<TimelineDataCubit>();
+        final showHidden = context.watch<HiddenVisibilityCubit>().state.showingHidden;
 
         return SingleChildScrollView(
           child: Column(
@@ -57,8 +59,10 @@ class _TemplateFilterContent extends StatelessWidget {
 
               Divider(color: palette.textSecondary.withAlpha(51)),
 
-              // Individual templates
-              ...dataState.availableTemplates.map((template) {
+              // Individual templates (respect hidden visibility)
+              ...dataState.availableTemplates
+                  .where((t) => !t.isHidden || showHidden)
+                  .map((template) {
                 return _TemplateRow(
                   label: template.name,
                   isSelected: dataState.filters.templateId == template.id,
@@ -93,29 +97,34 @@ class _TemplateRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: AppSizes.space,
-          horizontal: AppSizes.space * 0.5,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isSelected ? Icons.check : null,
-              size: AppSizes.iconSmall,
-              color: palette.interactableColor,
-            ),
-            HSpace.x1,
-            Expanded(
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: AppSizes.space,
+            horizontal: AppSizes.space * 0.5,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isSelected ? Icons.check : null,
+                size: AppSizes.iconSmall,
+                color: palette.interactableColor,
               ),
-            ),
-          ],
+              HSpace.x1,
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

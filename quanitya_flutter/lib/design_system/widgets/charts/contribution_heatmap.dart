@@ -17,12 +17,19 @@ class ContributionPoint {
 /// Uses QuanityaPalette colors for consistency.
 class ContributionHeatmap extends StatelessWidget {
   final List<ContributionPoint> data;
+  final String title;
   final int weeks;
+
+  /// Optional accessibility summary for screen readers.
+  /// When provided, wraps the chart in a [Semantics] label.
+  final String? semanticSummary;
 
   const ContributionHeatmap({
     super.key,
     required this.data,
+    required this.title,
     this.weeks = 12,
+    this.semanticSummary,
   });
 
   @override
@@ -47,7 +54,7 @@ class ContributionHeatmap extends StatelessWidget {
     const cellSize = 12.0;
     const cellPadding = 2.0;
 
-    return SingleChildScrollView(
+    final chart = SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       reverse: true,
       child: Row(
@@ -60,23 +67,23 @@ class ContributionHeatmap extends StatelessWidget {
               final date = weekStart.add(Duration(days: dayIndex));
               final count = countMap[date] ?? 0;
               final isFuture = date.isAfter(today);
-              
+
               // Calculate intensity (0.0 to 1.0)
               final intensity = count > 0 ? (count / maxCount).clamp(0.2, 1.0) : 0.0;
-              
+
               Color cellColor;
               if (isFuture) {
                 cellColor = palette.textSecondary.withValues(alpha: 0.05);
               } else if (count == 0) {
                 cellColor = palette.textSecondary.withValues(alpha: 0.1);
               } else {
-                cellColor = palette.primaryColor.withValues(alpha: intensity);
+                cellColor = QuanityaPalette.category10[0].withValues(alpha: intensity);
               }
 
               return Padding(
                 padding: const EdgeInsets.all(cellPadding),
                 child: Tooltip(
-                  message: isFuture 
+                  message: isFuture
                       ? DateFormat('MMM d').format(date)
                       : '${DateFormat('MMM d').format(date)}: $count ${count == 1 ? 'entry' : 'entries'}',
                   child: Container(
@@ -93,6 +100,12 @@ class ContributionHeatmap extends StatelessWidget {
           );
         }),
       ),
+    );
+
+    final defaultLabel = 'Contribution heatmap: $title';
+    return Semantics(
+      label: semanticSummary ?? defaultLabel,
+      child: ExcludeSemantics(child: chart),
     );
   }
 }

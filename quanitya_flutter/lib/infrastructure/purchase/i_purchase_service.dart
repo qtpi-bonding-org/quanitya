@@ -1,3 +1,6 @@
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
+    show RailCatalogEntry;
+
 import 'i_purchase_provider.dart';
 import 'purchase_models.dart';
 
@@ -20,6 +23,12 @@ abstract class IPurchaseService {
 
   /// Recover and validate any pending purchases across all providers.
   Future<void> recoverPendingPurchases();
+
+  /// Get rail catalog from server for the current platform.
+  ///
+  /// Returns server-authoritative rail statuses and product IDs.
+  /// Works on all platforms including web (uses PoW, not IAP providers).
+  Future<List<RailCatalogEntry>> getRailCatalog();
 
   /// Clean up all providers.
   Future<void> dispose();

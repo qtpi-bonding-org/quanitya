@@ -21,6 +21,7 @@ enum TemplateEditorOperation {
   updateSchedule,
   save,
   discard,
+  toggleHidden,
 }
 
 /// State for the unified template editor

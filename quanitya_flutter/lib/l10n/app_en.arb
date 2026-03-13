@@ -195,7 +195,10 @@
   "tooltipEditTemplate": "Edit template",
   "tooltipCustomLog": "Custom log",
   "tooltipQuickEntry": "Quick entry",
-  "reminderOptional": "Reminder (optional)",
+  "reminderLabel": "Reminder",
+  "aestheticsSection": "Aesthetics",
+  "optionalLabel": "Optional",
+  "addFieldTitle": "Add Field",
   "scheduleOff": "Off",
   "scheduleDaily": "Daily",
   "scheduleWeekly": "Weekly",
@@ -280,12 +283,13 @@
   "templateFieldRemoved": "Field removed",
   "templateDiscarded": "Changes discarded",
   "templateDeleted": "Template deleted",
+  "templatePrivateLabel": "Hidden",
   "templateArchived": "Template archived",
   "templateHidden": "Template hidden",
   "templateUnhidden": "Template shown",
   "templateIntegrationCombinationGenerationFailed": "Could not create this template.",
   "templateIntegrationSchemaConversionFailed": "Template conversion failed",
-  "templateIntegrationPipelineOrchestrationFailed": "Something went wrong",
+  "templateIntegrationScriptOrchestrationFailed": "Something went wrong",
   "templateIntegrationWidgetGenerationFailed": "Could not build the form.",
   "logEntrySaved": "Entry logged",
   "schedulePaused": "Schedule paused",
@@ -420,6 +424,7 @@
   "webhookApiKey": "Authentication",
   "webhookNoAuth": "No authentication",
   "webhookSelectApiKey": "Select an API key",
+  "webhookNoApiKeys": "No API keys available. Add one in the API Keys section above.",
   "webhookEnabled": "Enabled",
   "webhookLastTriggered": "Last triggered",
   "webhookNeverTriggered": "Never",
@@ -450,6 +455,11 @@
   "booleanTrue": "Yes",
   "booleanFalse": "No",
   "actionClear": "Clear",
+  "actionClose": "Close",
+  "actionToggleVisibility": "Toggle visibility",
+  "aiPromptSend": "Send",
+  "fieldBuilderNoUiElement": "No UI element defined",
+  "fieldBuilderNoOptions": "No options available",
   "aiSuggestionsApplied": "AI suggestion applied",
   "notificationMarkedAsReceived": "Notification marked as received",
   "notificationDismissed": "Notification dismissed",
@@ -493,7 +503,7 @@
   "feedbackTypeBug": "Bug",
   "feedbackTypeGeneral": "General",
   "feedbackHint": "What's on your mind",
-  "feedbackPrivacyNotice": "Feedback is anonymous and helps improve the app.",
+  "feedbackPrivacyNotice": "Feedback is anonymous and helps improve Quanitya.",
   "feedbackSubmitButton": "Submit Feedback",
   "errorPageTitle": "Error",
   "errorPageNotFound": "Page not found: {location}",
@@ -520,23 +530,31 @@
   "tooltipFilterByTemplate": "Filter by Template",
   "tooltipNotifications": "Notifications",
   "tooltipAnalyticsOutbox": "Outbox",
-  "tooltipHidePrivate": "Hide private entries",
-  "tooltipShowPrivate": "Show private entries",
-  "purchaseTitle": "Purchase Sync Days",
+  "tooltipHidePrivate": "Hide hidden entries",
+  "tooltipShowPrivate": "Show hidden entries",
+  "purchaseTitle": "Purchases",
   "purchaseAvailableProducts": "Available Products",
+  "purchaseSectionSubscriptions": "Plans",
+  "purchaseSectionConsumables": "Add-ons",
+  "purchasePeriodMonthly": "Monthly",
+  "purchasePeriodYearly": "Yearly",
   "purchaseNoProducts": "No products available",
   "purchaseSuccessful": "Purchase complete",
   "purchaseFailed": "Purchase failed",
-  "settingsPurchase": "Purchase Sync Days",
+  "purchaseLoadFailed": "Could not load products",
+  "actionRetry": "Retry",
+  "errorPurchaseFailed": "Purchase failed. Please try again.",
+  "errorEntitlementFailed": "Account details unavailable — using local mode",
+  "settingsPurchase": "Purchases",
   "settingsErrorReports": "Error Reports",
   "settingsAnalyticsInbox": "Analytics Inbox",
   "settingsSendFeedback": "Send Feedback",
   "analyticsInboxTitle": "Analytics Inbox",
   "analyticsInboxPrivacyNotice": "Events include: action name, timestamp, and platform. No personal data or content is ever sent.",
   "analyticsInboxAutoSend": "Auto-send on startup",
-  "analyticsInboxAutoSendDescription": "Batch-send all events when the app opens.",
+  "analyticsInboxAutoSendDescription": "Batch-send all events when Quanitya opens.",
   "analyticsInboxEmpty": "No Pending Events",
-  "analyticsInboxEmptyDescription": "Analytics events will appear here as you use the app.",
+  "analyticsInboxEmptyDescription": "Analytics events will appear here as you use Quanitya.",
   "analyticsInboxClearAll": "Clear All",
   "analyticsInboxSendAll": "Send All ({count})",
   "@analyticsInboxSendAll": {
@@ -546,14 +564,24 @@
       }
     }
   },
+  "analyticsInboxClearSentTitle": "Clear Sent Events?",
+  "analyticsInboxClearSentMessage": "{count} events were sent successfully. Would you like to clear them from the inbox?",
+  "@analyticsInboxClearSentMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsInboxClearSent": "Clear Sent",
   "analyticsInboxClearAllTitle": "Clear All Events?",
   "analyticsInboxClearAllMessage": "This will permanently delete all unsent analytics events.",
-  "analysisBuilderTitle": "Analysis Pipeline",
+  "analysisBuilderTitle": "Analysis Script",
   "analysisBuilderJsTitle": "JavaScript Analysis",
   "analysisBuilderTooltipHidePreview": "Hide Live Preview",
   "analysisBuilderTooltipShowPreview": "Show Live Preview",
   "analysisBuilderEmptyTitle": "No analysis loaded",
-  "analysisBuilderEmptyDescription": "Load a pipeline to view its JavaScript code.",
+  "analysisBuilderEmptyDescription": "Load a script to view its JavaScript code.",
   "chartNoData": "No data",
   "templateContainerStyleTitle": "Container Style",
   "templateContainerStyleDescription": "This controls the shape of field containers.",
@@ -593,11 +621,286 @@
   "outboxTabFeedback": "Feedback",
   "outboxTabAnalytics": "Analytics",
   "outboxTabErrors": "Errors",
+  "postageTabNotices": "Notices",
+  "officeTabSettings": "Settings",
+  "officeTabPurchases": "Purchases",
+  "officeTabInfo": "Info",
+  "noticesEmpty": "No Notices",
+  "noticesEmptyDescription": "Notifications will appear here when there's something to review.",
   "@entitlementLabel": {
     "placeholders": {
       "id": {
         "type": "int"
       }
     }
-  }
+  },
+  "settingsLlmSection": "LLM Provider",
+  "llmProviderSaved": "Provider config saved",
+  "llmProviderDeleted": "Provider config deleted",
+  "llmProviderConnectionSuccess": "Connection successful",
+  "errorLlmProviderFailed": "LLM provider operation failed",
+  "llmProviderBaseUrl": "Base URL",
+  "llmProviderModel": "Model",
+  "llmProviderSearchModels": "Search models...",
+  "llmProviderTestConnection": "Test Connection",
+  "llmProviderAddConfig": "Add Config",
+  "llmProviderNoConfigs": "No LLM providers configured",
+  "llmProviderNoConfigsDescription": "Add an OpenRouter or Ollama config to use AI features",
+  "llmProviderModelTested": "Tested",
+  "llmProviderModelUntested": "Untested — may not work with Quanitya",
+  "llmProviderConfigureLlm": "Configure LLM in Settings to use AI features",
+  "llmProviderFetchingModels": "Fetching models...",
+
+  "errorBoxSendOneSuccess": "Error report sent",
+  "errorBoxSendAllSuccess": "All error reports sent",
+  "errorBoxClearedSuccess": "Sent reports cleared",
+  "errorBoxDeleteSuccess": "Error report deleted",
+  "errorBoxSendError": "Failed to send error report",
+  "errorBoxOperationError": "Error box operation failed",
+  "errorBoxClearSentTitle": "Clear Sent Report?",
+  "errorBoxClearSentMessage": "This report was sent successfully. Clear it from the inbox?",
+  "errorBoxClearAllSentTitle": "Clear Sent Reports?",
+  "errorBoxClearAllSentMessage": "{count} report(s) sent successfully. Clear them from the inbox?",
+  "@errorBoxClearAllSentMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorBoxClearAction": "Clear",
+
+  "errorAnalyticsFailed": "Analytics operation failed",
+  "errorImportFailed": "Import failed",
+  "errorLogEntrySaveFailed": "Failed to save log entry",
+  "errorLogEntryUpdateFailed": "Failed to update log entry",
+  "errorLogEntryDeleteFailed": "Failed to delete log entry",
+  "errorNotificationFailed": "Notification error",
+  "errorLlmFailed": "AI request failed",
+  "errorSettingsFailed": "Settings operation failed",
+  "errorLocationFailed": "Location error",
+  "errorRecoveryFailed": "Account recovery failed",
+  "errorDeviceRevocationFailed": "Device revocation failed",
+
+  "settingsHealthData": "Health Data",
+  "healthImportData": "Import Health Data",
+  "healthEntriesImported": "{count} entries imported",
+  "@healthEntriesImported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "resultsTabGraphs": "Graphs",
+  "resultsTabAnalysis": "Analysis",
+  "resultsNoResultsTitle": "No Results Yet",
+  "resultsNoResultsGraphsDescription": "Log entries to see visualizations here.",
+  "resultsNoResultsAnalysisDescription": "Log entries to see analysis here.",
+  "resultsAnalyzeFields": "Analyze Fields",
+  "resultsAnalyzeFieldsDescription": "Select a numeric field to create or view analysis scripts",
+  "resultsAnalysisResults": "Analysis Results",
+  "resultsAnalysisResultsDescription": "Results from executed analysis scripts",
+  "resultsNoAnalysisTitle": "No Analysis Available",
+  "resultsNoAnalysisDescription": "Add numeric fields to your template to enable analysis scripts.",
+  "resultsDataPoints": "{count} data points",
+  "@resultsDataPoints": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "errorBoxNoReports": "No Error Reports",
+  "errorBoxNoReportsDescription": "Error reports will appear here as you encounter errors.",
+  "errorBoxPrivacyBanner": "Privacy-first: Only technical error data, no personal information",
+  "errorBoxSendAll": "Send All ({count})",
+  "@errorBoxSendAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorBoxClearAll": "Clear All",
+  "errorBoxClearAllTitle": "Clear All Error Reports?",
+  "errorBoxClearAllMessage": "This will permanently remove all error reports from the inbox.",
+  "errorBoxAutoSend": "Auto-send on startup",
+  "errorBoxAutoSendDescription": "Automatically send error reports when Quanitya starts",
+  "errorBoxToggleAutoSendSuccess": "Auto-send preference updated",
+
+  "notificationMarkAsRead": "Mark as Read",
+  "notificationOpen": "Open",
+  "notificationJustNow": "Just now",
+  "notificationMinutesAgo": "{count}m ago",
+  "@notificationMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationHoursAgo": "{count}h ago",
+  "@notificationHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationDaysAgo": "{count}d ago",
+  "@notificationDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "tabLogbook": "Logbook",
+  "tabResults": "Results",
+  "tabPostage": "Postage",
+  "tabOffice": "Office",
+
+  "analysisDescribeHint": "Describe the analysis you want...",
+  "analysisNewScript": "+ New",
+  "analysisResults": "Results",
+  "analysisRun": "Run",
+  "analysisSaveScript": "Save Script",
+  "analysisScriptNameHint": "Script name...",
+  "analysisNoVectorData": "No vector data",
+  "analysisNoMatrixData": "No matrix data",
+  "analysisMatrix": "Matrix",
+
+  "livePreview": "Live Preview",
+  "matrixDimensions": "Matrix: {cols} cols x {rows} rows",
+  "@matrixDimensions": {
+    "placeholders": {
+      "cols": { "type": "int" },
+      "rows": { "type": "int" }
+    }
+  },
+  "matrixColumns": "Columns: {columns}",
+  "@matrixColumns": {
+    "placeholders": {
+      "columns": { "type": "String" }
+    }
+  },
+  "waitingForResults": "Waiting for results...",
+
+  "errorOccurrenceOnce": "Once",
+  "errorOccurrenceTimes": "{count} times",
+  "@errorOccurrenceTimes": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "errorFromSource": "From {source}",
+  "@errorFromSource": {
+    "placeholders": {
+      "source": { "type": "String" }
+    }
+  },
+  "errorDetailErrorType": "Error Type",
+  "errorDetailErrorCode": "Error Code",
+  "errorDetailSourceCubit": "Source Cubit",
+  "errorDetailUserMessage": "User Message",
+  "errorDetailStackTrace": "Stack Trace",
+  "actionCopy": "Copy",
+  "actionSendReport": "Send Report",
+
+  "selectExperiment": "Select Experiment",
+
+  "importTemplateTitle": "Import Template",
+  "importTemplateUrlSection": "TEMPLATE URL",
+  "importTemplateUrlDescription": "Paste a GitHub Gist or raw JSON URL",
+
+  "logEntryToday": "Today",
+  "logEntryMoreFields": "... +{count} more",
+  "@logEntryMoreFields": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "fieldNoDefaultWarning": "No default value set - quick log won't work",
+
+  "timelineNoDetails": "No details",
+
+  "operatingModeLocal": "Local Only",
+  "operatingModeSelfHosted": "Self-Hosted",
+  "operatingModeCloud": "Quanitya Cloud",
+  "operatingModeLocalDescription": "All data stays on your device",
+  "operatingModeSelfHostedDescription": "Sync with your own server",
+  "operatingModeCloudDescription": "Managed cloud with premium features",
+
+  "templatePreviewEdit": "Edit",
+  "templatePreviewSave": "Save Template",
+  "templatePreviewDiscard": "Discard",
+  "templatePreviewImport": "Import Template",
+
+  "timeRangeAll": "ALL",
+  "timeRangeToday": "TODAY",
+  "timeRangeWeek": "WEEK",
+  "timeRangeMonth": "MONTH",
+  "timeRangeCustom": "CUSTOM",
+
+  "templateDefaultAuthor": "Quanitya User",
+
+  "operationCompletedSuccessfully": "Operation completed successfully",
+
+  "selectDate": "Select date",
+  "selectTime": "Select time",
+
+  "authenticateViewHidden": "Authenticate to view hidden entries",
+  "authenticateStoreRecoveryKey": "Authenticate to store your recovery key securely",
+
+  "chartNameTrend": "Trend",
+  "chartNameCompletion": "Completion",
+  "chartNameCategories": "Categories",
+  "chartNameNotApplicable": "N/A",
+
+  "editFieldType": "Edit {fieldType}",
+  "@editFieldType": {
+    "placeholders": {
+      "fieldType": { "type": "String" }
+    }
+  },
+  "addFieldType": "Add {fieldType}",
+  "@addFieldType": {
+    "placeholders": {
+      "fieldType": { "type": "String" }
+    }
+  },
+
+  "fieldBuilderTooltipRemove": "Remove",
+  "fieldBuilderTooltipMinItems": "Minimum items reached",
+  "fieldBuilderAddItem": "Add {label}",
+  "@fieldBuilderAddItem": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "fieldBuilderMaxItemsReached": "Maximum {count} items reached",
+  "@fieldBuilderMaxItemsReached": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "fieldBuilderEnterHint": "Enter {label}",
+  "@fieldBuilderEnterHint": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "fieldBuilderSelectHint": "Select {label}",
+  "@fieldBuilderSelectHint": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "fieldBuilderUpdateLocation": "Update Location",
+  "fieldBuilderCaptureLocation": "Capture Location"
 }

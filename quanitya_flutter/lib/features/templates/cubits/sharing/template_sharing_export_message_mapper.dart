@@ -13,7 +13,7 @@ class TemplateSharingExportMessageMapper
       return switch (state.lastOperation!) {
         TemplateSharingExportOperation.export =>
           MessageKey.success(L10nKeys.templateSharingExported),
-        TemplateSharingExportOperation.loadPipelines => null,
+        TemplateSharingExportOperation.loadScripts => null,
       };
     }
     return null;

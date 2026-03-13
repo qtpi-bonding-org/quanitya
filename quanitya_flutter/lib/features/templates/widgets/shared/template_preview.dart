@@ -6,6 +6,7 @@ import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/styled_field_container.dart';
+import '../../../../support/extensions/color_extensions.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../logic/templates/enums/ai/allowed_font.dart';
 import '../../../../logic/templates/enums/ai/template_preset.dart';
@@ -15,8 +16,8 @@ import '../../../../logic/templates/models/shared/template_field.dart';
 import '../../../../logic/templates/models/shared/tracker_template.dart';
 import '../../../../logic/templates/services/shared/default_value_handler.dart';
 import '../../../../logic/templates/services/shared/dynamic_field_builder.dart';
-import '../../../../design_system/widgets/quanitya/general/zen_paper_background.dart';
 import '../../../../infrastructure/fonts/font_preloader_service.dart';
+import '../../../../support/utils/icon_resolver.dart';
 
 /// Unified template preview widget that works with any template source.
 ///
@@ -45,6 +46,8 @@ class TemplatePreview extends StatefulWidget {
     TemplateAestheticsModel? aesthetics,
     required VoidCallback onEdit,
     required VoidCallback onSave,
+    required String editLabel,
+    required String saveLabel,
     Map<String, dynamic>? initialValues,
     ValueChanged<Map<String, dynamic>>? onValuesChanged,
   }) {
@@ -56,12 +59,12 @@ class TemplatePreview extends StatefulWidget {
       onValuesChanged: onValuesChanged,
       actions: [
         TemplatePreviewAction.secondary(
-          label: 'Edit',
+          label: editLabel,
           icon: Icons.edit,
           onPressed: onEdit,
         ),
         TemplatePreviewAction.primary(
-          label: 'Save Template',
+          label: saveLabel,
           icon: Icons.save,
           onPressed: onSave,
         ),
@@ -76,6 +79,8 @@ class TemplatePreview extends StatefulWidget {
     required TemplateAestheticsModel aesthetics,
     required VoidCallback onSave,
     VoidCallback? onDiscard,
+    required String saveLabel,
+    String? discardLabel,
     Map<String, dynamic>? initialValues,
     ValueChanged<Map<String, dynamic>>? onValuesChanged,
   }) {
@@ -86,14 +91,14 @@ class TemplatePreview extends StatefulWidget {
       initialValues: initialValues,
       onValuesChanged: onValuesChanged,
       actions: [
-        if (onDiscard != null)
+        if (onDiscard != null && discardLabel != null)
           TemplatePreviewAction.secondary(
-            label: 'Discard',
+            label: discardLabel,
             icon: Icons.close,
             onPressed: onDiscard,
           ),
         TemplatePreviewAction.primary(
-          label: 'Save Template',
+          label: saveLabel,
           icon: Icons.save,
           onPressed: onSave,
         ),
@@ -108,6 +113,8 @@ class TemplatePreview extends StatefulWidget {
     TemplateAestheticsModel? aesthetics,
     required VoidCallback onImport,
     VoidCallback? onCancel,
+    required String importLabel,
+    String? cancelLabel,
     Map<String, dynamic>? initialValues,
     ValueChanged<Map<String, dynamic>>? onValuesChanged,
   }) {
@@ -118,14 +125,14 @@ class TemplatePreview extends StatefulWidget {
       initialValues: initialValues,
       onValuesChanged: onValuesChanged,
       actions: [
-        if (onCancel != null)
+        if (onCancel != null && cancelLabel != null)
           TemplatePreviewAction.secondary(
-            label: 'Cancel',
+            label: cancelLabel,
             icon: Icons.close,
             onPressed: onCancel,
           ),
         TemplatePreviewAction.primary(
-          label: 'Import Template',
+          label: importLabel,
           icon: Icons.download,
           onPressed: onImport,
         ),
@@ -167,15 +174,10 @@ class _TemplatePreviewState extends State<TemplatePreview> {
     final accents = widget.aesthetics!.palette.accents;
     final tones = widget.aesthetics!.palette.tones;
 
-    if (accents.isNotEmpty) _accent1 = _hexToColor(accents[0]);
-    if (accents.length > 1) _accent2 = _hexToColor(accents[1]);
-    if (tones.isNotEmpty) _tone1 = _hexToColor(tones[0]);
-    if (tones.length > 1) _tone2 = _hexToColor(tones[1]);
-  }
-
-  Color _hexToColor(String hex) {
-    final cleanHex = hex.replaceFirst('#', '');
-    return Color(int.parse(cleanHex, radix: 16) + 0xFF000000);
+    if (accents.isNotEmpty) _accent1 = accents[0].toColor();
+    if (accents.length > 1) _accent2 = accents[1].toColor();
+    if (tones.isNotEmpty) _tone1 = tones[0].toColor();
+    if (tones.length > 1) _tone2 = tones[1].toColor();
   }
 
   IColorPalette _getDefaultPalette() {
@@ -232,7 +234,7 @@ class _TemplatePreviewState extends State<TemplatePreview> {
     mapping.forEach((property, slot) {
       final hexColor = widget.aesthetics!.palette.getColor(slot);
       if (hexColor != null) {
-        resolved[property] = _hexToColor(hexColor);
+        resolved[property] = hexColor.toColor();
       }
     });
 
@@ -243,66 +245,60 @@ class _TemplatePreviewState extends State<TemplatePreview> {
   Map<String, Color> _getDefaultWidgetColors() {
     return {
       'activeColor': _accentColor,
-      'inactiveColor': _accent2 ?? _tone2 ?? Colors.grey.shade300,
+      'inactiveColor': _accent2 ?? _tone2 ?? QuanityaPalette.primary.textSecondary.withValues(alpha: 0.3),
       'thumbColor': _accentColor,
       'activeTrackColor': _accentColor,
-      'activeThumbColor': Colors.white,
-      'inactiveTrackColor': _tone2 ?? Colors.grey.shade300,
-      'inactiveThumbColor': Colors.white,
+      'activeThumbColor': QuanityaPalette.primary.backgroundPrimary,
+      'inactiveTrackColor': _tone2 ?? QuanityaPalette.primary.textSecondary.withValues(alpha: 0.3),
+      'inactiveThumbColor': QuanityaPalette.primary.backgroundPrimary,
       'cursorColor': _accentColor,
       'focusedBorderColor': _accentColor,
-      'borderColor': _tone2 ?? Colors.grey.shade300,
-      'fillColor': Colors.white,
+      'borderColor': _tone2 ?? QuanityaPalette.primary.textSecondary.withValues(alpha: 0.3),
+      'fillColor': QuanityaPalette.primary.backgroundPrimary,
       'errorBorderColor': context.colors.errorColor,
       'buttonColor': _accentColor,
-      'iconColor': Colors.white,
+      'iconColor': QuanityaPalette.primary.backgroundPrimary,
       'valueColor': QuanityaPalette.primary.textPrimary,
-      'dropdownColor': Colors.white,
+      'dropdownColor': QuanityaPalette.primary.backgroundPrimary,
       'dropdownIconColor': _tone1 ?? QuanityaPalette.primary.textPrimary,
       'primaryColor': _accentColor,
-      'backgroundColor': Colors.white,
+      'backgroundColor': QuanityaPalette.primary.backgroundPrimary,
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    return PhysicalModel(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
-      clipBehavior: Clip.antiAlias,
-      elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
-      child: ZenPaperBackground(
-        baseColor: QuanityaPalette.primary.backgroundPrimary,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Scrollable content: header + fields
-            Expanded(
-              child: ListView(
-                padding: AppPadding.page,
-                children: [
-                  // Header: Icon + Title centered
-                  _buildHeader(),
+    return _buildContent();
+  }
 
-                  VSpace.x3,
+  Widget _buildContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Scrollable content: header + fields
+        Expanded(
+          child: ListView(
+            padding: AppPadding.page,
+            children: [
+              // Header: Icon + Title centered
+              _buildHeader(),
 
-                  // Fields
-                  ...widget.template.fields.map(
-                    (field) => Padding(
-                      padding: AppPadding.verticalSingle,
-                      child: _buildField(field),
-                    ),
-                  ),
-                ],
+              VSpace.x3,
+
+              // Fields
+              ...widget.template.fields.map(
+                (field) => Padding(
+                  padding: AppPadding.verticalSingle,
+                  child: _buildField(field),
+                ),
               ),
-            ),
-
-            // Actions (fixed at bottom)
-            if (widget.actions.isNotEmpty) _buildActions(),
-          ],
+            ],
+          ),
         ),
-      ),
+
+        // Actions (fixed at bottom)
+        if (widget.actions.isNotEmpty) _buildActions(),
+      ],
     );
   }
 
@@ -364,7 +360,7 @@ class _TemplatePreviewState extends State<TemplatePreview> {
 
     // Icon
     if (aesthetics?.icon != null && aesthetics!.icon!.isNotEmpty) {
-      final iconData = _parseIconData(aesthetics.icon!);
+      final iconData = IconResolver.resolve(aesthetics.icon!);
       if (iconData != null) {
         return Container(
           width: AppSizes.iconXLarge,
@@ -416,7 +412,6 @@ class _TemplatePreviewState extends State<TemplatePreview> {
           field: field,
           value: _previewValues[field.id],
           onChanged: (value) => _updatePreviewValue(field.id, value),
-          palette: _palette,
           widgetColors: widgetColors,
           textStyle: _bodyStyle.copyWith(
             color: QuanityaPalette.primary.textPrimary,
@@ -459,7 +454,7 @@ class _TemplatePreviewState extends State<TemplatePreview> {
                       ? FilledButton.icon(
                           style: FilledButton.styleFrom(
                             backgroundColor: _accentColor,
-                            foregroundColor: Colors.white,
+                            foregroundColor: QuanityaPalette.primary.backgroundPrimary,
                             textStyle: _bodyStyle.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -522,50 +517,6 @@ class _TemplatePreviewState extends State<TemplatePreview> {
     );
   }
 
-  IconData? _parseIconData(String iconString) {
-    final parts = iconString.split(':');
-    final iconName = parts.length > 1 ? parts[1] : parts[0];
-    return _materialIconMap[iconName];
-  }
-
-  static const Map<String, IconData> _materialIconMap = {
-    'fitness_center': Icons.fitness_center,
-    'favorite': Icons.favorite,
-    'mood': Icons.mood,
-    'local_drink': Icons.local_drink,
-    'restaurant': Icons.restaurant,
-    'directions_run': Icons.directions_run,
-    'bedtime': Icons.bedtime,
-    'medication': Icons.medication,
-    'monitor_weight': Icons.monitor_weight,
-    'self_improvement': Icons.self_improvement,
-    'spa': Icons.spa,
-    'psychology': Icons.psychology,
-    'water_drop': Icons.water_drop,
-    'coffee': Icons.coffee,
-    'local_cafe': Icons.local_cafe,
-    'smoking_rooms': Icons.smoking_rooms,
-    'no_drinks': Icons.no_drinks,
-    'sports': Icons.sports,
-    'sports_gymnastics': Icons.sports_gymnastics,
-    'hiking': Icons.hiking,
-    'pool': Icons.pool,
-    'pedal_bike': Icons.pedal_bike,
-    'directions_walk': Icons.directions_walk,
-    'timer': Icons.timer,
-    'schedule': Icons.schedule,
-    'event': Icons.event,
-    'note': Icons.note,
-    'edit_note': Icons.edit_note,
-    'checklist': Icons.checklist,
-    'task_alt': Icons.task_alt,
-    'star': Icons.star,
-    'emoji_emotions': Icons.emoji_emotions,
-    'sentiment_satisfied': Icons.sentiment_satisfied,
-    'sentiment_dissatisfied': Icons.sentiment_dissatisfied,
-    'thumb_up': Icons.thumb_up,
-    'thumb_down': Icons.thumb_down,
-  };
 }
 
 /// Action configuration for template preview

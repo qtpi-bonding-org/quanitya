@@ -1,14 +1,25 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' show ServerException, ServerErrorCode;
 import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
+import '../../data/repositories/analytics_inbox_repository.dart' show AnalyticsInboxException;
+import '../../data/repositories/data_export_repository.dart' show ImportFailedException, ImportCancelledException;
 import '../../data/repositories/log_entry_repository.dart';
 import '../../data/repositories/template_with_aesthetics_repository.dart';
-import '../../features/device_pairing/services/pairing_service.dart' show PairingException;
-import '../auth/auth_service.dart' show AuthException;
+import '../../features/app_operating_mode/exceptions/app_operating_exceptions.dart' show AppOperatingException;
+import '../../features/device_pairing/services/pairing_service.dart' show PairingException, PairingFailure;
+import '../../logic/log_entries/exceptions/log_entry_exceptions.dart';
+import '../auth/auth_service.dart' show AuthException, AuthFailure;
 import '../crypto/exceptions/crypto_exceptions.dart';
+import '../llm/services/llm_service.dart' show LlmException;
+import '../location/location_service.dart' show LocationException;
+import '../notifications/exceptions/notification_exception.dart' show NotificationException;
 import '../public_submission/exceptions/public_submission_exceptions.dart';
+import '../purchase/purchase_exception.dart';
+import '../purchase/entitlement_exception.dart';
 import '../user_feedback/exceptions/feedback_exceptions.dart';
+import '../../features/settings/exceptions/llm_provider_exception.dart';
 
 /// Global exception mapper for the Quanitya application.
 /// 
@@ -34,6 +45,9 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
         ),
 
       // Repository-specific exceptions
+      LogEntrySaveException() => const MessageKey.error(L10nKeys.errorLogEntrySaveFailed),
+      LogEntryUpdateException() => const MessageKey.error(L10nKeys.errorLogEntryUpdateFailed),
+      LogEntryDeleteException() => const MessageKey.error(L10nKeys.errorLogEntryDeleteFailed),
       LogEntryValidationException e => MessageKey.errorFrom(
           L10nKeys.errorLogEntryValidation(e.errors.join(', ')),
         ),
@@ -45,6 +59,9 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
           L10nKeys.errorTemplateSchemaChange,
           {'message': e.message},
         ),
+      AnalyticsInboxException() => const MessageKey.error(L10nKeys.errorAnalyticsFailed),
+      ImportCancelledException() => null, // User-initiated, no toast needed
+      ImportFailedException() => const MessageKey.error(L10nKeys.errorImportFailed),
 
       // Storage/Database exceptions
       StorageException() => const MessageKey.error(L10nKeys.errorStorageFailed),
@@ -53,21 +70,26 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
       // PowerSync exceptions
       PowerSyncException() => const MessageKey.error(L10nKeys.errorSyncFailed),
 
-      // Serverpod exceptions
-      ServerpodException e => MessageKey.error(
-          'error.server.${e.errorCode}',
-          {'code': e.errorCode},
-        ),
+      // Server exceptions (typed from quanitya_cloud_client)
+      ServerException e => _mapServerException(e),
 
-      // Encryption exceptions
-      EncryptionException() => const MessageKey.error(L10nKeys.errorEncryptionFailed),
-      KeyManagementException() => const MessageKey.error(L10nKeys.errorKeysFailed),
-      KeyGenerationException e => e.message.contains('already exist')
+      // Crypto subtypes (most specific first, before base CryptoException types)
+      KeyStorageException() => const MessageKey.error(L10nKeys.errorKeysFailed),
+      KeyRetrievalException() => const MessageKey.error(L10nKeys.errorKeysFailed),
+      CryptoOperationException() => const MessageKey.error(L10nKeys.errorEncryptionFailed),
+      DeviceProvisioningException() => const MessageKey.error(L10nKeys.errorKeysFailed),
+      RecoveryException() => const MessageKey.error(L10nKeys.errorRecoveryFailed),
+      DeviceRevocationException() => const MessageKey.error(L10nKeys.errorDeviceRevocationFailed),
+      KeyGenerationException e => e.kind == KeyGenerationFailure.keysAlreadyExist
           ? const MessageKey.error(L10nKeys.errorKeysAlreadyExist)
           : const MessageKey.error(L10nKeys.errorKeysFailed),
 
+      // Encryption exceptions (local types defined below)
+      EncryptionException() => const MessageKey.error(L10nKeys.errorEncryptionFailed),
+      KeyManagementException() => const MessageKey.error(L10nKeys.errorKeysFailed),
+
       // Pairing exceptions
-      PairingException e => e.message.contains('already set up')
+      PairingException e => e.kind == PairingFailure.deviceAlreadySetUp
           ? const MessageKey.error(L10nKeys.errorPairingDeviceAlreadySetup)
           : const MessageKey.error(L10nKeys.errorPairingFailed),
 
@@ -80,6 +102,23 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
 
       // Feedback exceptions
       FeedbackException e => _mapFeedbackException(e),
+
+      // Purchase exceptions
+      PurchaseException() => const MessageKey.error(L10nKeys.errorPurchaseFailed),
+      EntitlementException() => const MessageKey.info(L10nKeys.errorEntitlementFailed),
+
+      // LLM exceptions
+      LlmException() => const MessageKey.error(L10nKeys.errorLlmFailed),
+      LlmProviderException() => const MessageKey.error(L10nKeys.errorLlmProviderFailed),
+
+      // Notification exceptions
+      NotificationException() => const MessageKey.error(L10nKeys.errorNotificationFailed),
+
+      // App settings / operating mode exceptions
+      AppOperatingException() => const MessageKey.error(L10nKeys.errorSettingsFailed),
+
+      // Location exceptions
+      LocationException() => const MessageKey.error(L10nKeys.errorLocationFailed),
 
       // Generic exceptions
       FormatException() => const MessageKey.error(L10nKeys.errorFormatInvalid),
@@ -94,22 +133,17 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
   /// Maps AuthException, checking cause for more specific errors
   MessageKey _mapAuthException(AuthException e) {
     final cause = e.cause;
-    
-    // Check if cause is a KeyGenerationException with "already exist" message
+
+    // Check if cause is a KeyGenerationException — use its kind
     if (cause is KeyGenerationException) {
-      if (cause.message.contains('already exist')) {
+      if (cause.kind == KeyGenerationFailure.keysAlreadyExist) {
         return const MessageKey.error(L10nKeys.errorKeysAlreadyExist);
       }
       return const MessageKey.error(L10nKeys.errorKeysFailed);
     }
-    
-    // Check for connection/network errors (ServerpodClientException with SocketException)
-    final causeString = cause?.toString() ?? '';
-    final messageString = e.message;
-    if (causeString.contains('Connection refused') || 
-        causeString.contains('SocketException') ||
-        messageString.contains('Connection refused') ||
-        messageString.contains('SocketException')) {
+
+    // Network error detected at wrapping time
+    if (e.kind == AuthFailure.networkError) {
       return const MessageKey.error(L10nKeys.errorOffline);
     }
 
@@ -117,18 +151,32 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
     return const MessageKey.error(L10nKeys.errorAuthFailed);
   }
 
+  /// Maps ServerException to specific error message keys.
+  MessageKey _mapServerException(ServerException e) {
+    return switch (e.code) {
+      ServerErrorCode.rateLimitExceeded => const MessageKey.error(L10nKeys.errorRateLimitExceeded),
+      ServerErrorCode.validationFailed => const MessageKey.error(L10nKeys.errorFormatInvalid),
+      ServerErrorCode.notFound => const MessageKey.error(L10nKeys.errorTemplateNotFound),
+      ServerErrorCode.insufficientCredits => const MessageKey.error(L10nKeys.errorPurchaseFailed),
+      ServerErrorCode.authenticationFailed => const MessageKey.error(L10nKeys.errorAuthFailed),
+      ServerErrorCode.insufficientPermissions => const MessageKey.error(L10nKeys.errorAuthUnauthorized),
+      ServerErrorCode.challengeExpired => const MessageKey.error(L10nKeys.errorChallengeRequestFailed),
+      ServerErrorCode.invalidProofOfWork => const MessageKey.error(L10nKeys.errorProofOfWorkFailed),
+      ServerErrorCode.invalidSignature => const MessageKey.error(L10nKeys.errorSignatureFailed),
+      ServerErrorCode.internalError => const MessageKey.error(L10nKeys.errorGeneric),
+      ServerErrorCode.jwtSigningKeyMissing => const MessageKey.error(L10nKeys.errorAuthFailed),
+      ServerErrorCode.jwtGenerationFailed => const MessageKey.error(L10nKeys.errorAuthFailed),
+    };
+  }
+
   /// Maps FeedbackException to specific error messages
   MessageKey _mapFeedbackException(FeedbackException e) {
-    if (e.message.contains('at least 10 characters')) {
-      return const MessageKey.error(L10nKeys.errorFeedbackTooShort);
-    }
-    if (e.message.contains('less than 5000 characters')) {
-      return const MessageKey.error(L10nKeys.errorFeedbackTooLong);
-    }
-    if (e.message.contains('Invalid feedback type')) {
-      return const MessageKey.error(L10nKeys.errorFeedbackInvalidType);
-    }
-    return const MessageKey.error(L10nKeys.errorPublicSubmissionFailed);
+    return switch (e.kind) {
+      FeedbackFailure.tooShort => const MessageKey.error(L10nKeys.errorFeedbackTooShort),
+      FeedbackFailure.tooLong => const MessageKey.error(L10nKeys.errorFeedbackTooLong),
+      FeedbackFailure.invalidType => const MessageKey.error(L10nKeys.errorFeedbackInvalidType),
+      FeedbackFailure.submissionFailed => const MessageKey.error(L10nKeys.errorPublicSubmissionFailed),
+    };
   }
 }
 
@@ -175,16 +223,6 @@ class DatabaseException implements Exception {
 class PowerSyncException implements Exception {
   final String message;
   const PowerSyncException(this.message);
-}
-
-class ServerpodException implements Exception {
-  final String errorCode;
-  final String message;
-  
-  const ServerpodException({
-    required this.errorCode,
-    required this.message,
-  });
 }
 
 class EncryptionException implements Exception {

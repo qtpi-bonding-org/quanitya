@@ -3,32 +3,37 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../logic/templates/enums/field_enum.dart';
+import '../../../../logic/templates/enums/field_enum_extensions.dart';
+import '../../../../logic/templates/models/shared/template_field.dart';
 import '../../../../design_system/structures/column.dart';
 import '../../../../design_system/structures/row.dart';
 import '../../../../design_system/structures/group.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
+import '../../../../design_system/primitives/quanitya_palette.dart';
+import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
+import '../../../../design_system/widgets/quanitya/general/post_it_toast.dart';
+import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_confirmation_dialog.dart';
-import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
-import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../app_router.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../cubits/editor/template_editor_cubit.dart';
 import '../../cubits/editor/template_editor_state.dart';
 import '../../cubits/generator/template_generator_cubit.dart';
-import '../../../../infrastructure/llm/models/llm_types.dart';
-import '../../../../infrastructure/webhooks/api_key_repository.dart';
-import '../../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../../design_system/widgets/ai/ai_prompt_widget.dart';
-import '../../../../design_system/widgets/quanitya_text_form_field.dart';
+import '../../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../../app_operating_mode/cubits/app_operating_cubit.dart';
 import '../../../app_operating_mode/models/app_operating_mode.dart';
+import 'color_palette_editor.dart';
+import 'container_style_editor.dart';
 import 'field_editor_list.dart';
-import 'template_basic_info_editor.dart';
-import 'schedule_section.dart';
 import 'inline_field_editor.dart';
+import 'schedule_section.dart';
+import 'template_basic_info_editor.dart';
+import 'template_icon_editor.dart';
+import 'typography_editor.dart';
 
 /// Main form for editing template structure and fields
 class TemplateEditorForm extends StatefulWidget {
@@ -47,9 +52,6 @@ class TemplateEditorForm extends StatefulWidget {
 
 class _TemplateEditorFormState extends State<TemplateEditorForm> {
   bool _isGenerating = false;
-  
-  /// Field type currently being added (null if not adding)
-  FieldEnum? _addingFieldType;
 
   @override
   void dispose() {
@@ -60,6 +62,8 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   Widget build(BuildContext context) {
     return BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
       builder: (context, state) {
+        final isEditing = state.template != null;
+
         return Column(
           children: [
             // Scrollable content
@@ -69,61 +73,98 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                 child: QuanityaColumn(
                   crossAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // AI Generation Section (at the top)
-                    AiPromptWidget(
-                      title: context.l10n.aiGeneratorTitle,
-                      hintText: context.l10n.aiGeneratorHint,
-                      isLoading: _isGenerating,
-                      onGenerate: (prompt) => _generateFromAi(context, prompt),
-                    ),
+                    // AI prompt — only shown when creating, no fold needed
+                    if (!isEditing)
+                      AiPromptWidget(
+                        title: context.l10n.aiGeneratorTitle,
+                        hintText: context.l10n.aiGeneratorHint,
+                        isLoading: _isGenerating,
+                        onGenerate: (prompt) =>
+                            _generateFromAi(context, prompt),
+                      ),
 
-                    VSpace.x4,
-
-                    // Basic Info Section (Now includes detailed theme editor)
-                    const TemplateBasicInfoEditor(),
-
-                    VSpace.x3,
-
-                    // Fields Section Header - title font, bigger, black
-                    QuanityaRow(
-                      alignment: CrossAxisAlignment.center,
-                      start: Text(
-                        context.l10n.templateFieldsSection,
+                    // Identity fold — always expanded
+                    NotebookFold(
+                      initiallyExpanded: true,
+                      header: Text(
+                        context.l10n.templateNameLabel,
                         style: context.text.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
                           color: context.colors.textPrimary,
                         ),
                       ),
-                      end: Text(
-                        context.l10n.fieldsCount(state.fields.length),
-                        style: context.text.bodyMedium?.copyWith(
-                          color: context.colors.textSecondary,
-                        ),
+                      child: QuanityaColumn(
+                        crossAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const TemplateIconEditor(),
+                          VSpace.x3,
+                          const TemplateBasicInfoEditor(),
+                        ],
                       ),
                     ),
 
-                    // Fields List
-                    const FieldEditorList(),
-
-                    VSpace.x3,
-
-                    // Add Field List (New Design)
-                    _buildAddFieldList(context),
-
-                    VSpace.x4,
-                    
-                    // Schedule/Reminder Section
-                    ScheduleSection(
-                      frequency: state.scheduleFrequency,
-                      reminderTime: state.scheduleTime,
-                      weeklyDays: state.scheduleWeeklyDays,
-                      onFrequencyChanged: (freq) => 
-                          context.read<TemplateEditorCubit>().updateScheduleFrequency(freq),
-                      onTimeChanged: (time) => 
-                          context.read<TemplateEditorCubit>().updateScheduleTime(time),
-                      onWeeklyDaysChanged: (days) => 
-                          context.read<TemplateEditorCubit>().updateScheduleWeeklyDays(days),
+                    // Fields fold — always expanded
+                    NotebookFold(
+                      initiallyExpanded: true,
+                      header: _buildFieldsHeader(context, state),
+                      child: QuanityaColumn(
+                        crossAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const FieldEditorList(),
+                          VSpace.x3,
+                          _buildAddFieldList(context),
+                        ],
+                      ),
                     ),
+
+                    // Aesthetics fold — collapsed by default (optional)
+                    NotebookFold(
+                      initiallyExpanded: false,
+                      header: Text(
+                        '${context.l10n.aestheticsSection} (${context.l10n.optionalLabel})',
+                        style: context.text.titleMedium?.copyWith(
+                          color: context.colors.textPrimary,
+                        ),
+                      ),
+                      child: QuanityaColumn(
+                        crossAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const ColorPaletteEditor(),
+                          VSpace.x3,
+                          const TypographyEditor(),
+                          VSpace.x3,
+                          const ContainerStyleEditor(),
+                        ],
+                      ),
+                    ),
+
+                    // Schedule fold — collapsed by default (optional)
+                    NotebookFold(
+                      initiallyExpanded: false,
+                      header: Text(
+                        '${context.l10n.scheduleTitle} (${context.l10n.optionalLabel})',
+                        style: context.text.titleMedium?.copyWith(
+                          color: context.colors.textPrimary,
+                        ),
+                      ),
+                      child: ScheduleSection(
+                        frequency: state.scheduleFrequency,
+                        reminderTime: state.scheduleTime,
+                        weeklyDays: state.scheduleWeeklyDays,
+                        onFrequencyChanged: (freq) => context
+                            .read<TemplateEditorCubit>()
+                            .updateScheduleFrequency(freq),
+                        onTimeChanged: (time) => context
+                            .read<TemplateEditorCubit>()
+                            .updateScheduleTime(time),
+                        onWeeklyDaysChanged: (days) => context
+                            .read<TemplateEditorCubit>()
+                            .updateScheduleWeeklyDays(days),
+                      ),
+                    ),
+
+                    // Privacy toggle
+                    if (isEditing)
+                      _buildPrivateToggle(context, state),
 
                     // Extra space at bottom so content isn't hidden behind sticky bar
                     VSpace.x4,
@@ -131,7 +172,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                 ),
               ),
             ),
-            
+
             // Sticky bottom action bar
             _buildStickyBottomBar(context, state),
           ],
@@ -140,7 +181,26 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     );
   }
 
-  Widget _buildStickyBottomBar(BuildContext context, TemplateEditorState state) {
+  Widget _buildFieldsHeader(BuildContext context, TemplateEditorState state) {
+    return QuanityaRow(
+      alignment: CrossAxisAlignment.center,
+      start: Text(
+        context.l10n.templateFieldsSection,
+        style: context.text.titleMedium?.copyWith(
+          color: context.colors.textPrimary,
+        ),
+      ),
+      end: Text(
+        context.l10n.fieldsCount(state.fields.length),
+        style: context.text.bodyMedium?.copyWith(
+          color: context.colors.textSecondary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStickyBottomBar(
+      BuildContext context, TemplateEditorState state) {
     final isEditing = state.template != null;
 
     return SafeArea(
@@ -193,42 +253,62 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
         final repo = GetIt.I<TemplateWithAestheticsRepository>();
         await repo.archive(templateId);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.l10n.templateDeleted)),
-          );
+          PostItToast.show(context,
+              message: context.l10n.templateDeleted,
+              type: PostItType.success);
           AppNavigation.back(context);
         }
       },
     );
   }
 
+  Widget _buildPrivateToggle(
+    BuildContext context,
+    TemplateEditorState state,
+  ) {
+    final isHidden = state.template?.isHidden ?? false;
+    return Padding(
+      padding: AppPadding.verticalSingle,
+      child: Row(
+        children: [
+          Icon(
+            isHidden ? Icons.lock : Icons.lock_open,
+            size: AppSizes.iconMedium,
+            color: context.colors.textSecondary,
+          ),
+          HSpace.x2,
+          Expanded(
+            child: Text(
+              context.l10n.templatePrivateLabel,
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.textPrimary,
+              ),
+            ),
+          ),
+          Switch.adaptive(
+            value: isHidden,
+            activeTrackColor: context.colors.interactableColor,
+            onChanged: (_) =>
+                context.read<TemplateEditorCubit>().toggleHidden(),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAddFieldList(BuildContext context) {
-    // If adding a field, show inline editor instead of options
-    if (_addingFieldType != null) {
-      return InlineFieldEditor(
-        fieldType: _addingFieldType!,
-        onSave: (field) {
-          context.read<TemplateEditorCubit>().addFieldFromTemplate(field);
-          setState(() => _addingFieldType = null);
-        },
-        onCancel: () => setState(() => _addingFieldType = null),
-      );
-    }
-    
+    final types = FieldEnum.values;
     return QuanityaGroup(
       child: Column(
         children: [
-          _buildAddFieldOption(context, context.l10n.fieldNumber, Icons.numbers, FieldEnum.integer),
-          Divider(height: 1, color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(context, context.l10n.fieldText, Icons.text_fields, FieldEnum.text),
-          Divider(height: 1, color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(context, context.l10n.fieldToggle, Icons.toggle_on, FieldEnum.boolean),
-          Divider(height: 1, color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(context, context.l10n.fieldDate, Icons.calendar_today, FieldEnum.datetime),
-          Divider(height: 1, color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(context, context.l10n.fieldChoice, Icons.list, FieldEnum.enumerated),
-          Divider(height: 1, color: context.colors.textSecondary.withValues(alpha: 0.1)),
-          _buildAddFieldOption(context, context.l10n.fieldFloat, Icons.numbers, FieldEnum.float),
+          for (int i = 0; i < types.length; i++) ...[
+            if (i > 0)
+              Divider(
+                  height: 1,
+                  color: context.colors.textSecondary.withValues(alpha: 0.1)),
+            _buildAddFieldOption(
+                context, types[i].displayName, types[i].icon, types[i]),
+          ],
         ],
       ),
     );
@@ -240,21 +320,45 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     IconData icon,
     FieldEnum type,
   ) {
-    return InkWell(
-      onTap: () => setState(() => _addingFieldType = type),
-      child: Padding(
-        padding: EdgeInsets.all(AppSizes.space * 2),
-        child: QuanityaRow(
-          spacing: HSpace.x2,
-          alignment: CrossAxisAlignment.center,
-          start: Icon(icon, size: AppSizes.size20, color: context.colors.textSecondary),
-          middle: Text(
-            label,
-            style: context.text.bodyMedium?.copyWith(
-              color: context.colors.textSecondary,
+    return Semantics(
+      button: true,
+      label: 'Add $label field',
+      child: InkWell(
+        onTap: () => _showFieldEditorSheet(context, type),
+        child: Padding(
+          padding: EdgeInsets.all(AppSizes.space * 2),
+          child: QuanityaRow(
+            spacing: HSpace.x2,
+            alignment: CrossAxisAlignment.center,
+            start: Icon(icon,
+                size: AppSizes.size20, color: context.colors.textSecondary),
+            middle: Text(
+              label,
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.textSecondary,
+              ),
             ),
+            end: Icon(Icons.add,
+                size: AppSizes.size20, color: context.colors.interactableColor),
           ),
-          end: Icon(Icons.add, size: AppSizes.size20, color: context.colors.interactableColor),
+        ),
+      ),
+    );
+  }
+
+  void _showFieldEditorSheet(BuildContext context, FieldEnum type) {
+    final editorCubit = context.read<TemplateEditorCubit>();
+    LooseInsertSheet.show(
+      context: context,
+      title: context.l10n.addFieldTitle,
+      builder: (sheetContext) => SingleChildScrollView(
+        child: InlineFieldEditor(
+          fieldType: type,
+          onSave: (field) {
+            editorCubit.addFieldFromTemplate(field);
+            Navigator.pop(sheetContext);
+          },
+          onCancel: () => Navigator.pop(sheetContext),
         ),
       ),
     );
@@ -263,33 +367,17 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   Future<void> _generateFromAi(BuildContext context, String prompt) async {
     if (prompt.isEmpty || _isGenerating) return;
 
-    // Capture cubit before any async operations
     final editorCubit = context.read<TemplateEditorCubit>();
-    
-    // Get API key from repository
-    final apiKeyRepo = GetIt.I<ApiKeyRepository>();
-    final apiKeys = await apiKeyRepo.getAll();
-    
-    // Look for an OpenRouter key (by name containing "openrouter" case-insensitive)
-    final openRouterKey = apiKeys.where(
-      (k) => k.name.toLowerCase().contains('openrouter'),
-    ).firstOrNull;
-    
-    if (openRouterKey == null) {
-      // Show dialog to add API key
+    final useCloudProxy =
+        context.read<AppOperatingCubit>().state.mode == AppOperatingMode.cloud;
+
+    final llmCubit = GetIt.I<LlmProviderCubit>();
+    final config = await llmCubit.buildLlmConfig(useCloudProxy: useCloudProxy);
+    if (config == null) {
       if (context.mounted) {
-        await _showAddApiKeyDialog(context);
-      }
-      return;
-    }
-    
-    // Get the actual key value
-    final keyValue = await apiKeyRepo.getKeyValue(openRouterKey.id);
-    if (keyValue == null || keyValue.isEmpty) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.aiApiKeyNotFound)),
-        );
+        PostItToast.show(context,
+            message: context.l10n.llmProviderConfigureLlm,
+            type: PostItType.warning);
       }
       return;
     }
@@ -297,18 +385,9 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     setState(() => _isGenerating = true);
 
     try {
-      // Get the generator cubit and generate
       final generatorCubit = GetIt.I<TemplateGeneratorCubit>();
-      
-      final config = LlmConfig.openRouter(
-        apiKey: keyValue,
-        model: 'openai/gpt-4o-mini',
-        useCloudProxy: context.read<AppOperatingCubit>().state.mode == AppOperatingMode.cloud,
-      );
-      
       await generatorCubit.generate(prompt, config);
-      
-      // If generation succeeded, load the preview into the editor
+
       final preview = generatorCubit.state.preview;
       if (preview != null && mounted) {
         editorCubit.loadTemplate(preview);
@@ -319,81 +398,5 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
       }
     }
   }
-
-  Future<void> _showAddApiKeyDialog(BuildContext context) async {
-    final nameController = TextEditingController(text: 'OpenRouter');
-    final keyController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    final result = await LooseInsertSheet.show<bool>(
-      context: context,
-      title: context.l10n.aiAddApiKeyTitle,
-      builder: (sheetContext) => Form(
-        key: formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              context.l10n.aiAddApiKeyDescription,
-              style: context.text.bodyMedium?.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
-            VSpace.x3,
-            QuanityaTextFormField(
-              controller: nameController,
-              labelText: context.l10n.aiApiKeyNameLabel,
-              hintText: context.l10n.aiApiKeyNameDefault,
-            ),
-            VSpace.x2,
-            QuanityaTextFormField(
-              controller: keyController,
-              labelText: context.l10n.aiApiKeyLabel,
-              hintText: context.l10n.aiApiKeyHint,
-              obscureText: true,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return context.l10n.aiApiKeyRequired;
-                }
-                return null;
-              },
-            ),
-            VSpace.x3,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                QuanityaTextButton(
-                  text: context.l10n.actionCancel,
-                  onPressed: () => Navigator.of(sheetContext).pop(false),
-                ),
-                QuanityaTextButton(
-                  text: context.l10n.actionSave,
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      Navigator.of(sheetContext).pop(true);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (result == true && context.mounted) {
-      final apiKeyRepo = GetIt.I<ApiKeyRepository>();
-      await apiKeyRepo.create(
-        name: nameController.text,
-        authType: AuthType.bearer,
-        keyValue: keyController.text,
-      );
-
-      // Retry generation would happen here, but we avoid context usage after async gap
-      // User can manually retry if needed
-    }
-
-    nameController.dispose();
-    keyController.dispose();
-  }
 }
+

@@ -281,17 +281,17 @@ class ScheduleProcessor
   }
 }
 
-/// AnalysisPipeline processor - type-safe pairing
-class AnalysisPipelineProcessor
+/// AnalysisScript processor - type-safe pairing
+class AnalysisScriptProcessor
     extends
-        EncryptedTableProcessor<AnalysisPipeline, EncryptedAnalysisPipeline> {
-  AnalysisPipelineProcessor({required super.db, required super.encryption})
-    : super(tables: TablePairs.analysisPipeline(db));
+        EncryptedTableProcessor<AnalysisScript, EncryptedAnalysisScript> {
+  AnalysisScriptProcessor({required super.db, required super.encryption})
+    : super(tables: TablePairs.analysisScript(db));
 
   @override
-  AnalysisPipeline jsonToEntity(Map<String, dynamic> json) {
+  AnalysisScript jsonToEntity(Map<String, dynamic> json) {
     // Convert decrypted JSON to Drift Entity (Script-Based)
-    return AnalysisPipeline(
+    return AnalysisScript(
       id: json['id'] as String,
       name: json['name'] as String,
       fieldId: json['fieldId'] as String,
@@ -305,8 +305,8 @@ class AnalysisPipelineProcessor
   }
 
   @override
-  Insertable<AnalysisPipeline> entityToInsertable(AnalysisPipeline entity) {
-    return AnalysisPipelinesCompanion(
+  Insertable<AnalysisScript> entityToInsertable(AnalysisScript entity) {
+    return AnalysisScriptsCompanion(
       id: Value(entity.id),
       name: Value(entity.name),
       fieldId: Value(entity.fieldId),
@@ -320,15 +320,15 @@ class AnalysisPipelineProcessor
   }
 
   @override
-  String getEntityId(AnalysisPipeline entity) => entity.id;
+  String getEntityId(AnalysisScript entity) => entity.id;
 
   @override
-  DateTime getEntityUpdatedAt(AnalysisPipeline entity) => entity.updatedAt;
+  DateTime getEntityUpdatedAt(AnalysisScript entity) => entity.updatedAt;
 
   @override
-  Future<AnalysisPipeline?> findLocalById(String id) async {
+  Future<AnalysisScript?> findLocalById(String id) async {
     return await (db.select(
-      db.analysisPipelines,
+      db.analysisScripts,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
   }
 }
@@ -370,12 +370,12 @@ class E2EEPuller implements IE2EEPuller {
   late final TrackerTemplateProcessor _templateProcessor;
   late final LogEntryProcessor _entryProcessor;
   late final ScheduleProcessor _scheduleProcessor;
-  late final AnalysisPipelineProcessor _pipelineProcessor;
+  late final AnalysisScriptProcessor _pipelineProcessor;
 
   StreamSubscription<List<EncryptedTemplate>>? _templateSubscription;
   StreamSubscription<List<EncryptedEntry>>? _entrySubscription;
   StreamSubscription<List<EncryptedSchedule>>? _scheduleSubscription;
-  StreamSubscription<List<EncryptedAnalysisPipeline>>? _pipelineSubscription;
+  StreamSubscription<List<EncryptedAnalysisScript>>? _pipelineSubscription;
   bool _isListening = false;
   DateTime? _lastSyncTime;
 
@@ -387,7 +387,7 @@ class E2EEPuller implements IE2EEPuller {
     );
     _entryProcessor = LogEntryProcessor(db: _db, encryption: _encryption);
     _scheduleProcessor = ScheduleProcessor(db: _db, encryption: _encryption);
-    _pipelineProcessor = AnalysisPipelineProcessor(
+    _pipelineProcessor = AnalysisScriptProcessor(
       db: _db,
       encryption: _encryption,
     );
@@ -437,11 +437,11 @@ class E2EEPuller implements IE2EEPuller {
     });
 
     _pipelineSubscription = _db
-        .select(_db.encryptedAnalysisPipelines)
+        .select(_db.encryptedAnalysisScripts)
         .watch()
         .listen((pipelines) async {
           debugPrint(
-            'E2EEPuller: Received ${pipelines.length} encrypted pipelines',
+            'E2EEPuller: Received ${pipelines.length} encrypted scripts',
           );
           await _pipelineProcessor.processEncryptedRecords(pipelines);
           _lastSyncTime = DateTime.now();
@@ -483,7 +483,7 @@ class E2EEPuller implements IE2EEPuller {
         .get()
         .then((list) => list.length);
     final pipelineCount = await _db
-        .select(_db.encryptedAnalysisPipelines)
+        .select(_db.encryptedAnalysisScripts)
         .get()
         .then((list) => list.length);
 

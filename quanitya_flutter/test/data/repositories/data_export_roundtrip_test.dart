@@ -34,7 +34,7 @@ void main() {
       expect(names, contains('log_entries'));
       expect(names, contains('schedules'));
       expect(names, contains('template_aesthetics'));
-      expect(names, contains('analysis_pipelines'));
+      expect(names, contains('analysis_scripts'));
       expect(names, contains('api_keys'));
       expect(names, contains('webhooks'));
       expect(names, contains('notifications'));
@@ -348,7 +348,7 @@ void main() {
       final jsonString = jsonEncode(exportData);
       final reimported = jsonDecode(jsonString) as Map<String, dynamic>;
 
-      expect(reimported['schemaVersion'], equals(4));
+      expect(reimported['schemaVersion'], equals(5));
       expect(reimported['format'], equals('raw_tables'));
       expect(reimported['exportedAt'], isA<String>());
     });

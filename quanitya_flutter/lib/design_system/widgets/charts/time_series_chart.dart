@@ -23,18 +23,23 @@ class TimeSeriesChart extends StatelessWidget {
   /// Height of the chart.
   final double height;
 
+  /// Optional accessibility summary for screen readers.
+  /// When provided, wraps the chart in a [Semantics] label.
+  final String? semanticSummary;
+
   const TimeSeriesChart({
     super.key,
     required this.data,
-    this.valueLabel = 'Value',
+    required this.valueLabel,
     this.lineColor,
     this.height = 200,
+    this.semanticSummary,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = lineColor ?? QuanityaPalette.primary.primaryColor;
-    
+    final color = lineColor ?? QuanityaPalette.category10[0];
+
     if (data.isEmpty) {
       return SizedBox(
         height: height,
@@ -46,14 +51,14 @@ class TimeSeriesChart extends StatelessWidget {
     final values = data.map((d) => d['value'] as num).toList();
     final minValue = values.reduce(math.min);
     final maxValue = values.reduce(math.max);
-    
+
     // Add small padding to range (5%)
     final range = maxValue - minValue;
     final padding = range == 0 ? 1.0 : range * 0.05;
     final yMin = minValue - padding;
     final yMax = maxValue + padding;
 
-    return SizedBox(
+    final chart = SizedBox(
       height: height,
       child: Chart(
         data: data,
@@ -102,6 +107,12 @@ class TimeSeriesChart extends StatelessWidget {
         ),
         crosshair: CrosshairGuide(followPointer: [false, true]),
       ),
+    );
+
+    final defaultLabel = 'Line chart: $valueLabel';
+    return Semantics(
+      label: semanticSummary ?? defaultLabel,
+      child: ExcludeSemantics(child: chart),
     );
   }
   

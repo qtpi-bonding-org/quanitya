@@ -77,44 +77,73 @@ class InAppPurchaseProvider implements IPurchaseProvider {
   /// Fetch active product IDs from the server, or return cached values.
   ///
   /// Uses the HashCash-protected productCatalog endpoint (no IP tracking).
-  /// Maps the client-side [rail] to the server's PaymentRail name
-  /// and queries the rail_product table for active entries.
+  /// Calls getCatalog with the platform name, then extracts product IDs
+  /// for this provider's rail from the response.
   Future<Set<String>> _getProductIds() async {
-    if (_cachedProductIds != null) return _cachedProductIds!;
+    final cached = _cachedProductIds;
+    if (cached != null) return cached;
 
-    final railName = switch (rail) {
-      PurchaseRail.appleIap => 'apple_iap',
-      PurchaseRail.googleIap => 'google_iap',
-      _ => 'apple_iap',
-    };
+    try {
+      final platformName = _getPlatformName();
 
-    // 1. Get challenge from server
-    final challengeResponse = await _client.productCatalog.getChallenge();
-    final challenge = challengeResponse['challenge'] as String;
-    final difficulty = challengeResponse['difficulty'] as int;
+      // 1. Get challenge from server
+      final challengeResponse = await _client.productCatalog.getChallenge();
+      final challenge = challengeResponse.challenge;
+      final difficulty = challengeResponse.difficulty;
 
-    // 2. Mine proof-of-work
-    final proofOfWork = await Hashcash.mint(challenge, difficulty: difficulty);
+      // 2. Mine proof-of-work
+      final proofOfWork = await Hashcash.mint(challenge, difficulty: difficulty);
 
-    // 3. Sign payload with device key
-    final publicKeyHex =
-        await _keyRepository.getDeviceSigningPublicKeyHex();
-    if (publicKeyHex == null) {
-      throw const PurchaseException('Device key not found');
+      // 3. Sign payload with device key
+      final publicKeyHex =
+          await _keyRepository.getDeviceSigningPublicKeyHex();
+      if (publicKeyHex == null) {
+        throw const PurchaseException('Device key not found');
+      }
+      final payload = '$challenge:$platformName';
+      final signature = await _encryption.signWithDeviceKey(payload);
+
+      // 4. Call platform catalog endpoint
+      final catalog = await _client.productCatalog.getCatalog(
+        challenge,
+        proofOfWork,
+        publicKeyHex,
+        signature,
+        platformName,
+      );
+
+      // 5. Extract product IDs for this provider's rail
+      final railName = switch (rail) {
+        PurchaseRail.appleIap => 'apple_iap',
+        PurchaseRail.googleIap => 'google_iap',
+        PurchaseRail.monero => 'monero',
+        PurchaseRail.x402Http => 'x402_http',
+      };
+
+      final matchingRail = catalog.rails
+          .where((r) => r.rail == railName && r.status == RailStatus.active)
+          .firstOrNull;
+
+      final ids = matchingRail?.productIds.toSet() ?? <String>{};
+      _cachedProductIds = ids;
+      return ids;
+    } on ServerException catch (e) {
+      throw PurchaseException('Product catalog: ${e.message}');
+    } on PurchaseException {
+      rethrow;
+    } catch (e) {
+      throw PurchaseException('Failed to fetch product catalog: $e');
     }
-    final payload = '$challenge:$railName';
-    final signature = await _encryption.signWithDeviceKey(payload);
+  }
 
-    // 4. Call protected endpoint
-    final ids = await _client.productCatalog.getActiveStoreProductIds(
-      challenge,
-      proofOfWork,
-      publicKeyHex,
-      signature,
-      railName,
-    );
-    _cachedProductIds = ids.toSet();
-    return _cachedProductIds!;
+  /// Get platform name for the catalog endpoint.
+  String _getPlatformName() {
+    if (Platform.isIOS) return 'ios';
+    if (Platform.isAndroid) return 'android';
+    if (Platform.isMacOS) return 'macos';
+    if (Platform.isWindows) return 'windows';
+    if (Platform.isLinux) return 'linux';
+    return 'unknown';
   }
 
   @override
@@ -138,6 +167,8 @@ class InAppPurchaseProvider implements IPurchaseProvider {
             priceUsd: detail.rawPrice,
             rail: rail,
             productType: _detectProductType(detail),
+            subscriptionPeriod: _detectSubscriptionPeriod(detail) ??
+                _periodFromProductId(detail.id),
             localizedPrice: detail.price,
             currencyCode: detail.currencyCode,
           );
@@ -321,6 +352,48 @@ class InAppPurchaseProvider implements IPurchaseProvider {
       debugPrint('InAppPurchaseProvider: Failed to detect product type: $e');
     }
     return StoreProductType.unknown;
+  }
+
+  /// Detect subscription billing period from platform-specific metadata.
+  SubscriptionPeriod? _detectSubscriptionPeriod(iap.ProductDetails detail) {
+    try {
+      if (Platform.isIOS || Platform.isMacOS) {
+        if (detail is AppStoreProduct2Details) {
+          final period = detail.sk2Product.subscription?.subscriptionPeriod;
+          if (period == null) return null;
+          return switch (period.unit) {
+            SK2SubscriptionPeriodUnit.month => SubscriptionPeriod.monthly,
+            SK2SubscriptionPeriodUnit.year => SubscriptionPeriod.yearly,
+            _ => null,
+          };
+        }
+      } else if (Platform.isAndroid) {
+        if (detail is GooglePlayProductDetails) {
+          final offers = detail.productDetails.subscriptionOfferDetails;
+          if (offers != null && offers.isNotEmpty) {
+            final phases = offers.first.pricingPhases;
+            if (phases.isNotEmpty) {
+              final billingPeriod = phases.first.billingPeriod;
+              if (billingPeriod.contains('Y')) return SubscriptionPeriod.yearly;
+              if (billingPeriod.contains('M')) return SubscriptionPeriod.monthly;
+              return null;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('InAppPurchaseProvider: Failed to detect subscription period: $e');
+    }
+    return null;
+  }
+
+  /// Fallback: parse period from product ID naming convention.
+  /// Schema: q_{date}_{category}_{tier}_{period}
+  /// e.g. q_20260308_sync_500mb_month → monthly
+  static SubscriptionPeriod? _periodFromProductId(String productId) {
+    if (productId.endsWith('_month')) return SubscriptionPeriod.monthly;
+    if (productId.endsWith('_year')) return SubscriptionPeriod.yearly;
+    return null;
   }
 
   void _handlePurchaseUpdates(List<iap.PurchaseDetails> purchaseDetailsList) {

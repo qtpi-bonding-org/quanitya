@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
-import 'package:quanitya_flutter/logic/analytics/models/analysis_pipeline.dart';
+import 'package:quanitya_flutter/logic/analytics/models/analysis_script.dart';
 import 'package:quanitya_flutter/logic/analytics/models/analysis_output.dart';
 import 'package:quanitya_flutter/logic/analytics/enums/analysis_output_mode.dart';
 import 'package:quanitya_flutter/logic/analytics/models/analysis_enums.dart';
@@ -366,11 +366,11 @@ void main() {
       });
     });
 
-    group('Pipeline Configuration', () {
-      test('creates valid scalar pipeline', () {
+    group('Script Configuration', () {
+      test('creates valid scalar script', () {
         // Arrange
-        final pipeline = AnalysisPipelineModel(
-          id: 'test-pipeline-1',
+        final script = AnalysisScriptModel(
+          id: 'test-script-1',
           name: 'Mood Average',
           fieldId: 'mood-template:mood_score',
           outputMode: AnalysisOutputMode.scalar,
@@ -380,16 +380,16 @@ void main() {
         );
 
         // Assert
-        expect(pipeline.id, equals('test-pipeline-1'));
-        expect(pipeline.name, equals('Mood Average'));
-        expect(pipeline.outputMode, equals(AnalysisOutputMode.scalar));
-        expect(pipeline.snippetLanguage, equals(AnalysisSnippetLanguage.js));
+        expect(script.id, equals('test-script-1'));
+        expect(script.name, equals('Mood Average'));
+        expect(script.outputMode, equals(AnalysisOutputMode.scalar));
+        expect(script.snippetLanguage, equals(AnalysisSnippetLanguage.js));
       });
 
-      test('creates valid vector pipeline', () {
+      test('creates valid vector script', () {
         // Arrange
-        final pipeline = AnalysisPipelineModel(
-          id: 'test-pipeline-2',
+        final script = AnalysisScriptModel(
+          id: 'test-script-2',
           name: 'Moving Average',
           fieldId: 'mood-template:mood_score',
           outputMode: AnalysisOutputMode.vector,
@@ -399,13 +399,13 @@ void main() {
         );
 
         // Assert
-        expect(pipeline.outputMode, equals(AnalysisOutputMode.vector));
+        expect(script.outputMode, equals(AnalysisOutputMode.vector));
       });
 
-      test('creates valid matrix pipeline', () {
+      test('creates valid matrix script', () {
         // Arrange
-        final pipeline = AnalysisPipelineModel(
-          id: 'test-pipeline-3',
+        final script = AnalysisScriptModel(
+          id: 'test-script-3',
           name: 'Time Series',
           fieldId: 'mood-template:mood_score',
           outputMode: AnalysisOutputMode.matrix,
@@ -415,7 +415,7 @@ void main() {
         );
 
         // Assert
-        expect(pipeline.outputMode, equals(AnalysisOutputMode.matrix));
+        expect(script.outputMode, equals(AnalysisOutputMode.matrix));
       });
 
       test('parses fieldId correctly', () {

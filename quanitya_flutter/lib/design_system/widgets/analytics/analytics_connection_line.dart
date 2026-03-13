@@ -23,13 +23,15 @@ class AnalyticsConnectionLine extends StatelessWidget {
   Widget build(BuildContext context) {
     // Standard 2-unit connection line
     final toRow = fromRow + 2;
-    
-    return ZenGridLine.vertical(
-      column: column,
-      fromRow: fromRow,
-      toRow: toRow,
-      color: QuanityaPalette.primary.textSecondary.withValues(alpha: 0.3),
-      label: MvsTypeBadge(type: type),
+
+    return ExcludeSemantics(
+      child: ZenGridLine.vertical(
+        column: column,
+        fromRow: fromRow,
+        toRow: toRow,
+        color: QuanityaPalette.primary.textSecondary.withValues(alpha: 0.3),
+        label: MvsTypeBadge(type: type),
+      ),
     );
   }
 }

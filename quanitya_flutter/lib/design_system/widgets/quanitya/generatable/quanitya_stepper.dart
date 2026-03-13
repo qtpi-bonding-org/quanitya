@@ -47,34 +47,45 @@ class QuanityaStepper extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Decrement button - zen style: just icon, no background
-        _ZenStepperButton(
-          icon: Icons.remove,
-          color: buttonColor,
-          enabled: canDecrement,
-          onTap: canDecrement ? () => onChanged?.call(value - step) : null,
+        Semantics(
+          button: true,
+          label: 'Decrease',
+          child: _ZenStepperButton(
+            icon: Icons.remove,
+            color: buttonColor,
+            enabled: canDecrement,
+            onTap: canDecrement ? () => onChanged?.call(value - step) : null,
+          ),
         ),
         HSpace.x3, // Generous spacing
         // Value display - prominent
-        ConstrainedBox(
-          constraints: BoxConstraints(minWidth: AppSizes.buttonHeight * 1.5),
-          child: Text(
-            _formatValue(value),
-            style: TextStyle(
-              fontFamily: QuanityaFonts.headerFamily,
-              color: valueColor,
-              fontSize: AppSizes.fontBig,
-              fontWeight: FontWeight.w600,
+        Semantics(
+          value: _formatValue(value),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: AppSizes.buttonHeight * 1.5),
+            child: Text(
+              _formatValue(value),
+              style: TextStyle(
+                fontFamily: QuanityaFonts.headerFamily,
+                color: valueColor,
+                fontSize: AppSizes.fontBig,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
         ),
         HSpace.x3,
         // Increment button
-        _ZenStepperButton(
-          icon: Icons.add,
-          color: buttonColor,
-          enabled: canIncrement,
-          onTap: canIncrement ? () => onChanged?.call(value + step) : null,
+        Semantics(
+          button: true,
+          label: 'Increase',
+          child: _ZenStepperButton(
+            icon: Icons.add,
+            color: buttonColor,
+            enabled: canIncrement,
+            onTap: canIncrement ? () => onChanged?.call(value + step) : null,
+          ),
         ),
       ],
     );

@@ -15,6 +15,9 @@ enum PurchaseStatus { success, pending, cancelled, failed, alreadyOwned }
 /// Product type as reported by the store.
 enum StoreProductType { consumable, subscription, unknown }
 
+/// Subscription billing period as reported by the store.
+enum SubscriptionPeriod { monthly, yearly }
+
 /// A product available for purchase.
 @freezed
 class PurchaseProduct with _$PurchaseProduct {
@@ -25,6 +28,7 @@ class PurchaseProduct with _$PurchaseProduct {
     required double priceUsd,
     required PurchaseRail rail,
     @Default(StoreProductType.unknown) StoreProductType productType,
+    SubscriptionPeriod? subscriptionPeriod,
     String? localizedPrice,
     String? currencyCode,
   }) = _PurchaseProduct;

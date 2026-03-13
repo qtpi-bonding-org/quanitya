@@ -7,7 +7,9 @@ import '../../../../support/extensions/context_extensions.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
 import '../cubits/history/log_entry_history_cubit.dart';
 import '../cubits/history/log_entry_history_state.dart';
+import '../../../data/dao/log_entry_query_dao.dart';
 import '../widgets/log_entry_list.dart';
+import '../widgets/log_entry_sheet.dart';
 
 class LoggedEntriesTemplatePage extends StatelessWidget {
   final String templateId;
@@ -51,6 +53,16 @@ class LogEntryHistoryView extends StatelessWidget {
                 entries: state.entries,
                 template: state.template?.template,
                 onRefresh: () => context.read<LogEntryHistoryCubit>().load(state.template?.template.id ?? ''),
+                onEntryTap: state.template != null
+                    ? (entry) => LogEntrySheet.showView(
+                          context: context,
+                          entryWithContext: LogEntryWithContext(
+                            entry: entry,
+                            template: state.template!.template,
+                            aesthetics: state.template!.aesthetics,
+                          ),
+                        )
+                    : null,
             );
           },
         ),

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya/generatable/quanitya_dropdown.dart';
+import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../infrastructure/webhooks/models/webhook_model.dart';
 import '../../../logic/templates/models/shared/tracker_template.dart';
@@ -65,7 +66,7 @@ class _WebhookSheetState extends State<WebhookSheet> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.webhook?.name ?? '');
-    _urlController = TextEditingController(text: widget.webhook?.url ?? '');
+    _urlController = TextEditingController(text: widget.webhook?.url ?? 'https://');
     _selectedTemplateId = widget.webhook?.templateId;
     _selectedApiKeyId = widget.webhook?.apiKeyId;
     _isEnabled = widget.webhook?.isEnabled ?? true;
@@ -129,15 +130,9 @@ class _WebhookSheetState extends State<WebhookSheet> {
                   ),
                 ),
                 VSpace.x1,
-                DropdownButtonFormField<String>(
+                QuanityaDropdown<String>(
                   value: _selectedTemplateId,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                    ),
-                    contentPadding: AppPadding.allSingle,
-                  ),
-                  hint: Text(context.l10n.webhookSelectTemplate),
+                  hintText: context.l10n.webhookSelectTemplate,
                   items: widget.templates.map((t) => DropdownMenuItem(
                     value: t.id,
                     child: Text(t.name),
@@ -169,15 +164,18 @@ class _WebhookSheetState extends State<WebhookSheet> {
                         .where((k) => !usedKeyIds.contains(k.id) || k.id == _selectedApiKeyId)
                         .toList();
 
-                    return DropdownButtonFormField<String>(
-                      value: _selectedApiKeyId,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+                    if (availableKeys.isEmpty && _selectedApiKeyId == null) {
+                      return Text(
+                        context.l10n.webhookNoApiKeys,
+                        style: context.text.bodyMedium?.copyWith(
+                          color: context.colors.textSecondary,
                         ),
-                        contentPadding: AppPadding.allSingle,
-                      ),
-                      hint: Text(context.l10n.webhookSelectApiKey),
+                      );
+                    }
+
+                    return QuanityaDropdown<String>(
+                      value: _selectedApiKeyId,
+                      hintText: context.l10n.webhookSelectApiKey,
                       items: availableKeys.map((k) => DropdownMenuItem(
                         value: k.id,
                         child: Text(k.name),
@@ -200,10 +198,9 @@ class _WebhookSheetState extends State<WebhookSheet> {
                       style: context.text.bodyMedium,
                     ),
                     const Spacer(),
-                    Switch(
+                    QuanityaToggle(
                       value: _isEnabled,
                       onChanged: (value) => setState(() => _isEnabled = value),
-                      activeTrackColor: context.colors.successColor,
                     ),
                   ],
                 ),

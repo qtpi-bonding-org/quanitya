@@ -25,7 +25,7 @@ class LogEntryItem extends StatelessWidget {
     final date = entry.displayTimestamp;
     final now = DateTime.now();
     final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
-    final timeStr = "${isToday ? 'Today' : '${date.month}/${date.day}'}, ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
+    final timeStr = "${isToday ? context.l10n.logEntryToday : '${date.month}/${date.day}'}, ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
 
     final headerRow = Text(
       timeStr,
@@ -75,7 +75,7 @@ class LogEntryItem extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.only(left: AppSizes.space),
                     child: Text(
-                      "... +${keys.length - 2} more",
+                      context.l10n.logEntryMoreFields(keys.length - 2),
                       style: context.text.labelMedium,
                     ),
                   ),
@@ -121,7 +121,7 @@ class LogEntryItem extends StatelessWidget {
             alignment: CrossAxisAlignment.start,
             start: Text(
               "$label:",
-              style: context.text.bodyLarge!.copyWith(color: context.colors.textSecondary),
+              style: context.text.bodyLarge?.copyWith(color: context.colors.textSecondary),
             ),
             middle: Text(
               value.toString(),

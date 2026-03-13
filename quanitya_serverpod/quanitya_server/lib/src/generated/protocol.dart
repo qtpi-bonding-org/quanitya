@@ -22,7 +22,7 @@ import 'archive_metadata.dart' as _i7;
 import 'archive_month_info.dart' as _i8;
 import 'archive_search_result.dart' as _i9;
 import 'archived_month.dart' as _i10;
-import 'encrypted_analysis_pipeline.dart' as _i11;
+import 'encrypted_analysis_script.dart' as _i11;
 import 'encrypted_entry.dart' as _i12;
 import 'encrypted_schedule.dart' as _i13;
 import 'encrypted_template.dart' as _i14;
@@ -33,23 +33,25 @@ import 'future_calls_generated_models/monthly_archival_future_call_run_monthly_a
 import 'greeting.dart' as _i17;
 import 'notification_inbox.dart' as _i18;
 import 'powersync_token.dart' as _i19;
-import 'template_aesthetics.dart' as _i20;
-import 'package:quanitya_server/src/generated/archived_month.dart' as _i21;
+import 'storage_usage_response.dart' as _i20;
+import 'template_aesthetics.dart' as _i21;
+import 'package:quanitya_server/src/generated/archived_month.dart' as _i22;
 import 'package:quanitya_server/src/generated/archive_search_result.dart'
-    as _i22;
+    as _i23;
 export 'account_storage_usage.dart';
 export 'archival_schedule_data.dart';
 export 'archive_metadata.dart';
 export 'archive_month_info.dart';
 export 'archive_search_result.dart';
 export 'archived_month.dart';
-export 'encrypted_analysis_pipeline.dart';
+export 'encrypted_analysis_script.dart';
 export 'encrypted_entry.dart';
 export 'encrypted_schedule.dart';
 export 'encrypted_template.dart';
 export 'greeting.dart';
 export 'notification_inbox.dart';
 export 'powersync_token.dart';
+export 'storage_usage_response.dart';
 export 'template_aesthetics.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
@@ -87,12 +89,6 @@ class Protocol extends _i1.SerializationManagerServer {
         ),
         _i2.ColumnDefinition(
           name: 'rowCount',
-          columnType: _i2.ColumnType.bigint,
-          isNullable: false,
-          dartType: 'int',
-        ),
-        _i2.ColumnDefinition(
-          name: 'bytesLimit',
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
@@ -181,8 +177,8 @@ class Protocol extends _i1.SerializationManagerServer {
       managed: true,
     ),
     _i2.TableDefinition(
-      name: 'encrypted_analysis_pipelines',
-      dartName: 'EncryptedAnalysisPipeline',
+      name: 'encrypted_analysis_scripts',
+      dartName: 'EncryptedAnalysisScript',
       schema: 'public',
       module: 'quanitya',
       columns: [
@@ -216,7 +212,7 @@ class Protocol extends _i1.SerializationManagerServer {
       foreignKeys: [],
       indexes: [
         _i2.IndexDefinition(
-          indexName: 'encrypted_analysis_pipelines_pkey',
+          indexName: 'encrypted_analysis_scripts_pkey',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
@@ -229,7 +225,7 @@ class Protocol extends _i1.SerializationManagerServer {
           isPrimary: true,
         ),
         _i2.IndexDefinition(
-          indexName: 'encrypted_analysis_pipeline_account_idx',
+          indexName: 'encrypted_analysis_script_account_idx',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
@@ -662,8 +658,8 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i10.ArchivedMonth) {
       return _i10.ArchivedMonth.fromJson(data) as T;
     }
-    if (t == _i11.EncryptedAnalysisPipeline) {
-      return _i11.EncryptedAnalysisPipeline.fromJson(data) as T;
+    if (t == _i11.EncryptedAnalysisScript) {
+      return _i11.EncryptedAnalysisScript.fromJson(data) as T;
     }
     if (t == _i12.EncryptedEntry) {
       return _i12.EncryptedEntry.fromJson(data) as T;
@@ -695,8 +691,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i19.PowerSyncToken) {
       return _i19.PowerSyncToken.fromJson(data) as T;
     }
-    if (t == _i20.TemplateAesthetics) {
-      return _i20.TemplateAesthetics.fromJson(data) as T;
+    if (t == _i20.StorageUsageResponse) {
+      return _i20.StorageUsageResponse.fromJson(data) as T;
+    }
+    if (t == _i21.TemplateAesthetics) {
+      return _i21.TemplateAesthetics.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.AccountStorageUsage?>()) {
       return (data != null ? _i5.AccountStorageUsage.fromJson(data) : null)
@@ -719,10 +718,8 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i10.ArchivedMonth?>()) {
       return (data != null ? _i10.ArchivedMonth.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i11.EncryptedAnalysisPipeline?>()) {
-      return (data != null
-              ? _i11.EncryptedAnalysisPipeline.fromJson(data)
-              : null)
+    if (t == _i1.getType<_i11.EncryptedAnalysisScript?>()) {
+      return (data != null ? _i11.EncryptedAnalysisScript.fromJson(data) : null)
           as T;
     }
     if (t == _i1.getType<_i12.EncryptedEntry?>()) {
@@ -761,8 +758,12 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i19.PowerSyncToken?>()) {
       return (data != null ? _i19.PowerSyncToken.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i20.TemplateAesthetics?>()) {
-      return (data != null ? _i20.TemplateAesthetics.fromJson(data) : null)
+    if (t == _i1.getType<_i20.StorageUsageResponse?>()) {
+      return (data != null ? _i20.StorageUsageResponse.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i21.TemplateAesthetics?>()) {
+      return (data != null ? _i21.TemplateAesthetics.fromJson(data) : null)
           as T;
     }
     if (t == List<_i8.ArchiveMonthInfo>) {
@@ -789,28 +790,22 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i11.EncryptedAnalysisPipeline>) {
+    if (t == List<_i11.EncryptedAnalysisScript>) {
       return (data as List)
-              .map((e) => deserialize<_i11.EncryptedAnalysisPipeline>(e))
+              .map((e) => deserialize<_i11.EncryptedAnalysisScript>(e))
               .toList()
           as T;
     }
-    if (t == List<_i21.ArchivedMonth>) {
+    if (t == List<_i22.ArchivedMonth>) {
       return (data as List)
-              .map((e) => deserialize<_i21.ArchivedMonth>(e))
+              .map((e) => deserialize<_i22.ArchivedMonth>(e))
               .toList()
           as T;
     }
-    if (t == List<_i22.ArchiveSearchResult>) {
+    if (t == List<_i23.ArchiveSearchResult>) {
       return (data as List)
-              .map((e) => deserialize<_i22.ArchiveSearchResult>(e))
+              .map((e) => deserialize<_i23.ArchiveSearchResult>(e))
               .toList()
-          as T;
-    }
-    if (t == Map<String, dynamic>) {
-      return (data as Map).map(
-            (k, v) => MapEntry(deserialize<String>(k), deserialize<dynamic>(v)),
-          )
           as T;
     }
     try {
@@ -833,7 +828,7 @@ class Protocol extends _i1.SerializationManagerServer {
       _i8.ArchiveMonthInfo => 'ArchiveMonthInfo',
       _i9.ArchiveSearchResult => 'ArchiveSearchResult',
       _i10.ArchivedMonth => 'ArchivedMonth',
-      _i11.EncryptedAnalysisPipeline => 'EncryptedAnalysisPipeline',
+      _i11.EncryptedAnalysisScript => 'EncryptedAnalysisScript',
       _i12.EncryptedEntry => 'EncryptedEntry',
       _i13.EncryptedSchedule => 'EncryptedSchedule',
       _i14.EncryptedTemplate => 'EncryptedTemplate',
@@ -844,7 +839,8 @@ class Protocol extends _i1.SerializationManagerServer {
       _i17.Greeting => 'Greeting',
       _i18.NotificationInbox => 'NotificationInbox',
       _i19.PowerSyncToken => 'PowerSyncToken',
-      _i20.TemplateAesthetics => 'TemplateAesthetics',
+      _i20.StorageUsageResponse => 'StorageUsageResponse',
+      _i21.TemplateAesthetics => 'TemplateAesthetics',
       _ => null,
     };
   }
@@ -871,8 +867,8 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'ArchiveSearchResult';
       case _i10.ArchivedMonth():
         return 'ArchivedMonth';
-      case _i11.EncryptedAnalysisPipeline():
-        return 'EncryptedAnalysisPipeline';
+      case _i11.EncryptedAnalysisScript():
+        return 'EncryptedAnalysisScript';
       case _i12.EncryptedEntry():
         return 'EncryptedEntry';
       case _i13.EncryptedSchedule():
@@ -889,7 +885,9 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'NotificationInbox';
       case _i19.PowerSyncToken():
         return 'PowerSyncToken';
-      case _i20.TemplateAesthetics():
+      case _i20.StorageUsageResponse():
+        return 'StorageUsageResponse';
+      case _i21.TemplateAesthetics():
         return 'TemplateAesthetics';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -931,8 +929,8 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'ArchivedMonth') {
       return deserialize<_i10.ArchivedMonth>(data['data']);
     }
-    if (dataClassName == 'EncryptedAnalysisPipeline') {
-      return deserialize<_i11.EncryptedAnalysisPipeline>(data['data']);
+    if (dataClassName == 'EncryptedAnalysisScript') {
+      return deserialize<_i11.EncryptedAnalysisScript>(data['data']);
     }
     if (dataClassName == 'EncryptedEntry') {
       return deserialize<_i12.EncryptedEntry>(data['data']);
@@ -962,8 +960,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'PowerSyncToken') {
       return deserialize<_i19.PowerSyncToken>(data['data']);
     }
+    if (dataClassName == 'StorageUsageResponse') {
+      return deserialize<_i20.StorageUsageResponse>(data['data']);
+    }
     if (dataClassName == 'TemplateAesthetics') {
-      return deserialize<_i20.TemplateAesthetics>(data['data']);
+      return deserialize<_i21.TemplateAesthetics>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -1005,8 +1006,8 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i5.AccountStorageUsage.t;
       case _i6.ArchivalScheduleData:
         return _i6.ArchivalScheduleData.t;
-      case _i11.EncryptedAnalysisPipeline:
-        return _i11.EncryptedAnalysisPipeline.t;
+      case _i11.EncryptedAnalysisScript:
+        return _i11.EncryptedAnalysisScript.t;
       case _i12.EncryptedEntry:
         return _i12.EncryptedEntry.t;
       case _i13.EncryptedSchedule:
@@ -1015,8 +1016,8 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i14.EncryptedTemplate.t;
       case _i18.NotificationInbox:
         return _i18.NotificationInbox.t;
-      case _i20.TemplateAesthetics:
-        return _i20.TemplateAesthetics.t;
+      case _i21.TemplateAesthetics:
+        return _i21.TemplateAesthetics.t;
     }
     return null;
   }

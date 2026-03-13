@@ -18,7 +18,6 @@ class TemplateListMessageMapper
         TemplateListOperation.instantLog => MessageKey.success(L10nKeys.logEntrySaved),
         TemplateListOperation.hide => MessageKey.success(L10nKeys.templateHidden),
         TemplateListOperation.unhide => MessageKey.success(L10nKeys.templateUnhidden),
-        TemplateListOperation.toggleHiddenView => null, // Silent toggle
       };
     }
     return null; // Use global exception mapping for errors

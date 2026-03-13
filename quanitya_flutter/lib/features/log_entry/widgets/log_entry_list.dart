@@ -11,12 +11,14 @@ class LogEntryList extends StatelessWidget {
   final List<LogEntryModel> entries;
   final TrackerTemplateModel? template;
   final Future<void> Function() onRefresh;
+  final void Function(LogEntryModel entry)? onEntryTap;
 
   const LogEntryList({
     super.key,
     required this.entries,
     required this.onRefresh,
     this.template,
+    this.onEntryTap,
   });
 
   @override
@@ -28,7 +30,7 @@ class LogEntryList extends StatelessWidget {
           children: [
             Icon(Icons.history, size: AppSizes.iconXLarge, color: context.colors.textSecondary.withValues(alpha: 0.3)),
             VSpace.x2,
-            Text(context.l10n.logEntryNoEntries, style: context.text.bodyLarge!.copyWith(color: context.colors.textSecondary)), // 16px
+            Text(context.l10n.logEntryNoEntries, style: context.text.bodyLarge?.copyWith(color: context.colors.textSecondary)), // 16px
           ],
         ),
       );
@@ -43,7 +45,15 @@ class LogEntryList extends StatelessWidget {
         separatorBuilder: (_, _) => VSpace.x3,
         itemBuilder: (context, index) {
           final entry = entries[index];
-          return LogEntryItem(entry: entry, template: template);
+          return Semantics(
+            button: onEntryTap != null,
+            label: 'View log entry',
+            child: GestureDetector(
+              onTap: onEntryTap != null ? () => onEntryTap!(entry) : null,
+              behavior: HitTestBehavior.opaque,
+              child: LogEntryItem(entry: entry, template: template),
+            ),
+          );
         },
       ),
     );

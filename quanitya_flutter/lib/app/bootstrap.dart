@@ -14,18 +14,18 @@ import '../data/repositories/e2ee_puller.dart';
 import '../data/sync/powersync_service.dart';
 import '../infrastructure/auth/auth_service.dart';
 import '../infrastructure/config/dev_config.dart';
+import '../infrastructure/platform/platform_capability_service.dart';
 import '../infrastructure/purchase/i_purchase_provider.dart';
 import '../infrastructure/purchase/i_purchase_service.dart';
+import '../infrastructure/purchase/purchase_models.dart';
 import '../infrastructure/error_reporting/error_reporter_service.dart';
-import '../infrastructure/error_reporting/quanitya_error_toast_builder.dart';
-import '../infrastructure/error_reporting/quanitya_error_box_page_builder.dart';
 import '../infrastructure/feedback/exception_mapper.dart';
 import '../infrastructure/fonts/font_preloader_service.dart';
 import '../infrastructure/notifications/notification_service.dart';
 import '../logic/schedules/services/schedule_generator_service.dart';
+import '../features/settings/services/tested_models_service.dart';
 import '../features/app_operating_mode/cubits/app_operating_cubit.dart';
 import '../features/app_operating_mode/models/app_operating_mode.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'bootstrap.config.dart';
 
 /// Global service locator instance
@@ -46,13 +46,7 @@ Future<void> bootstrap() async {
   debugPrint('Bootstrap: Starting...');
 
   try {
-    // 0. Load environment variables
-    debugPrint('Bootstrap: Loading .env...');
-    await dotenv.load(fileName: '.env').catchError((e) {
-      debugPrint('Bootstrap: Warning - Could not load .env file: $e');
-    });
-
-    // 0.5. Apply dev configuration (including logging settings)
+    // 0. Apply dev configuration (including logging settings)
     debugPrint('Bootstrap: Applying dev configuration...');
     DevConfig.applyLoggingConfig();
     debugPrint(
@@ -100,19 +94,34 @@ Future<void> bootstrap() async {
       debugPrint('Bootstrap: AuthService initialized');
     }
 
-    // 5.5. Initialize PurchaseService and recover pending purchases
-    if (getIt.isRegistered<IPurchaseService>() &&
-        getIt.isRegistered<IPurchaseProvider>()) {
+    // 5.5. Initialize PurchaseService — register providers for supported rails
+    if (getIt.isRegistered<IPurchaseService>()) {
       debugPrint('Bootstrap: Initializing PurchaseService...');
       final purchaseService = getIt<IPurchaseService>();
-      final provider = getIt<IPurchaseProvider>();
-      if (await provider.isAvailable()) {
-        await provider.initialize();
-        purchaseService.registerProvider(provider);
-        await purchaseService.recoverPendingPurchases();
-        debugPrint('Bootstrap: PurchaseService initialized');
+      final platformCaps = getIt<PlatformCapabilityService>();
+      final supportedRails = platformCaps.supportedPurchaseRails;
+      debugPrint('Bootstrap: Supported purchase rails: $supportedRails');
+
+      if (supportedRails.isNotEmpty &&
+          getIt.isRegistered<IPurchaseProvider>()) {
+        final provider = getIt<IPurchaseProvider>();
+        if (supportedRails.contains(provider.rail) &&
+            await provider.isAvailable()) {
+          await provider.initialize();
+          purchaseService.registerProvider(provider);
+          await purchaseService.recoverPendingPurchases();
+          debugPrint(
+            'Bootstrap: Registered ${provider.rail.name} purchase provider',
+          );
+        } else {
+          debugPrint(
+            'Bootstrap: Provider ${provider.rail.name} not in supported rails or unavailable',
+          );
+        }
       } else {
-        debugPrint('Bootstrap: IAP provider not available on this platform');
+        debugPrint(
+          'Bootstrap: No purchase providers to register for this platform',
+        );
       }
     }
 
@@ -177,6 +186,13 @@ Future<void> bootstrap() async {
       debugPrint('Bootstrap: Todo generation complete - $result');
     }
 
+    // 9.5. Sync tested LLM models (fails silently if offline)
+    if (getIt.isRegistered<TestedModelsService>()) {
+      debugPrint('Bootstrap: Syncing tested LLM models...');
+      await getIt<TestedModelsService>().syncOnStartup();
+      debugPrint('Bootstrap: Tested LLM models synced');
+    }
+
     // 10. Initialize router with correct initial location based on key status
     debugPrint('Bootstrap: Initializing router...');
     await AppRouter.initialize();
@@ -191,6 +207,13 @@ Future<void> bootstrap() async {
     if (getIt.isRegistered<AnalyticsService>() &&
         getIt.isRegistered<AppOperatingRepository>()) {
       _autoSendAnalytics();
+    }
+
+    // 13. Auto-send error reports if enabled (non-blocking)
+    if (getIt.isRegistered<ErrorReporterService>() &&
+        getIt.isRegistered<ErrorBoxRepository>() &&
+        getIt.isRegistered<AppOperatingRepository>()) {
+      _autoSendErrors();
     }
 
     debugPrint('Bootstrap: Complete');
@@ -249,17 +272,35 @@ void _autoSendAnalytics() {
   });
 }
 
+/// Auto-send error reports if the user has opted in.
+/// Runs in the background — never blocks startup.
+void _autoSendErrors() {
+  Future(() async {
+    try {
+      final settingsRepo = getIt<AppOperatingRepository>();
+      final autoSend = await settingsRepo.getErrorAutoSend();
+      if (!autoSend) return;
+
+      final repo = getIt<ErrorBoxRepository>();
+      final reporter = getIt<ErrorReporterService>();
+      final errors = await repo.getUnsentErrors();
+      if (errors.isEmpty) return;
+
+      debugPrint('Bootstrap: Auto-sending ${errors.length} error reports...');
+      final entries = errors.map((e) => e.errorData).toList();
+      final sent = await reporter.sendErrorReports(entries);
+      debugPrint('Bootstrap: Auto-sent $sent error reports');
+    } catch (e) {
+      debugPrint('Bootstrap: Error auto-send failed (non-critical): $e');
+    }
+  });
+}
+
 /// Configure ErrorPrivserver for privacy-preserving error reporting.
 ///
 /// Sets up the library to capture PII-free error data from all cubits
 /// and store it locally for user-controlled reporting to developers.
 void _configureErrorPrivserver() {
-  // Always register ErrorBoxPageCubit first (needed by Error Box UI)
-  if (!getIt.isRegistered<ErrorBoxPageCubit>()) {
-    getIt.registerFactory<ErrorBoxPageCubit>(() => ErrorBoxPageCubit());
-    debugPrint('ErrorPrivserver: Registered ErrorBoxPageCubit');
-  }
-
   // Configure ErrorPrivserver if dependencies are available
   if (getIt.isRegistered<ErrorReporterService>() &&
       getIt.isRegistered<cubit_ui_flow.IExceptionKeyMapper>() &&
@@ -270,13 +311,10 @@ void _configureErrorPrivserver() {
 
     ErrorPrivserver.configure(
       ErrorPrivserverConfig(
-        storage: errorBoxRepo, // Repository implements ErrorBoxStorage
+        storage: errorBoxRepo,
         reporter: (errorEntry) => errorReporter.sendErrorReport(errorEntry),
         errorCodeMapper: ErrorCodeMapper.mapError,
         exceptionMapper: (error) => exceptionMapper.map(error),
-        showToast: false, // Disabled - no BuildContext access in bootstrap
-        toastBuilder: const QuanityaErrorToastBuilder(),
-        pageBuilder: const QuanityaErrorBoxPageBuilder(),
       ),
     );
 

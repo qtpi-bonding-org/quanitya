@@ -25,6 +25,10 @@ class NotebookFold extends StatefulWidget {
   /// Optional override for the default rotating chevron icon.
   final Widget? trailing;
 
+  /// Optional semantic label for the tappable header area.
+  /// Screen readers announce this label along with the expanded/collapsed state.
+  final String? semanticLabel;
+
   const NotebookFold({
     super.key,
     required this.header,
@@ -32,6 +36,7 @@ class NotebookFold extends StatefulWidget {
     this.initiallyExpanded = false,
     this.onExpansionChanged,
     this.trailing,
+    this.semanticLabel,
   });
 
   @override
@@ -93,26 +98,36 @@ class _NotebookFoldState extends State<NotebookFold>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            InkWell(
-              onTap: _handleTap,
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: AppSizes.space,
-                  horizontal: AppSizes.space,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(child: widget.header),
-                    widget.trailing ??
-                        RotationTransition(
-                          turns: _iconTurns,
-                          child: Icon(
-                            Icons.expand_more,
-                            color: context.colors.textSecondary,
-                            size: AppSizes.iconMedium,
-                          ),
-                        ),
-                  ],
+            Semantics(
+              button: true,
+              label: widget.semanticLabel,
+              expanded: _isExpanded,
+              child: InkWell(
+                onTap: _handleTap,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: AppSizes.buttonHeight,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: AppSizes.space,
+                      horizontal: AppSizes.space,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(child: widget.header),
+                        widget.trailing ??
+                            RotationTransition(
+                              turns: _iconTurns,
+                              child: Icon(
+                                Icons.expand_more,
+                                color: context.colors.interactableColor,
+                                size: AppSizes.iconMedium,
+                              ),
+                            ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

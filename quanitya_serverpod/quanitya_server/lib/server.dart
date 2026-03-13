@@ -9,6 +9,9 @@ import 'src/generated/protocol.dart';
 import 'src/future_calls/monthly_archival_future_call.dart';
 import 'src/web/routes/root.dart';
 import 'src/middleware/request_logger.dart';
+import 'src/services/email_service.dart';
+
+export 'src/services/email_service.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
@@ -57,8 +60,11 @@ void _sendRegistrationCode(
   required String verificationCode,
   required Transaction? transaction,
 }) {
-  // NOTE: Here you call your mail service to send the verification code to
-  // the user. For testing, we will just log the verification code.
+  final smtp = EmailService.instance();
+  if (smtp != null) {
+    smtp.sendEmail(email, 'Quanitya — Verification Code', 'Your verification code is: $verificationCode');
+  }
+  // Always log so self-hosters without SMTP can still read the code.
   session.log('[EmailIdp] Registration code ($email): $verificationCode');
 }
 
@@ -69,8 +75,11 @@ void _sendPasswordResetCode(
   required String verificationCode,
   required Transaction? transaction,
 }) {
-  // NOTE: Here you call your mail service to send the verification code to
-  // the user. For testing, we will just log the verification code.
+  final smtp = EmailService.instance();
+  if (smtp != null) {
+    smtp.sendEmail(email, 'Quanitya — Password Reset', 'Your password reset code is: $verificationCode');
+  }
+  // Always log so self-hosters without SMTP can still read the code.
   session.log('[EmailIdp] Password reset code ($email): $verificationCode');
 }
 

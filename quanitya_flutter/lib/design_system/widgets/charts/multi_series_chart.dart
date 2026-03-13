@@ -29,10 +29,15 @@ class MultiSeriesChart extends StatelessWidget {
   final List<ChartSeries> series;
   final double height;
 
+  /// Optional accessibility summary for screen readers.
+  /// When provided, wraps the chart in a [Semantics] label.
+  final String? semanticSummary;
+
   const MultiSeriesChart({
     super.key,
     required this.series,
     this.height = 220,
+    this.semanticSummary,
   });
 
   @override
@@ -75,7 +80,7 @@ class MultiSeriesChart extends StatelessWidget {
       colorMap[s.label] = s.color;
     }
 
-    return Column(
+    final chart = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Legend
@@ -116,6 +121,7 @@ class MultiSeriesChart extends StatelessWidget {
             },
             marks: [
               LineMark(
+                position: Varset('date') * Varset('value') / Varset('series'),
                 shape: ShapeEncode(value: BasicLineShape(smooth: true)),
                 color: ColorEncode(
                   variable: 'series',
@@ -149,6 +155,12 @@ class MultiSeriesChart extends StatelessWidget {
           ),
         ),
       ],
+    );
+
+    final defaultLabel = 'Multi-series chart: ${series.map((s) => s.label).join(", ")}';
+    return Semantics(
+      label: semanticSummary ?? defaultLabel,
+      child: ExcludeSemantics(child: chart),
     );
   }
   

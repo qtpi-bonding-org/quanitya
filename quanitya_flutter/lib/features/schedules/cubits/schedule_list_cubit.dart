@@ -10,8 +10,10 @@ import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import 'schedule_list_state.dart';
 
 /// Cubit for managing the schedule list on the Future page.
-/// 
+///
 /// Watches all active schedules and enriches them with template context.
+/// Always loads all schedules (including hidden). UI filters visibility
+/// based on HiddenVisibilityCubit.
 @injectable
 class ScheduleListCubit extends QuanityaCubit<ScheduleListState> {
   final ScheduleRepository _scheduleRepository;

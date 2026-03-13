@@ -1,3 +1,6 @@
+import 'package:get_it/get_it.dart';
+
+import '../../../infrastructure/feedback/localization_service.dart';
 import '../../../logic/templates/enums/field_enum.dart';
 
 /// Chart types available for field visualization.
@@ -48,11 +51,12 @@ class FieldChartMapper {
 
   /// Returns a human-readable chart name.
   static String getChartName(ChartType type) {
+    final l10n = GetIt.I<AppLocalizationService>().l10n;
     return switch (type) {
-      ChartType.line => 'Trend',
-      ChartType.booleanHeatmap => 'Completion',
-      ChartType.categoricalScatter => 'Categories',
-      ChartType.none => 'N/A',
+      ChartType.line => l10n.chartNameTrend,
+      ChartType.booleanHeatmap => l10n.chartNameCompletion,
+      ChartType.categoricalScatter => l10n.chartNameCategories,
+      ChartType.none => l10n.chartNameNotApplicable,
     };
   }
 }

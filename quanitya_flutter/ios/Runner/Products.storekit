@@ -1,0 +1,197 @@
+{
+  "identifier" : "Products",
+  "nonRenewableSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "6745000001",
+      "localizations" : [
+        {
+          "description" : "20 LLM analysis calls",
+          "displayName" : "20 LLM Calls",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.example.test.llm_calls_20",
+      "referenceName" : "LLM Calls 20",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6745000000",
+    "_developerTeamID" : "DEVELOPMENT_TEAM",
+    "_failTransactionsEnabled" : false,
+    "_lastVerificationError" : "",
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "sync_storage",
+      "localizations" : [
+        {
+          "description" : "Cloud sync storage plans",
+          "displayName" : "Sync Storage",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "sync_storage",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "2.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6745000002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "500 MB cloud sync, billed monthly",
+              "displayName" : "Sync 500 MB Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.example.test.sync_500mb_month",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Sync 500MB Monthly",
+          "subscriptionGroupID" : "sync_storage",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6745000003",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "500 MB cloud sync, billed yearly",
+              "displayName" : "Sync 500 MB Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.example.test.sync_500mb_year",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Sync 500MB Yearly",
+          "subscriptionGroupID" : "sync_storage",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6745000004",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "1 GB cloud sync, billed monthly",
+              "displayName" : "Sync 1 GB Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.example.test.sync_1gb_month",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Sync 1GB Monthly",
+          "subscriptionGroupID" : "sync_storage",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "49.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6745000005",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "1 GB cloud sync, billed yearly",
+              "displayName" : "Sync 1 GB Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.example.test.sync_1gb_year",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Sync 1GB Yearly",
+          "subscriptionGroupID" : "sync_storage",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

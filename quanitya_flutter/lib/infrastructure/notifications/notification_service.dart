@@ -1,17 +1,56 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../core/try_operation.dart';
 import 'exceptions/notification_exception.dart';
+import 'notification_action_handler.dart';
+
+/// Notification category IDs.
+abstract final class NotificationCategories {
+  /// Category for schedule reminder notifications with Quick Log + Open Entry actions.
+  static const reminder = 'reminder';
+}
+
+/// Dispatch logic for notification responses (taps and action buttons).
+void _dispatchResponse(NotificationResponse response) {
+  final actionId = response.actionId;
+  final payload = response.payload;
+  final input = response.input;
+
+  // Try to get the action handler from GetIt
+  if (!GetIt.instance.isRegistered<INotificationActionHandler>()) {
+    debugPrint('NotificationService: INotificationActionHandler not registered, '
+        'cannot handle action');
+    return;
+  }
+
+  final handler = GetIt.instance<INotificationActionHandler>();
+
+  if (actionId != null && actionId.isNotEmpty) {
+    debugPrint('NotificationService: Dispatching action "$actionId" to handler');
+    handler.handle(
+      actionId: actionId,
+      payload: payload,
+      inputText: input,
+    );
+  } else {
+    debugPrint('NotificationService: Plain tap, dispatching as open_entry');
+    handler.handle(
+      actionId: NotificationActionIds.openEntry,
+      payload: payload,
+    );
+  }
+}
 
 /// General-purpose notification service for local push notifications.
 ///
 /// Provides a simple API for:
 /// - Showing immediate notifications
-/// - Scheduling future notifications
+/// - Scheduling future notifications (with optional action categories)
 /// - Canceling notifications
 /// - Listing pending notifications
 @lazySingleton
@@ -27,6 +66,27 @@ class NotificationService {
     priority: Priority.high,
   );
 
+  /// Android notification details with action buttons for reminders.
+  static const _androidReminderChannel = AndroidNotificationDetails(
+    'quanitya_reminders',
+    'Reminders',
+    channelDescription: 'Scheduled reminders for your trackers',
+    importance: Importance.high,
+    priority: Priority.high,
+    actions: [
+      AndroidNotificationAction(
+        NotificationActionIds.quickLog,
+        'Quick Log',
+        showsUserInterface: false,
+      ),
+      AndroidNotificationAction(
+        NotificationActionIds.openEntry,
+        'Log Entry',
+        showsUserInterface: true,
+      ),
+    ],
+  );
+
   /// iOS/macOS notification configuration.
   static const _darwinDetails = DarwinNotificationDetails(
     presentAlert: true,
@@ -34,14 +94,30 @@ class NotificationService {
     presentSound: true,
   );
 
-  /// Default notification details for all platforms.
+  /// iOS/macOS notification configuration for reminders (with category).
+  static const _darwinReminderDetails = DarwinNotificationDetails(
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+    categoryIdentifier: NotificationCategories.reminder,
+  );
+
+  /// Default notification details for all platforms (no actions).
   static const _notificationDetails = NotificationDetails(
     android: _androidChannel,
     iOS: _darwinDetails,
     macOS: _darwinDetails,
   );
 
-  NotificationService() : _plugin = FlutterLocalNotificationsPlugin();
+  /// Notification details with action buttons for reminders.
+  static const _reminderNotificationDetails = NotificationDetails(
+    android: _androidReminderChannel,
+    iOS: _darwinReminderDetails,
+    macOS: _darwinReminderDetails,
+  );
+
+  NotificationService(INotificationActionHandler _)
+      : _plugin = FlutterLocalNotificationsPlugin();
 
   /// Initialize the notification plugin.
   ///
@@ -58,13 +134,37 @@ class NotificationService {
         const androidSettings =
             AndroidInitializationSettings('@mipmap/ic_launcher');
 
-        const darwinSettings = DarwinInitializationSettings(
+        // iOS categories with action buttons.
+        // Both use foreground option — iOS background engine startup is
+        // unreliable without native AppDelegate plugin registration.
+        // Quick Log opens the app briefly but completes instantly.
+        final darwinSettings = DarwinInitializationSettings(
           requestAlertPermission: false,
           requestBadgePermission: false,
           requestSoundPermission: false,
+          notificationCategories: [
+            DarwinNotificationCategory(
+              NotificationCategories.reminder,
+              actions: [
+                DarwinNotificationAction.plain(
+                  NotificationActionIds.quickLog,
+                  'Quick Log',
+                  options: {DarwinNotificationActionOption.foreground},
+                ),
+                DarwinNotificationAction.plain(
+                  NotificationActionIds.openEntry,
+                  'Log Entry',
+                  options: {DarwinNotificationActionOption.foreground},
+                ),
+              ],
+            ),
+          ],
         );
+        debugPrint('NotificationService: Registered reminder category with '
+            '${NotificationActionIds.quickLog} and '
+            '${NotificationActionIds.openEntry} actions');
 
-        const initSettings = InitializationSettings(
+        final initSettings = InitializationSettings(
           android: androidSettings,
           iOS: darwinSettings,
           macOS: darwinSettings,
@@ -72,7 +172,7 @@ class NotificationService {
 
         final result = await _plugin.initialize(
           initSettings,
-          onDidReceiveNotificationResponse: _onNotificationTapped,
+          onDidReceiveNotificationResponse: _onForegroundResponse,
         );
 
         debugPrint('NotificationService: Initialized = $result');
@@ -165,12 +265,14 @@ class NotificationService {
   /// [body] - Notification body text
   /// [scheduledAt] - When to show the notification
   /// [payload] - Optional data to pass when notification is tapped
+  /// [category] - Optional category for action buttons (e.g., [NotificationCategories.reminder])
   Future<void> schedule({
     required int id,
     required String title,
     required String body,
     required DateTime scheduledAt,
     String? payload,
+    String? category,
   }) {
     return tryMethod(
       () async {
@@ -182,15 +284,21 @@ class NotificationService {
 
         final tzScheduledAt = tz.TZDateTime.from(scheduledAt, tz.local);
 
+        // Use reminder details if category matches, otherwise default
+        final details = category == NotificationCategories.reminder
+            ? _reminderNotificationDetails
+            : _notificationDetails;
+
         debugPrint(
-            'NotificationService: Scheduling notification $id for $scheduledAt');
+            'NotificationService: Scheduling notification $id for $scheduledAt'
+            '${category != null ? ' (category: $category)' : ''}');
 
         await _plugin.zonedSchedule(
           id,
           title,
           body,
           tzScheduledAt,
-          _notificationDetails,
+          details,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           payload: payload,
         );
@@ -235,14 +343,14 @@ class NotificationService {
     );
   }
 
-  /// Callback when a notification is tapped.
-  /// 
-  /// Currently logs the tap event. Deep linking to specific screens
-  /// will be implemented when navigation infrastructure is ready.
-  void _onNotificationTapped(NotificationResponse response) {
-    debugPrint('NotificationService: Notification tapped - '
-        'id=${response.id}, payload=${response.payload}');
-    // Deep linking: payload contains entry ID for navigation
-    // Implementation pending navigation service integration
+  /// Foreground callback when a notification is tapped or action is pressed
+  /// while the app is open.
+  static void _onForegroundResponse(NotificationResponse response) {
+    debugPrint('NotificationService [foreground]: Response received - '
+        'id=${response.id}, '
+        'actionId=${response.actionId ?? "(none)"}, '
+        'payload=${response.payload ?? "(none)"}');
+
+    _dispatchResponse(response);
   }
 }

@@ -5,6 +5,7 @@ import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/group.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
+import '../../../support/extensions/color_extensions.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../support/utils/icon_resolver.dart';
 import '../../templates/widgets/editor/schedule_section.dart';
@@ -121,10 +122,13 @@ class _ScheduleItemState extends State<ScheduleItem> {
 
     // Get icon - priority: icon > emoji > default
     final iconString = aesthetics?.icon;
-    final iconEmoji = aesthetics?.emoji ?? '📅';
+    final iconEmoji = aesthetics?.emoji;
 
-    // Use neutral1 (blue-grey) for all timeline icons
-    final iconColor = palette.textSecondary;
+    // Use aesthetic accent color if available, fallback to textSecondary
+    final accentHex = aesthetics?.palette.accents.firstOrNull;
+    final iconColor = accentHex != null
+        ? accentHex.toColor()
+        : palette.textSecondary;
 
     return QuanityaGroup(
       onTap: widget.onTap,
@@ -154,11 +158,13 @@ class _ScheduleItemState extends State<ScheduleItem> {
                     width: AppSizes.size36,
                     height: AppSizes.size36,
                     decoration: BoxDecoration(
-                      color: palette.backgroundPrimary,
+                      color: template.isHidden
+                          ? palette.textPrimary.withValues(alpha: 0.25)
+                          : Colors.transparent,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: palette.textSecondary.withValues(alpha: 0.3),
-                        width: AppSizes.borderWidth,
+                        color: palette.interactableColor,
+                        width: 2,
                       ),
                     ),
                     alignment: Alignment.center,
@@ -214,9 +220,9 @@ class _ScheduleItemState extends State<ScheduleItem> {
     );
   }
 
-  /// Build icon widget - priority: icon > emoji > default
-  Widget _buildIcon(String? iconString, String emoji, Color color) {
-    // Try to parse icon from "packname:iconname" format
+  /// Build icon widget - priority: icon > emoji > default icon
+  Widget _buildIcon(String? iconString, String? emoji, Color color) {
+    // Try to resolve icon from "packname:iconname" format
     if (iconString != null && iconString.contains(':')) {
       final iconData = _parseIconFromString(iconString);
       if (iconData != null) {
@@ -229,16 +235,16 @@ class _ScheduleItemState extends State<ScheduleItem> {
     }
 
     // Fallback to emoji if provided
-    if (emoji.isNotEmpty) {
+    if (emoji != null && emoji.isNotEmpty) {
       return Text(
         emoji,
         style: TextStyle(fontSize: AppSizes.iconMedium),
       );
     }
-    
-    // Final fallback to document icon
+
+    // Final fallback to calendar icon
     return Icon(
-      Icons.description,
+      Icons.calendar_today,
       size: AppSizes.iconMedium,
       color: color,
     );
@@ -316,49 +322,53 @@ class _InlineScheduleControls extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           child: IgnorePointer(
             ignoring: frequency == ScheduleFrequency.off,
-            child: GestureDetector(
-              onTap: () async {
-                final picked = await showTimePicker(
-                  context: context,
-                  initialTime: time,
-                );
-                if (picked != null) {
-                  onTimeChanged(picked);
-                }
-              },
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    context.l10n.scheduleTimeLabel,
-                    style: context.text.bodySmall?.copyWith(
-                      color: palette.textSecondary,
+            child: Semantics(
+              button: true,
+              label: 'Change time',
+              child: GestureDetector(
+                onTap: () async {
+                  final picked = await showTimePicker(
+                    context: context,
+                    initialTime: time,
+                  );
+                  if (picked != null) {
+                    onTimeChanged(picked);
+                  }
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      context.l10n.scheduleTimeLabel,
+                      style: context.text.bodySmall?.copyWith(
+                        color: palette.textSecondary,
+                      ),
                     ),
-                  ),
-                  HSpace.x1,
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: AppSizes.space,
-                      vertical: AppSizes.space * 0.5,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: palette.textSecondary.withValues(alpha: 0.3),
-                          width: 1,
+                    HSpace.x1,
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppSizes.space,
+                        vertical: AppSizes.space * 0.5,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: palette.textSecondary.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        time.format(context),
+                        style: context.text.bodySmall?.copyWith(
+                          color: palette.textPrimary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                    child: Text(
-                      time.format(context),
-                      style: context.text.bodySmall?.copyWith(
-                        color: palette.textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

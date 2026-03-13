@@ -172,7 +172,7 @@ void main() {
 
     group('Property 4: Sync deduplication', () {
       test(
-        '**Feature: data-ingestion-pipeline, Property 4: Sync deduplication** - '
+        '**Feature: data-ingestion-script, Property 4: Sync deduplication** - '
         '**Validates: Requirements 5.2, 6.4**',
         () async {
           for (int i = 0; i < kPropertyTestIterations; i++) {
@@ -286,7 +286,7 @@ void main() {
 
     group('Property 5: Sync returns correct count', () {
       test(
-        '**Feature: data-ingestion-pipeline, Property 5: Sync returns correct count** - '
+        '**Feature: data-ingestion-script, Property 5: Sync returns correct count** - '
         '**Validates: Requirements 5.5, 6.7**',
         () async {
           for (int i = 0; i < kPropertyTestIterations; i++) {
@@ -367,7 +367,7 @@ void main() {
 
     group('Property 6: Entry metadata includes adapter info', () {
       test(
-        '**Feature: data-ingestion-pipeline, Property 6: Entry metadata includes adapter info** - '
+        '**Feature: data-ingestion-script, Property 6: Entry metadata includes adapter info** - '
         '**Validates: Requirements 7.1, 7.2**',
         () async {
           for (int i = 0; i < kPropertyTestIterations; i++) {

@@ -31,24 +31,29 @@ class QuanityaGroup extends StatelessWidget {
 
     // If it's clickable, use InkWell for the ripple (feedback is necessary)
     if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        splashColor: palette.textSecondary.withValues(alpha: 0.1),
-        child: Padding(
-          padding: effectivePadding,
-          child: showChevron
-              ? Row(
-                  children: [
-                    Expanded(child: child),
-                    HSpace.x1,
-                    Icon(
-                      Icons.chevron_right,
-                      size: AppSizes.size20,
-                      color: palette.interactableColor,
-                    ),
-                  ],
-                )
-              : child,
+      return Semantics(
+        button: true,
+        child: InkWell(
+          onTap: onTap,
+          splashColor: palette.textSecondary.withValues(alpha: 0.1),
+          child: Padding(
+            padding: effectivePadding,
+            child: showChevron
+                ? Row(
+                    children: [
+                      Expanded(child: child),
+                      HSpace.x1,
+                      ExcludeSemantics(
+                        child: Icon(
+                          Icons.chevron_right,
+                          size: AppSizes.size20,
+                          color: palette.interactableColor,
+                        ),
+                      ),
+                    ],
+                  )
+                : child,
+          ),
         ),
       );
     }

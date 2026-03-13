@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../support/extensions/context_extensions.dart';
+import '../../primitives/quanitya_palette.dart';
 import 'dart:ui' as ui;
 
 /// Data point for categorical scatter chart.
@@ -23,6 +24,10 @@ class CategoricalScatterChart extends StatelessWidget {
   final Color? dotColor;
   final String? title;
 
+  /// Optional accessibility summary for screen readers.
+  /// When provided, wraps the chart in a [Semantics] label.
+  final String? semanticSummary;
+
   const CategoricalScatterChart({
     super.key,
     required this.data,
@@ -30,6 +35,7 @@ class CategoricalScatterChart extends StatelessWidget {
     this.height = 200,
     this.dotColor,
     this.title,
+    this.semanticSummary,
   });
 
   @override
@@ -42,15 +48,15 @@ class CategoricalScatterChart extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
-    final color = dotColor ?? theme.colorScheme.primary;
-    
+    final color = dotColor ?? QuanityaPalette.category10[0];
+
     // Calculate date range
     final dates = data.map((p) => p.date).toList()..sort();
     final minDate = dates.first;
     final maxDate = dates.last;
     final daySpan = maxDate.difference(minDate).inDays + 1;
 
-    return SizedBox(
+    final chart = SizedBox(
       height: height,
       child: CustomPaint(
         painter: _CategoricalScatterPainter(
@@ -64,6 +70,14 @@ class CategoricalScatterChart extends StatelessWidget {
         ),
         size: Size.infinite,
       ),
+    );
+
+    final defaultLabel = title != null
+        ? 'Scatter chart: $title'
+        : 'Scatter chart: ${categories.join(", ")}';
+    return Semantics(
+      label: semanticSummary ?? defaultLabel,
+      child: ExcludeSemantics(child: chart),
     );
   }
 }

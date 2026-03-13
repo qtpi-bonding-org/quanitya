@@ -209,5 +209,5 @@ void _validateResponse(Map<String, dynamic> response) {
     print('  ✅ Field-widget combinations: ${validCombinations ? "✅" : "❌"}');
   }
   
-  print('\n🎉 PIPELINE SUCCESS: Foundation Enums → Schema → Translation → Gemini API ✅');
+  print('\n🎉 SCRIPT SUCCESS: Foundation Enums → Schema → Translation → Gemini API ✅');
 }

@@ -14,7 +14,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'encrypted_entry.dart' as _i2;
 import 'encrypted_template.dart' as _i3;
 import 'encrypted_schedule.dart' as _i4;
-import 'encrypted_analysis_pipeline.dart' as _i5;
+import 'encrypted_analysis_script.dart' as _i5;
 import 'package:quanitya_client/src/protocol/protocol.dart' as _i6;
 
 abstract class ArchivedMonth implements _i1.SerializableModel {
@@ -25,7 +25,7 @@ abstract class ArchivedMonth implements _i1.SerializableModel {
     required this.entries,
     required this.templates,
     required this.schedules,
-    required this.analysisPipelines,
+    required this.analysisScripts,
     required this.archivedAt,
     required this.version,
   });
@@ -37,7 +37,7 @@ abstract class ArchivedMonth implements _i1.SerializableModel {
     required List<_i2.EncryptedEntry> entries,
     required List<_i3.EncryptedTemplate> templates,
     required List<_i4.EncryptedSchedule> schedules,
-    required List<_i5.EncryptedAnalysisPipeline> analysisPipelines,
+    required List<_i5.EncryptedAnalysisScript> analysisScripts,
     required DateTime archivedAt,
     required String version,
   }) = _ArchivedMonthImpl;
@@ -56,9 +56,9 @@ abstract class ArchivedMonth implements _i1.SerializableModel {
       schedules: _i6.Protocol().deserialize<List<_i4.EncryptedSchedule>>(
         jsonSerialization['schedules'],
       ),
-      analysisPipelines: _i6.Protocol()
-          .deserialize<List<_i5.EncryptedAnalysisPipeline>>(
-            jsonSerialization['analysisPipelines'],
+      analysisScripts: _i6.Protocol()
+          .deserialize<List<_i5.EncryptedAnalysisScript>>(
+            jsonSerialization['analysisScripts'],
           ),
       archivedAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['archivedAt'],
@@ -79,7 +79,7 @@ abstract class ArchivedMonth implements _i1.SerializableModel {
 
   List<_i4.EncryptedSchedule> schedules;
 
-  List<_i5.EncryptedAnalysisPipeline> analysisPipelines;
+  List<_i5.EncryptedAnalysisScript> analysisScripts;
 
   DateTime archivedAt;
 
@@ -95,7 +95,7 @@ abstract class ArchivedMonth implements _i1.SerializableModel {
     List<_i2.EncryptedEntry>? entries,
     List<_i3.EncryptedTemplate>? templates,
     List<_i4.EncryptedSchedule>? schedules,
-    List<_i5.EncryptedAnalysisPipeline>? analysisPipelines,
+    List<_i5.EncryptedAnalysisScript>? analysisScripts,
     DateTime? archivedAt,
     String? version,
   });
@@ -109,9 +109,7 @@ abstract class ArchivedMonth implements _i1.SerializableModel {
       'entries': entries.toJson(valueToJson: (v) => v.toJson()),
       'templates': templates.toJson(valueToJson: (v) => v.toJson()),
       'schedules': schedules.toJson(valueToJson: (v) => v.toJson()),
-      'analysisPipelines': analysisPipelines.toJson(
-        valueToJson: (v) => v.toJson(),
-      ),
+      'analysisScripts': analysisScripts.toJson(valueToJson: (v) => v.toJson()),
       'archivedAt': archivedAt.toJson(),
       'version': version,
     };
@@ -131,7 +129,7 @@ class _ArchivedMonthImpl extends ArchivedMonth {
     required List<_i2.EncryptedEntry> entries,
     required List<_i3.EncryptedTemplate> templates,
     required List<_i4.EncryptedSchedule> schedules,
-    required List<_i5.EncryptedAnalysisPipeline> analysisPipelines,
+    required List<_i5.EncryptedAnalysisScript> analysisScripts,
     required DateTime archivedAt,
     required String version,
   }) : super._(
@@ -141,7 +139,7 @@ class _ArchivedMonthImpl extends ArchivedMonth {
          entries: entries,
          templates: templates,
          schedules: schedules,
-         analysisPipelines: analysisPipelines,
+         analysisScripts: analysisScripts,
          archivedAt: archivedAt,
          version: version,
        );
@@ -157,7 +155,7 @@ class _ArchivedMonthImpl extends ArchivedMonth {
     List<_i2.EncryptedEntry>? entries,
     List<_i3.EncryptedTemplate>? templates,
     List<_i4.EncryptedSchedule>? schedules,
-    List<_i5.EncryptedAnalysisPipeline>? analysisPipelines,
+    List<_i5.EncryptedAnalysisScript>? analysisScripts,
     DateTime? archivedAt,
     String? version,
   }) {
@@ -170,9 +168,9 @@ class _ArchivedMonthImpl extends ArchivedMonth {
           templates ?? this.templates.map((e0) => e0.copyWith()).toList(),
       schedules:
           schedules ?? this.schedules.map((e0) => e0.copyWith()).toList(),
-      analysisPipelines:
-          analysisPipelines ??
-          this.analysisPipelines.map((e0) => e0.copyWith()).toList(),
+      analysisScripts:
+          analysisScripts ??
+          this.analysisScripts.map((e0) => e0.copyWith()).toList(),
       archivedAt: archivedAt ?? this.archivedAt,
       version: version ?? this.version,
     );

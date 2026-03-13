@@ -53,9 +53,8 @@ class ScheduleSection extends StatelessWidget {
             ),
             HSpace.x1,
             Text(
-              context.l10n.reminderOptional,
+              context.l10n.reminderLabel,
               style: context.text.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
                 color: context.colors.textPrimary,
               ),
             ),
@@ -133,48 +132,52 @@ class _TimePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        final picked = await showTimePicker(
-          context: context,
-          initialTime: time,
-        );
-        if (picked != null) {
-          onChanged(picked);
-        }
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        children: [
-          Text(
-            context.l10n.scheduleTimeLabel,
-            style: context.text.bodyMedium?.copyWith(
-              color: context.colors.textSecondary,
+    return Semantics(
+      button: true,
+      label: 'Change reminder time',
+      child: GestureDetector(
+        onTap: () async {
+          final picked = await showTimePicker(
+            context: context,
+            initialTime: time,
+          );
+          if (picked != null) {
+            onChanged(picked);
+          }
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Row(
+          children: [
+            Text(
+              context.l10n.scheduleTimeLabel,
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.textSecondary,
+              ),
             ),
-          ),
-          HSpace.x1,
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSizes.space,
-              vertical: AppSizes.space * 0.5,
-            ),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: context.colors.textSecondary.withValues(alpha: 0.3),
-                  width: 1,
+            HSpace.x1,
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSizes.space,
+                vertical: AppSizes.space * 0.5,
+              ),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: context.colors.textSecondary.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Text(
+                time.format(context),
+                style: context.text.bodyMedium?.copyWith(
+                  color: context.colors.textPrimary,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-            child: Text(
-              time.format(context),
-              style: context.text.bodyMedium?.copyWith(
-                color: context.colors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

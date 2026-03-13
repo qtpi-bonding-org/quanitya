@@ -39,17 +39,25 @@ class StyledFieldContainer extends StatelessWidget {
     final recipe = StyleRecipe.fromContainerStyle(preset!);
     final effectivePadding = padding ?? AppPadding.allDouble;
 
-    // Dashed borders need CustomPaint
+    // Dashed borders need CustomPaint — painter is purely decorative
     if (recipe.isDashed) {
-      return CustomPaint(
-        painter: _DashedBoxPainter(
-          color: accentColor,
-          width: recipe.borderWidth,
-        ),
-        child: Container(
-          padding: effectivePadding,
-          child: child,
-        ),
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: ExcludeSemantics(
+              child: CustomPaint(
+                painter: _DashedBoxPainter(
+                  color: accentColor,
+                  width: recipe.borderWidth,
+                ),
+              ),
+            ),
+          ),
+          Container(
+            padding: effectivePadding,
+            child: child,
+          ),
+        ],
       );
     }
 

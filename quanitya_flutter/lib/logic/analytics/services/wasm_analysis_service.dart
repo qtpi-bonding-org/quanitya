@@ -1,15 +1,15 @@
 import 'dart:convert';
-import 'dart:isolate';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:javascript_flutter/javascript_flutter.dart';
 import 'package:injectable/injectable.dart';
 import 'package:jinja/jinja.dart' as jinja;
-import '../models/analysis_pipeline.dart';
+import '../models/analysis_script.dart';
 import '../models/analysis_output.dart';
 import '../models/matrix_vector_scalar/time_series_matrix.dart';
 import '../models/matrix_vector_scalar/field_value.dart';
 import '../enums/analysis_output_mode.dart';
-import '../../../data/dao/log_entry_query_dao.dart';
+import '../../../data/interfaces/analysis_script_interface.dart';
 import '../exceptions/analysis_exceptions.dart';
 
 /// Hardened WASM Analysis Service with:
@@ -19,45 +19,52 @@ import '../exceptions/analysis_exceptions.dart';
 /// - Aggregation support (output timestamps)
 /// - Argument shadowing security (prevents scope chain attacks)
 abstract class IWasmAnalysisService {
-  Future<AnalysisOutput> execute(AnalysisPipelineModel pipeline);
+  Future<AnalysisOutput> execute(AnalysisScriptModel script);
 }
 
 @Injectable(as: IWasmAnalysisService)
 class WasmAnalysisService implements IWasmAnalysisService {
-  final LogEntryQueryDao _logEntryDao;
+  final IAnalysisScriptRepository _repo;
 
   // Performance: Cache heavy library strings in memory
   static String? _cachedShell;
   static String? _cachedStatsLib;
 
-  WasmAnalysisService(this._logEntryDao);
+  WasmAnalysisService(this._repo);
 
   @override
-  Future<AnalysisOutput> execute(AnalysisPipelineModel pipeline) async {
+  Future<AnalysisOutput> execute(AnalysisScriptModel script) async {
     try {
       // 1. Parallel: Fetch data + ensure assets loaded
-      final dataFuture = _fetchFieldData(pipeline.fieldId);
+      final dataFuture = _repo.fetchFieldTimeSeries(script.fieldId);
       await _ensureAssetsLoaded();
 
       final data = await dataFuture;
 
-      // 2. Execute in background isolate
-      final resultData = await Isolate.run(
-        () => _executeInIsolate(
-          shellContent: _cachedShell!,
-          simpleStats: _cachedStatsLib!,
-          values: data.values,
-          // Optimization: Pass epoch integers, not ISO strings
-          timestampsEpoch: data.timestamps.map((e) => e.millisecondsSinceEpoch).toList(),
-          snippet: pipeline.snippet,
-          outputMode: pipeline.outputMode,
-        ),
+      // Early return if no data — avoid JS errors on empty arrays
+      if (data.values.isEmpty) {
+        throw AnalysisException(
+          'No numeric values extracted for this field. '
+          'Log some entries first, or check the field name matches.',
+        );
+      }
+
+      // 2. Execute JS via platform channel (already native/off-thread)
+      final resultData = await _executeInIsolate(
+        shellContent: _cachedShell!,
+        simpleStats: _cachedStatsLib!,
+        values: data.values,
+        timestampsEpoch: data.timestamps.map((e) => e.millisecondsSinceEpoch).toList(),
+        snippet: script.snippet,
+        outputMode: script.outputMode,
       );
 
       // 3. Box into AnalysisOutput (main thread)
-      return _boxResult(pipeline, resultData, data.timestamps);
-    } catch (e) {
+      return _boxResult(script, resultData, data.timestamps);
+    } catch (e, stack) {
       if (e is AnalysisException) rethrow;
+      // ignore: avoid_print
+      debugPrint('WasmAnalysisService ERROR: $e\n$stack');
       throw AnalysisException('Analysis Engine Error: $e');
     }
   }
@@ -84,7 +91,9 @@ class WasmAnalysisService implements IWasmAnalysisService {
     required String snippet,
     required AnalysisOutputMode outputMode,
   }) async {
-    final env = jinja.Environment();
+    final env = jinja.Environment(filters: {
+      'to_json': (dynamic value) => jsonEncode(value),
+    });
     final template = env.fromString(shellContent);
 
     final fullScript = template.render({
@@ -121,88 +130,37 @@ class WasmAnalysisService implements IWasmAnalysisService {
       }
 
       return jsResult;
-    } catch (e) {
+    } catch (e, stack) {
       if (e is AnalysisException) rethrow;
+      // ignore: avoid_print
+      debugPrint('JS Runtime ERROR: $e\n$stack');
       throw AnalysisException('JS Runtime Error: $e');
     } finally {
       await javascript.dispose();
     }
   }
 
-  Future<({List<double> values, List<DateTime> timestamps})> _fetchFieldData(
-    String fieldId,
-  ) async {
-    // Parse fieldId format: "templateId:fieldName"
-    final parts = fieldId.split(':');
-    if (parts.length != 2) {
-      throw AnalysisException('Invalid fieldId format: $fieldId');
-    }
-
-    final templateId = parts[0];
-    final fieldName = parts[1];
-
-    // Fetch log entries from last 90 days
-    final endDate = DateTime.now();
-    final startDate = endDate.subtract(const Duration(days: 90));
-    final entries = await _logEntryDao.findByTemplateIdInRange(
-      templateId,
-      startDate,
-      endDate,
-    );
-
-    if (entries.isEmpty) {
-      return (values: <double>[], timestamps: <DateTime>[]);
-    }
-
-    final values = <double>[];
-    final timestamps = <DateTime>[];
-
-    for (final entry in entries) {
-      final ts = entry.occurredAt ?? entry.scheduledFor;
-      if (ts == null) continue;
-
-      final val = _extractNumericValue(entry.data, fieldName);
-      if (val != null) {
-        values.add(val);
-        timestamps.add(ts);
-      }
-    }
-
-    return (values: values, timestamps: timestamps);
-  }
-
-  double? _extractNumericValue(Map<String, dynamic> data, String fieldName) {
-    final value = data[fieldName];
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value);
-    if (value is Map && value.containsKey('value')) {
-      final v = value['value'];
-      if (v is num) return v.toDouble();
-    }
-    return null;
-  }
-
   AnalysisOutput _boxResult(
-    AnalysisPipelineModel pipeline,
+    AnalysisScriptModel script,
     dynamic resultData,
     List<DateTime> inputTimestamps,
   ) {
     if (resultData is! List) resultData = [resultData];
-    final listData = resultData as List;
+    final listData = resultData;
 
-    switch (pipeline.outputMode) {
+    switch (script.outputMode) {
       case AnalysisOutputMode.scalar:
         final scalars = listData.map((item) {
           if (item is Map) {
             return AnalysisScalar(
-              label: item['label']?.toString() ?? pipeline.name,
+              label: item['label']?.toString() ?? script.name,
               value: _parseSafeDouble(item['value']),
               unit: item['unit']?.toString(),
             );
           } else if (item is num || item is String) {
             // Handle raw numbers or special strings ("Infinity", "NaN")
             return AnalysisScalar(
-              label: pipeline.name,
+              label: script.name,
               value: _parseSafeDouble(item),
             );
           }
@@ -215,7 +173,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
           if (item is Map) {
             final rawValues = item['values'] as List;
             return AnalysisVector(
-              label: item['label']?.toString() ?? pipeline.name,
+              label: item['label']?.toString() ?? script.name,
               values: rawValues.map((v) => _parseSafeDouble(v)).toList(),
             );
           }
@@ -224,18 +182,19 @@ class WasmAnalysisService implements IWasmAnalysisService {
         return AnalysisOutput.vector(vectors);
 
       case AnalysisOutputMode.matrix:
-        if (listData.length == 1 && listData.first is Map) {
-          final map = listData.first as Map;
+        final matrices = listData.map((item) {
+          if (item is! Map) {
+            throw AnalysisException('Invalid matrix format: expected Map, got ${item.runtimeType}');
+          }
+          final map = item;
           final values = (map['values'] as List?)
                   ?.map((v) => _parseSafeDouble(v))
                   .toList() ??
               [];
+          final label = map['label']?.toString() ?? script.name;
 
-          // Support aggregation: Check if JS returned new timestamps
           List<DateTime> outputTimestamps;
-
           if (map.containsKey('timestamps')) {
-            // Parse timestamps returned by JS (epoch or ISO)
             final rawTs = map['timestamps'] as List;
             outputTimestamps = rawTs.map((t) {
               return t is int
@@ -243,7 +202,6 @@ class WasmAnalysisService implements IWasmAnalysisService {
                   : DateTime.parse(t.toString());
             }).toList();
           } else {
-            // Fallback to input timestamps (1:1 mapping)
             if (values.length != inputTimestamps.length) {
               throw AnalysisException(
                 'Output length mismatch: Script modified data length but did not return new timestamps.',
@@ -252,16 +210,14 @@ class WasmAnalysisService implements IWasmAnalysisService {
             outputTimestamps = inputTimestamps;
           }
 
-          return AnalysisOutput.matrix([
-            TimeSeriesMatrix.fromFieldData(
-              timestamps: outputTimestamps,
-              fieldData: {
-                pipeline.name: values.map((v) => FieldValue.numeric(v)).toList(),
-              },
-            ),
-          ]);
-        }
-        throw AnalysisException('Complex Matrix parsing not implemented');
+          return TimeSeriesMatrix.fromFieldData(
+            timestamps: outputTimestamps,
+            fieldData: {
+              label: values.map((v) => FieldValue.numeric(v)).toList(),
+            },
+          );
+        }).toList();
+        return AnalysisOutput.matrix(matrices);
     }
   }
 

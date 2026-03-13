@@ -28,9 +28,6 @@ class HealthSyncService {
 
   final Health _health;
 
-  /// In-memory cache: adapterId → templateId
-  final Map<String, String> _templateIdCache = {};
-
   HealthSyncService(
     this._adapterFactory,
     this._ingestionService,
@@ -118,8 +115,24 @@ class HealthSyncService {
 
         var total = 0;
         for (final entry in grouped.entries) {
-          final adapter = _adapterFactory.create(entry.key);
-          final templateId = await _ensureTemplate(adapter);
+          // Use unmapped adapter for template creation/lookup
+          final baseAdapter = _adapterFactory.create(entry.key);
+          final templateId = await _ensureTemplate(baseAdapter);
+
+          // Resolve field label → UUID mapping from the template
+          final template = await _templateQueryDao.findById(templateId);
+          final fieldMap = <String, String>{};
+          if (template != null) {
+            for (final f in template.fields) {
+              fieldMap[f.label] = f.id;
+            }
+          }
+
+          // Create adapter with field UUID mapping for correct data keys
+          final adapter = _adapterFactory.create(
+            entry.key,
+            fieldLabelToId: fieldMap,
+          );
           final count = await _ingestionService.syncFlutter(
             adapter: adapter,
             templateId: templateId,
@@ -136,30 +149,23 @@ class HealthSyncService {
   }
 
   /// Find existing template by name or create from adapter.
+  ///
+  /// Find existing template by name or create from adapter.
   Future<String> _ensureTemplate(
     FlutterDataSourceAdapter<HealthDataPoint> adapter,
   ) async {
-    // Check in-memory cache
-    final cached = _templateIdCache[adapter.adapterId];
-    if (cached != null) return cached;
-
-    // Check database
     final existing = await _templateQueryDao.findByName(adapter.displayName);
-    if (existing != null) {
-      _templateIdCache[adapter.adapterId] = existing.id;
-      return existing.id;
-    }
+    if (existing != null) return existing.id;
 
     // Create new template from adapter
     final template = adapter.deriveTemplate();
     final aesthetics = TemplateAestheticsModel.defaults(
       templateId: template.id,
+      icon: 'material:monitor_heart',
     );
     await _templateRepo.save(
       TemplateWithAesthetics(template: template, aesthetics: aesthetics),
     );
-
-    _templateIdCache[adapter.adapterId] = template.id;
     return template.id;
   }
 }

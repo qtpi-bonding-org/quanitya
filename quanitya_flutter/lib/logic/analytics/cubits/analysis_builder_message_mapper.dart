@@ -9,12 +9,12 @@ class AnalysisBuilderMessageMapper implements IStateMessageMapper<AnalysisBuilde
   MessageKey? map(AnalysisBuilderState state) {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
-        PipelineBuilderOperation.addStep => MessageKey.success(L10nKeys.analysisStepAdded),
-        PipelineBuilderOperation.removeStep => MessageKey.success(L10nKeys.analysisStepRemoved),
-        PipelineBuilderOperation.updateStep => MessageKey.success(L10nKeys.analysisStepUpdated),
-        PipelineBuilderOperation.savePipeline => MessageKey.success(L10nKeys.analysisSaved),
-        PipelineBuilderOperation.loadPreview => null, // No message for preview loads
-        PipelineBuilderOperation.applyAiSuggestion => MessageKey.success(L10nKeys.aiSuggestionsApplied),
+        ScriptBuilderOperation.addStep => MessageKey.success(L10nKeys.analysisStepAdded),
+        ScriptBuilderOperation.removeStep => MessageKey.success(L10nKeys.analysisStepRemoved),
+        ScriptBuilderOperation.updateStep => MessageKey.success(L10nKeys.analysisStepUpdated),
+        ScriptBuilderOperation.saveScript => MessageKey.success(L10nKeys.analysisSaved),
+        ScriptBuilderOperation.loadPreview => null, // No message for preview loads
+        ScriptBuilderOperation.applyAiSuggestion => MessageKey.success(L10nKeys.aiSuggestionsApplied),
       };
     }
     return null; // Use global exception mapping for errors

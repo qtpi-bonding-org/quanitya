@@ -266,11 +266,10 @@ class TemplateAesthetics extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// AnalysisPipelines table - stores dynamic WASM-based analysis scripts
+/// AnalysisScripts table - stores dynamic WASM-based analysis scripts
 ///
 /// E2EE enabled - contains user-defined logic that may reveal patterns.
-/// Replaces the legacy step-based pipeline with a script-based model.
-class AnalysisPipelines extends Table {
+class AnalysisScripts extends Table {
   /// Primary key - UUID format string
   TextColumn get id => text()();
 
@@ -303,13 +302,13 @@ class AnalysisPipelines extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// EncryptedAnalysisPipelines shadow table - PowerSync sync target for encrypted pipeline data
+/// EncryptedAnalysisScripts shadow table - PowerSync sync target for encrypted script data
 /// Contains only essential columns for E2EE synchronization
-class EncryptedAnalysisPipelines extends Table {
-  /// UUID only - matches AnalysisPipelines.id
+class EncryptedAnalysisScripts extends Table {
+  /// UUID only - matches AnalysisScripts.id
   TextColumn get id => text()();
 
-  /// E2EE encrypted pipeline data blob
+  /// E2EE encrypted script data blob
   TextColumn get encryptedData => text().named('encrypted_data')();
 
   /// Timestamp only for sync ordering
@@ -345,6 +344,10 @@ class AppOperatingSettings extends Table {
   BoolColumn get analyticsAutoSend =>
       boolean().named('analytics_auto_send').withDefault(const Constant(false))();
 
+  /// Whether error reports are auto-sent on app startup (default: off)
+  BoolColumn get errorAutoSend =>
+      boolean().named('error_auto_send').withDefault(const Constant(false))();
+
   /// Timestamp of record creation
   DateTimeColumn get createdAt =>
       dateTime().named('created_at').withDefault(currentDateAndTime)();
@@ -352,4 +355,39 @@ class AppOperatingSettings extends Table {
   /// Timestamp of last modification
   DateTimeColumn get updatedAt =>
       dateTime().named('updated_at').withDefault(currentDateAndTime)();
+}
+
+/// OpenRouterModels table - cached model list from OpenRouter API
+///
+/// LOCAL-ONLY - never synced. Populated from two sources:
+/// 1. tested_models.json (GitHub) on startup — sets tested: true
+/// 2. Full OpenRouter API /models endpoint — sets pricing/context data
+class OpenRouterModels extends Table {
+  TextColumn get id => text()();
+  IntColumn get contextLength =>
+      integer().named('context_length').withDefault(const Constant(0))();
+  TextColumn get promptPrice =>
+      text().named('prompt_price').withDefault(const Constant('0'))();
+  TextColumn get completionPrice =>
+      text().named('completion_price').withDefault(const Constant('0'))();
+  BoolColumn get tested =>
+      boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// LlmProviderConfigs table - saved LLM provider configurations
+///
+/// LOCAL-ONLY - never synced. Users can save multiple configs.
+/// Most recently used config is active on app restart.
+class LlmProviderConfigs extends Table {
+  TextColumn get id => text()();
+  TextColumn get baseUrl => text().named('base_url')();
+  TextColumn get modelId => text().named('model_id')();
+  TextColumn get apiKeyId => text().named('api_key_id').nullable()();
+  DateTimeColumn get lastUsedAt => dateTime().named('last_used_at')();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
