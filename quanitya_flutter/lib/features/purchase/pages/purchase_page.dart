@@ -3,6 +3,7 @@ import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
+import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
@@ -127,25 +128,35 @@ class PurchaseTabContent extends StatelessWidget {
               final validation = state.lastValidation;
               if (validation == null) return const SizedBox.shrink();
 
+              final palette = QuanityaPalette.primary;
+              final feedbackColor = validation.success
+                  ? palette.successColor
+                  : palette.errorColor;
+
               return Padding(
-                padding: AppPadding.allDouble,
-                child: Card(
-                  color: validation.success
-                      ? context.colors.successColor.withValues(alpha: 0.1)
-                      : context.colors.errorColor.withValues(alpha: 0.1),
-                  child: Padding(
-                    padding: AppPadding.allDouble,
-                    child: Text(
+                padding: AppPadding.pageHorizontal,
+                child: Row(
+                  children: [
+                    Icon(
                       validation.success
-                          ? context.l10n.purchaseSuccessful
-                          : validation.errorMessage ?? context.l10n.purchaseFailed,
-                      style: context.text.bodyMedium?.copyWith(
-                        color: validation.success
-                            ? context.colors.successColor
-                            : context.colors.errorColor,
+                          ? Icons.check_circle_outline
+                          : Icons.error_outline,
+                      color: feedbackColor,
+                      size: AppSizes.iconSmall,
+                    ),
+                    HSpace.x1,
+                    Expanded(
+                      child: Text(
+                        validation.success
+                            ? context.l10n.purchaseSuccessful
+                            : validation.errorMessage ??
+                                context.l10n.purchaseFailed,
+                        style: context.text.bodyMedium?.copyWith(
+                          color: feedbackColor,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               );
             },
@@ -197,10 +208,13 @@ class _ProductSections extends StatelessWidget {
       list.sort((a, b) => a.priceUsd.compareTo(b.priceUsd));
     }
 
-    final sections = _typeOrder
-        .where(grouped.containsKey)
-        .map((type) => MapEntry(type, grouped[type]!))
-        .toList();
+    final sections = <MapEntry<StoreProductType, List<PurchaseProduct>>>[];
+    for (final type in _typeOrder) {
+      final products = grouped[type];
+      if (products != null) {
+        sections.add(MapEntry(type, products));
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,11 +231,23 @@ class _ProductSections extends StatelessWidget {
           if (section.key == StoreProductType.subscription)
             _buildSubscriptionColumns(context, section.value)
           else
-            ...section.value.map((product) => ProductCard(
-                  product: product,
-                  isLoading: isPurchasing,
-                  onBuy: () => onBuy(product),
-                )),
+            Padding(
+              padding: AppPadding.pageHorizontal,
+              child: Wrap(
+                spacing: AppSizes.space * 2,
+                runSpacing: AppSizes.space * 2,
+                children: section.value
+                    .map((product) => SizedBox(
+                          width: AppSizes.space * 20,
+                          child: ProductCard(
+                            product: product,
+                            isLoading: isPurchasing,
+                            onBuy: () => onBuy(product),
+                          ),
+                        ))
+                    .toList(),
+              ),
+            ),
           VSpace.x2,
         ],
       ],
@@ -311,21 +337,25 @@ class _PeriodColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           title,
           style: context.text.titleSmall?.copyWith(
-            color: context.colors.textSecondary,
+            color: palette.textSecondary,
           ),
           textAlign: TextAlign.center,
         ),
         VSpace.x1,
-        ...products.map((product) => ProductCard(
-              product: product,
-              isLoading: isPurchasing,
-              onBuy: () => onBuy(product),
+        ...products.map((product) => Padding(
+              padding: EdgeInsets.only(bottom: AppSizes.space * 2),
+              child: ProductCard(
+                product: product,
+                isLoading: isPurchasing,
+                onBuy: () => onBuy(product),
+              ),
             )),
       ],
     );

@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:anonaccred_client/anonaccred_client.dart'
     show AccountEntitlement;
 
+import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../support/extensions/context_extensions.dart';
 
 /// Displays the user's entitlement balances (sync days, credits, etc.)
+///
+/// Manuscript style: no card wrapper, just pen-styled text and icon.
 class BalanceDisplay extends StatelessWidget {
   const BalanceDisplay({
     super.key,
@@ -19,62 +22,100 @@ class BalanceDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: AppPadding.listItem,
-      child: Padding(
-        padding: AppPadding.allDouble,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  hasSyncAccess ? Icons.cloud_done : Icons.cloud_off,
-                  color: hasSyncAccess
-                      ? context.colors.successColor
-                      : context.colors.errorColor,
-                ),
-                HSpace.x1,
-                Expanded(
-                  child: Text(
-                    hasSyncAccess
-                        ? context.l10n.syncActive
-                        : context.l10n.syncInactive,
-                    style: context.text.titleMedium,
-                    overflow: TextOverflow.ellipsis,
+    final palette = QuanityaPalette.primary;
+    final statusColor =
+        hasSyncAccess ? palette.successColor : palette.errorColor;
+
+    return Padding(
+      padding: AppPadding.pageHorizontal,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                hasSyncAccess ? Icons.cloud_done : Icons.cloud_off,
+                color: statusColor,
+                size: AppSizes.iconMedium,
+              ),
+              HSpace.x1,
+              Expanded(
+                child: Text(
+                  hasSyncAccess
+                      ? context.l10n.syncActive
+                      : context.l10n.syncInactive,
+                  style: context.text.titleMedium?.copyWith(
+                    color: statusColor,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-            if (entitlements.isNotEmpty) ...[
-              VSpace.x2,
-              const Divider(),
-              VSpace.x1,
-              ...entitlements.map((e) => Padding(
-                    padding: AppPadding.verticalSingle,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            context.l10n.entitlementLabel(e.entitlementId),
-                            style: context.text.bodyMedium,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        HSpace.x1,
-                        Text(
-                          e.balance.toStringAsFixed(1),
-                          style: context.text.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )),
+              ),
             ],
+          ),
+          if (entitlements.isNotEmpty) ...[
+            VSpace.x2,
+            // Pen-drawn divider
+            CustomPaint(
+              size: Size(AppSizes.space * 8, AppSizes.borderWidth),
+              painter: _PenDividerPainter(
+                color: palette.textSecondary.withValues(alpha: 0.3),
+              ),
+            ),
+            VSpace.x1,
+            ...entitlements.map((e) => Padding(
+                  padding: EdgeInsets.only(bottom: AppSizes.space * 0.5),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          context.l10n.entitlementLabel(e.entitlementId),
+                          style: context.text.bodyMedium?.copyWith(
+                            color: palette.textSecondary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      HSpace.x1,
+                      Text(
+                        e.balance.toStringAsFixed(1),
+                        style: context.text.bodyMedium?.copyWith(
+                          color: palette.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
           ],
-        ),
+        ],
       ),
     );
+  }
+}
+
+/// Simple hand-drawn horizontal line.
+class _PenDividerPainter extends CustomPainter {
+  final Color color;
+
+  _PenDividerPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.height
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawLine(
+      Offset(0, size.height / 2),
+      Offset(size.width, size.height / 2),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_PenDividerPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }
