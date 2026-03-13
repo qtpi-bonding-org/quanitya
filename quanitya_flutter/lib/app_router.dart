@@ -21,7 +21,9 @@ import 'features/templates/pages/template_import_page.dart';
 import 'features/device_pairing/pages/show_pairing_qr_page.dart';
 import 'features/device_pairing/pages/scan_pairing_qr_page.dart';
 import 'features/onboarding/pages/connect_device_page.dart';
+import 'infrastructure/auth/auth_service.dart';
 import 'infrastructure/crypto/crypto_key_repository.dart';
+import 'infrastructure/device/device_info_service.dart';
 
 class AppRouter {
   AppRouter._();
@@ -34,8 +36,33 @@ class AppRouter {
   static Future<void> initialize() async {
     final keyRepo = GetIt.instance<ICryptoKeyRepository>();
     final status = await keyRepo.getKeyStatus();
-    _hasKeys = status == CryptoKeyStatus.ready;
+
+    if (status == CryptoKeyStatus.crossDeviceRecoveryAvailable) {
+      // Attempt automatic recovery from cross-device key
+      _hasKeys = await _attemptCrossDeviceRecovery();
+    } else {
+      _hasKeys = status == CryptoKeyStatus.ready;
+    }
+
     _createRouter();
+  }
+
+  /// Attempt to recover account using cross-device key (iCloud / Block Store).
+  /// Returns true if recovery succeeded, false otherwise.
+  static Future<bool> _attemptCrossDeviceRecovery() async {
+    try {
+      debugPrint('AppRouter: Cross-device key found — attempting recovery...');
+      final authService = GetIt.instance<AuthService>();
+      final deviceInfo = GetIt.instance<DeviceInfoService>();
+      final deviceLabel = await deviceInfo.getDeviceName();
+
+      await authService.recoverFromCrossDeviceKey(deviceLabel: deviceLabel);
+      debugPrint('AppRouter: Cross-device recovery succeeded');
+      return true;
+    } catch (e) {
+      debugPrint('AppRouter: Cross-device recovery failed, falling back to onboarding: $e');
+      return false;
+    }
   }
 
   static String get _initialLocation =>
@@ -59,7 +86,11 @@ class AppRouter {
     if (_hasKeys == null) {
       final keyRepo = GetIt.instance<ICryptoKeyRepository>();
       final status = await keyRepo.getKeyStatus();
-      _hasKeys = status == CryptoKeyStatus.ready;
+      if (status == CryptoKeyStatus.crossDeviceRecoveryAvailable) {
+        _hasKeys = await _attemptCrossDeviceRecovery();
+      } else {
+        _hasKeys = status == CryptoKeyStatus.ready;
+      }
     }
 
     // Redirect to onboarding if no keys

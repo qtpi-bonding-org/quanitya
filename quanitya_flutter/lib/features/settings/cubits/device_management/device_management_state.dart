@@ -8,6 +8,7 @@ part 'device_management_state.freezed.dart';
 enum DeviceManagementOperation {
   load,
   revoke,
+  recreateCrossDevice,
 }
 
 @freezed

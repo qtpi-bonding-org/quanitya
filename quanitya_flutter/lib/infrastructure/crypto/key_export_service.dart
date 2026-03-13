@@ -46,10 +46,9 @@ enum KeyExportResult {
   unavailable,
 }
 
-/// Generates the iCloud Keychain storage key for an ultimate key.
-/// Format: quanitya_ultimate_{ultimateSigningPublicKeyHex}
-/// This prevents collisions if multiple accounts exist on the same device.
-String _iCloudKeyId(String ultimateHex) => 'quanitya_ultimate_$ultimateHex';
+/// iCloud Keychain storage key for the ultimate key.
+/// Fixed name — one account per Apple ID.
+const _iCloudKeyId = 'quanitya_ultimate_key';
 
 /// Generates the export filename for an ultimate key.
 /// Format: quanitya_ultimate_{ultimateSigningPublicKeyHex}.jwk
@@ -105,11 +104,11 @@ class KeyExportService {
         CryptoLogger.logSecurityEvent(
             'Verifying and saving ultimate key to iCloud Keychain');
 
-        // Verify JWK and get hex in one step
-        final ultimateHex = await verifyAndGetHex(jwk);
+        // Verify JWK before storing
+        await verifyAndGetHex(jwk);
 
         await _secureStorage.storeWithPlatformOptions(
-          key: _iCloudKeyId(ultimateHex),
+          key: _iCloudKeyId,
           value: jwk,
           synchronizable: true,
         );
@@ -125,22 +124,13 @@ class KeyExportService {
   /// Retrieve key from iCloud Keychain (iOS only).
   ///
   /// Use during recovery flow on a new device to retrieve the ultimate key
-  /// that was synced via iCloud Keychain.
-  ///
-  /// [ultimateHex] - The ultimate signing public key hex (128 chars) to look up.
-  ///                 This is the account identifier the user provides during recovery.
+  /// that was synced via iCloud Keychain. No parameters needed — uses fixed key name.
   ///
   /// Returns null if not found or not on iOS.
-  Future<String?> getFromICloudKeychain({
-    required String ultimateHex,
-  }) {
+  Future<String?> getFromICloudKeychain() {
     return tryMethod(
       () async {
         if (!Platform.isIOS) {
-          return null;
-        }
-
-        if (ultimateHex.trim().isEmpty) {
           return null;
         }
 
@@ -148,7 +138,7 @@ class KeyExportService {
             'Retrieving ultimate key from iCloud Keychain');
 
         final jwk = await _secureStorage.getWithPlatformOptions(
-          key: _iCloudKeyId(ultimateHex),
+          key: _iCloudKeyId,
           synchronizable: true,
         );
 
@@ -169,24 +159,16 @@ class KeyExportService {
   /// Delete key from iCloud Keychain (iOS only).
   ///
   /// Call during account deletion or when user wants to remove cloud backup.
-  ///
-  /// [jwk] - The JWK to delete (hex is derived from it).
-  Future<void> deleteFromICloudKeychain({
-    required String jwk,
-  }) {
+  Future<void> deleteFromICloudKeychain() {
     return tryMethod(
       () async {
         if (!Platform.isIOS) return;
 
-        if (jwk.trim().isEmpty) return;
-
         CryptoLogger.logSecurityEvent(
             'Deleting ultimate key from iCloud Keychain');
 
-        final ultimateHex = await getSigningPublicKeyHex(jwk);
-
         await _secureStorage.deleteWithPlatformOptions(
-          key: _iCloudKeyId(ultimateHex),
+          key: _iCloudKeyId,
           synchronizable: true,
         );
 
@@ -203,7 +185,6 @@ class KeyExportService {
   /// as a 128-char hex string (x + y coordinates, no 04 prefix).
   ///
   /// Use this to get the account identifier from an ultimate key JWK.
-  /// This is the same hex used for iCloud Keychain storage keys.
   ///
   /// This goes through the full webcrypto import/export path to ensure
   /// the hex is derived exactly the same way as [SigningKeyPair.exportPublicKeyHex].

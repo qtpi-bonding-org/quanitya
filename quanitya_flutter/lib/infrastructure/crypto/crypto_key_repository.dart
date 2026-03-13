@@ -5,6 +5,7 @@ import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 import 'package:flutter/foundation.dart' show Uint8List;
 
 import '../core/try_operation.dart';
+import 'interfaces/i_cross_device_key_storage.dart';
 import 'interfaces/i_secure_storage.dart';
 import 'exceptions/crypto_exceptions.dart';
 import 'utils/crypto_logger.dart';
@@ -125,6 +126,9 @@ enum CryptoKeyStatus {
 
   /// Keys exist but may need recovery
   needsRecovery,
+
+  /// No local keys but cross-device key found — auto-recovery possible
+  crossDeviceRecoveryAvailable,
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -295,6 +299,31 @@ abstract class ICryptoKeyRepository {
   // Import/Validate (for recovery flow)
   // ─────────────────────────────────────────────────────────────────────────────
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Cross-Device Key (iCloud Keychain / Google Block Store)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Whether cross-device key storage is available on this platform.
+  bool get isCrossDeviceStorageAvailable;
+
+  /// The label used for the cross-device key device entry (e.g. "iCloud").
+  String get crossDeviceLabel;
+
+  /// Generate a new cross-device key and store in platform storage.
+  /// Returns: KeyDuo webcrypto object.
+  Future<KeyDuo> generateCrossDeviceKey();
+
+  /// Retrieve cross-device key from platform storage.
+  /// Returns: KeyDuo or null if not found.
+  Future<KeyDuo?> getCrossDeviceKey();
+
+  /// Delete cross-device key from platform storage.
+  Future<void> deleteCrossDeviceKey();
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Import/Validate (for recovery flow)
+  // ─────────────────────────────────────────────────────────────────────────────
+
   /// Import ultimate key from JWK Set JSON and hold in memory.
   /// Input: JWK Set JSON string with private keys.
   /// Returns: KeyDuo webcrypto object.
@@ -317,8 +346,9 @@ abstract class ICryptoKeyRepository {
 @LazySingleton(as: ICryptoKeyRepository)
 class CryptoKeyRepository implements ICryptoKeyRepository {
   final ISecureStorage _secureStorage;
+  final ICrossDeviceKeyStorage _crossDeviceStorage;
 
-  CryptoKeyRepository(this._secureStorage);
+  CryptoKeyRepository(this._secureStorage, this._crossDeviceStorage);
 
   // In-memory storage for ultimate key (temporary, during account creation)
   // Wiped after getUltimateKeyJwkOnce() is called
@@ -340,6 +370,13 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         final dataKey = await _secureStorage.getSymmetricDataKey();
 
         if (deviceKey == null || dataKey == null) {
+          // No local keys — check if cross-device key is available
+          if (_crossDeviceStorage.isAvailable) {
+            final crossDeviceKey = await _crossDeviceStorage.retrieve();
+            if (crossDeviceKey != null) {
+              return CryptoKeyStatus.crossDeviceRecoveryAvailable;
+            }
+          }
           return CryptoKeyStatus.notInitialized;
         }
         return CryptoKeyStatus.ready;
@@ -357,6 +394,10 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         _ultimateKey = null;
         _ultimatePublicKeyHexCache = null;
         await _secureStorage.clearAllKeys();
+        // Also delete cross-device key if available
+        if (_crossDeviceStorage.isAvailable) {
+          await _crossDeviceStorage.delete();
+        }
       },
       KeyStorageException.new,
       'clearKeys',
@@ -779,6 +820,81 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
       'generateAndStoreDeviceKey',
     );
   }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Cross-Device Key
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  @override
+  bool get isCrossDeviceStorageAvailable => _crossDeviceStorage.isAvailable;
+
+  @override
+  String get crossDeviceLabel => _crossDeviceStorage.deviceLabel;
+
+  @override
+  Future<KeyDuo> generateCrossDeviceKey() {
+    return tryMethod(
+      () async {
+        CryptoLogger.logOperationStart('generateCrossDeviceKey');
+
+        final keyDuo = await GenerationService.generateKeyDuo();
+
+        // Verify the key works
+        final testData = Uint8List.fromList('verify-cross-device-key'.codeUnits);
+        final signature = await keyDuo.sign(testData);
+        final valid = await keyDuo.verifySignature(testData, signature);
+        if (!valid) {
+          throw const KeyGenerationException(
+            'Cross-device key signature verification failed',
+            kind: KeyGenerationFailure.verificationFailed,
+          );
+        }
+        CryptoLogger.logSuccess('crossDeviceKey verified');
+
+        // Export and store in platform storage
+        final serializer = KeyDuoSerializer();
+        final jwk = await serializer.exportKeyDuo(keyDuo);
+        await _crossDeviceStorage.store(jwk);
+
+        CryptoLogger.logSuccess('generateCrossDeviceKey (stored in ${_crossDeviceStorage.deviceLabel})');
+        return keyDuo;
+      },
+      (message, [cause]) => KeyGenerationException(message, cause: cause),
+      'generateCrossDeviceKey',
+    );
+  }
+
+  @override
+  Future<KeyDuo?> getCrossDeviceKey() {
+    return tryMethod(
+      () async {
+        final jwk = await _crossDeviceStorage.retrieve();
+        if (jwk == null) return null;
+
+        final serializer = KeyDuoSerializer();
+        return await serializer.importKeyDuo(jwk);
+      },
+      KeyRetrievalException.new,
+      'getCrossDeviceKey',
+    );
+  }
+
+  @override
+  Future<void> deleteCrossDeviceKey() {
+    return tryMethod(
+      () async {
+        CryptoLogger.logSecurityEvent('Deleting cross-device key (${_crossDeviceStorage.deviceLabel})');
+        await _crossDeviceStorage.delete();
+        CryptoLogger.logSuccess('deleteCrossDeviceKey');
+      },
+      KeyStorageException.new,
+      'deleteCrossDeviceKey',
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Private Helpers
+  // ─────────────────────────────────────────────────────────────────────────────
 
   /// Validates symmetric key JWK format.
   void _validateSymmetricKeyJwk(String jwk) {

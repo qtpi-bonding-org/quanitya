@@ -56,4 +56,19 @@ abstract class ISecureStorage {
     required String key,
     bool synchronizable = false,
   });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // iCloud Device Key (convenience methods)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Store iCloud device key JWK in iCloud Keychain (synchronizable).
+  /// Fixed key name: `device_key_icloud`. One per Apple ID.
+  Future<void> storeICloudDeviceKey(String jwk);
+
+  /// Retrieve iCloud device key JWK from iCloud Keychain.
+  /// Returns null if not found.
+  Future<String?> getICloudDeviceKey();
+
+  /// Delete iCloud device key from iCloud Keychain.
+  Future<void> deleteICloudDeviceKey();
 }

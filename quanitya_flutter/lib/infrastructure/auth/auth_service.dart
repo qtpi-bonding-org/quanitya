@@ -153,6 +153,7 @@ class AuthService {
   late final AnonAccredAuthKeyProvider _authKeyProvider;
 
   static const _registrationPayloadKey = 'quanitya_registration_payload';
+  static const _crossDeviceRegistrationBlobKey = 'quanitya_cross_device_registration';
 
   bool _isInitialized = false;
 
@@ -296,6 +297,40 @@ class AuthService {
           );
         }
 
+        // 7. Generate and register cross-device key (iOS iCloud / Android Block Store)
+        if (_keyRepository.isCrossDeviceStorageAvailable) {
+          try {
+            final label = _keyRepository.crossDeviceLabel;
+            debugPrint('🔐 AuthService: Generating cross-device key ($label)...');
+            final crossDeviceKeyDuo = await _keyRepository.generateCrossDeviceKey();
+
+            // Encrypt symmetric key with cross-device key's encryption public key
+            final crossDeviceBlob = await _encryption.createEncryptedBlob(
+              symmetricKeyJwk,
+              crossDeviceKeyDuo.encryption.publicKey,
+            );
+
+            // Get cross-device key's signing public key hex
+            final crossDeviceKeyHex = await crossDeviceKeyDuo.signingKeyPair.exportPublicKeyHex();
+
+            // Store payload for deferred server registration
+            // registerAccountWithServer will register both devices
+            await _secureStorage.storeSecureData(
+              _crossDeviceRegistrationBlobKey,
+              jsonEncode({
+                'keyHex': crossDeviceKeyHex,
+                'blob': crossDeviceBlob,
+                'label': label,
+              }),
+            );
+
+            debugPrint('🔐 AuthService: Cross-device key generated and stored');
+          } catch (e) {
+            // Cross-device key is non-critical — log and continue
+            debugPrint('🔐 AuthService: Cross-device key generation failed (non-critical): $e');
+          }
+        }
+
         // Return ultimate private key for user to save offline
         // SECURITY: This NEVER gets sent to server
         return AccountCreationResult(ultimatePrivateKey: ultimatePrivateKey);
@@ -426,6 +461,32 @@ class AuthService {
           );
           debugPrint('🔐 AuthService: Device registered successfully');
 
+          // 4.5. Register cross-device key if prepared during createAccount
+          try {
+            final crossDeviceJson = await _secureStorage.getSecureData(_crossDeviceRegistrationBlobKey);
+            if (crossDeviceJson != null) {
+              final data = jsonDecode(crossDeviceJson) as Map<String, dynamic>;
+              final keyHex = data['keyHex'] as String;
+              final blob = data['blob'] as String;
+              final label = data['label'] as String;
+
+              debugPrint('🔐 AuthService: Registering cross-device key ($label) with server...');
+              await _client.modules.anonaccount.device.registerDevice(
+                accountId,
+                keyHex,
+                blob,
+                label,
+              );
+              debugPrint('🔐 AuthService: Cross-device key registered');
+
+              // Clean up the stored blob
+              await _secureStorage.deleteSecureData(_crossDeviceRegistrationBlobKey);
+            }
+          } catch (e) {
+            // Cross-device registration is non-critical
+            debugPrint('🔐 AuthService: Cross-device key registration failed (non-critical): $e');
+          }
+
           // 5. Delete registration payload after successful registration
           debugPrint('🔐 AuthService: Deleting registration payload...');
           await _deleteRegistrationPayload();
@@ -550,6 +611,148 @@ class AuthService {
       },
       (message, [cause]) => AccountRecoveryException(message, cause: cause),
       'recoverAccount',
+    );
+  }
+
+  /// Recover account using cross-device key (Flow B — new device, synced key exists)
+  ///
+  /// Flow:
+  /// 1. Get cross-device key from platform storage
+  /// 2. Auth with server using cross-device key
+  /// 3. Get encrypted data key blob for cross-device entry
+  /// 4. Decrypt to recover symmetric data key
+  /// 5. Generate new local device key
+  /// 6. Register new local device under the same account
+  /// 7. Store local keys
+  ///
+  /// Throws [AccountRecoveryException] on failure.
+  Future<void> recoverFromCrossDeviceKey({required String deviceLabel}) {
+    return tryMethod(
+      () async {
+        final crossDeviceLabel = _keyRepository.crossDeviceLabel;
+        debugPrint('🔐 AuthService: Starting cross-device key recovery ($crossDeviceLabel)...');
+
+        // 1. Get cross-device key
+        final crossDeviceKeyDuo = await _keyRepository.getCrossDeviceKey();
+        if (crossDeviceKeyDuo == null) {
+          throw const AccountRecoveryException(
+            'Cross-device key not found in platform storage',
+          );
+        }
+
+        // 2. Auth with server using cross-device key
+        final crossDeviceKeyHex = await crossDeviceKeyDuo.signingKeyPair.exportPublicKeyHex();
+        debugPrint('🔐 AuthService: Authenticating with cross-device key...');
+
+        final challenge = await _client.modules.anonaccount.device
+            .generateAuthChallenge(crossDeviceKeyHex);
+        final signature = await _encryption.signWithKeyDuo(challenge, crossDeviceKeyDuo);
+        final authResult = await _client.modules.anonaccount.device
+            .authenticateDevice(challenge, signature);
+
+        if (!authResult.success) {
+          throw AccountRecoveryException(
+            authResult.errorMessage ?? 'Cross-device key authentication failed',
+          );
+        }
+        debugPrint('🔐 AuthService: Cross-device key authenticated');
+
+        // 3. Get encrypted data key for cross-device entry
+        final deviceInfo = await _client.modules.anonaccount.device
+            .getDeviceBySigningKey(crossDeviceKeyHex);
+        if (deviceInfo == null) {
+          throw const AccountRecoveryException(
+            'Cross-device entry not found on server',
+          );
+        }
+
+        // 4. Decrypt to recover symmetric data key
+        final privateKey = crossDeviceKeyDuo.encryption.privateKey;
+        if (privateKey == null) {
+          throw const AccountRecoveryException(
+            'Cross-device key missing private encryption key',
+          );
+        }
+        final symmetricKeyJwk = await _encryption.decryptBlob(
+          deviceInfo.encryptedDataKey,
+          privateKey,
+        );
+        debugPrint('🔐 AuthService: Symmetric key recovered from cross-device entry');
+
+        // 5. Generate new local device key
+        await _keyRepository.generateAndStoreDeviceKey();
+        final localDeviceKey = await _keyRepository.getDeviceKey();
+        final localKeyHex = await _keyRepository.getDeviceSigningPublicKeyHex();
+
+        if (localDeviceKey == null || localKeyHex == null) {
+          throw const AccountRecoveryException(
+            'Failed to generate local device key',
+          );
+        }
+
+        // 6. Register new local device under the same account
+        final localBlob = await _encryption.createEncryptedBlob(
+          symmetricKeyJwk,
+          localDeviceKey.encryption.publicKey,
+        );
+        await _client.modules.anonaccount.device.registerDeviceForAccount(
+          localKeyHex,
+          localBlob,
+          deviceLabel,
+        );
+        debugPrint('🔐 AuthService: New local device registered');
+
+        // 7. Store symmetric key locally
+        await _keyRepository.storeSymmetricDataKeyJwk(symmetricKeyJwk);
+
+        // 8. Switch app to cloud mode
+        await _appOperatingRepository.updateMode(AppOperatingMode.cloud);
+        debugPrint('🔐 AuthService: Cross-device key recovery complete');
+      },
+      (message, [cause]) => AccountRecoveryException(message, cause: cause),
+      'recoverFromCrossDeviceKey',
+    );
+  }
+
+  /// Recreate cross-device key (Flow D — re-enable after revoking)
+  ///
+  /// Generates a new cross-device key, registers it with the server,
+  /// and stores it in platform storage.
+  ///
+  /// Throws [AuthException] on failure.
+  Future<void> recreateCrossDeviceKey() {
+    return tryMethod(
+      () async {
+        final label = _keyRepository.crossDeviceLabel;
+        debugPrint('🔐 AuthService: Recreating cross-device key ($label)...');
+
+        // Get symmetric key to create encrypted blob
+        final symmetricKeyJwk = await _keyRepository.getSymmetricDataKeyJwk();
+        if (symmetricKeyJwk == null) {
+          throw const AuthException('Symmetric key not available');
+        }
+
+        // Generate new cross-device key (stores in platform storage)
+        final crossDeviceKeyDuo = await _keyRepository.generateCrossDeviceKey();
+        final crossDeviceKeyHex = await crossDeviceKeyDuo.signingKeyPair.exportPublicKeyHex();
+
+        // Encrypt symmetric key with cross-device key
+        final crossDeviceBlob = await _encryption.createEncryptedBlob(
+          symmetricKeyJwk,
+          crossDeviceKeyDuo.encryption.publicKey,
+        );
+
+        // Register with server using authenticated session
+        await _client.modules.anonaccount.device.registerDeviceForAccount(
+          crossDeviceKeyHex,
+          crossDeviceBlob,
+          label,
+        );
+
+        debugPrint('🔐 AuthService: Cross-device key recreated and registered');
+      },
+      _wrapAuthError,
+      'recreateCrossDeviceKey',
     );
   }
 

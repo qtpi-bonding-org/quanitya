@@ -15,6 +15,7 @@ import '../../../support/extensions/context_extensions.dart';
 import '../../../features/app_operating_mode/cubits/app_operating_cubit.dart';
 import '../../../features/app_operating_mode/models/app_operating_mode.dart';
 import '../../../infrastructure/auth/auth_service.dart' show AuthException, AuthFailure;
+import '../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../cubits/device_management/device_management_cubit.dart';
 import '../cubits/device_management/device_management_state.dart';
 
@@ -35,6 +36,14 @@ class _DeviceListSectionState extends State<DeviceListSection> {
     if (appMode.requiresServer) {
       context.read<DeviceManagementCubit>().loadDevices();
     }
+  }
+
+  /// Whether to show the "Enable Cross-Device Sync" button.
+  bool _showEnableCrossDeviceButton(DeviceManagementState state) {
+    final keyRepo = GetIt.instance<ICryptoKeyRepository>();
+    if (!keyRepo.isCrossDeviceStorageAvailable) return false;
+    final label = keyRepo.crossDeviceLabel;
+    return !state.activeDevices.any((d) => d.label == label);
   }
 
   /// Check if error is a connection/offline error
@@ -154,6 +163,18 @@ class _DeviceListSectionState extends State<DeviceListSection> {
                 ),
                 VSpace.x2,
               ]),
+
+            // Show "Enable Cross-Device Sync" button if available and no entry exists
+            if (_showEnableCrossDeviceButton(state))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: QuanityaTextButton(
+                  text: context.l10n.enableICloudSync,
+                  onPressed: () => context
+                      .read<DeviceManagementCubit>()
+                      .recreateCrossDeviceKey(),
+                ),
+              ),
 
             // Show revoked devices if any
             if (state.revokedDevices.isNotEmpty) ...[
@@ -289,6 +310,9 @@ class _DeviceCard extends StatelessWidget {
 
   IconData _getDeviceIcon(String label) {
     final lowerLabel = label.toLowerCase();
+    if (lowerLabel == 'icloud' || lowerLabel == 'google backup') {
+      return Icons.cloud_outlined;
+    }
     if (lowerLabel.contains('iphone') || lowerLabel.contains('android') || lowerLabel.contains('phone')) {
       return Icons.phone_iphone;
     }

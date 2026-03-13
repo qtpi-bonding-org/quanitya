@@ -247,6 +247,37 @@ class PlatformSecureStorage implements ISecureStorage {
     );
   }
   
+  // ─────────────────────────────────────────────────────────────────────────────
+  // iCloud Device Key (convenience methods)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  static const String _iCloudDeviceKeyId = 'device_key_icloud';
+
+  @override
+  Future<void> storeICloudDeviceKey(String jwk) {
+    return storeWithPlatformOptions(
+      key: _iCloudDeviceKeyId,
+      value: jwk,
+      synchronizable: true,
+    );
+  }
+
+  @override
+  Future<String?> getICloudDeviceKey() {
+    return getWithPlatformOptions(
+      key: _iCloudDeviceKeyId,
+      synchronizable: true,
+    );
+  }
+
+  @override
+  Future<void> deleteICloudDeviceKey() {
+    return deleteWithPlatformOptions(
+      key: _iCloudDeviceKeyId,
+      synchronizable: true,
+    );
+  }
+
   /// Whether keys are stored in native secure storage or web fallback.
   bool get isNativelySecure => !_capabilities.isWeb;
   

@@ -346,6 +346,7 @@
       }
     }
   },
+  "enableICloudSync": "Activar sincronización iCloud",
   "devToolsTitle": "Herramientas de Desarrollador",
   "devSeedFakeData": "Añadir Datos Falsos",
   "devSeed": "Añadir",

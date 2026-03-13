@@ -3,19 +3,22 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../../infrastructure/auth/auth_service.dart';
+import '../../../../infrastructure/crypto/crypto_key_repository.dart';
 import 'device_management_state.dart';
 
 /// Cubit for managing registered devices
-/// 
+///
 /// Provides:
 /// - List all devices registered to the account
 /// - Identify current device
 /// - Revoke other devices
+/// - Manage cross-device key (iCloud / Google Block Store)
 @injectable
 class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
   final AuthService _authService;
+  final ICryptoKeyRepository _keyRepository;
 
-  DeviceManagementCubit(this._authService)
+  DeviceManagementCubit(this._authService, this._keyRepository)
       : super(const DeviceManagementState());
 
   /// Load all devices for the current account
@@ -56,8 +59,14 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
 
     await tryOperation(() async {
       emit(state.copyWith(revokingDeviceId: deviceId));
-      
+
       await _authService.revokeDevice(deviceId);
+
+      // If revoking the cross-device key, also delete from platform storage
+      if (_keyRepository.isCrossDeviceStorageAvailable &&
+          device.label == _keyRepository.crossDeviceLabel) {
+        await _keyRepository.deleteCrossDeviceKey();
+      }
 
       // Reload devices to get updated list
       final devices = await _authService.listDevices();
@@ -69,6 +78,25 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
         lastOperation: DeviceManagementOperation.revoke,
       );
     }, emitLoading: false); // Don't show full loading, just the revoking indicator
+  }
+
+  /// Recreate cross-device key (Flow D — re-enable cross-device sync)
+  ///
+  /// Generates a new cross-device key, registers with server,
+  /// and stores in platform storage.
+  Future<void> recreateCrossDeviceKey() async {
+    await tryOperation(() async {
+      await _authService.recreateCrossDeviceKey();
+
+      // Reload devices to show new cross-device entry
+      final devices = await _authService.listDevices();
+
+      return state.copyWith(
+        status: UiFlowStatus.success,
+        devices: devices,
+        lastOperation: DeviceManagementOperation.recreateCrossDevice,
+      );
+    }, emitLoading: true);
   }
 
   /// Refresh the device list

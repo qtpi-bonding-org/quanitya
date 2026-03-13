@@ -347,6 +347,7 @@
       }
     }
   },
+  "enableICloudSync": "Enable iCloud Sync",
   "devToolsTitle": "Dev Tools",
   "devSeedFakeData": "Seed Fake Data",
   "devSeed": "Seed",
