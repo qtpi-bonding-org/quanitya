@@ -96,7 +96,7 @@ dependencies:
   dart_jwk_duo:
     git: 
       url: https://github.com/qtpi-bonding-org/dart_jwk_duo.git
-      ref: 57951f2de99784c3fc4664f7b66bb13ce6e80bc7
+      ref: e30f27c943a9c25ec6c7eaf70787f48998a7c113
   
   # Sharing & Export
   share_plus: ^10.1.4
