@@ -26,8 +26,8 @@ class LlmService {
       () async {
         _validateSchema(request.jsonSchema);
 
-        // Check if we should use Cloud Proxy (BYOK)
-        if (config.useCloudProxy && config.provider == LlmProvider.openRouter) {
+        // Quanitya provider routes through cloud proxy (managed, no API key)
+        if (config.provider == LlmProvider.quanitya) {
           if (kDebugMode) {
             debugPrint('\n☁️☁️☁️ CLOUD PROXY REQUEST START ☁️☁️☁️');
             debugPrint('Model: ${config.model}');
@@ -43,14 +43,14 @@ class LlmService {
           );
 
           // Execute via Serverpod Endpoint
-          final jsonString = await _serverpodClient.cloudLlm.generateStructured(cloudRequest);
+          final response = await _serverpodClient.cloudLlm.generateStructured(cloudRequest);
 
           if (kDebugMode) {
-             debugPrint('☁️☁️☁️ CLOUD PROXY SUCCESS ☁️☁️☁️\n');
+             debugPrint('☁️☁️☁️ CLOUD PROXY SUCCESS (balance: ${response.balance}) ☁️☁️☁️\n');
           }
 
-          // Decode the JSON string returned directly by the endpoint
-          final data = jsonDecode(jsonString) as Map<String, dynamic>;
+          // Decode the JSON string from the response
+          final data = jsonDecode(response.resultJson) as Map<String, dynamic>;
 
           return LlmResponse(
             data: data,
@@ -183,6 +183,9 @@ class LlmService {
          return OllamaProvider(
            baseUrl: Uri.parse(config.baseUrl),
          );
+      case LlmProvider.quanitya:
+        throw LlmException(
+            'Quanitya provider uses cloud proxy — direct provider not supported');
     }
   }
 
