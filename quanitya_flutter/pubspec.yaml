@@ -37,12 +37,12 @@ dependencies:
   anonaccount_client:
     git:
       url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
-      ref: ae83e44
+      ref: ae83e448060238ca69667b8778e84ac6ea8bdfbd
       path: anonaccount_client
   anonaccred_client:
     git:
       url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
-      ref: ae83e44
+      ref: ae83e448060238ca69667b8778e84ac6ea8bdfbd
       path: anonaccred_client
   flutter_color_palette:
     git: https://github.com/qtpi-bonding-org/flutter_color_palette.git
@@ -55,13 +55,13 @@ dependencies:
   cubit_ui_flow:
     git: 
       url: https://github.com/qtpi-bonding-org/flutter_cubit_ui_flow.git
-      ref: 6692e2d
+      ref: 6692e2d95d0bcdae59e2b9096a39c3b582807516
   
   # Privacy-preserving error reporting
   flutter_error_privserver:
     git:
       url: https://github.com/qtpi-bonding-org/flutter_error_privserver.git
-      ref: 381cff8
+      ref: 381cff84fa32111f97159cb0e23773134770f608
   
   # Code Generation
   freezed_annotation: ^2.4.1
@@ -191,7 +191,7 @@ dev_dependencies:
   l10n_key_resolver:
     git:
       url: https://github.com/qtpi-bonding-org/dart_l10n_key_resolver.git
-      ref: 2e5c947
+      ref: 2e5c947f6dc39037a7323409f42e1532b8502e5f
   bloc_test: ^9.1.7
   mocktail: ^1.0.4
   flutter_launcher_icons: ^0.14.3

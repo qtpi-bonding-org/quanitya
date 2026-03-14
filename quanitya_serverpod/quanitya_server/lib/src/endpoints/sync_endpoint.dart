@@ -228,7 +228,22 @@ class SyncEndpoint extends Endpoint {
     final accountId = int.parse(session.authenticated!.userIdentifier);
     final uuidId = UuidValue.fromString(id);
 
+    // DEBUG: Log what the server receives and what accountId it will store
+    session.log(
+      'DEBUG SyncEndpoint.upsertTemplateAesthetics: '
+      'id=$id, accountId=$accountId, templateId=$templateId, '
+      'icon=$icon, emoji=$emoji, userIdentifier=${session.authenticated!.userIdentifier}',
+      level: LogLevel.info,
+    );
+
     final existing = await TemplateAesthetics.db.findById(session, uuidId);
+
+    // DEBUG: Log existing record state
+    session.log(
+      'DEBUG SyncEndpoint.upsertTemplateAesthetics: '
+      'existing=${existing != null ? "found (accountId=${existing.accountId})" : "null"}',
+      level: LogLevel.info,
+    );
 
     final parsedUpdatedAt = _parseDateTime(updatedAt) ?? DateTime.now();
 

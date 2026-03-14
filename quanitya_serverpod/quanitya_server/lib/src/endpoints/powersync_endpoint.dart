@@ -46,6 +46,16 @@ class PowerSyncEndpoint extends Endpoint {
       level: LogLevel.info,
     );
 
+    // DEBUG: Log the identity being used in the JWT
+    session.log(
+      'DEBUG PowerSyncEndpoint: userIdentifier="$accountIdStr" '
+      '(length=${accountIdStr.length}). '
+      'THIS IS WHAT GOES INTO JWT user_id. '
+      'Sync rules expect ultimateSigningPublicKeyHex (128-char hex). '
+      'If this is a short integer, SYNC RULES WILL NOT MATCH!',
+      level: LogLevel.warning,
+    );
+
     // Use account ID as JWT identity for sync bucket filtering
     final token = await _createPowerSyncToken(accountIdStr, session);
 

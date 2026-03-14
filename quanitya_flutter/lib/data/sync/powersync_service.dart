@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:powersync/powersync.dart';
 import 'package:path/path.dart';
@@ -126,9 +128,15 @@ class PowerSyncService implements IPowerSyncService {
     }
 
     try {
+      // DEBUG: Snapshot table state BEFORE connect
+      await _debugLogTableState('BEFORE connect');
+
       // Disconnect first to avoid "Stream already listened to" on hot restart
       debugPrint('⚡ PowerSync: Disconnecting existing connection (hot restart safety)...');
       await _powerSyncDb!.disconnect();
+
+      // DEBUG: Snapshot table state AFTER disconnect
+      await _debugLogTableState('AFTER disconnect');
 
       debugPrint('⚡ PowerSync: Creating _ServerpodConnector...');
       final connector = _ServerpodConnector(serverpodClient);
@@ -137,6 +145,17 @@ class PowerSyncService implements IPowerSyncService {
       await _powerSyncDb!.connect(connector: connector);
       _isConnected = true;
       debugPrint('⚡ PowerSync: Connected successfully');
+
+      // DEBUG: Snapshot table state AFTER connect (immediate)
+      await _debugLogTableState('AFTER connect (immediate)');
+
+      // DEBUG: Snapshot again after a delay to catch server state application
+      Future.delayed(const Duration(seconds: 3), () async {
+        await _debugLogTableState('AFTER connect (+3s)');
+      });
+      Future.delayed(const Duration(seconds: 10), () async {
+        await _debugLogTableState('AFTER connect (+10s)');
+      });
     } catch (e, stack) {
       debugPrint('⚡ PowerSync: ERROR - Connection failed: $e');
       debugPrintStack(stackTrace: stack);
@@ -155,6 +174,43 @@ class PowerSyncService implements IPowerSyncService {
     await _powerSyncDb!.disconnect();
     _isConnected = false;
     debugPrint('⚡ PowerSync: Disconnected');
+  }
+
+  /// DEBUG: Log the state of all PowerSync tables
+  Future<void> _debugLogTableState(String label) async {
+    try {
+      final db = _powerSyncDb;
+      if (db == null) return;
+
+      debugPrint('🔍 DEBUG [$label] ─────────────────────────────────────');
+
+      // Template aesthetics (the problematic table)
+      final aesthetics = await db.getAll('SELECT id, template_id, icon, emoji, updated_at FROM template_aesthetics');
+      debugPrint('🔍 DEBUG [$label] template_aesthetics: ${aesthetics.length} rows');
+      for (final row in aesthetics) {
+        debugPrint('🔍 DEBUG [$label]   id=${row['id']}, template_id=${row['template_id']}, icon=${row['icon']}, emoji=${row['emoji']}');
+      }
+
+      // Encrypted templates
+      final templates = await db.getAll('SELECT id, LENGTH(encrypted_data) as data_len FROM encrypted_templates');
+      debugPrint('🔍 DEBUG [$label] encrypted_templates: ${templates.length} rows');
+
+      // Encrypted entries
+      final entries = await db.getAll('SELECT COUNT(*) as cnt FROM encrypted_entries');
+      debugPrint('🔍 DEBUG [$label] encrypted_entries: ${entries.first['cnt']} rows');
+
+      // Encrypted analysis scripts
+      final scripts = await db.getAll('SELECT COUNT(*) as cnt FROM encrypted_analysis_scripts');
+      debugPrint('🔍 DEBUG [$label] encrypted_analysis_scripts: ${scripts.first['cnt']} rows');
+
+      // CRUD queue status
+      final pending = await db.getAll('SELECT COUNT(*) as cnt FROM ps_crud');
+      debugPrint('🔍 DEBUG [$label] ps_crud (pending uploads): ${pending.first['cnt']} rows');
+
+      debugPrint('🔍 DEBUG [$label] ─────────────────────────────────────');
+    } catch (e) {
+      debugPrint('🔍 DEBUG [$label] ERROR reading table state: $e');
+    }
   }
 
   /// Handle app operating mode changes - connect/disconnect PowerSync as needed
@@ -220,6 +276,21 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
       debugPrint('⚡ PowerSync: Got token, expires at ${tokenResponse.expiresAt}');
       debugPrint('⚡ PowerSync: Endpoint: $_cachedEndpoint');
 
+      // DEBUG: Decode JWT to see what user_id is being used
+      try {
+        final parts = tokenResponse.token.split('.');
+        if (parts.length >= 2) {
+          final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+          final claims = jsonDecode(payload) as Map<String, dynamic>;
+          debugPrint('🔍 DEBUG JWT claims: user_id=${claims['user_id']}, sub=${claims['sub']}');
+          debugPrint('🔍 DEBUG JWT user_id type: ${claims['user_id'].runtimeType}');
+          debugPrint('🔍 DEBUG JWT user_id length: ${claims['user_id']?.toString().length}');
+          debugPrint('🔍 DEBUG JWT: Is user_id a public key hex? ${(claims['user_id']?.toString().length ?? 0) > 60 ? "YES (looks like hex)" : "NO (looks like integer ID — THIS IS THE BUG)"}');
+        }
+      } catch (e) {
+        debugPrint('🔍 DEBUG: Failed to decode JWT: $e');
+      }
+
       return PowerSyncCredentials(
         endpoint: _cachedEndpoint!,
         token: tokenResponse.token,
@@ -242,6 +313,9 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
       return;
     }
 
+    // DEBUG: Log table state at start of upload
+    debugPrint('🔍 DEBUG uploadData() called — checking table state');
+
     // Process all pending CRUD transactions
     int transactionCount = 0;
     while (true) {
@@ -249,6 +323,16 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
       if (transaction == null) {
         if (transactionCount > 0) {
           debugPrint('⚡ PowerSync: Completed upload of $transactionCount transactions');
+          // DEBUG: Log table state after all uploads
+          try {
+            final aesthetics = await database.getAll('SELECT id, icon, emoji FROM template_aesthetics');
+            debugPrint('🔍 DEBUG post-upload template_aesthetics: ${aesthetics.length} rows');
+            for (final row in aesthetics) {
+              debugPrint('🔍 DEBUG post-upload   icon=${row['icon']}, emoji=${row['emoji']}');
+            }
+          } catch (e) {
+            debugPrint('🔍 DEBUG post-upload table check failed: $e');
+          }
         } else {
           debugPrint('⚡ PowerSync: No pending transactions to upload');
         }
@@ -286,6 +370,14 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
     debugPrint(
       '⚡ PowerSync: Syncing op: ${op.op.name} table: ${op.table} id: ${op.id}',
     );
+    // DEBUG: Log full op data for aesthetics
+    if (op.table == 'template_aesthetics') {
+      debugPrint('🔍 DEBUG aesthetics upload data:');
+      data?.forEach((key, value) {
+        final valStr = value?.toString() ?? 'null';
+        debugPrint('🔍 DEBUG   $key = ${valStr.length > 100 ? '${valStr.substring(0, 100)}...' : valStr}');
+      });
+    }
 
     switch (op.op) {
       case UpdateType.put:
@@ -302,6 +394,12 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
             );
           case 'encrypted_schedules':
             await _client.modules.community.sync.upsertEncryptedSchedule(
+              op.id,
+              (data?['encrypted_data'] as String?) ?? '',
+            );
+          case 'encrypted_analysis_scripts':
+            await _client.modules.community.sync
+                .upsertEncryptedAnalysisScript(
               op.id,
               (data?['encrypted_data'] as String?) ?? '',
             );
@@ -344,6 +442,9 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
             await _client.modules.community.sync.deleteEncryptedEntry(op.id);
           case 'encrypted_schedules':
             await _client.modules.community.sync.deleteEncryptedSchedule(op.id);
+          case 'encrypted_analysis_scripts':
+            await _client.modules.community.sync
+                .deleteEncryptedAnalysisScript(op.id);
           case 'template_aesthetics':
             await _client.modules.community.sync.deleteTemplateAesthetics(
               op.id,
