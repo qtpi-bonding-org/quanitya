@@ -1,12 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:archive/archive.dart';
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
-import 'r2_storage_service.dart';
+import 'snapshot_pipeline.dart';
 
 /// Full snapshot backup service for user data.
 ///
@@ -15,13 +12,13 @@ import 'r2_storage_service.dart';
 /// only after verifying the backup exists.
 class SnapshotBackupService {
   final Session _session;
-  final R2StorageService _r2Storage;
+  final SnapshotPipeline _pipeline;
   final int _bufferMonths;
   final int _concurrency;
 
   SnapshotBackupService(
     this._session,
-    this._r2Storage, {
+    this._pipeline, {
     int? bufferMonths,
     int? concurrency,
   })  : _bufferMonths = bufferMonths ??
@@ -69,24 +66,16 @@ class SnapshotBackupService {
         return 0;
       }
 
-      // 2. Create snapshot data and compress
+      // 2. Create snapshot data
       final snapshotData = createUserSnapshotData(
         accountId: accountId,
         snapshotDate: snapshotDate,
         entries: entries,
       );
-      final jsonBytes = utf8.encode(jsonEncode(snapshotData));
-      final compressed = GZipEncoder().encode(jsonBytes);
-      if (compressed == null || compressed.isEmpty) {
-        throw Exception('Compression failed for user $accountId');
-      }
-
-      // 3. Upload to R2
       final key = generateSnapshotKey(accountId, snapshotDate);
-      await _r2Storage.uploadArchive(key, Uint8List.fromList(compressed));
 
-      // 4. Verify upload
-      final verified = await _r2Storage.verifyArchiveExists(key);
+      // 3. Compress, upload, and verify via pipeline
+      final verified = await _pipeline.uploadAndVerify(key, snapshotData);
       if (!verified) {
         _session.log(
           'Snapshot verification failed for user $accountId — skipping deletion',
@@ -196,7 +185,8 @@ class SnapshotBackupService {
 
   /// Create snapshot backup service from environment.
   static SnapshotBackupService fromEnvironment(Session session) {
-    return SnapshotBackupService(session, R2StorageService.fromEnvironment());
+    return SnapshotBackupService(
+        session, SnapshotPipeline.fromEnvironment(session));
   }
 }
 

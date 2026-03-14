@@ -12,6 +12,7 @@ import 'src/middleware/request_logger.dart';
 import 'src/services/email_service.dart';
 
 export 'src/services/email_service.dart';
+export 'src/services/snapshot_pipeline.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
