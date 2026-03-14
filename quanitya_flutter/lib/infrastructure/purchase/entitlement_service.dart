@@ -28,11 +28,8 @@ class EntitlementService implements IEntitlementService {
   Future<List<AccountEntitlement>> getEntitlements() {
     return tryMethod(
       () async {
-        final auth = await _getAuthParams();
-        return await _client.modules.anonaccred.commerce.getEntitlements(
-          auth.publicKeyHex,
-          auth.signature,
-        );
+        await _getAuthParams();
+        return await _client.modules.anonaccred.commerce.getEntitlements();
       },
       EntitlementException.new,
       'getEntitlements',
@@ -43,10 +40,8 @@ class EntitlementService implements IEntitlementService {
   Future<double> getEntitlementBalance(String tag) {
     return tryMethod(
       () async {
-        final auth = await _getAuthParams();
+        await _getAuthParams();
         return await _client.modules.anonaccred.commerce.getEntitlementBalance(
-          auth.publicKeyHex,
-          auth.signature,
           tag,
         );
       },
@@ -74,10 +69,8 @@ class EntitlementService implements IEntitlementService {
   Future<void> consumeEntitlement(String tag, double quantity) {
     return tryMethod(
       () async {
-        final auth = await _getAuthParams();
+        await _getAuthParams();
         await _client.modules.anonaccred.commerce.consumeEntitlement(
-          auth.publicKeyHex,
-          auth.signature,
           tag,
           quantity,
         );

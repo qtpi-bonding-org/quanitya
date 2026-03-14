@@ -303,8 +303,6 @@ class InAppPurchaseProvider implements IPurchaseProvider {
               'productId=${purchase.productId}');
           result =
               await _client.modules.anonaccred.iAP.validateAppleTransaction(
-            publicKeyHex,
-            signature,
             txnId,
             purchase.productId,
             internalTransactionId: purchase.transactionId,
@@ -316,8 +314,6 @@ class InAppPurchaseProvider implements IPurchaseProvider {
               'purchaseToken=${purchase.purchaseToken != null ? '${purchase.purchaseToken?.substring(0, 20)}...' : 'null'}');
           result =
               await _client.modules.anonaccred.iAP.validateGooglePurchase(
-            publicKeyHex,
-            signature,
             purchase.packageName ?? '',
             purchase.productId,
             purchase.purchaseToken ?? '',
