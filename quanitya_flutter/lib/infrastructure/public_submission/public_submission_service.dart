@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:injectable/injectable.dart';
+import 'package:anonaccount_client/anonaccount_client.dart'
+    show PublicChallengeResponse;
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
-    show Client, PublicChallengeResponse, ServerException, ServerErrorCode;
+    show Client, ServerException, ServerErrorCode;
 import 'package:flutter/foundation.dart' show Uint8List, debugPrint;
 
 import '../crypto/crypto_key_repository.dart';

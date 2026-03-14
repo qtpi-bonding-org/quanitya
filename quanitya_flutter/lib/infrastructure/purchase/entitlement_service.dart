@@ -6,6 +6,7 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
 import '../crypto/data_encryption_service.dart';
+import '../crypto/utils/hashcash.dart';
 import 'entitlement_exception.dart';
 import 'i_entitlement_service.dart';
 
@@ -93,11 +94,27 @@ class EntitlementService implements IEntitlementService {
       throw const EntitlementException('Device key not found');
     }
 
+    // PoW flow for generateAuthChallenge
+    final powChallengeResponse =
+        await _client.modules.anonaccount.device.getChallenge();
+    final proofOfWork = await Hashcash.mint(
+      powChallengeResponse.challenge,
+      difficulty: powChallengeResponse.difficulty,
+    );
+    final powSignPayload =
+        '${powChallengeResponse.challenge}:generateAuthChallenge:$publicKeyHex';
+    final powSignature = await _encryption.signWithDeviceKey(powSignPayload);
+
     // Authenticate with server
     final challenge = await _client.modules.anonaccount.device
-        .generateAuthChallenge(publicKeyHex);
+        .generateAuthChallenge(
+      challenge: powChallengeResponse.challenge,
+      proofOfWork: proofOfWork,
+      signature: powSignature,
+      devicePublicKey: publicKeyHex,
+    );
     final signature = await _encryption.signWithDeviceKey(challenge);
-    final authResult = await _client.modules.anonaccount.device
+    final authResult = await _client.modules.anonaccount.deviceManagement
         .authenticateDevice(challenge, signature);
 
     if (!authResult.success) {

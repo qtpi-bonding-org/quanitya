@@ -265,10 +265,27 @@ class InAppPurchaseProvider implements IPurchaseProvider {
         debugPrint('validateWithServer: device key found, '
             'requesting auth challenge...');
 
+        // PoW flow for generateAuthChallenge
+        final powChallengeResponse =
+            await _client.modules.anonaccount.device.getChallenge();
+        final powProof = await Hashcash.mint(
+          powChallengeResponse.challenge,
+          difficulty: powChallengeResponse.difficulty,
+        );
+        final powSignPayload =
+            '${powChallengeResponse.challenge}:generateAuthChallenge:$publicKeyHex';
+        final powSignature =
+            await _encryption.signWithDeviceKey(powSignPayload);
+
         final challenge = await _client.modules.anonaccount.device
-            .generateAuthChallenge(publicKeyHex);
+            .generateAuthChallenge(
+          challenge: powChallengeResponse.challenge,
+          proofOfWork: powProof,
+          signature: powSignature,
+          devicePublicKey: publicKeyHex,
+        );
         final signature = await _encryption.signWithDeviceKey(challenge);
-        final authResult = await _client.modules.anonaccount.device
+        final authResult = await _client.modules.anonaccount.deviceManagement
             .authenticateDevice(challenge, signature);
 
         debugPrint('validateWithServer: auth result='

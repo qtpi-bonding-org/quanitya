@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart' show Uint8List;
 import 'package:quanitya_flutter/infrastructure/public_submission/public_submission_service.dart';
 import 'package:quanitya_flutter/infrastructure/crypto/crypto_key_repository.dart';
 import 'package:quanitya_flutter/infrastructure/public_submission/exceptions/public_submission_exceptions.dart';
+import 'package:anonaccount_client/anonaccount_client.dart'
+    show PublicChallengeResponse;
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 

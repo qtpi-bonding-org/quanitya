@@ -11,6 +11,7 @@ import '../../../features/app_operating_mode/repositories/app_operating_reposito
 import '../../../infrastructure/core/try_operation.dart';
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../infrastructure/crypto/data_encryption_service.dart';
+import '../../../infrastructure/crypto/utils/hashcash.dart';
 import '../models/pairing_qr_data.dart';
 
 /// Describes why pairing failed.
@@ -205,8 +206,22 @@ class PairingService implements IPairingService {
     debugPrint('PairingService: Monitoring registration for $signingKeyHex');
 
     try {
+      // PoW flow for monitorRegistration
+      final challengeResponse =
+          await _client.modules.anonaccount.device.getChallenge();
+      final proofOfWork = await Hashcash.mint(
+        challengeResponse.challenge,
+        difficulty: challengeResponse.difficulty,
+      );
+      final signPayload =
+          '${challengeResponse.challenge}:monitorRegistration:$signingKeyHex';
+      final signature = await _encryption.signWithDeviceKey(signPayload);
+
       final stream = _client.modules.anonaccount.device.monitorRegistration(
-        signingKeyHex,
+        challenge: challengeResponse.challenge,
+        proofOfWork: proofOfWork,
+        signature: signature,
+        signingKeyHex: signingKeyHex,
       );
 
       await for (final event in stream) {
@@ -303,7 +318,7 @@ class PairingService implements IPairingService {
         debugPrint(
           'PairingService:   Step 3: Calling server.registerDeviceForAccount...',
         );
-        await _client.modules.anonaccount.device.registerDeviceForAccount(
+        await _client.modules.anonaccount.deviceManagement.registerDeviceForAccount(
           signingKeyHex,
           encryptedDataKey,
           label,
