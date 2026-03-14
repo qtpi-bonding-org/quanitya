@@ -116,13 +116,10 @@ class EndpointAccountDeletion extends EndpointDeviceAuthenticated {
 
 /// Account registration and recovery with proof-of-work spam prevention.
 ///
-/// Wraps account creation and recovery from anonaccount with
-/// [PublicSubmissionEndpoint] for hashcash PoW + rate limiting.
-///
-/// The client's `ultimateSigningPublicKeyHex` doubles as the public key
-/// for PoW signature verification and rate limiting — no extra key needed.
+/// Extends [PowProtectedEndpoint] from anonaccount for hashcash PoW +
+/// ECDSA signature verification + rate limiting.
 /// {@category Endpoint}
-class EndpointAccountRegistration extends EndpointPublicSubmission {
+class EndpointAccountRegistration extends _i3.EndpointPowProtected {
   EndpointAccountRegistration(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -133,6 +130,7 @@ class EndpointAccountRegistration extends EndpointPublicSubmission {
     required String challenge,
     required String proofOfWork,
     required String signature,
+    required String publicKeyHex,
     required String ultimateSigningPublicKeyHex,
     required String encryptedDataKey,
     required String ultimatePublicKey,
@@ -143,6 +141,7 @@ class EndpointAccountRegistration extends EndpointPublicSubmission {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
       'signature': signature,
+      'publicKeyHex': publicKeyHex,
       'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
       'encryptedDataKey': encryptedDataKey,
       'ultimatePublicKey': ultimatePublicKey,
@@ -675,7 +674,7 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
 /// Protected by Hashcash proof-of-work + ECDSA signature for rate limiting.
 /// Events are submitted in batches — one PoW covers the whole batch.
 /// {@category Endpoint}
-class EndpointAnalyticsEvent extends EndpointPublicSubmission {
+class EndpointAnalyticsEvent extends _i3.EndpointPowProtected {
   EndpointAnalyticsEvent(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -878,45 +877,6 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
 /// {@category Endpoint}
 abstract class EndpointDeviceAuthenticated extends _i1.EndpointRef {
   EndpointDeviceAuthenticated(_i1.EndpointCaller caller) : super(caller);
-}
-
-/// Base class for all public submission endpoints (unauthenticated).
-///
-/// Extends [PowProtectedEndpoint] from anonaccount, which provides:
-/// - `getChallenge()` endpoint method for PoW challenge generation
-/// - `verifyPow()` for PoW + signature + rate limit verification
-///
-/// Subclasses must override [endpointType] for rate limit bucketing
-/// and may override [rateLimitPerHour] for custom limits.
-/// {@category Endpoint}
-abstract class EndpointPublicSubmission extends _i3.EndpointPowProtected {
-  EndpointPublicSubmission(_i1.EndpointCaller caller) : super(caller);
-
-  /// Get challenge for proof-of-work.
-  ///
-  /// Returns a challenge string, difficulty, and expiration timestamp.
-  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
-  @override
-  _i2.Future<_i3.PublicChallengeResponse> getChallenge();
-
-  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
-  ///
-  /// Call this at the top of each PoW-protected endpoint method.
-  ///
-  /// - [session] Serverpod session
-  /// - [challenge] The challenge string from [getChallenge]
-  /// - [proofOfWork] The hashcash stamp mined by the client
-  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
-  /// - [signature] ECDSA signature over [payload]
-  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
-  @override
-  _i2.Future<void> verifyPow(
-    String challenge,
-    String proofOfWork,
-    String publicKeyHex,
-    String signature,
-    String payload,
-  );
 }
 
 /// Cloud Analysis Endpoint - MVP Disabled
@@ -1381,7 +1341,7 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
 /// - Error reports are stored WITHOUT any public key or hash
 /// - Reports remain fully anonymous in the database
 /// {@category Endpoint}
-class EndpointErrorReport extends EndpointPublicSubmission {
+class EndpointErrorReport extends _i3.EndpointPowProtected {
   EndpointErrorReport(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -1767,7 +1727,7 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
 /// - Feedback is stored WITHOUT any public key or hash
 /// - Reports remain fully anonymous in the database
 /// {@category Endpoint}
-class EndpointFeedback extends EndpointPublicSubmission {
+class EndpointFeedback extends _i3.EndpointPowProtected {
   EndpointFeedback(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -2127,7 +2087,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
 /// Rail configuration is read from Redis (seeded from platform_rails.csv).
 /// Product data lives in AnonAccred's rail_product table.
 /// {@category Endpoint}
-class EndpointProductCatalog extends EndpointPublicSubmission {
+class EndpointProductCatalog extends _i3.EndpointPowProtected {
   EndpointProductCatalog(_i1.EndpointCaller caller) : super(caller);
 
   @override

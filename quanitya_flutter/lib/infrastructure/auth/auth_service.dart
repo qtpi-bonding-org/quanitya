@@ -440,6 +440,7 @@ class AuthService {
             challenge: challengeResponse.challenge,
             proofOfWork: proofOfWork,
             signature: powSignature,
+            publicKeyHex: payload.devicePublicKeyHex,
             ultimateSigningPublicKeyHex: payload.ultimatePublicKeyHex,
             encryptedDataKey: payload.recoveryBlob,
             ultimatePublicKey: payload.ultimatePublicKeyHex,
@@ -493,8 +494,14 @@ class AuthService {
               );
               final crossSignPayload =
                   '${crossChallenge.challenge}:registerDevice:$keyHex';
+              final crossDeviceKeyDuo = await _keyRepository.getCrossDeviceKey();
+              if (crossDeviceKeyDuo == null) {
+                throw const AccountCreationException(
+                  'Cross-device key not available for signing',
+                );
+              }
               final crossSignature =
-                  await _encryption.signWithDeviceKey(crossSignPayload);
+                  await _encryption.signWithKeyDuo(crossSignPayload, crossDeviceKeyDuo);
 
               await _client.modules.anonaccount.device.registerDevice(
                 challenge: crossChallenge.challenge,
