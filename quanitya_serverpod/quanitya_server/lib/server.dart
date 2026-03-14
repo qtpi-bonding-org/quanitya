@@ -6,13 +6,14 @@ import 'package:serverpod_auth_idp_server/providers/email.dart';
 
 import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
-import 'src/generated/future_calls.dart';
 import 'src/web/routes/root.dart';
 import 'src/middleware/request_logger.dart';
 import 'src/services/email_service.dart';
+import 'src/future_calls/monthly_backup_future_call.dart';
 
 export 'src/services/email_service.dart';
 export 'src/services/snapshot_pipeline.dart';
+export 'src/future_calls/monthly_backup_future_call.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
@@ -84,18 +85,55 @@ void _sendPasswordResetCode(
   session.log('[EmailIdp] Password reset code ($email): $verificationCode');
 }
 
+/// Concrete future call for standalone community server.
+///
+/// Uses the legacy registration API since `type: module` does not generate
+/// the typed future call dispatch.
+class _CommunityMonthlyBackup extends MonthlyBackupFutureCall {
+  @override
+  Future<void> runMonthlyBackup(Session session, int iteration) async {
+    // Self-schedule next run FIRST (crash-safe) using legacy API
+    try {
+      final now = DateTime.now();
+      final nextMonth = DateTime(now.year, now.month + 1, 1, 2, 0, 0);
+      final delay = nextMonth.difference(now);
+
+      // ignore: deprecated_member_use
+      await session.serverpod.futureCallWithDelay(
+        MonthlyBackupFutureCall.callName,
+        null,
+        delay,
+      );
+
+      session.log(
+          'Next monthly backup scheduled for: ${nextMonth.toIso8601String()}');
+    } catch (e) {
+      session.log('Failed to schedule next monthly backup: $e',
+          level: LogLevel.warning);
+    }
+
+    await super.runMonthlyBackup(session, iteration);
+  }
+}
+
 /// Register background tasks for the server
 Future<void> _registerBackgroundTasks(Serverpod pod) async {
-  // Schedule monthly snapshot backup (runs 1st of each month at 2 AM)
+  // Register the future call with legacy API (required for type: module)
+  pod.registerFutureCall(
+      _CommunityMonthlyBackup(), MonthlyBackupFutureCall.callName);
+
+  // Schedule first run on 1st of next month at 2 AM
   final now = DateTime.now();
   final nextFirstOfMonth = now.day == 1 && now.hour < 2
       ? DateTime(now.year, now.month, 1, 2, 0, 0)
       : DateTime(now.year, now.month + 1, 1, 2, 0, 0);
   final delay = nextFirstOfMonth.difference(now);
 
-  await pod.futureCalls
-      .callWithDelay(delay)
-      .monthlyBackup
-      .runMonthlyBackup(0);
+  // ignore: deprecated_member_use
+  await pod.futureCallWithDelay(
+    MonthlyBackupFutureCall.callName,
+    null,
+    delay,
+  );
   print('Monthly backup scheduled for: ${nextFirstOfMonth.toIso8601String()}');
 }
