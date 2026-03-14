@@ -6,7 +6,7 @@ import 'package:serverpod_auth_idp_server/providers/email.dart';
 
 import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
-import 'src/future_calls/monthly_archival_future_call.dart';
+import 'src/future_calls/monthly_backup_future_call.dart';
 import 'src/web/routes/root.dart';
 import 'src/middleware/request_logger.dart';
 import 'src/services/email_service.dart';
@@ -85,17 +85,17 @@ void _sendPasswordResetCode(
 
 /// Register background tasks for the server
 Future<void> _registerBackgroundTasks(Serverpod pod) async {
-  // Register monthly archival future call
-  pod.registerFutureCall(MonthlyArchivalFutureCall(), 'monthlyArchival');
-  
-  // Initialize the monthly archival schedule on server startup
+  // Register monthly backup future call
+  pod.registerFutureCall(MonthlyBackupFutureCall(), 'monthlyBackup');
+
+  // Initialize the monthly backup schedule on server startup
   // This will schedule the first execution and then it will self-reschedule
   final session = await pod.createSession(enableLogging: false);
   try {
-    await MonthlyArchivalFutureCall().initializeSchedule(session, 0);
-    session.log('Monthly archival schedule initialized');
+    await MonthlyBackupFutureCall().initializeSchedule(session, 0);
+    session.log('Monthly backup schedule initialized');
   } catch (e) {
-    session.log('Failed to initialize monthly archival schedule: $e', level: LogLevel.error);
+    session.log('Failed to initialize monthly backup schedule: $e', level: LogLevel.error);
   } finally {
     await session.close();
   }
