@@ -13,61 +13,59 @@
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
 import 'package:anonaccount_client/anonaccount_client.dart' as _i3;
-import 'package:quanitya_cloud_client/src/protocol/public_challenge_response.dart'
-    as _i4;
 import 'package:quanitya_cloud_client/src/protocol/admin_signing_key.dart'
-    as _i5;
-import 'package:quanitya_cloud_client/src/protocol/admin_role.dart' as _i6;
+    as _i4;
+import 'package:quanitya_cloud_client/src/protocol/admin_role.dart' as _i5;
 import 'package:quanitya_cloud_client/src/protocol/paginated_analytics_events.dart'
-    as _i7;
-import 'package:quanitya_cloud_client/src/protocol/analytics_event.dart' as _i8;
+    as _i6;
+import 'package:quanitya_cloud_client/src/protocol/analytics_event.dart' as _i7;
 import 'package:quanitya_cloud_client/src/protocol/analytics_statistics.dart'
-    as _i9;
+    as _i8;
 import 'package:quanitya_cloud_client/src/protocol/admin_action_result.dart'
-    as _i10;
+    as _i9;
 import 'package:quanitya_cloud_client/src/protocol/batch_submission_result.dart'
-    as _i11;
+    as _i10;
 import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_response.dart'
-    as _i12;
+    as _i11;
 import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_request.dart'
-    as _i13;
+    as _i12;
 import 'package:quanitya_cloud_client/src/protocol/paginated_error_reports.dart'
-    as _i14;
-import 'package:quanitya_cloud_client/src/protocol/error_report.dart' as _i15;
+    as _i13;
+import 'package:quanitya_cloud_client/src/protocol/error_report.dart' as _i14;
 import 'package:quanitya_cloud_client/src/protocol/error_statistics.dart'
-    as _i16;
+    as _i15;
 import 'package:quanitya_cloud_client/src/protocol/paginated_feedback_reports.dart'
-    as _i17;
-import 'package:quanitya_cloud_client/src/protocol/feedback_type.dart' as _i18;
+    as _i16;
+import 'package:quanitya_cloud_client/src/protocol/feedback_type.dart' as _i17;
 import 'package:quanitya_cloud_client/src/protocol/feedback_report.dart'
-    as _i19;
+    as _i18;
 import 'package:quanitya_cloud_client/src/protocol/feedback_statistics.dart'
-    as _i20;
+    as _i19;
 import 'package:quanitya_cloud_client/src/protocol/notification_create_result.dart'
-    as _i21;
+    as _i20;
 import 'package:quanitya_cloud_client/src/protocol/notification_type.dart'
-    as _i22;
+    as _i21;
 import 'package:quanitya_cloud_client/src/protocol/notification_statistics.dart'
-    as _i23;
+    as _i22;
 import 'package:quanitya_cloud_client/src/protocol/paginated_notifications.dart'
-    as _i24;
+    as _i23;
 import 'package:quanitya_cloud_client/src/protocol/notification_details.dart'
-    as _i25;
+    as _i24;
 import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
-    as _i26;
+    as _i25;
 import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
-    as _i27;
+    as _i26;
 import 'package:quanitya_cloud_client/src/protocol/sync_access_info.dart'
-    as _i28;
+    as _i27;
 import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
-    as _i29;
+    as _i28;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i30;
+    as _i29;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i31;
-import 'package:quanitya_client/quanitya_client.dart' as _i32;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i33;
-import 'protocol.dart' as _i34;
+    as _i30;
+import 'package:quanitya_client/quanitya_client.dart' as _i31;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i32;
+import 'protocol.dart' as _i33;
 
 /// A simple cloud-specific endpoint to verify the cloud server is working.
 /// {@category Endpoint}
@@ -94,7 +92,7 @@ class EndpointCloudHealth extends _i1.EndpointRef {
 /// by the authenticated user. This satisfies Apple App Store requirement
 /// for account deletion functionality.
 /// {@category Endpoint}
-class EndpointAccountDeletion extends _i1.EndpointRef {
+class EndpointAccountDeletion extends EndpointDeviceAuthenticated {
   EndpointAccountDeletion(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -173,78 +171,28 @@ class EndpointAccountRegistration extends EndpointPublicSubmission {
 
   /// Get challenge for proof-of-work.
   ///
-  /// This method is inherited by all public endpoints and provides
-  /// a consistent way to generate challenges.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  ///
-  /// Returns a map with:
-  /// - challenge: Random challenge string (32 hex chars)
-  /// - difficulty: Number of leading zero bits required (20)
-  /// - expiresAt: Unix timestamp when challenge expires
-  ///
-  /// Example:
-  /// ```dart
-  /// final challenge = await getChallenge(session);
-  /// // Returns: {
-  /// //   'challenge': 'abc123...',
-  /// //   'difficulty': 20,
-  /// //   'expiresAt': 1234567890
-  /// // }
-  /// ```
+  /// Returns a challenge string, difficulty, and expiration timestamp.
+  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
   @override
-  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
+  _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i3.PublicChallengeResponse>(
         'accountRegistration',
         'getChallenge',
         {},
       );
 
-  /// Verify submission (PoW + signature + rate limit).
+  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
   ///
-  /// This method performs all verification steps:
-  /// 1. Verifies proof-of-work solution
-  /// 2. Verifies ECDSA signature
-  /// 3. Checks and enforces rate limits
+  /// Call this at the top of each PoW-protected endpoint method.
   ///
-  /// Throws an exception if any verification step fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [challenge]: Challenge string from getChallenge()
-  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [payload]: Original payload that was signed
-  ///
-  /// Throws:
-  /// - Exception if proof-of-work is invalid
-  /// - Exception if signature is invalid
-  /// - RateLimitExceededException if rate limit exceeded
-  ///
-  /// Example:
-  /// ```dart
-  /// try {
-  ///   await verifySubmission(
-  ///     session,
-  ///     challenge,
-  ///     proofOfWork,
-  ///     publicKeyHex,
-  ///     signature,
-  ///     payload,
-  ///   );
-  ///   // Verification successful, process submission
-  /// } catch (e) {
-  ///   // Handle verification failure
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: e.toString(),
-  ///   );
-  /// }
-  /// ```
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
   @override
-  _i2.Future<void> verifySubmission(
+  _i2.Future<void> verifyPow(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
@@ -252,7 +200,7 @@ class EndpointAccountRegistration extends EndpointPublicSubmission {
     String payload,
   ) => caller.callServerEndpoint<void>(
     'accountRegistration',
-    'verifySubmission',
+    'verifyPow',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
@@ -328,10 +276,10 @@ class EndpointAdminKeyManagement extends EndpointAdminManagement {
   ///
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key for authentication (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
-  _i2.Future<List<_i5.AdminSigningKey>> listKeys(
+  _i2.Future<List<_i4.AdminSigningKey>> listKeys(
     String adminPublicKeyHex,
     String adminSignature,
-  ) => caller.callServerEndpoint<List<_i5.AdminSigningKey>>(
+  ) => caller.callServerEndpoint<List<_i4.AdminSigningKey>>(
     'adminKeyManagement',
     'listKeys',
     {
@@ -347,11 +295,11 @@ class EndpointAdminKeyManagement extends EndpointAdminManagement {
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key for authentication (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
   /// [keyId] - ID of the key to retrieve
-  _i2.Future<_i5.AdminSigningKey> getKeyInfo(
+  _i2.Future<_i4.AdminSigningKey> getKeyInfo(
     String adminPublicKeyHex,
     String adminSignature,
     int keyId,
-  ) => caller.callServerEndpoint<_i5.AdminSigningKey>(
+  ) => caller.callServerEndpoint<_i4.AdminSigningKey>(
     'adminKeyManagement',
     'getKeyInfo',
     {
@@ -421,11 +369,11 @@ class EndpointAdminKeyManagement extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i6.AdminRole?> validateAdmin(
+  _i2.Future<_i5.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole?>(
+  ) => caller.callServerEndpoint<_i5.AdminRole?>(
     'adminKeyManagement',
     'validateAdmin',
     {
@@ -463,11 +411,11 @@ class EndpointAdminKeyManagement extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i6.AdminRole> requireAdmin(
+  _i2.Future<_i5.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole>(
+  ) => caller.callServerEndpoint<_i5.AdminRole>(
     'adminKeyManagement',
     'requireAdmin',
     {
@@ -517,7 +465,7 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   /// - total: Total count matching filters
   /// - limit: Page size used
   /// - offset: Offset used
-  _i2.Future<_i7.PaginatedAnalyticsEvents> listEvents(
+  _i2.Future<_i6.PaginatedAnalyticsEvents> listEvents(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -526,7 +474,7 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
     String? platformFilter,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i7.PaginatedAnalyticsEvents>(
+  }) => caller.callServerEndpoint<_i6.PaginatedAnalyticsEvents>(
     'analyticsAdmin',
     'listEvents',
     {
@@ -552,11 +500,11 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - data: Full analytics event details
-  _i2.Future<_i8.AnalyticsEvent> getEventDetails(
+  _i2.Future<_i7.AnalyticsEvent> getEventDetails(
     String adminPublicKeyHex,
     String adminSignature,
     int eventId,
-  ) => caller.callServerEndpoint<_i8.AnalyticsEvent>(
+  ) => caller.callServerEndpoint<_i7.AnalyticsEvent>(
     'analyticsAdmin',
     'getEventDetails',
     {
@@ -581,12 +529,12 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   /// - byEventName: Count by event name
   /// - byPlatform: Count by platform
   /// - recentEvents: Recent events (last 7 days, limit 10)
-  _i2.Future<_i9.AnalyticsStatistics> getStatistics(
+  _i2.Future<_i8.AnalyticsStatistics> getStatistics(
     String adminPublicKeyHex,
     String adminSignature, {
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i9.AnalyticsStatistics>(
+  }) => caller.callServerEndpoint<_i8.AnalyticsStatistics>(
     'analyticsAdmin',
     'getStatistics',
     {
@@ -609,11 +557,11 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   /// Returns:
   /// - success: true if deleted
   /// - message: Success message
-  _i2.Future<_i10.AdminActionResult> deleteEvent(
+  _i2.Future<_i9.AdminActionResult> deleteEvent(
     String adminPublicKeyHex,
     String adminSignature,
     int eventId,
-  ) => caller.callServerEndpoint<_i10.AdminActionResult>(
+  ) => caller.callServerEndpoint<_i9.AdminActionResult>(
     'analyticsAdmin',
     'deleteEvent',
     {
@@ -662,11 +610,11 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i6.AdminRole?> validateAdmin(
+  _i2.Future<_i5.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole?>(
+  ) => caller.callServerEndpoint<_i5.AdminRole?>(
     'analyticsAdmin',
     'validateAdmin',
     {
@@ -704,11 +652,11 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i6.AdminRole> requireAdmin(
+  _i2.Future<_i5.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole>(
+  ) => caller.callServerEndpoint<_i5.AdminRole>(
     'analyticsAdmin',
     'requireAdmin',
     {
@@ -747,13 +695,13 @@ class EndpointAnalyticsEvent extends EndpointPublicSubmission {
   ///   - props: JSON-encoded properties (optional)
   ///
   /// Throws [ServerException] on validation, rate limit, or internal errors.
-  _i2.Future<_i11.BatchSubmissionResult> submitEvents({
+  _i2.Future<_i10.BatchSubmissionResult> submitEvents({
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
     required String eventsJson,
-  }) => caller.callServerEndpoint<_i11.BatchSubmissionResult>(
+  }) => caller.callServerEndpoint<_i10.BatchSubmissionResult>(
     'analyticsEvent',
     'submitEvents',
     {
@@ -767,78 +715,28 @@ class EndpointAnalyticsEvent extends EndpointPublicSubmission {
 
   /// Get challenge for proof-of-work.
   ///
-  /// This method is inherited by all public endpoints and provides
-  /// a consistent way to generate challenges.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  ///
-  /// Returns a map with:
-  /// - challenge: Random challenge string (32 hex chars)
-  /// - difficulty: Number of leading zero bits required (20)
-  /// - expiresAt: Unix timestamp when challenge expires
-  ///
-  /// Example:
-  /// ```dart
-  /// final challenge = await getChallenge(session);
-  /// // Returns: {
-  /// //   'challenge': 'abc123...',
-  /// //   'difficulty': 20,
-  /// //   'expiresAt': 1234567890
-  /// // }
-  /// ```
+  /// Returns a challenge string, difficulty, and expiration timestamp.
+  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
   @override
-  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
+  _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i3.PublicChallengeResponse>(
         'analyticsEvent',
         'getChallenge',
         {},
       );
 
-  /// Verify submission (PoW + signature + rate limit).
+  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
   ///
-  /// This method performs all verification steps:
-  /// 1. Verifies proof-of-work solution
-  /// 2. Verifies ECDSA signature
-  /// 3. Checks and enforces rate limits
+  /// Call this at the top of each PoW-protected endpoint method.
   ///
-  /// Throws an exception if any verification step fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [challenge]: Challenge string from getChallenge()
-  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [payload]: Original payload that was signed
-  ///
-  /// Throws:
-  /// - Exception if proof-of-work is invalid
-  /// - Exception if signature is invalid
-  /// - RateLimitExceededException if rate limit exceeded
-  ///
-  /// Example:
-  /// ```dart
-  /// try {
-  ///   await verifySubmission(
-  ///     session,
-  ///     challenge,
-  ///     proofOfWork,
-  ///     publicKeyHex,
-  ///     signature,
-  ///     payload,
-  ///   );
-  ///   // Verification successful, process submission
-  /// } catch (e) {
-  ///   // Handle verification failure
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: e.toString(),
-  ///   );
-  /// }
-  /// ```
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
   @override
-  _i2.Future<void> verifySubmission(
+  _i2.Future<void> verifyPow(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
@@ -846,7 +744,7 @@ class EndpointAnalyticsEvent extends EndpointPublicSubmission {
     String payload,
   ) => caller.callServerEndpoint<void>(
     'analyticsEvent',
-    'verifySubmission',
+    'verifyPow',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
@@ -933,7 +831,7 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
   ///   );
   /// }
   /// ```
-  _i2.Future<_i6.AdminRole?> validateAdmin(
+  _i2.Future<_i5.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
@@ -966,123 +864,53 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
   /// );
   /// // If we get here, authentication succeeded
   /// ```
-  _i2.Future<_i6.AdminRole> requireAdmin(
+  _i2.Future<_i5.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
   );
 }
 
+/// Base class for endpoints requiring device-key authentication.
+///
+/// Provides `requireLogin => true` and helpers to extract the
+/// authenticated device public key and account ID from the session.
+/// {@category Endpoint}
+abstract class EndpointDeviceAuthenticated extends _i1.EndpointRef {
+  EndpointDeviceAuthenticated(_i1.EndpointCaller caller) : super(caller);
+}
+
 /// Base class for all public submission endpoints (unauthenticated).
 ///
-/// Provides standardized proof-of-work and signature verification for:
-/// - Error reports
-/// - Feedback submissions
-/// - Other public submissions
+/// Extends [PowProtectedEndpoint] from anonaccount, which provides:
+/// - `getChallenge()` endpoint method for PoW challenge generation
+/// - `verifyPow()` for PoW + signature + rate limit verification
 ///
-/// All public endpoints inherit:
-/// - getChallenge() method for PoW challenge generation
-/// - verifySubmission() method for PoW + signature + rate limit verification
-/// - Consistent security patterns
-///
-/// Usage:
-/// ```dart
-/// class ErrorReportEndpoint extends PublicSubmissionEndpoint {
-///   @override
-///   String get endpointType => 'error_report';
-///
-///   Future<void> submitReport(
-///     Session session,
-///     String challenge,
-///     String proofOfWork,
-///     String publicKeyHex,
-///     String signature,
-///     String payload,
-///   ) async {
-///     await verifySubmission(
-///       session, challenge, proofOfWork, publicKeyHex, signature, payload,
-///     );
-///
-///     // Process the submission...
-///   }
-/// }
-/// ```
-///
-/// **IMPORTANT**: Never return `Map<String, dynamic>` from Serverpod endpoints.
-/// Serverpod cannot deserialize `dynamic`. Use typed protocol models or
-/// `String` (JSON-encoded) for complex responses. For errors, throw
-/// `ServerException` with an appropriate `ServerErrorCode`.
+/// Subclasses must override [endpointType] for rate limit bucketing
+/// and may override [rateLimitPerHour] for custom limits.
 /// {@category Endpoint}
-abstract class EndpointPublicSubmission extends _i1.EndpointRef {
+abstract class EndpointPublicSubmission extends _i3.EndpointPowProtected {
   EndpointPublicSubmission(_i1.EndpointCaller caller) : super(caller);
 
   /// Get challenge for proof-of-work.
   ///
-  /// This method is inherited by all public endpoints and provides
-  /// a consistent way to generate challenges.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  ///
-  /// Returns a map with:
-  /// - challenge: Random challenge string (32 hex chars)
-  /// - difficulty: Number of leading zero bits required (20)
-  /// - expiresAt: Unix timestamp when challenge expires
-  ///
-  /// Example:
-  /// ```dart
-  /// final challenge = await getChallenge(session);
-  /// // Returns: {
-  /// //   'challenge': 'abc123...',
-  /// //   'difficulty': 20,
-  /// //   'expiresAt': 1234567890
-  /// // }
-  /// ```
-  _i2.Future<_i4.PublicChallengeResponse> getChallenge();
+  /// Returns a challenge string, difficulty, and expiration timestamp.
+  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
+  @override
+  _i2.Future<_i3.PublicChallengeResponse> getChallenge();
 
-  /// Verify submission (PoW + signature + rate limit).
+  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
   ///
-  /// This method performs all verification steps:
-  /// 1. Verifies proof-of-work solution
-  /// 2. Verifies ECDSA signature
-  /// 3. Checks and enforces rate limits
+  /// Call this at the top of each PoW-protected endpoint method.
   ///
-  /// Throws an exception if any verification step fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [challenge]: Challenge string from getChallenge()
-  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [payload]: Original payload that was signed
-  ///
-  /// Throws:
-  /// - Exception if proof-of-work is invalid
-  /// - Exception if signature is invalid
-  /// - RateLimitExceededException if rate limit exceeded
-  ///
-  /// Example:
-  /// ```dart
-  /// try {
-  ///   await verifySubmission(
-  ///     session,
-  ///     challenge,
-  ///     proofOfWork,
-  ///     publicKeyHex,
-  ///     signature,
-  ///     payload,
-  ///   );
-  ///   // Verification successful, process submission
-  /// } catch (e) {
-  ///   // Handle verification failure
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: e.toString(),
-  ///   );
-  /// }
-  /// ```
-  _i2.Future<void> verifySubmission(
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
+  @override
+  _i2.Future<void> verifyPow(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
@@ -1095,14 +923,8 @@ abstract class EndpointPublicSubmission extends _i1.EndpointRef {
 ///
 /// This endpoint provides pay-per-use statistical analysis features.
 /// DISABLED for MVP launch - will be added post-launch.
-///
-/// Features (when enabled):
-/// - Ed25519 public key authentication via X-QUANITYA-DEVICE-PUBKEY header
-/// - X402 HTTP micropayments via X-PAYMENT header
-/// - Pay-per-use analysis with different pricing tiers
-/// - JWT tokens for external analysis engine access
 /// {@category Endpoint}
-class EndpointCloudAnalysis extends _i1.EndpointRef {
+class EndpointCloudAnalysis extends EndpointDeviceAuthenticated {
   EndpointCloudAnalysis(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -1124,7 +946,7 @@ class EndpointCloudAnalysis extends _i1.EndpointRef {
 /// Model selection is server-controlled to prevent cost abuse.
 /// Uses OpenRouter's `models` array for automatic failover.
 /// {@category Endpoint}
-class EndpointCloudLlm extends _i1.EndpointRef {
+class EndpointCloudLlm extends EndpointDeviceAuthenticated {
   EndpointCloudLlm(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -1137,9 +959,9 @@ class EndpointCloudLlm extends _i1.EndpointRef {
   ///
   /// Returns JSON string containing the LLM's
   /// structured JSON output (shape defined by caller's schema).
-  _i2.Future<_i12.CloudLlmStructuredResponse> generateStructured(
-    _i13.CloudLlmStructuredRequest request,
-  ) => caller.callServerEndpoint<_i12.CloudLlmStructuredResponse>(
+  _i2.Future<_i11.CloudLlmStructuredResponse> generateStructured(
+    _i12.CloudLlmStructuredRequest request,
+  ) => caller.callServerEndpoint<_i11.CloudLlmStructuredResponse>(
     'cloudLlm',
     'generateStructured',
     {'request': request},
@@ -1245,11 +1067,11 @@ class EndpointEntitlementAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i6.AdminRole?> validateAdmin(
+  _i2.Future<_i5.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole?>(
+  ) => caller.callServerEndpoint<_i5.AdminRole?>(
     'entitlementAdmin',
     'validateAdmin',
     {
@@ -1287,11 +1109,11 @@ class EndpointEntitlementAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i6.AdminRole> requireAdmin(
+  _i2.Future<_i5.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole>(
+  ) => caller.callServerEndpoint<_i5.AdminRole>(
     'entitlementAdmin',
     'requireAdmin',
     {
@@ -1341,7 +1163,7 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// - total: Total count matching filters
   /// - limit: Page size used
   /// - offset: Offset used
-  _i2.Future<_i14.PaginatedErrorReports> listErrorReports(
+  _i2.Future<_i13.PaginatedErrorReports> listErrorReports(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -1350,7 +1172,7 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
     String? errorCodeFilter,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i14.PaginatedErrorReports>(
+  }) => caller.callServerEndpoint<_i13.PaginatedErrorReports>(
     'errorReportAdmin',
     'listErrorReports',
     {
@@ -1376,11 +1198,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - data: Full error report details
-  _i2.Future<_i15.ErrorReport> getErrorReportDetails(
+  _i2.Future<_i14.ErrorReport> getErrorReportDetails(
     String adminPublicKeyHex,
     String adminSignature,
     int errorReportId,
-  ) => caller.callServerEndpoint<_i15.ErrorReport>(
+  ) => caller.callServerEndpoint<_i14.ErrorReport>(
     'errorReportAdmin',
     'getErrorReportDetails',
     {
@@ -1402,12 +1224,12 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - data: Statistics including totalErrors, errorsByType, errorsByCode, errorsByPlatform, recentErrors
-  _i2.Future<_i16.ErrorStatistics> getErrorStatistics(
+  _i2.Future<_i15.ErrorStatistics> getErrorStatistics(
     String adminPublicKeyHex,
     String adminSignature, {
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i16.ErrorStatistics>(
+  }) => caller.callServerEndpoint<_i15.ErrorStatistics>(
     'errorReportAdmin',
     'getErrorStatistics',
     {
@@ -1430,11 +1252,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// Returns:
   /// - success: true if deleted
   /// - message: Success message
-  _i2.Future<_i10.AdminActionResult> deleteErrorReport(
+  _i2.Future<_i9.AdminActionResult> deleteErrorReport(
     String adminPublicKeyHex,
     String adminSignature,
     int errorReportId,
-  ) => caller.callServerEndpoint<_i10.AdminActionResult>(
+  ) => caller.callServerEndpoint<_i9.AdminActionResult>(
     'errorReportAdmin',
     'deleteErrorReport',
     {
@@ -1483,11 +1305,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i6.AdminRole?> validateAdmin(
+  _i2.Future<_i5.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole?>(
+  ) => caller.callServerEndpoint<_i5.AdminRole?>(
     'errorReportAdmin',
     'validateAdmin',
     {
@@ -1525,11 +1347,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i6.AdminRole> requireAdmin(
+  _i2.Future<_i5.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole>(
+  ) => caller.callServerEndpoint<_i5.AdminRole>(
     'errorReportAdmin',
     'requireAdmin',
     {
@@ -1635,13 +1457,13 @@ class EndpointErrorReport extends EndpointPublicSubmission {
   /// - [reportsJson]: JSON-encoded list of error report objects
   ///
   /// Throws [ServerException] on validation, rate limit, or internal errors.
-  _i2.Future<_i11.BatchSubmissionResult> submitErrorReports({
+  _i2.Future<_i10.BatchSubmissionResult> submitErrorReports({
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
     required String reportsJson,
-  }) => caller.callServerEndpoint<_i11.BatchSubmissionResult>(
+  }) => caller.callServerEndpoint<_i10.BatchSubmissionResult>(
     'errorReport',
     'submitErrorReports',
     {
@@ -1655,78 +1477,28 @@ class EndpointErrorReport extends EndpointPublicSubmission {
 
   /// Get challenge for proof-of-work.
   ///
-  /// This method is inherited by all public endpoints and provides
-  /// a consistent way to generate challenges.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  ///
-  /// Returns a map with:
-  /// - challenge: Random challenge string (32 hex chars)
-  /// - difficulty: Number of leading zero bits required (20)
-  /// - expiresAt: Unix timestamp when challenge expires
-  ///
-  /// Example:
-  /// ```dart
-  /// final challenge = await getChallenge(session);
-  /// // Returns: {
-  /// //   'challenge': 'abc123...',
-  /// //   'difficulty': 20,
-  /// //   'expiresAt': 1234567890
-  /// // }
-  /// ```
+  /// Returns a challenge string, difficulty, and expiration timestamp.
+  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
   @override
-  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
+  _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i3.PublicChallengeResponse>(
         'errorReport',
         'getChallenge',
         {},
       );
 
-  /// Verify submission (PoW + signature + rate limit).
+  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
   ///
-  /// This method performs all verification steps:
-  /// 1. Verifies proof-of-work solution
-  /// 2. Verifies ECDSA signature
-  /// 3. Checks and enforces rate limits
+  /// Call this at the top of each PoW-protected endpoint method.
   ///
-  /// Throws an exception if any verification step fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [challenge]: Challenge string from getChallenge()
-  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [payload]: Original payload that was signed
-  ///
-  /// Throws:
-  /// - Exception if proof-of-work is invalid
-  /// - Exception if signature is invalid
-  /// - RateLimitExceededException if rate limit exceeded
-  ///
-  /// Example:
-  /// ```dart
-  /// try {
-  ///   await verifySubmission(
-  ///     session,
-  ///     challenge,
-  ///     proofOfWork,
-  ///     publicKeyHex,
-  ///     signature,
-  ///     payload,
-  ///   );
-  ///   // Verification successful, process submission
-  /// } catch (e) {
-  ///   // Handle verification failure
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: e.toString(),
-  ///   );
-  /// }
-  /// ```
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
   @override
-  _i2.Future<void> verifySubmission(
+  _i2.Future<void> verifyPow(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
@@ -1734,7 +1506,7 @@ class EndpointErrorReport extends EndpointPublicSubmission {
     String payload,
   ) => caller.callServerEndpoint<void>(
     'errorReport',
-    'verifySubmission',
+    'verifyPow',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
@@ -1780,15 +1552,15 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Paginated response with feedback reports
-  _i2.Future<_i17.PaginatedFeedbackReports> listFeedback(
+  _i2.Future<_i16.PaginatedFeedbackReports> listFeedback(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
     required int offset,
-    _i18.FeedbackType? feedbackTypeFilter,
+    _i17.FeedbackType? feedbackTypeFilter,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i17.PaginatedFeedbackReports>(
+  }) => caller.callServerEndpoint<_i16.PaginatedFeedbackReports>(
     'feedbackAdmin',
     'listFeedback',
     {
@@ -1813,11 +1585,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Feedback report details
-  _i2.Future<_i19.FeedbackReport> getFeedbackDetails(
+  _i2.Future<_i18.FeedbackReport> getFeedbackDetails(
     String adminPublicKeyHex,
     String adminSignature,
     int feedbackId,
-  ) => caller.callServerEndpoint<_i19.FeedbackReport>(
+  ) => caller.callServerEndpoint<_i18.FeedbackReport>(
     'feedbackAdmin',
     'getFeedbackDetails',
     {
@@ -1841,12 +1613,12 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   /// - totalFeedback: Total feedback count
   /// - byType: Count by feedback type
   /// - recentFeedback: Recent feedback (last 7 days, limit 10)
-  _i2.Future<_i20.FeedbackStatistics> getFeedbackStatistics(
+  _i2.Future<_i19.FeedbackStatistics> getFeedbackStatistics(
     String adminPublicKeyHex,
     String adminSignature, {
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i20.FeedbackStatistics>(
+  }) => caller.callServerEndpoint<_i19.FeedbackStatistics>(
     'feedbackAdmin',
     'getFeedbackStatistics',
     {
@@ -1868,11 +1640,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Success message
-  _i2.Future<_i10.AdminActionResult> deleteFeedback(
+  _i2.Future<_i9.AdminActionResult> deleteFeedback(
     String adminPublicKeyHex,
     String adminSignature,
     int feedbackId,
-  ) => caller.callServerEndpoint<_i10.AdminActionResult>(
+  ) => caller.callServerEndpoint<_i9.AdminActionResult>(
     'feedbackAdmin',
     'deleteFeedback',
     {
@@ -1921,11 +1693,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i6.AdminRole?> validateAdmin(
+  _i2.Future<_i5.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole?>(
+  ) => caller.callServerEndpoint<_i5.AdminRole?>(
     'feedbackAdmin',
     'validateAdmin',
     {
@@ -1963,11 +1735,11 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i6.AdminRole> requireAdmin(
+  _i2.Future<_i5.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole>(
+  ) => caller.callServerEndpoint<_i5.AdminRole>(
     'feedbackAdmin',
     'requireAdmin',
     {
@@ -2019,7 +1791,7 @@ class EndpointFeedback extends EndpointPublicSubmission {
     required String publicKeyHex,
     required String signature,
     required String feedbackText,
-    required _i18.FeedbackType feedbackType,
+    required _i17.FeedbackType feedbackType,
     String? metadata,
   }) => caller.callServerEndpoint<void>(
     'feedback',
@@ -2037,78 +1809,28 @@ class EndpointFeedback extends EndpointPublicSubmission {
 
   /// Get challenge for proof-of-work.
   ///
-  /// This method is inherited by all public endpoints and provides
-  /// a consistent way to generate challenges.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  ///
-  /// Returns a map with:
-  /// - challenge: Random challenge string (32 hex chars)
-  /// - difficulty: Number of leading zero bits required (20)
-  /// - expiresAt: Unix timestamp when challenge expires
-  ///
-  /// Example:
-  /// ```dart
-  /// final challenge = await getChallenge(session);
-  /// // Returns: {
-  /// //   'challenge': 'abc123...',
-  /// //   'difficulty': 20,
-  /// //   'expiresAt': 1234567890
-  /// // }
-  /// ```
+  /// Returns a challenge string, difficulty, and expiration timestamp.
+  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
   @override
-  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
+  _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i3.PublicChallengeResponse>(
         'feedback',
         'getChallenge',
         {},
       );
 
-  /// Verify submission (PoW + signature + rate limit).
+  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
   ///
-  /// This method performs all verification steps:
-  /// 1. Verifies proof-of-work solution
-  /// 2. Verifies ECDSA signature
-  /// 3. Checks and enforces rate limits
+  /// Call this at the top of each PoW-protected endpoint method.
   ///
-  /// Throws an exception if any verification step fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [challenge]: Challenge string from getChallenge()
-  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [payload]: Original payload that was signed
-  ///
-  /// Throws:
-  /// - Exception if proof-of-work is invalid
-  /// - Exception if signature is invalid
-  /// - RateLimitExceededException if rate limit exceeded
-  ///
-  /// Example:
-  /// ```dart
-  /// try {
-  ///   await verifySubmission(
-  ///     session,
-  ///     challenge,
-  ///     proofOfWork,
-  ///     publicKeyHex,
-  ///     signature,
-  ///     payload,
-  ///   );
-  ///   // Verification successful, process submission
-  /// } catch (e) {
-  ///   // Handle verification failure
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: e.toString(),
-  ///   );
-  /// }
-  /// ```
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
   @override
-  _i2.Future<void> verifySubmission(
+  _i2.Future<void> verifyPow(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
@@ -2116,7 +1838,7 @@ class EndpointFeedback extends EndpointPublicSubmission {
     String payload,
   ) => caller.callServerEndpoint<void>(
     'feedback',
-    'verifySubmission',
+    'verifyPow',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
@@ -2159,17 +1881,17 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - List of created notification IDs
-  _i2.Future<_i21.NotificationCreateResult> createNotifications(
+  _i2.Future<_i20.NotificationCreateResult> createNotifications(
     String adminPublicKeyHex,
     String adminSignature, {
     List<int>? accountIds,
     required String title,
     required String message,
-    required _i22.NotificationType type,
+    required _i21.NotificationType type,
     required int expiresInDays,
     String? actionUrl,
     String? actionLabel,
-  }) => caller.callServerEndpoint<_i21.NotificationCreateResult>(
+  }) => caller.callServerEndpoint<_i20.NotificationCreateResult>(
     'notificationAdmin',
     'createNotifications',
     {
@@ -2197,10 +1919,10 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// - total: Total notification count
   /// - marked: Count of marked notifications
   /// - unmarked: Count of unmarked notifications
-  _i2.Future<_i23.NotificationStatistics> getStatistics(
+  _i2.Future<_i22.NotificationStatistics> getStatistics(
     String adminPublicKeyHex,
     String adminSignature,
-  ) => caller.callServerEndpoint<_i23.NotificationStatistics>(
+  ) => caller.callServerEndpoint<_i22.NotificationStatistics>(
     'notificationAdmin',
     'getStatistics',
     {
@@ -2225,7 +1947,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Paginated response with notifications
-  _i2.Future<_i24.PaginatedNotifications> listNotifications(
+  _i2.Future<_i23.PaginatedNotifications> listNotifications(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -2234,7 +1956,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
     bool? isExpired,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i24.PaginatedNotifications>(
+  }) => caller.callServerEndpoint<_i23.PaginatedNotifications>(
     'notificationAdmin',
     'listNotifications',
     {
@@ -2262,11 +1984,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// - notification: Notification details
   /// - receiptCount: Number of receipts
   /// - receipts: List of receipts (who acknowledged)
-  _i2.Future<_i25.NotificationDetails> getNotificationDetails(
+  _i2.Future<_i24.NotificationDetails> getNotificationDetails(
     String adminPublicKeyHex,
     String adminSignature,
     String notificationId,
-  ) => caller.callServerEndpoint<_i25.NotificationDetails>(
+  ) => caller.callServerEndpoint<_i24.NotificationDetails>(
     'notificationAdmin',
     'getNotificationDetails',
     {
@@ -2287,11 +2009,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Success message
-  _i2.Future<_i10.AdminActionResult> deleteNotification(
+  _i2.Future<_i9.AdminActionResult> deleteNotification(
     String adminPublicKeyHex,
     String adminSignature,
     String notificationId,
-  ) => caller.callServerEndpoint<_i10.AdminActionResult>(
+  ) => caller.callServerEndpoint<_i9.AdminActionResult>(
     'notificationAdmin',
     'deleteNotification',
     {
@@ -2340,11 +2062,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// }
   /// ```
   @override
-  _i2.Future<_i6.AdminRole?> validateAdmin(
+  _i2.Future<_i5.AdminRole?> validateAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole?>(
+  ) => caller.callServerEndpoint<_i5.AdminRole?>(
     'notificationAdmin',
     'validateAdmin',
     {
@@ -2382,11 +2104,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// // If we get here, authentication succeeded
   /// ```
   @override
-  _i2.Future<_i6.AdminRole> requireAdmin(
+  _i2.Future<_i5.AdminRole> requireAdmin(
     String publicKeyHex,
     String signature,
     String requestBody,
-  ) => caller.callServerEndpoint<_i6.AdminRole>(
+  ) => caller.callServerEndpoint<_i5.AdminRole>(
     'notificationAdmin',
     'requireAdmin',
     {
@@ -2424,13 +2146,13 @@ class EndpointProductCatalog extends EndpointPublicSubmission {
   /// - [platformName]: Platform identifier (e.g. 'ios', 'android', 'web')
   ///
   /// Returns: PlatformCatalogResponse with rails and their product IDs.
-  _i2.Future<_i26.PlatformCatalogResponse> getCatalog(
+  _i2.Future<_i25.PlatformCatalogResponse> getCatalog(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
     String platformName,
-  ) => caller.callServerEndpoint<_i26.PlatformCatalogResponse>(
+  ) => caller.callServerEndpoint<_i25.PlatformCatalogResponse>(
     'productCatalog',
     'getCatalog',
     {
@@ -2444,78 +2166,28 @@ class EndpointProductCatalog extends EndpointPublicSubmission {
 
   /// Get challenge for proof-of-work.
   ///
-  /// This method is inherited by all public endpoints and provides
-  /// a consistent way to generate challenges.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  ///
-  /// Returns a map with:
-  /// - challenge: Random challenge string (32 hex chars)
-  /// - difficulty: Number of leading zero bits required (20)
-  /// - expiresAt: Unix timestamp when challenge expires
-  ///
-  /// Example:
-  /// ```dart
-  /// final challenge = await getChallenge(session);
-  /// // Returns: {
-  /// //   'challenge': 'abc123...',
-  /// //   'difficulty': 20,
-  /// //   'expiresAt': 1234567890
-  /// // }
-  /// ```
+  /// Returns a challenge string, difficulty, and expiration timestamp.
+  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
   @override
-  _i2.Future<_i4.PublicChallengeResponse> getChallenge() =>
-      caller.callServerEndpoint<_i4.PublicChallengeResponse>(
+  _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
+      caller.callServerEndpoint<_i3.PublicChallengeResponse>(
         'productCatalog',
         'getChallenge',
         {},
       );
 
-  /// Verify submission (PoW + signature + rate limit).
+  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
   ///
-  /// This method performs all verification steps:
-  /// 1. Verifies proof-of-work solution
-  /// 2. Verifies ECDSA signature
-  /// 3. Checks and enforces rate limits
+  /// Call this at the top of each PoW-protected endpoint method.
   ///
-  /// Throws an exception if any verification step fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [challenge]: Challenge string from getChallenge()
-  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [payload]: Original payload that was signed
-  ///
-  /// Throws:
-  /// - Exception if proof-of-work is invalid
-  /// - Exception if signature is invalid
-  /// - RateLimitExceededException if rate limit exceeded
-  ///
-  /// Example:
-  /// ```dart
-  /// try {
-  ///   await verifySubmission(
-  ///     session,
-  ///     challenge,
-  ///     proofOfWork,
-  ///     publicKeyHex,
-  ///     signature,
-  ///     payload,
-  ///   );
-  ///   // Verification successful, process submission
-  /// } catch (e) {
-  ///   // Handle verification failure
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: e.toString(),
-  ///   );
-  /// }
-  /// ```
+  /// - [session] Serverpod session
+  /// - [challenge] The challenge string from [getChallenge]
+  /// - [proofOfWork] The hashcash stamp mined by the client
+  /// - [publicKeyHex] The ECDSA P-256 public key (128 hex chars)
+  /// - [signature] ECDSA signature over [payload]
+  /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
   @override
-  _i2.Future<void> verifySubmission(
+  _i2.Future<void> verifyPow(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
@@ -2523,7 +2195,7 @@ class EndpointProductCatalog extends EndpointPublicSubmission {
     String payload,
   ) => caller.callServerEndpoint<void>(
     'productCatalog',
-    'verifySubmission',
+    'verifyPow',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
@@ -2539,7 +2211,7 @@ class EndpointProductCatalog extends EndpointPublicSubmission {
 /// Provides API access for PowerSync JWT generation and sync access management
 /// based on consumable balances. All operations require AnonAccred authentication.
 /// {@category Endpoint}
-class EndpointSyncAccess extends _i1.EndpointRef {
+class EndpointSyncAccess extends EndpointDeviceAuthenticated {
   EndpointSyncAccess(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -2567,8 +2239,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// - syncDaysRemaining: days of sync remaining
   /// - accessExpiry: estimated expiry date
   /// - needsTopUp: whether user needs to purchase more sync days
-  _i2.Future<_i27.SyncAccessStatus> checkSyncAccess() =>
-      caller.callServerEndpoint<_i27.SyncAccessStatus>(
+  _i2.Future<_i26.SyncAccessStatus> checkSyncAccess() =>
+      caller.callServerEndpoint<_i26.SyncAccessStatus>(
         'syncAccess',
         'checkSyncAccess',
         {},
@@ -2590,8 +2262,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   ///
   /// Returns typed model with current balances per sync tier and overall access status.
   /// Pricing is sourced from the app stores — not served from the backend.
-  _i2.Future<_i28.SyncAccessInfo> getSyncAccessInfo() =>
-      caller.callServerEndpoint<_i28.SyncAccessInfo>(
+  _i2.Future<_i27.SyncAccessInfo> getSyncAccessInfo() =>
+      caller.callServerEndpoint<_i27.SyncAccessInfo>(
         'syncAccess',
         'getSyncAccessInfo',
         {},
@@ -2611,8 +2283,8 @@ class EndpointSyncAccess extends _i1.EndpointRef {
   /// Get sync usage statistics for authenticated user
   ///
   /// Returns usage information and consumption history
-  _i2.Future<_i29.SyncUsageStats> getSyncUsageStats() =>
-      caller.callServerEndpoint<_i29.SyncUsageStats>(
+  _i2.Future<_i28.SyncUsageStats> getSyncUsageStats() =>
+      caller.callServerEndpoint<_i28.SyncUsageStats>(
         'syncAccess',
         'getSyncUsageStats',
         {},
@@ -2621,22 +2293,22 @@ class EndpointSyncAccess extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i30.Caller(client);
-    serverpod_auth_core = _i31.Caller(client);
-    community = _i32.Caller(client);
+    serverpod_auth_idp = _i29.Caller(client);
+    serverpod_auth_core = _i30.Caller(client);
+    community = _i31.Caller(client);
     anonaccount = _i3.Caller(client);
-    anonaccred = _i33.Caller(client);
+    anonaccred = _i32.Caller(client);
   }
 
-  late final _i30.Caller serverpod_auth_idp;
+  late final _i29.Caller serverpod_auth_idp;
 
-  late final _i31.Caller serverpod_auth_core;
+  late final _i30.Caller serverpod_auth_core;
 
-  late final _i32.Caller community;
+  late final _i31.Caller community;
 
   late final _i3.Caller anonaccount;
 
-  late final _i33.Caller anonaccred;
+  late final _i32.Caller anonaccred;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -2659,7 +2331,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i34.Protocol(),
+         _i33.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,

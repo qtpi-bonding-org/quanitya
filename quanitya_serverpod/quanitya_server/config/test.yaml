@@ -31,7 +31,7 @@ webServer:
 # This is the database setup for your test server.
 database:
   host: localhost
-  port: 9090
+  port: 9094
   name: quanitya_test
   user: postgres
   #maxConnectionCount: 10 # Defaults to 10, a negative or null value removes the limit

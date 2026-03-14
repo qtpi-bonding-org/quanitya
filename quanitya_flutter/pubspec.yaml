@@ -37,12 +37,12 @@ dependencies:
   anonaccount_client:
     git:
       url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
-      ref: f6b4281c354da12bd6dd84ab592a31b5da496bac
+      ref: d44caf9e6cc8d52f377c3ceb848f434e22339758
       path: anonaccount_client
   anonaccred_client:
     git:
       url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
-      ref: f6b4281c354da12bd6dd84ab592a31b5da496bac
+      ref: d44caf9e6cc8d52f377c3ceb848f434e22339758
       path: anonaccred_client
   flutter_color_palette:
     git: https://github.com/qtpi-bonding-org/flutter_color_palette.git

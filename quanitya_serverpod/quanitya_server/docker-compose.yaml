@@ -63,7 +63,7 @@ services:
     container_name: quanitya_postgres_test
     command: ["postgres", "-c", "wal_level=logical"]  # Enable logical replication for PowerSync
     ports:
-      - "9090:5432"
+      - "9094:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: quanitya_test

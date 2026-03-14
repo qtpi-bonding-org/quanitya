@@ -40,26 +40,23 @@ import 'paginated_notifications.dart' as _i27;
 import 'platform_catalog_response.dart' as _i28;
 import 'platform_rail_entry.dart' as _i29;
 import 'platform_rail_list.dart' as _i30;
-import 'public_challenge.dart' as _i31;
-import 'public_challenge_response.dart' as _i32;
-import 'rail_catalog_entry.dart' as _i33;
-import 'rail_status.dart' as _i34;
-import 'rate_limit_counter.dart' as _i35;
-import 'server_error_code.dart' as _i36;
-import 'server_exception.dart' as _i37;
-import 'sync_access_info.dart' as _i38;
-import 'sync_access_status.dart' as _i39;
-import 'sync_tier_balance.dart' as _i40;
-import 'sync_usage_stats.dart' as _i41;
+import 'rail_catalog_entry.dart' as _i31;
+import 'rail_status.dart' as _i32;
+import 'server_error_code.dart' as _i33;
+import 'server_exception.dart' as _i34;
+import 'sync_access_info.dart' as _i35;
+import 'sync_access_status.dart' as _i36;
+import 'sync_tier_balance.dart' as _i37;
+import 'sync_usage_stats.dart' as _i38;
 import 'package:quanitya_cloud_client/src/protocol/admin_signing_key.dart'
-    as _i42;
+    as _i39;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i43;
+    as _i40;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i44;
-import 'package:quanitya_client/quanitya_client.dart' as _i45;
-import 'package:anonaccount_client/anonaccount_client.dart' as _i46;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i47;
+    as _i41;
+import 'package:quanitya_client/quanitya_client.dart' as _i42;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i43;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i44;
 export 'admin_action_result.dart';
 export 'admin_pagination_info.dart';
 export 'admin_role.dart';
@@ -89,11 +86,8 @@ export 'paginated_notifications.dart';
 export 'platform_catalog_response.dart';
 export 'platform_rail_entry.dart';
 export 'platform_rail_list.dart';
-export 'public_challenge.dart';
-export 'public_challenge_response.dart';
 export 'rail_catalog_entry.dart';
 export 'rail_status.dart';
-export 'rate_limit_counter.dart';
 export 'server_error_code.dart';
 export 'server_exception.dart';
 export 'sync_access_info.dart';
@@ -223,38 +217,29 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i30.PlatformRailList) {
       return _i30.PlatformRailList.fromJson(data) as T;
     }
-    if (t == _i31.PublicChallenge) {
-      return _i31.PublicChallenge.fromJson(data) as T;
+    if (t == _i31.RailCatalogEntry) {
+      return _i31.RailCatalogEntry.fromJson(data) as T;
     }
-    if (t == _i32.PublicChallengeResponse) {
-      return _i32.PublicChallengeResponse.fromJson(data) as T;
+    if (t == _i32.RailStatus) {
+      return _i32.RailStatus.fromJson(data) as T;
     }
-    if (t == _i33.RailCatalogEntry) {
-      return _i33.RailCatalogEntry.fromJson(data) as T;
+    if (t == _i33.ServerErrorCode) {
+      return _i33.ServerErrorCode.fromJson(data) as T;
     }
-    if (t == _i34.RailStatus) {
-      return _i34.RailStatus.fromJson(data) as T;
+    if (t == _i34.ServerException) {
+      return _i34.ServerException.fromJson(data) as T;
     }
-    if (t == _i35.RateLimitCounter) {
-      return _i35.RateLimitCounter.fromJson(data) as T;
+    if (t == _i35.SyncAccessInfo) {
+      return _i35.SyncAccessInfo.fromJson(data) as T;
     }
-    if (t == _i36.ServerErrorCode) {
-      return _i36.ServerErrorCode.fromJson(data) as T;
+    if (t == _i36.SyncAccessStatus) {
+      return _i36.SyncAccessStatus.fromJson(data) as T;
     }
-    if (t == _i37.ServerException) {
-      return _i37.ServerException.fromJson(data) as T;
+    if (t == _i37.SyncTierBalance) {
+      return _i37.SyncTierBalance.fromJson(data) as T;
     }
-    if (t == _i38.SyncAccessInfo) {
-      return _i38.SyncAccessInfo.fromJson(data) as T;
-    }
-    if (t == _i39.SyncAccessStatus) {
-      return _i39.SyncAccessStatus.fromJson(data) as T;
-    }
-    if (t == _i40.SyncTierBalance) {
-      return _i40.SyncTierBalance.fromJson(data) as T;
-    }
-    if (t == _i41.SyncUsageStats) {
-      return _i41.SyncUsageStats.fromJson(data) as T;
+    if (t == _i38.SyncUsageStats) {
+      return _i38.SyncUsageStats.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AdminActionResult?>()) {
       return (data != null ? _i2.AdminActionResult.fromJson(data) : null) as T;
@@ -369,39 +354,29 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i30.PlatformRailList?>()) {
       return (data != null ? _i30.PlatformRailList.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i31.PublicChallenge?>()) {
-      return (data != null ? _i31.PublicChallenge.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i31.RailCatalogEntry?>()) {
+      return (data != null ? _i31.RailCatalogEntry.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i32.PublicChallengeResponse?>()) {
-      return (data != null ? _i32.PublicChallengeResponse.fromJson(data) : null)
-          as T;
+    if (t == _i1.getType<_i32.RailStatus?>()) {
+      return (data != null ? _i32.RailStatus.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i33.RailCatalogEntry?>()) {
-      return (data != null ? _i33.RailCatalogEntry.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i33.ServerErrorCode?>()) {
+      return (data != null ? _i33.ServerErrorCode.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i34.RailStatus?>()) {
-      return (data != null ? _i34.RailStatus.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i34.ServerException?>()) {
+      return (data != null ? _i34.ServerException.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i35.RateLimitCounter?>()) {
-      return (data != null ? _i35.RateLimitCounter.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i35.SyncAccessInfo?>()) {
+      return (data != null ? _i35.SyncAccessInfo.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i36.ServerErrorCode?>()) {
-      return (data != null ? _i36.ServerErrorCode.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i36.SyncAccessStatus?>()) {
+      return (data != null ? _i36.SyncAccessStatus.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i37.ServerException?>()) {
-      return (data != null ? _i37.ServerException.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i37.SyncTierBalance?>()) {
+      return (data != null ? _i37.SyncTierBalance.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i38.SyncAccessInfo?>()) {
-      return (data != null ? _i38.SyncAccessInfo.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i39.SyncAccessStatus?>()) {
-      return (data != null ? _i39.SyncAccessStatus.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i40.SyncTierBalance?>()) {
-      return (data != null ? _i40.SyncTierBalance.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i41.SyncUsageStats?>()) {
-      return (data != null ? _i41.SyncUsageStats.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i38.SyncUsageStats?>()) {
+      return (data != null ? _i38.SyncUsageStats.fromJson(data) : null) as T;
     }
     if (t == Map<String, int>) {
       return (data as Map).map(
@@ -442,9 +417,9 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i33.RailCatalogEntry>) {
+    if (t == List<_i31.RailCatalogEntry>) {
       return (data as List)
-              .map((e) => deserialize<_i33.RailCatalogEntry>(e))
+              .map((e) => deserialize<_i31.RailCatalogEntry>(e))
               .toList()
           as T;
     }
@@ -454,15 +429,15 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i40.SyncTierBalance>) {
+    if (t == List<_i37.SyncTierBalance>) {
       return (data as List)
-              .map((e) => deserialize<_i40.SyncTierBalance>(e))
+              .map((e) => deserialize<_i37.SyncTierBalance>(e))
               .toList()
           as T;
     }
-    if (t == List<_i42.AdminSigningKey>) {
+    if (t == List<_i39.AdminSigningKey>) {
       return (data as List)
-              .map((e) => deserialize<_i42.AdminSigningKey>(e))
+              .map((e) => deserialize<_i39.AdminSigningKey>(e))
               .toList()
           as T;
     }
@@ -476,19 +451,19 @@ class Protocol extends _i1.SerializationManager {
           as T;
     }
     try {
+      return _i40.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i41.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i42.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
       return _i43.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
       return _i44.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
-    try {
-      return _i45.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
-    try {
-      return _i46.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
-    try {
-      return _i47.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -524,17 +499,14 @@ class Protocol extends _i1.SerializationManager {
       _i28.PlatformCatalogResponse => 'PlatformCatalogResponse',
       _i29.PlatformRailEntry => 'PlatformRailEntry',
       _i30.PlatformRailList => 'PlatformRailList',
-      _i31.PublicChallenge => 'PublicChallenge',
-      _i32.PublicChallengeResponse => 'PublicChallengeResponse',
-      _i33.RailCatalogEntry => 'RailCatalogEntry',
-      _i34.RailStatus => 'RailStatus',
-      _i35.RateLimitCounter => 'RateLimitCounter',
-      _i36.ServerErrorCode => 'ServerErrorCode',
-      _i37.ServerException => 'ServerException',
-      _i38.SyncAccessInfo => 'SyncAccessInfo',
-      _i39.SyncAccessStatus => 'SyncAccessStatus',
-      _i40.SyncTierBalance => 'SyncTierBalance',
-      _i41.SyncUsageStats => 'SyncUsageStats',
+      _i31.RailCatalogEntry => 'RailCatalogEntry',
+      _i32.RailStatus => 'RailStatus',
+      _i33.ServerErrorCode => 'ServerErrorCode',
+      _i34.ServerException => 'ServerException',
+      _i35.SyncAccessInfo => 'SyncAccessInfo',
+      _i36.SyncAccessStatus => 'SyncAccessStatus',
+      _i37.SyncTierBalance => 'SyncTierBalance',
+      _i38.SyncUsageStats => 'SyncUsageStats',
       _ => null,
     };
   }
@@ -610,46 +582,40 @@ class Protocol extends _i1.SerializationManager {
         return 'PlatformRailEntry';
       case _i30.PlatformRailList():
         return 'PlatformRailList';
-      case _i31.PublicChallenge():
-        return 'PublicChallenge';
-      case _i32.PublicChallengeResponse():
-        return 'PublicChallengeResponse';
-      case _i33.RailCatalogEntry():
+      case _i31.RailCatalogEntry():
         return 'RailCatalogEntry';
-      case _i34.RailStatus():
+      case _i32.RailStatus():
         return 'RailStatus';
-      case _i35.RateLimitCounter():
-        return 'RateLimitCounter';
-      case _i36.ServerErrorCode():
+      case _i33.ServerErrorCode():
         return 'ServerErrorCode';
-      case _i37.ServerException():
+      case _i34.ServerException():
         return 'ServerException';
-      case _i38.SyncAccessInfo():
+      case _i35.SyncAccessInfo():
         return 'SyncAccessInfo';
-      case _i39.SyncAccessStatus():
+      case _i36.SyncAccessStatus():
         return 'SyncAccessStatus';
-      case _i40.SyncTierBalance():
+      case _i37.SyncTierBalance():
         return 'SyncTierBalance';
-      case _i41.SyncUsageStats():
+      case _i38.SyncUsageStats():
         return 'SyncUsageStats';
     }
-    className = _i43.Protocol().getClassNameForObject(data);
+    className = _i40.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i44.Protocol().getClassNameForObject(data);
+    className = _i41.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
-    className = _i45.Protocol().getClassNameForObject(data);
+    className = _i42.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'quanitya.$className';
     }
-    className = _i46.Protocol().getClassNameForObject(data);
+    className = _i43.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'anonaccount.$className';
     }
-    className = _i47.Protocol().getClassNameForObject(data);
+    className = _i44.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'anonaccred.$className';
     }
@@ -749,58 +715,49 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'PlatformRailList') {
       return deserialize<_i30.PlatformRailList>(data['data']);
     }
-    if (dataClassName == 'PublicChallenge') {
-      return deserialize<_i31.PublicChallenge>(data['data']);
-    }
-    if (dataClassName == 'PublicChallengeResponse') {
-      return deserialize<_i32.PublicChallengeResponse>(data['data']);
-    }
     if (dataClassName == 'RailCatalogEntry') {
-      return deserialize<_i33.RailCatalogEntry>(data['data']);
+      return deserialize<_i31.RailCatalogEntry>(data['data']);
     }
     if (dataClassName == 'RailStatus') {
-      return deserialize<_i34.RailStatus>(data['data']);
-    }
-    if (dataClassName == 'RateLimitCounter') {
-      return deserialize<_i35.RateLimitCounter>(data['data']);
+      return deserialize<_i32.RailStatus>(data['data']);
     }
     if (dataClassName == 'ServerErrorCode') {
-      return deserialize<_i36.ServerErrorCode>(data['data']);
+      return deserialize<_i33.ServerErrorCode>(data['data']);
     }
     if (dataClassName == 'ServerException') {
-      return deserialize<_i37.ServerException>(data['data']);
+      return deserialize<_i34.ServerException>(data['data']);
     }
     if (dataClassName == 'SyncAccessInfo') {
-      return deserialize<_i38.SyncAccessInfo>(data['data']);
+      return deserialize<_i35.SyncAccessInfo>(data['data']);
     }
     if (dataClassName == 'SyncAccessStatus') {
-      return deserialize<_i39.SyncAccessStatus>(data['data']);
+      return deserialize<_i36.SyncAccessStatus>(data['data']);
     }
     if (dataClassName == 'SyncTierBalance') {
-      return deserialize<_i40.SyncTierBalance>(data['data']);
+      return deserialize<_i37.SyncTierBalance>(data['data']);
     }
     if (dataClassName == 'SyncUsageStats') {
-      return deserialize<_i41.SyncUsageStats>(data['data']);
+      return deserialize<_i38.SyncUsageStats>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i43.Protocol().deserializeByClassName(data);
+      return _i40.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i44.Protocol().deserializeByClassName(data);
+      return _i41.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('quanitya.')) {
       data['className'] = dataClassName.substring(9);
-      return _i45.Protocol().deserializeByClassName(data);
+      return _i42.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('anonaccount.')) {
       data['className'] = dataClassName.substring(12);
-      return _i46.Protocol().deserializeByClassName(data);
+      return _i43.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('anonaccred.')) {
       data['className'] = dataClassName.substring(11);
-      return _i47.Protocol().deserializeByClassName(data);
+      return _i44.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -815,19 +772,19 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
+      return _i40.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _i41.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _i42.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
       return _i43.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
       return _i44.Protocol().mapRecordToJson(record);
-    } catch (_) {}
-    try {
-      return _i45.Protocol().mapRecordToJson(record);
-    } catch (_) {}
-    try {
-      return _i46.Protocol().mapRecordToJson(record);
-    } catch (_) {}
-    try {
-      return _i47.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }
