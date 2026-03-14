@@ -6,7 +6,7 @@ import 'package:serverpod_auth_idp_server/providers/email.dart';
 
 import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
-import 'src/future_calls/monthly_backup_future_call.dart';
+import 'src/generated/future_calls.dart';
 import 'src/web/routes/root.dart';
 import 'src/middleware/request_logger.dart';
 import 'src/services/email_service.dart';
@@ -86,18 +86,16 @@ void _sendPasswordResetCode(
 
 /// Register background tasks for the server
 Future<void> _registerBackgroundTasks(Serverpod pod) async {
-  // Register monthly backup future call
-  pod.registerFutureCall(MonthlyBackupFutureCall(), 'monthlyBackup');
+  // Schedule monthly snapshot backup (runs 1st of each month at 2 AM)
+  final now = DateTime.now();
+  final nextFirstOfMonth = now.day == 1 && now.hour < 2
+      ? DateTime(now.year, now.month, 1, 2, 0, 0)
+      : DateTime(now.year, now.month + 1, 1, 2, 0, 0);
+  final delay = nextFirstOfMonth.difference(now);
 
-  // Initialize the monthly backup schedule on server startup
-  // This will schedule the first execution and then it will self-reschedule
-  final session = await pod.createSession(enableLogging: false);
-  try {
-    await MonthlyBackupFutureCall().initializeSchedule(session, 0);
-    session.log('Monthly backup schedule initialized');
-  } catch (e) {
-    session.log('Failed to initialize monthly backup schedule: $e', level: LogLevel.error);
-  } finally {
-    await session.close();
-  }
+  await pod.futureCalls
+      .callWithDelay(delay)
+      .monthlyBackup
+      .runMonthlyBackup(0);
+  print('Monthly backup scheduled for: ${nextFirstOfMonth.toIso8601String()}');
 }

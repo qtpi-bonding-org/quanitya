@@ -13,10 +13,8 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import 'future_calls_generated_models/monthly_backup_future_call_run_monthly_backup_model.dart'
     as _i2;
-import 'future_calls_generated_models/monthly_backup_future_call_initialize_schedule_model.dart'
-    as _i3;
-import 'dart:async' as _i4;
-import '../future_calls/monthly_backup_future_call.dart' as _i5;
+import 'dart:async' as _i3;
+import '../future_calls/monthly_backup_future_call.dart' as _i4;
 
 /// Invokes a future call.
 typedef _InvokeFutureCall =
@@ -62,8 +60,6 @@ class FutureCalls extends _i1.FutureCallDispatch<_FutureCallRef> {
     var registeredFutureCalls = <String, _i1.FutureCall>{
       'MonthlyBackupRunMonthlyBackupFutureCall':
           MonthlyBackupRunMonthlyBackupFutureCall(),
-      'MonthlyBackupInitializeScheduleFutureCall':
-          MonthlyBackupInitializeScheduleFutureCall(),
     };
     _futureCallManager = futureCallManager;
     _serverId = serverId;
@@ -138,45 +134,18 @@ class _MonthlyBackupFutureCallDispatcher {
       object,
     );
   }
-
-  Future<void> initializeSchedule(int iteration) {
-    var object = _i3.MonthlyBackupFutureCallInitializeScheduleModel(
-      iteration: iteration,
-    );
-    return _invokeFutureCall(
-      'MonthlyBackupInitializeScheduleFutureCall',
-      object,
-    );
-  }
 }
 
 /// Public method called by Serverpod's generated invoke wrapper.
 class MonthlyBackupRunMonthlyBackupFutureCall
     extends _i1.FutureCall<_i2.MonthlyBackupFutureCallRunMonthlyBackupModel> {
   @override
-  _i4.Future<void> invoke(
+  _i3.Future<void> invoke(
     _i1.Session session,
     _i2.MonthlyBackupFutureCallRunMonthlyBackupModel? object,
   ) async {
     if (object != null) {
-      await _i5.MonthlyBackupFutureCall().runMonthlyBackup(
-        session,
-        object.iteration,
-      );
-    }
-  }
-}
-
-/// Bootstrap the schedule on server startup.
-class MonthlyBackupInitializeScheduleFutureCall
-    extends _i1.FutureCall<_i3.MonthlyBackupFutureCallInitializeScheduleModel> {
-  @override
-  _i4.Future<void> invoke(
-    _i1.Session session,
-    _i3.MonthlyBackupFutureCallInitializeScheduleModel? object,
-  ) async {
-    if (object != null) {
-      await _i5.MonthlyBackupFutureCall().initializeSchedule(
+      await _i4.MonthlyBackupFutureCall().runMonthlyBackup(
         session,
         object.iteration,
       );

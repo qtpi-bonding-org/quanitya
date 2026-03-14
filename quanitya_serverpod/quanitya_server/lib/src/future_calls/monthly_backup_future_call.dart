@@ -2,38 +2,38 @@ import 'dart:io';
 
 import 'package:serverpod/serverpod.dart';
 
+import '../generated/future_calls.dart';
 import '../services/snapshot_backup_service.dart';
 
 /// Monthly full-snapshot backup with gated deletion.
 ///
 /// Runs on the 1st of each month at 2 AM. Replaces MonthlyArchivalFutureCall.
-/// Uses the same registration pattern as the existing archival future call.
+/// Self-reschedules using the generated FutureCalls pattern.
 class MonthlyBackupFutureCall extends FutureCall {
   /// Public method called by Serverpod's generated invoke wrapper.
   Future<void> runMonthlyBackup(Session session, int iteration) async {
+    // Schedule next run FIRST (crash-safe)
+    try {
+      final now = DateTime.now();
+      final nextMonth = DateTime(now.year, now.month + 1, 1, 2, 0, 0);
+      final delay = nextMonth.difference(now);
+
+      await session.serverpod.futureCalls
+          .callWithDelay(delay)
+          .monthlyBackup
+          .runMonthlyBackup(iteration + 1);
+
+      session.log(
+          'Next monthly backup scheduled for: ${nextMonth.toIso8601String()}');
+    } catch (e) {
+      session.log('Failed to schedule next monthly backup: $e',
+          level: LogLevel.warning);
+    }
+
     // Execute the actual work
     await _performBackup(session);
 
-    // Schedule the next run (1st of next month at 2 AM)
-    final now = DateTime.now();
-    final nextMonth = DateTime(now.year, now.month + 1, 1, 2, 0, 0);
-    session.log(
-        'Next monthly backup scheduled for: ${nextMonth.toIso8601String()}');
-  }
-
-  /// Bootstrap the schedule on server startup.
-  Future<void> initializeSchedule(Session session, int iteration) async {
-    final now = DateTime.now();
-    DateTime nextExecution;
-
-    if (now.day == 1 && now.hour < 2) {
-      nextExecution = DateTime(now.year, now.month, 1, 2, 0, 0);
-    } else {
-      nextExecution = DateTime(now.year, now.month + 1, 1, 2, 0, 0);
-    }
-
-    session.log(
-        'Monthly backup schedule initialized for: ${nextExecution.toIso8601String()}');
+    session.log('Monthly backup iteration $iteration completed');
   }
 
   Future<void> _performBackup(Session session) async {
