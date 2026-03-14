@@ -193,8 +193,7 @@ class PowerSyncService implements IPowerSyncService {
 /// - Uploading local changes to Serverpod endpoints
 class _ServerpodConnector extends PowerSyncBackendConnector {
   final Client _client;
-  String? _cachedToken;
-  DateTime? _tokenExpiry;
+  String? _cachedEndpoint;
 
   _ServerpodConnector(this._client) {
     debugPrint('⚡ PowerSync: _ServerpodConnector created');
@@ -203,65 +202,27 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
   @override
   Future<PowerSyncCredentials?> fetchCredentials() async {
     debugPrint('⚡ PowerSync: fetchCredentials() called');
-    debugPrint('⚡ PowerSync: Cached token exists: ${_cachedToken != null}, expiry: $_tokenExpiry');
-
-    // Check if we have a valid cached token (with 30s buffer)
-    if (_cachedToken != null &&
-        _tokenExpiry != null &&
-        DateTime.now()
-            .add(const Duration(seconds: 30))
-            .isBefore(_tokenExpiry!)) {
-      debugPrint('⚡ PowerSync: Using cached token (expires $_tokenExpiry)');
-      // For cached tokens, we need to get the endpoint from server again
-      // since we don't cache the endpoint (it could change)
-      try {
-        debugPrint('⚡ PowerSync: Fetching endpoint for cached token...');
-        final tokenResponse = await _client.modules.community.powerSync
-            .getToken();
-        final endpoint = _resolveUrl(tokenResponse.endpoint);
-        debugPrint('⚡ PowerSync: Got endpoint for cached token: $endpoint');
-        return PowerSyncCredentials(
-          endpoint: endpoint, // ✅ Use resolved endpoint
-          token: _cachedToken!,
-        );
-      } catch (e) {
-        debugPrint('⚡ PowerSync: ERROR - Failed to get endpoint for cached token: $e');
-        return null;
-      }
-    }
 
     try {
-      // Check if client has auth credentials before trying to get token
-      debugPrint('⚡ PowerSync: Checking auth credentials...');
       final authHeader = await _client.authKeyProvider?.authHeaderValue;
-      debugPrint('⚡ PowerSync: Auth header available: ${authHeader != null}');
-      if (authHeader != null) {
-        debugPrint('⚡ PowerSync: Auth header length: ${authHeader.length}');
-        debugPrint(
-          '⚡ PowerSync: Auth header prefix: ${authHeader.length > 20 ? authHeader.substring(0, 20) : authHeader}...',
-        );
-      }
-
       if (authHeader == null) {
-        debugPrint('⚡ PowerSync: No auth credentials available yet (user not logged in)');
+        debugPrint('⚡ PowerSync: No auth credentials available yet');
         return null;
       }
 
-      // Get token from Serverpod PowerSync endpoint
-      debugPrint('⚡ PowerSync: Calling server getToken endpoint...');
+      // Always fetch a fresh token (cheap single authenticated call).
+      // Cache only the endpoint URL since it doesn't change mid-session.
+      debugPrint('⚡ PowerSync: Fetching fresh token...');
       final tokenResponse = await _client.modules.community.powerSync
           .getToken();
-      _cachedToken = tokenResponse.token;
-      _tokenExpiry = DateTime.parse(tokenResponse.expiresAt);
-      final endpoint = _resolveUrl(tokenResponse.endpoint);
+      _cachedEndpoint ??= _resolveUrl(tokenResponse.endpoint);
 
-      debugPrint('⚡ PowerSync: Got token, expires at $_tokenExpiry');
-      debugPrint('⚡ PowerSync: Token length: ${_cachedToken?.length}');
-      debugPrint('⚡ PowerSync: Server provided endpoint: $endpoint');
+      debugPrint('⚡ PowerSync: Got token, expires at ${tokenResponse.expiresAt}');
+      debugPrint('⚡ PowerSync: Endpoint: $_cachedEndpoint');
 
       return PowerSyncCredentials(
-        endpoint: endpoint, // ✅ Use resolved endpoint
-        token: _cachedToken!,
+        endpoint: _cachedEndpoint!,
+        token: tokenResponse.token,
       );
     } catch (e, stack) {
       debugPrint('⚡ PowerSync: ERROR - Failed to fetch credentials: $e');
