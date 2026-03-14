@@ -5,7 +5,7 @@ import 'package:serverpod/serverpod.dart';
 import 'dart:io';
 import '../generated/protocol.dart';
 import '../services/r2_storage_service.dart';
-import '../services/archival_service.dart';
+import '../services/snapshot_backup_service.dart';
 
 /// Archive retrieval endpoint for accessing historical data
 /// 
@@ -211,17 +211,16 @@ class ArchiveEndpoint extends Endpoint {
     try {
       session.log('Manual archival triggered by admin $userId');
       
-      final archivalService = ArchivalService.fromEnvironment(session);
-      final result = await archivalService.runMonthlyArchival();
-      
+      final backupService = SnapshotBackupService.fromEnvironment(session);
+      final result = await backupService.runMonthlyBackup();
+
       if (result.success) {
-        final message = 'Manual archival completed successfully. '
-                       'Users: ${result.successfulUsers}/${result.totalUsers}, '
-                       'Entries archived: ${result.totalEntriesArchived}';
+        final message = 'Manual backup completed successfully. '
+                       '${result.summary}';
         session.log(message);
         return message;
       } else {
-        final message = 'Manual archival failed. Errors: ${result.errors.join(', ')}';
+        final message = 'Manual backup failed. Errors: ${result.errors.join(', ')}';
         session.log(message, level: LogLevel.error);
         throw Exception(message);
       }

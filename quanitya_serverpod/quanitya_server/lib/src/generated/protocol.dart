@@ -26,22 +26,18 @@ import 'encrypted_analysis_script.dart' as _i11;
 import 'encrypted_entry.dart' as _i12;
 import 'encrypted_schedule.dart' as _i13;
 import 'encrypted_template.dart' as _i14;
-import 'future_calls_generated_models/monthly_archival_future_call_initialize_schedule_model.dart'
-    as _i15;
-import 'future_calls_generated_models/monthly_archival_future_call_run_monthly_archival_model.dart'
-    as _i16;
 import 'future_calls_generated_models/monthly_backup_future_call_initialize_schedule_model.dart'
-    as _i17;
+    as _i15;
 import 'future_calls_generated_models/monthly_backup_future_call_run_monthly_backup_model.dart'
-    as _i18;
-import 'greeting.dart' as _i19;
-import 'notification_inbox.dart' as _i20;
-import 'powersync_token.dart' as _i21;
-import 'storage_usage_response.dart' as _i22;
-import 'template_aesthetics.dart' as _i23;
-import 'package:quanitya_server/src/generated/archived_month.dart' as _i24;
+    as _i16;
+import 'greeting.dart' as _i17;
+import 'notification_inbox.dart' as _i18;
+import 'powersync_token.dart' as _i19;
+import 'storage_usage_response.dart' as _i20;
+import 'template_aesthetics.dart' as _i21;
+import 'package:quanitya_server/src/generated/archived_month.dart' as _i22;
 import 'package:quanitya_server/src/generated/archive_search_result.dart'
-    as _i25;
+    as _i23;
 export 'account_storage_usage.dart';
 export 'archival_schedule_data.dart';
 export 'archive_metadata.dart';
@@ -674,40 +670,28 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i14.EncryptedTemplate) {
       return _i14.EncryptedTemplate.fromJson(data) as T;
     }
-    if (t == _i15.MonthlyArchivalFutureCallInitializeScheduleModel) {
-      return _i15.MonthlyArchivalFutureCallInitializeScheduleModel.fromJson(
-            data,
-          )
+    if (t == _i15.MonthlyBackupFutureCallInitializeScheduleModel) {
+      return _i15.MonthlyBackupFutureCallInitializeScheduleModel.fromJson(data)
           as T;
     }
-    if (t == _i16.MonthlyArchivalFutureCallRunMonthlyArchivalModel) {
-      return _i16.MonthlyArchivalFutureCallRunMonthlyArchivalModel.fromJson(
-            data,
-          )
+    if (t == _i16.MonthlyBackupFutureCallRunMonthlyBackupModel) {
+      return _i16.MonthlyBackupFutureCallRunMonthlyBackupModel.fromJson(data)
           as T;
     }
-    if (t == _i17.MonthlyBackupFutureCallInitializeScheduleModel) {
-      return _i17.MonthlyBackupFutureCallInitializeScheduleModel.fromJson(data)
-          as T;
+    if (t == _i17.Greeting) {
+      return _i17.Greeting.fromJson(data) as T;
     }
-    if (t == _i18.MonthlyBackupFutureCallRunMonthlyBackupModel) {
-      return _i18.MonthlyBackupFutureCallRunMonthlyBackupModel.fromJson(data)
-          as T;
+    if (t == _i18.NotificationInbox) {
+      return _i18.NotificationInbox.fromJson(data) as T;
     }
-    if (t == _i19.Greeting) {
-      return _i19.Greeting.fromJson(data) as T;
+    if (t == _i19.PowerSyncToken) {
+      return _i19.PowerSyncToken.fromJson(data) as T;
     }
-    if (t == _i20.NotificationInbox) {
-      return _i20.NotificationInbox.fromJson(data) as T;
+    if (t == _i20.StorageUsageResponse) {
+      return _i20.StorageUsageResponse.fromJson(data) as T;
     }
-    if (t == _i21.PowerSyncToken) {
-      return _i21.PowerSyncToken.fromJson(data) as T;
-    }
-    if (t == _i22.StorageUsageResponse) {
-      return _i22.StorageUsageResponse.fromJson(data) as T;
-    }
-    if (t == _i23.TemplateAesthetics) {
-      return _i23.TemplateAesthetics.fromJson(data) as T;
+    if (t == _i21.TemplateAesthetics) {
+      return _i21.TemplateAesthetics.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.AccountStorageUsage?>()) {
       return (data != null ? _i5.AccountStorageUsage.fromJson(data) : null)
@@ -744,54 +728,36 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data != null ? _i14.EncryptedTemplate.fromJson(data) : null) as T;
     }
     if (t ==
-        _i1.getType<_i15.MonthlyArchivalFutureCallInitializeScheduleModel?>()) {
+        _i1.getType<_i15.MonthlyBackupFutureCallInitializeScheduleModel?>()) {
       return (data != null
-              ? _i15.MonthlyArchivalFutureCallInitializeScheduleModel.fromJson(
+              ? _i15.MonthlyBackupFutureCallInitializeScheduleModel.fromJson(
                   data,
                 )
               : null)
           as T;
     }
     if (t ==
-        _i1.getType<_i16.MonthlyArchivalFutureCallRunMonthlyArchivalModel?>()) {
+        _i1.getType<_i16.MonthlyBackupFutureCallRunMonthlyBackupModel?>()) {
       return (data != null
-              ? _i16.MonthlyArchivalFutureCallRunMonthlyArchivalModel.fromJson(
-                  data,
-                )
+              ? _i16.MonthlyBackupFutureCallRunMonthlyBackupModel.fromJson(data)
               : null)
           as T;
     }
-    if (t ==
-        _i1.getType<_i17.MonthlyBackupFutureCallInitializeScheduleModel?>()) {
-      return (data != null
-              ? _i17.MonthlyBackupFutureCallInitializeScheduleModel.fromJson(
-                  data,
-                )
-              : null)
+    if (t == _i1.getType<_i17.Greeting?>()) {
+      return (data != null ? _i17.Greeting.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i18.NotificationInbox?>()) {
+      return (data != null ? _i18.NotificationInbox.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i19.PowerSyncToken?>()) {
+      return (data != null ? _i19.PowerSyncToken.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i20.StorageUsageResponse?>()) {
+      return (data != null ? _i20.StorageUsageResponse.fromJson(data) : null)
           as T;
     }
-    if (t ==
-        _i1.getType<_i18.MonthlyBackupFutureCallRunMonthlyBackupModel?>()) {
-      return (data != null
-              ? _i18.MonthlyBackupFutureCallRunMonthlyBackupModel.fromJson(data)
-              : null)
-          as T;
-    }
-    if (t == _i1.getType<_i19.Greeting?>()) {
-      return (data != null ? _i19.Greeting.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i20.NotificationInbox?>()) {
-      return (data != null ? _i20.NotificationInbox.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i21.PowerSyncToken?>()) {
-      return (data != null ? _i21.PowerSyncToken.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i22.StorageUsageResponse?>()) {
-      return (data != null ? _i22.StorageUsageResponse.fromJson(data) : null)
-          as T;
-    }
-    if (t == _i1.getType<_i23.TemplateAesthetics?>()) {
-      return (data != null ? _i23.TemplateAesthetics.fromJson(data) : null)
+    if (t == _i1.getType<_i21.TemplateAesthetics?>()) {
+      return (data != null ? _i21.TemplateAesthetics.fromJson(data) : null)
           as T;
     }
     if (t == List<_i8.ArchiveMonthInfo>) {
@@ -824,15 +790,15 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i24.ArchivedMonth>) {
+    if (t == List<_i22.ArchivedMonth>) {
       return (data as List)
-              .map((e) => deserialize<_i24.ArchivedMonth>(e))
+              .map((e) => deserialize<_i22.ArchivedMonth>(e))
               .toList()
           as T;
     }
-    if (t == List<_i25.ArchiveSearchResult>) {
+    if (t == List<_i23.ArchiveSearchResult>) {
       return (data as List)
-              .map((e) => deserialize<_i25.ArchiveSearchResult>(e))
+              .map((e) => deserialize<_i23.ArchiveSearchResult>(e))
               .toList()
           as T;
     }
@@ -860,19 +826,15 @@ class Protocol extends _i1.SerializationManagerServer {
       _i12.EncryptedEntry => 'EncryptedEntry',
       _i13.EncryptedSchedule => 'EncryptedSchedule',
       _i14.EncryptedTemplate => 'EncryptedTemplate',
-      _i15.MonthlyArchivalFutureCallInitializeScheduleModel =>
-        'MonthlyArchivalFutureCallInitializeScheduleModel',
-      _i16.MonthlyArchivalFutureCallRunMonthlyArchivalModel =>
-        'MonthlyArchivalFutureCallRunMonthlyArchivalModel',
-      _i17.MonthlyBackupFutureCallInitializeScheduleModel =>
+      _i15.MonthlyBackupFutureCallInitializeScheduleModel =>
         'MonthlyBackupFutureCallInitializeScheduleModel',
-      _i18.MonthlyBackupFutureCallRunMonthlyBackupModel =>
+      _i16.MonthlyBackupFutureCallRunMonthlyBackupModel =>
         'MonthlyBackupFutureCallRunMonthlyBackupModel',
-      _i19.Greeting => 'Greeting',
-      _i20.NotificationInbox => 'NotificationInbox',
-      _i21.PowerSyncToken => 'PowerSyncToken',
-      _i22.StorageUsageResponse => 'StorageUsageResponse',
-      _i23.TemplateAesthetics => 'TemplateAesthetics',
+      _i17.Greeting => 'Greeting',
+      _i18.NotificationInbox => 'NotificationInbox',
+      _i19.PowerSyncToken => 'PowerSyncToken',
+      _i20.StorageUsageResponse => 'StorageUsageResponse',
+      _i21.TemplateAesthetics => 'TemplateAesthetics',
       _ => null,
     };
   }
@@ -907,23 +869,19 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'EncryptedSchedule';
       case _i14.EncryptedTemplate():
         return 'EncryptedTemplate';
-      case _i15.MonthlyArchivalFutureCallInitializeScheduleModel():
-        return 'MonthlyArchivalFutureCallInitializeScheduleModel';
-      case _i16.MonthlyArchivalFutureCallRunMonthlyArchivalModel():
-        return 'MonthlyArchivalFutureCallRunMonthlyArchivalModel';
-      case _i17.MonthlyBackupFutureCallInitializeScheduleModel():
+      case _i15.MonthlyBackupFutureCallInitializeScheduleModel():
         return 'MonthlyBackupFutureCallInitializeScheduleModel';
-      case _i18.MonthlyBackupFutureCallRunMonthlyBackupModel():
+      case _i16.MonthlyBackupFutureCallRunMonthlyBackupModel():
         return 'MonthlyBackupFutureCallRunMonthlyBackupModel';
-      case _i19.Greeting():
+      case _i17.Greeting():
         return 'Greeting';
-      case _i20.NotificationInbox():
+      case _i18.NotificationInbox():
         return 'NotificationInbox';
-      case _i21.PowerSyncToken():
+      case _i19.PowerSyncToken():
         return 'PowerSyncToken';
-      case _i22.StorageUsageResponse():
+      case _i20.StorageUsageResponse():
         return 'StorageUsageResponse';
-      case _i23.TemplateAesthetics():
+      case _i21.TemplateAesthetics():
         return 'TemplateAesthetics';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -977,40 +935,30 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'EncryptedTemplate') {
       return deserialize<_i14.EncryptedTemplate>(data['data']);
     }
-    if (dataClassName == 'MonthlyArchivalFutureCallInitializeScheduleModel') {
-      return deserialize<_i15.MonthlyArchivalFutureCallInitializeScheduleModel>(
-        data['data'],
-      );
-    }
-    if (dataClassName == 'MonthlyArchivalFutureCallRunMonthlyArchivalModel') {
-      return deserialize<_i16.MonthlyArchivalFutureCallRunMonthlyArchivalModel>(
-        data['data'],
-      );
-    }
     if (dataClassName == 'MonthlyBackupFutureCallInitializeScheduleModel') {
-      return deserialize<_i17.MonthlyBackupFutureCallInitializeScheduleModel>(
+      return deserialize<_i15.MonthlyBackupFutureCallInitializeScheduleModel>(
         data['data'],
       );
     }
     if (dataClassName == 'MonthlyBackupFutureCallRunMonthlyBackupModel') {
-      return deserialize<_i18.MonthlyBackupFutureCallRunMonthlyBackupModel>(
+      return deserialize<_i16.MonthlyBackupFutureCallRunMonthlyBackupModel>(
         data['data'],
       );
     }
     if (dataClassName == 'Greeting') {
-      return deserialize<_i19.Greeting>(data['data']);
+      return deserialize<_i17.Greeting>(data['data']);
     }
     if (dataClassName == 'NotificationInbox') {
-      return deserialize<_i20.NotificationInbox>(data['data']);
+      return deserialize<_i18.NotificationInbox>(data['data']);
     }
     if (dataClassName == 'PowerSyncToken') {
-      return deserialize<_i21.PowerSyncToken>(data['data']);
+      return deserialize<_i19.PowerSyncToken>(data['data']);
     }
     if (dataClassName == 'StorageUsageResponse') {
-      return deserialize<_i22.StorageUsageResponse>(data['data']);
+      return deserialize<_i20.StorageUsageResponse>(data['data']);
     }
     if (dataClassName == 'TemplateAesthetics') {
-      return deserialize<_i23.TemplateAesthetics>(data['data']);
+      return deserialize<_i21.TemplateAesthetics>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -1060,10 +1008,10 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i13.EncryptedSchedule.t;
       case _i14.EncryptedTemplate:
         return _i14.EncryptedTemplate.t;
-      case _i20.NotificationInbox:
-        return _i20.NotificationInbox.t;
-      case _i23.TemplateAesthetics:
-        return _i23.TemplateAesthetics.t;
+      case _i18.NotificationInbox:
+        return _i18.NotificationInbox.t;
+      case _i21.TemplateAesthetics:
+        return _i21.TemplateAesthetics.t;
     }
     return null;
   }

@@ -11,17 +11,12 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
-import 'future_calls_generated_models/monthly_archival_future_call_run_monthly_archival_model.dart'
-    as _i2;
-import 'future_calls_generated_models/monthly_archival_future_call_initialize_schedule_model.dart'
-    as _i3;
 import 'future_calls_generated_models/monthly_backup_future_call_run_monthly_backup_model.dart'
-    as _i4;
+    as _i2;
 import 'future_calls_generated_models/monthly_backup_future_call_initialize_schedule_model.dart'
-    as _i5;
-import 'dart:async' as _i6;
-import '../future_calls/monthly_archival_future_call.dart' as _i7;
-import '../future_calls/monthly_backup_future_call.dart' as _i8;
+    as _i3;
+import 'dart:async' as _i4;
+import '../future_calls/monthly_backup_future_call.dart' as _i5;
 
 /// Invokes a future call.
 typedef _InvokeFutureCall =
@@ -65,10 +60,6 @@ class FutureCalls extends _i1.FutureCallDispatch<_FutureCallRef> {
     String serverId,
   ) {
     var registeredFutureCalls = <String, _i1.FutureCall>{
-      'MonthlyArchivalRunMonthlyArchivalFutureCall':
-          MonthlyArchivalRunMonthlyArchivalFutureCall(),
-      'MonthlyArchivalInitializeScheduleFutureCall':
-          MonthlyArchivalInitializeScheduleFutureCall(),
       'MonthlyBackupRunMonthlyBackupFutureCall':
           MonthlyBackupRunMonthlyBackupFutureCall(),
       'MonthlyBackupInitializeScheduleFutureCall':
@@ -128,39 +119,9 @@ class _FutureCallRef {
 
   final _InvokeFutureCall _invokeFutureCall;
 
-  late final monthlyArchival = _MonthlyArchivalFutureCallDispatcher(
-    _invokeFutureCall,
-  );
-
   late final monthlyBackup = _MonthlyBackupFutureCallDispatcher(
     _invokeFutureCall,
   );
-}
-
-class _MonthlyArchivalFutureCallDispatcher {
-  _MonthlyArchivalFutureCallDispatcher(this._invokeFutureCall);
-
-  final _InvokeFutureCall _invokeFutureCall;
-
-  Future<void> runMonthlyArchival(int iteration) {
-    var object = _i2.MonthlyArchivalFutureCallRunMonthlyArchivalModel(
-      iteration: iteration,
-    );
-    return _invokeFutureCall(
-      'MonthlyArchivalRunMonthlyArchivalFutureCall',
-      object,
-    );
-  }
-
-  Future<void> initializeSchedule(int iteration) {
-    var object = _i3.MonthlyArchivalFutureCallInitializeScheduleModel(
-      iteration: iteration,
-    );
-    return _invokeFutureCall(
-      'MonthlyArchivalInitializeScheduleFutureCall',
-      object,
-    );
-  }
 }
 
 class _MonthlyBackupFutureCallDispatcher {
@@ -169,7 +130,7 @@ class _MonthlyBackupFutureCallDispatcher {
   final _InvokeFutureCall _invokeFutureCall;
 
   Future<void> runMonthlyBackup(int iteration) {
-    var object = _i4.MonthlyBackupFutureCallRunMonthlyBackupModel(
+    var object = _i2.MonthlyBackupFutureCallRunMonthlyBackupModel(
       iteration: iteration,
     );
     return _invokeFutureCall(
@@ -179,7 +140,7 @@ class _MonthlyBackupFutureCallDispatcher {
   }
 
   Future<void> initializeSchedule(int iteration) {
-    var object = _i5.MonthlyBackupFutureCallInitializeScheduleModel(
+    var object = _i3.MonthlyBackupFutureCallInitializeScheduleModel(
       iteration: iteration,
     );
     return _invokeFutureCall(
@@ -189,56 +150,16 @@ class _MonthlyBackupFutureCallDispatcher {
   }
 }
 
-/// Public method that schedules the next run and executes the task
-///
-/// This method will be available in generated code after running `serverpod generate`
-class MonthlyArchivalRunMonthlyArchivalFutureCall
-    extends
-        _i1.FutureCall<_i2.MonthlyArchivalFutureCallRunMonthlyArchivalModel> {
-  @override
-  _i6.Future<void> invoke(
-    _i1.Session session,
-    _i2.MonthlyArchivalFutureCallRunMonthlyArchivalModel? object,
-  ) async {
-    if (object != null) {
-      await _i7.MonthlyArchivalFutureCall().runMonthlyArchival(
-        session,
-        object.iteration,
-      );
-    }
-  }
-}
-
-/// Initialize the monthly archival schedule
-///
-/// Call this once during server startup to begin the recurring schedule
-class MonthlyArchivalInitializeScheduleFutureCall
-    extends
-        _i1.FutureCall<_i3.MonthlyArchivalFutureCallInitializeScheduleModel> {
-  @override
-  _i6.Future<void> invoke(
-    _i1.Session session,
-    _i3.MonthlyArchivalFutureCallInitializeScheduleModel? object,
-  ) async {
-    if (object != null) {
-      await _i7.MonthlyArchivalFutureCall().initializeSchedule(
-        session,
-        object.iteration,
-      );
-    }
-  }
-}
-
 /// Public method called by Serverpod's generated invoke wrapper.
 class MonthlyBackupRunMonthlyBackupFutureCall
-    extends _i1.FutureCall<_i4.MonthlyBackupFutureCallRunMonthlyBackupModel> {
+    extends _i1.FutureCall<_i2.MonthlyBackupFutureCallRunMonthlyBackupModel> {
   @override
-  _i6.Future<void> invoke(
+  _i4.Future<void> invoke(
     _i1.Session session,
-    _i4.MonthlyBackupFutureCallRunMonthlyBackupModel? object,
+    _i2.MonthlyBackupFutureCallRunMonthlyBackupModel? object,
   ) async {
     if (object != null) {
-      await _i8.MonthlyBackupFutureCall().runMonthlyBackup(
+      await _i5.MonthlyBackupFutureCall().runMonthlyBackup(
         session,
         object.iteration,
       );
@@ -248,14 +169,14 @@ class MonthlyBackupRunMonthlyBackupFutureCall
 
 /// Bootstrap the schedule on server startup.
 class MonthlyBackupInitializeScheduleFutureCall
-    extends _i1.FutureCall<_i5.MonthlyBackupFutureCallInitializeScheduleModel> {
+    extends _i1.FutureCall<_i3.MonthlyBackupFutureCallInitializeScheduleModel> {
   @override
-  _i6.Future<void> invoke(
+  _i4.Future<void> invoke(
     _i1.Session session,
-    _i5.MonthlyBackupFutureCallInitializeScheduleModel? object,
+    _i3.MonthlyBackupFutureCallInitializeScheduleModel? object,
   ) async {
     if (object != null) {
-      await _i8.MonthlyBackupFutureCall().initializeSchedule(
+      await _i5.MonthlyBackupFutureCall().initializeSchedule(
         session,
         object.iteration,
       );

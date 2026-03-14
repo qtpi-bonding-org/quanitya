@@ -30,15 +30,11 @@ import 'package:quanitya_server/src/generated/encrypted_analysis_script.dart'
 import 'package:quanitya_server/src/generated/storage_usage_response.dart'
     as _i14;
 import 'package:quanitya_server/src/generated/greeting.dart' as _i15;
-import 'package:quanitya_server/src/generated/future_calls_generated_models/monthly_archival_future_call_run_monthly_archival_model.dart'
+import 'package:quanitya_server/src/generated/future_calls_generated_models/monthly_backup_future_call_run_monthly_backup_model.dart'
     as _i16;
 import 'package:quanitya_server/src/generated/future_calls.dart' as _i17;
-import 'package:quanitya_server/src/generated/future_calls_generated_models/monthly_archival_future_call_initialize_schedule_model.dart'
-    as _i18;
-import 'package:quanitya_server/src/generated/future_calls_generated_models/monthly_backup_future_call_run_monthly_backup_model.dart'
-    as _i19;
 import 'package:quanitya_server/src/generated/future_calls_generated_models/monthly_backup_future_call_initialize_schedule_model.dart'
-    as _i20;
+    as _i18;
 import 'package:quanitya_server/src/generated/protocol.dart';
 import 'package:quanitya_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -196,8 +192,6 @@ class _InternalTestEndpoints extends TestEndpoints
 }
 
 class _FutureCalls {
-  late final monthlyArchival = _MonthlyArchivalFutureCall();
-
   late final monthlyBackup = _MonthlyBackupFutureCall();
 }
 
@@ -1167,52 +1161,12 @@ class _GreetingEndpoint {
   }
 }
 
-class _MonthlyArchivalFutureCall {
-  Future<void> runMonthlyArchival(
-    _i1.TestSessionBuilder sessionBuilder,
-    int iteration,
-  ) async {
-    var object = _i16.MonthlyArchivalFutureCallRunMonthlyArchivalModel(
-      iteration: iteration,
-    );
-    var _localUniqueSession = (sessionBuilder as _i1.InternalTestSessionBuilder)
-        .internalBuild();
-    try {
-      await _i17.MonthlyArchivalRunMonthlyArchivalFutureCall().invoke(
-        _localUniqueSession,
-        object,
-      );
-    } finally {
-      await _localUniqueSession.close();
-    }
-  }
-
-  Future<void> initializeSchedule(
-    _i1.TestSessionBuilder sessionBuilder,
-    int iteration,
-  ) async {
-    var object = _i18.MonthlyArchivalFutureCallInitializeScheduleModel(
-      iteration: iteration,
-    );
-    var _localUniqueSession = (sessionBuilder as _i1.InternalTestSessionBuilder)
-        .internalBuild();
-    try {
-      await _i17.MonthlyArchivalInitializeScheduleFutureCall().invoke(
-        _localUniqueSession,
-        object,
-      );
-    } finally {
-      await _localUniqueSession.close();
-    }
-  }
-}
-
 class _MonthlyBackupFutureCall {
   Future<void> runMonthlyBackup(
     _i1.TestSessionBuilder sessionBuilder,
     int iteration,
   ) async {
-    var object = _i19.MonthlyBackupFutureCallRunMonthlyBackupModel(
+    var object = _i16.MonthlyBackupFutureCallRunMonthlyBackupModel(
       iteration: iteration,
     );
     var _localUniqueSession = (sessionBuilder as _i1.InternalTestSessionBuilder)
@@ -1231,7 +1185,7 @@ class _MonthlyBackupFutureCall {
     _i1.TestSessionBuilder sessionBuilder,
     int iteration,
   ) async {
-    var object = _i20.MonthlyBackupFutureCallInitializeScheduleModel(
+    var object = _i18.MonthlyBackupFutureCallInitializeScheduleModel(
       iteration: iteration,
     );
     var _localUniqueSession = (sessionBuilder as _i1.InternalTestSessionBuilder)
