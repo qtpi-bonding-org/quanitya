@@ -54,7 +54,7 @@ App launch → `CryptoKeyRepository.getKeyStatus()` returns `notInitialized` (no
 1. **NEW**: Check iCloud Keychain for `device_key_icloud`
 2. If not found → normal onboarding (Flow A)
 3. If found → import the iCloud KeyDuo from JWK
-4. Auth with server using iCloud key — the auth handler recognizes the iCloud key's hex in the `Authorization` header since it's a registered device. Call `generateAuthChallenge()` → sign with iCloud key → `authenticateDevice(challenge, signature)` → server confirms session, returns `accountId`
+4. Auth with server using iCloud key — the auth handler recognizes the iCloud key's hex in the `Authorization` header since it's a registered device. Call `getSignableNonce()` → sign with iCloud key → `authenticateDevice(challenge, signature)` → server confirms session, returns `accountId`
 5. Call `getDeviceBySigningKey(icloudKeyHex)` → get `encryptedDataKey` → decrypt with iCloud key's ECDH private key → recover symmetric data key
 6. Generate new local device key
 7. Encrypt symmetric data key with new local device key's encryption public key → `localEncryptedDataKey`

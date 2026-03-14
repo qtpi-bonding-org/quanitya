@@ -75,7 +75,7 @@ void main() {
       expect(simulatedCall, isA<Future<AuthenticationResult> Function()>());
     });
 
-    test('generateAuthChallenge return type is String', () {
+    test('getSignableNonce return type is String', () {
       Future<String> simulatedCall() async => 'challenge';
 
       expect(simulatedCall, isA<Future<String> Function()>());

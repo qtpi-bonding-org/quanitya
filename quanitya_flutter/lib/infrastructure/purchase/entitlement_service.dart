@@ -87,7 +87,7 @@ class EntitlementService implements IEntitlementService {
       throw const EntitlementException('Device key not found');
     }
 
-    // PoW flow for generateAuthChallenge
+    // PoW flow for getSignableNonce
     final powChallengeResponse =
         await _client.modules.anonaccount.device.getChallenge();
     final proofOfWork = await Hashcash.mint(
@@ -95,12 +95,12 @@ class EntitlementService implements IEntitlementService {
       difficulty: powChallengeResponse.difficulty,
     );
     final powSignPayload =
-        '${powChallengeResponse.challenge}:generateAuthChallenge:$publicKeyHex';
+        '${powChallengeResponse.challenge}:getSignableNonce:$publicKeyHex';
     final powSignature = await _encryption.signWithDeviceKey(powSignPayload);
 
     // Authenticate with server
     final challenge = await _client.modules.anonaccount.device
-        .generateAuthChallenge(
+        .getSignableNonce(
       challenge: powChallengeResponse.challenge,
       proofOfWork: proofOfWork,
       signature: powSignature,

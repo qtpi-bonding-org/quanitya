@@ -103,7 +103,7 @@ App launch → `CryptoKeyRepository.getKeyStatus()` returns `notInitialized` (no
 1. **NEW**: Check Block Store for `device_key_blockstore` via `blockStore.retrieve(key: 'device_key_blockstore')`
 2. If not found or null → normal onboarding (Flow A)
 3. If found → import the Block Store KeyDuo from JWK
-4. Auth with server using Block Store key — call `generateAuthChallenge()` → sign with Block Store key → `authenticateDevice(challenge, signature)` → server confirms session, returns `accountId`
+4. Auth with server using Block Store key — call `getSignableNonce()` → sign with Block Store key → `authenticateDevice(challenge, signature)` → server confirms session, returns `accountId`
 5. Call `getDeviceBySigningKey(blockstoreKeyHex)` → get `encryptedDataKey` → decrypt with Block Store key's ECDH private key → recover symmetric data key
 6. Generate new local device key
 7. Encrypt symmetric data key with new local device key's encryption public key → `localEncryptedDataKey`

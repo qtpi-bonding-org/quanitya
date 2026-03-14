@@ -92,7 +92,7 @@ class EndpointCloudHealth extends _i1.EndpointRef {
 /// by the authenticated user. This satisfies Apple App Store requirement
 /// for account deletion functionality.
 /// {@category Endpoint}
-class EndpointAccountDeletion extends EndpointDeviceAuthenticated {
+class EndpointAccountDeletion extends _i3.EndpointAuthenticated {
   EndpointAccountDeletion(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -870,21 +870,12 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
   );
 }
 
-/// Base class for endpoints requiring device-key authentication.
-///
-/// Provides `requireLogin => true` and helpers to extract the
-/// authenticated device public key and account ID from the session.
-/// {@category Endpoint}
-abstract class EndpointDeviceAuthenticated extends _i1.EndpointRef {
-  EndpointDeviceAuthenticated(_i1.EndpointCaller caller) : super(caller);
-}
-
 /// Cloud Analysis Endpoint - MVP Disabled
 ///
 /// This endpoint provides pay-per-use statistical analysis features.
 /// DISABLED for MVP launch - will be added post-launch.
 /// {@category Endpoint}
-class EndpointCloudAnalysis extends EndpointDeviceAuthenticated {
+class EndpointCloudAnalysis extends _i3.EndpointAuthenticated {
   EndpointCloudAnalysis(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -906,7 +897,7 @@ class EndpointCloudAnalysis extends EndpointDeviceAuthenticated {
 /// Model selection is server-controlled to prevent cost abuse.
 /// Uses OpenRouter's `models` array for automatic failover.
 /// {@category Endpoint}
-class EndpointCloudLlm extends EndpointDeviceAuthenticated {
+class EndpointCloudLlm extends _i3.EndpointAuthenticated {
   EndpointCloudLlm(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -2171,7 +2162,7 @@ class EndpointProductCatalog extends _i3.EndpointPowProtected {
 /// Provides API access for PowerSync JWT generation and sync access management
 /// based on consumable balances. All operations require AnonAccred authentication.
 /// {@category Endpoint}
-class EndpointSyncAccess extends EndpointDeviceAuthenticated {
+class EndpointSyncAccess extends _i3.EndpointAuthenticated {
   EndpointSyncAccess(_i1.EndpointCaller caller) : super(caller);
 
   @override

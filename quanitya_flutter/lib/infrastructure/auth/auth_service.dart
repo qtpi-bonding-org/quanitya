@@ -739,12 +739,12 @@ class AuthService {
           authChallengeResponse.difficulty,
         );
         final authSignPayload =
-            '${authChallengeResponse.challenge}:generateAuthChallenge:$crossDeviceKeyHex';
+            '${authChallengeResponse.challenge}:getSignableNonce:$crossDeviceKeyHex';
         final authPowSignature =
             await _encryption.signWithKeyDuo(authSignPayload, crossDeviceKeyDuo);
 
         final challenge = await _client.modules.anonaccount.device
-            .generateAuthChallenge(
+            .getSignableNonce(
           challenge: authChallengeResponse.challenge,
           proofOfWork: authPow,
           signature: authPowSignature,
@@ -912,12 +912,12 @@ class AuthService {
           powChallengeResponse.difficulty,
         );
         final powSignPayload =
-            '${powChallengeResponse.challenge}:generateAuthChallenge:$devicePublicKeyHex';
+            '${powChallengeResponse.challenge}:getSignableNonce:$devicePublicKeyHex';
         final powSignature =
             await _encryption.signWithDeviceKey(powSignPayload);
 
         final challenge = await _client.modules.anonaccount.device
-            .generateAuthChallenge(
+            .getSignableNonce(
           challenge: powChallengeResponse.challenge,
           proofOfWork: powProof,
           signature: powSignature,

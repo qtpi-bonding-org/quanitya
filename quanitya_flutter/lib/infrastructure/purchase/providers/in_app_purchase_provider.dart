@@ -265,7 +265,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
         debugPrint('validateWithServer: device key found, '
             'requesting auth challenge...');
 
-        // PoW flow for generateAuthChallenge
+        // PoW flow for getSignableNonce
         final powChallengeResponse =
             await _client.modules.anonaccount.device.getChallenge();
         final powProof = await Hashcash.mint(
@@ -273,12 +273,12 @@ class InAppPurchaseProvider implements IPurchaseProvider {
           difficulty: powChallengeResponse.difficulty,
         );
         final powSignPayload =
-            '${powChallengeResponse.challenge}:generateAuthChallenge:$publicKeyHex';
+            '${powChallengeResponse.challenge}:getSignableNonce:$publicKeyHex';
         final powSignature =
             await _encryption.signWithDeviceKey(powSignPayload);
 
         final challenge = await _client.modules.anonaccount.device
-            .generateAuthChallenge(
+            .getSignableNonce(
           challenge: powChallengeResponse.challenge,
           proofOfWork: powProof,
           signature: powSignature,
