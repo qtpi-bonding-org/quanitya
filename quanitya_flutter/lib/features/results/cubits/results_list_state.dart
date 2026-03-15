@@ -9,12 +9,14 @@ class ResultsTemplateItem {
   final String templateName;
   final int entryCount;
   final DateTime? lastLoggedAt;
+  final bool hasGraphableFields;
 
   const ResultsTemplateItem({
     required this.templateId,
     required this.templateName,
     required this.entryCount,
     this.lastLoggedAt,
+    this.hasGraphableFields = true,
   });
 }
 

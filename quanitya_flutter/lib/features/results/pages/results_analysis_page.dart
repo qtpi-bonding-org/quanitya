@@ -33,7 +33,11 @@ class ResultsAnalysisPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (state.templates.isEmpty) {
+        final analyzable = state.templates
+            .where((item) => item.hasGraphableFields)
+            .toList();
+
+        if (analyzable.isEmpty) {
           return const QuanityaEmptyState();
         }
 
@@ -41,7 +45,7 @@ class ResultsAnalysisPage extends StatelessWidget {
           padding: AppPadding.page,
           child: Column(
             children: [
-              for (final item in state.templates)
+              for (final item in analyzable)
                 ResultsTemplateFold(
                   item: item,
                   bodyBuilder: () => const _AnalysisFoldBody(),

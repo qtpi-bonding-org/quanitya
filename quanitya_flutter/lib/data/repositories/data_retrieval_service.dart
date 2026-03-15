@@ -49,43 +49,47 @@ class CategoricalFieldData {
   List<String> get values => points.map((p) => p.category).toList();
 }
 
+/// Time-series data for a location field.
+class LocationFieldData {
+  final TemplateField field;
+  final List<({DateTime date, double latitude, double longitude})> points;
+
+  const LocationFieldData({required this.field, required this.points});
+
+  bool get isEmpty => points.isEmpty;
+}
+
 /// Aggregated data for a template, organized by field type.
 class TemplateAggregatedData {
   final TrackerTemplateModel template;
   final List<NumericFieldData> numericFields;
   final List<BooleanFieldData> booleanFields;
   final List<CategoricalFieldData> categoricalFields;
+  final List<LocationFieldData> locationFields;
   final int totalEntries;
   final int completedEntries;
   final DateTime startDate;
   final DateTime endDate;
+  final List<DateTime> loggedDates;
 
   const TemplateAggregatedData({
     required this.template,
     required this.numericFields,
     required this.booleanFields,
     required this.categoricalFields,
+    required this.locationFields,
     required this.totalEntries,
     required this.completedEntries,
     required this.startDate,
     required this.endDate,
+    required this.loggedDates,
   });
 
-  List<DateTime> get loggedDates {
-    final dates = <DateTime>{};
-    for (final field in numericFields) {
-      dates.addAll(field.points.map((p) => _dateOnly(p.date)));
-    }
-    for (final field in booleanFields) {
-      dates.addAll(field.points.map((p) => _dateOnly(p.date)));
-    }
-    for (final field in categoricalFields) {
-      dates.addAll(field.points.map((p) => _dateOnly(p.date)));
-    }
-    return dates.toList()..sort();
-  }
-
-  static DateTime _dateOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
+  bool get hasGraphableFields =>
+      numericFields.isNotEmpty ||
+      booleanFields.isNotEmpty ||
+      categoricalFields.isNotEmpty ||
+      locationFields.isNotEmpty;
 }
 
 
@@ -272,6 +276,7 @@ class DataRetrievalService {
         final numericFields = <NumericFieldData>[];
         final booleanFields = <BooleanFieldData>[];
         final categoricalFields = <CategoricalFieldData>[];
+        final locationFields = <LocationFieldData>[];
 
         for (final field in template.fields) {
           switch (field.type) {
@@ -283,23 +288,35 @@ class DataRetrievalService {
               booleanFields.add(_extractBooleanData(field, entries));
             case FieldEnum.enumerated:
               categoricalFields.add(_extractCategoricalData(field, entries));
+            case FieldEnum.location:
+              locationFields.add(_extractLocationData(field, entries));
             case FieldEnum.text:
             case FieldEnum.datetime:
             case FieldEnum.reference:
-            case FieldEnum.location:
               break; // Not aggregatable
           }
         }
+
+        // Derive logged dates from entry timestamps directly so text-only
+        // templates still show consistency data.
+        final loggedDateSet = <DateTime>{};
+        for (final entry in entries) {
+          final dt = entry.entry.displayTimestamp;
+          loggedDateSet.add(DateTime(dt.year, dt.month, dt.day));
+        }
+        final loggedDates = loggedDateSet.toList()..sort();
 
         return TemplateAggregatedData(
           template: template,
           numericFields: numericFields.where((f) => !f.isEmpty).toList(),
           booleanFields: booleanFields.where((f) => !f.isEmpty).toList(),
           categoricalFields: categoricalFields.where((f) => !f.isEmpty).toList(),
+          locationFields: locationFields.where((f) => !f.isEmpty).toList(),
           totalEntries: entries.length,
           completedEntries: entries.where((e) => e.entry.isCompleted).length,
           startDate: startDate,
           endDate: endDate,
+          loggedDates: loggedDates,
         );
       },
       AnalysisException.new,
@@ -355,6 +372,30 @@ class DataRetrievalService {
       categories: field.options ?? [],
       points: points,
     );
+  }
+
+  LocationFieldData _extractLocationData(
+    TemplateField field,
+    List<LogEntryWithContext> entries,
+  ) {
+    final points =
+        <({DateTime date, double latitude, double longitude})>[];
+    for (final entry in entries) {
+      final value = entry.entry.data[field.id];
+      if (value is Map) {
+        final lat = value['latitude'];
+        final lng = value['longitude'];
+        if (lat is num && lng is num) {
+          points.add((
+            date: entry.entry.displayTimestamp,
+            latitude: lat.toDouble(),
+            longitude: lng.toDouble(),
+          ));
+        }
+      }
+    }
+    points.sort((a, b) => a.date.compareTo(b.date));
+    return LocationFieldData(field: field, points: points);
   }
 
   num? _parseNumeric(dynamic value) {

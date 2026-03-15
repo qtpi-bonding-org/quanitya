@@ -6,6 +6,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import '../../../data/dao/log_entry_query_dao.dart';
 import '../../../data/interfaces/log_entry_interface.dart';
 import '../../../data/repositories/template_with_aesthetics_repository.dart';
+import '../../../logic/templates/enums/field_enum.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import 'results_list_state.dart';
 
@@ -58,19 +59,33 @@ class ResultsListCubit extends QuanityaCubit<ResultsListState> {
     final templates = _latestTemplates;
     if (summaries == null || templates == null) return;
 
-    final nameMap = {
-      for (final t in templates) t.template.id: t.template.name,
+    final templateMap = {
+      for (final t in templates) t.template.id: t,
+    };
+
+    final graphableTypes = {
+      FieldEnum.integer,
+      FieldEnum.float,
+      FieldEnum.dimension,
+      FieldEnum.boolean,
+      FieldEnum.enumerated,
+      FieldEnum.location,
     };
 
     final items = summaries
         .where(
-            (s) => s.entryCount > 0 && nameMap.containsKey(s.templateId))
-        .map((s) => ResultsTemplateItem(
-              templateId: s.templateId,
-              templateName: nameMap[s.templateId]!,
-              entryCount: s.entryCount,
-              lastLoggedAt: s.lastLoggedAt,
-            ))
+            (s) => s.entryCount > 0 && templateMap.containsKey(s.templateId))
+        .map((s) {
+          final t = templateMap[s.templateId]!;
+          return ResultsTemplateItem(
+            templateId: s.templateId,
+            templateName: t.template.name,
+            entryCount: s.entryCount,
+            lastLoggedAt: s.lastLoggedAt,
+            hasGraphableFields: t.template.fields
+                .any((f) => graphableTypes.contains(f.type)),
+          );
+        })
         .toList()
       ..sort((a, b) {
         if (a.lastLoggedAt == null && b.lastLoggedAt == null) return 0;

@@ -11,6 +11,7 @@ import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/charts/time_series_chart.dart';
 import '../../../design_system/widgets/charts/boolean_heatmap_chart.dart';
 import '../../../design_system/widgets/charts/categorical_scatter_chart.dart';
+import '../../../design_system/widgets/charts/location_scatter_map.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
 import '../../visualization/cubits/visualization_cubit.dart';
@@ -73,18 +74,24 @@ class _GraphsFoldBody extends StatelessWidget {
         return QuanityaColumn(
           crossAlignment: CrossAxisAlignment.start,
           children: [
-            LayoutGroup.grid(
-              minItemWidth: 30,
-              children: [
-                ...data.numericFields
-                    .map((field) => _NumericChartSection(fieldData: field)),
-                ...data.booleanFields
-                    .map((field) => _BooleanChartSection(fieldData: field)),
-                ...data.categoricalFields
-                    .map((field) => _CategoricalChartSection(fieldData: field)),
-              ],
-            ),
-            VSpace.x4,
+            if (data.hasGraphableFields) ...[
+              LayoutGroup.grid(
+                minItemWidth: 30,
+                children: [
+                  ...data.numericFields
+                      .map((field) => _NumericChartSection(fieldData: field)),
+                  ...data.booleanFields
+                      .map((field) => _BooleanChartSection(fieldData: field)),
+                  ...data.categoricalFields
+                      .map((field) =>
+                          _CategoricalChartSection(fieldData: field)),
+                  ...data.locationFields
+                      .map((field) =>
+                          _LocationMapSection(fieldData: field)),
+                ],
+              ),
+              VSpace.x4,
+            ],
             _StatsSummary(
               totalEntries: data.completedEntries,
               consistencyRate: state.consistencyRate,
@@ -207,6 +214,45 @@ class _CategoricalChartSection extends StatelessWidget {
                     (fieldData.categories.length * AppSizes.space * 4),
                 dotColor: QuanityaPalette.category10[0],
               ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LocationMapSection extends StatelessWidget {
+  final LocationFieldData fieldData;
+  const _LocationMapSection({required this.fieldData});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    return Padding(
+      padding: EdgeInsets.only(bottom: AppSizes.space * 3),
+      child: QuanityaColumn(
+        crossAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            fieldData.field.label,
+            style: context.text.titleMedium?.copyWith(
+              color: palette.textPrimary,
+            ),
+          ),
+          VSpace.x2,
+          if (fieldData.isEmpty)
+            _noDataPlaceholder(context)
+          else
+            LocationScatterMap(
+              data: fieldData.points
+                  .map((p) => LocationPoint(
+                        date: p.date,
+                        latitude: p.latitude,
+                        longitude: p.longitude,
+                      ))
+                  .toList(),
+              height: AppSizes.space * 25,
+              dotColor: QuanityaPalette.category10[0],
             ),
         ],
       ),
