@@ -273,7 +273,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Unit',
+          context.l10n.fieldUnitLabel,
           style: context.text.labelMedium?.copyWith(
             color: draftColor,
           ),
@@ -282,7 +282,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         // Group units by dimension
         for (final dimension in MeasurementDimension.values) ...[
           Text(
-            dimension.name[0].toUpperCase() + dimension.name.substring(1),
+            _getDimensionDisplayName(context, dimension),
             style: context.text.bodySmall?.copyWith(
               color: draftColor.withValues(alpha: 0.6),
             ),
@@ -653,6 +653,15 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       FieldEnum.dimension => Icons.straighten,
       FieldEnum.reference => Icons.link,
       FieldEnum.location => Icons.location_on,
+    };
+  }
+
+  String _getDimensionDisplayName(BuildContext context, MeasurementDimension dimension) {
+    return switch (dimension) {
+      MeasurementDimension.mass => context.l10n.dimensionMass,
+      MeasurementDimension.length => context.l10n.dimensionLength,
+      MeasurementDimension.volume => context.l10n.dimensionVolume,
+      MeasurementDimension.time => context.l10n.dimensionTime,
     };
   }
 
