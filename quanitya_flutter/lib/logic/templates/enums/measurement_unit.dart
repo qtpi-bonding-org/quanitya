@@ -58,16 +58,12 @@ enum MeasurementUnit {
   kilometersPerHour(MeasurementDimension.speed, 'km/h', 'Kilometers per Hour'),
   milesPerHour(MeasurementDimension.speed, 'mph', 'Miles per Hour'),
   metersPerSecond(MeasurementDimension.speed, 'm/s', 'Meters per Second'),
-  knots(MeasurementDimension.speed, 'kn', 'Knots'),
-  minutesPerKilometer(MeasurementDimension.speed, 'min/km', 'Minutes per Kilometer'),
-  minutesPerMile(MeasurementDimension.speed, 'min/mi', 'Minutes per Mile'),
 
   // -- Energy -----------------------------------------------------------------
   calories(MeasurementDimension.energy, 'cal', 'Calories'),
   kilocalories(MeasurementDimension.energy, 'kcal', 'Kilocalories'),
   joules(MeasurementDimension.energy, 'J', 'Joules'),
   kilojoules(MeasurementDimension.energy, 'kJ', 'Kilojoules'),
-  kilowattHours(MeasurementDimension.energy, 'kWh', 'Kilowatt Hours'),
 
   // -- Frequency --------------------------------------------------------------
   hertz(MeasurementDimension.frequency, 'Hz', 'Per Second'),
