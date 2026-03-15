@@ -157,56 +157,33 @@ class FieldValidators {
     };
   }
 
-  /// Validates dimension values (numeric with unit constraints).
+  /// Validates dimension values (numeric with optional bounds).
   static ValidatorFn dimension({
     num? minValue,
     num? maxValue,
-    List<String>? allowedUnits,
     required String label,
   }) {
     return (value) {
       if (value == null) return null;
+      if (value is! num) return '$label must be a number';
 
-      // Dimension values can be num or Map with value/unit
-      if (value is num) {
-        if (minValue != null && value < minValue) {
-          return '$label must be at least $minValue';
-        }
-        if (maxValue != null && value > maxValue) {
-          return '$label must be at most $maxValue';
-        }
-      } else if (value is Map) {
-        final numValue = value['value'] as num?;
-        final unit = value['unit'] as String?;
-
-        if (numValue != null) {
-          if (minValue != null && numValue < minValue) {
-            return '$label must be at least $minValue';
-          }
-          if (maxValue != null && numValue > maxValue) {
-            return '$label must be at most $maxValue';
-          }
-        }
-
-        if (allowedUnits != null && unit != null && !allowedUnits.contains(unit)) {
-          return '$label unit must be one of: ${allowedUnits.join(', ')}';
-        }
+      if (minValue != null && value < minValue) {
+        return '$label must be at least $minValue';
+      }
+      if (maxValue != null && value > maxValue) {
+        return '$label must be at most $maxValue';
       }
 
       return null;
     };
   }
 
-  /// Validates reference field (non-null reference to another template).
+  /// Validates reference field (must be a non-empty string ID).
   static ValidatorFn reference({required String label}) {
     return (value) {
-      if (value == null) return null; // Let required() handle null
-
-      // Reference values should be Map with id
-      if (value is Map && value['id'] == null) {
-        return '$label reference is invalid';
-      }
-
+      if (value == null) return null;
+      if (value is! String) return '$label must be a reference ID';
+      if (value.isEmpty) return '$label reference cannot be empty';
       return null;
     };
   }
@@ -276,11 +253,12 @@ class FieldValidators {
       ValidatorType.dimension => wrap(dimension(
           minValue: data['minValue'] as num?,
           maxValue: data['maxValue'] as num?,
-          allowedUnits: (data['allowedUnits'] as List<dynamic>?)?.cast<String>(),
           label: label,
         )),
       ValidatorType.reference => wrap(reference(label: label)),
-      ValidatorType.custom => (_) => null, // Custom needs special handling
+      ValidatorType.custom => (_) => throw UnimplementedError(
+        'Custom validator "${data['name'] ?? 'unnamed'}" is not implemented.',
+      ),
       ValidatorType.list => wrap(list(
           minItems: data['minItems'] as int?,
           maxItems: data['maxItems'] as int?,

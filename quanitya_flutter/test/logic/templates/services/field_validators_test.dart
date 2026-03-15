@@ -225,25 +225,47 @@ void main() {
         expect(validator(100), isNull);
       });
 
-      test('validates map dimension value', () {
+      test('rejects Map format — only bare num accepted', () {
         final validator = FieldValidators.dimension(
           minValue: 0,
           label: 'Weight',
         );
-        expect(validator({'value': -5, 'unit': 'kg'}), 'Weight must be at least 0');
-        expect(validator({'value': 75, 'unit': 'kg'}), isNull);
+        expect(validator({'value': 75, 'unit': 'kg'}), isNotNull);
+      });
+    });
+
+    group('custom', () {
+      test('throws UnimplementedError', () {
+        final validators = [
+          FieldValidator(
+            validatorType: ValidatorType.custom,
+            validatorData: {'name': 'some_custom'},
+          ),
+        ];
+        final validator = FieldValidators.fromFieldValidators(validators, 'Field');
+        expect(() => validator('anything'), throwsA(isA<UnimplementedError>()));
+      });
+    });
+
+    group('reference', () {
+      test('accepts non-empty string', () {
+        final validator = FieldValidators.reference(label: 'Ref');
+        expect(validator('some-uuid'), isNull);
       });
 
-      test('validates allowed units', () {
-        final validator = FieldValidators.dimension(
-          allowedUnits: ['kg', 'lbs'],
-          label: 'Weight',
-        );
-        expect(
-          validator({'value': 75, 'unit': 'oz'}),
-          'Weight unit must be one of: kg, lbs',
-        );
-        expect(validator({'value': 75, 'unit': 'kg'}), isNull);
+      test('rejects empty string', () {
+        final validator = FieldValidators.reference(label: 'Ref');
+        expect(validator(''), isNotNull);
+      });
+
+      test('rejects non-string', () {
+        final validator = FieldValidators.reference(label: 'Ref');
+        expect(validator(42), isNotNull);
+      });
+
+      test('allows null (let required handle it)', () {
+        final validator = FieldValidators.reference(label: 'Ref');
+        expect(validator(null), isNull);
       });
     });
   });
