@@ -17,6 +17,7 @@ import '../location/location_service.dart' show LocationException;
 import '../notifications/exceptions/notification_exception.dart' show NotificationException;
 import '../public_submission/exceptions/public_submission_exceptions.dart';
 import '../purchase/purchase_exception.dart';
+import '../purchase/purchase_models.dart' show PurchaseStatus;
 import '../purchase/entitlement_exception.dart';
 import '../user_feedback/exceptions/feedback_exceptions.dart';
 import '../../features/settings/exceptions/llm_provider_exception.dart';
@@ -104,7 +105,7 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
       FeedbackException e => _mapFeedbackException(e),
 
       // Purchase exceptions
-      PurchaseException() => const MessageKey.error(L10nKeys.errorPurchaseFailed),
+      PurchaseException e => _mapPurchaseException(e),
       EntitlementException() => const MessageKey.info(L10nKeys.errorEntitlementFailed),
 
       // LLM exceptions
@@ -166,6 +167,17 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
       ServerErrorCode.internalError => const MessageKey.error(L10nKeys.errorGeneric),
       ServerErrorCode.jwtSigningKeyMissing => const MessageKey.error(L10nKeys.errorAuthFailed),
       ServerErrorCode.jwtGenerationFailed => const MessageKey.error(L10nKeys.errorAuthFailed),
+    };
+  }
+
+  /// Maps PurchaseException, using status for more specific messages
+  MessageKey _mapPurchaseException(PurchaseException e) {
+    return switch (e.status) {
+      PurchaseStatus.cancelled => const MessageKey.info(L10nKeys.purchaseCancelled),
+      PurchaseStatus.pending => const MessageKey.info(L10nKeys.purchasePending),
+      PurchaseStatus.alreadyOwned => const MessageKey.info(L10nKeys.purchaseAlreadyOwned),
+      PurchaseStatus.failed => const MessageKey.error(L10nKeys.errorPurchaseFailed),
+      _ => const MessageKey.error(L10nKeys.errorPurchaseFailed),
     };
   }
 

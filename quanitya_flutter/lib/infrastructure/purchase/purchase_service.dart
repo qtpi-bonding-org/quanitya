@@ -81,9 +81,10 @@ class PurchaseService implements IPurchaseService {
 
         final result = await provider.initiatePurchase(request);
         if (result.status != PurchaseStatus.success) {
-          return PurchaseValidationResult(
-            success: false,
-            errorMessage: result.errorMessage ?? 'Purchase ${result.status.name}',
+          throw PurchaseException(
+            result.errorMessage ?? 'Purchase ${result.status.name}',
+            null,
+            result.status,
           );
         }
 
