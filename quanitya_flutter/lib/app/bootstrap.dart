@@ -9,7 +9,6 @@ import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import '../app_router.dart';
 import '../logic/analytics/analytics_service.dart';
 import '../data/repositories/error_box_repository.dart';
-import '../infrastructure/security/backup_exclusion_service.dart';
 import '../features/app_operating_mode/repositories/app_operating_repository.dart';
 import '../data/dao/template_aesthetics_dual_dao.dart';
 import '../data/db/app_database.dart';
@@ -75,18 +74,6 @@ Future<void> bootstrap() async {
     debugPrint('Bootstrap: Initializing App Operating Mode...');
     await _initializeAppOperatingMode();
     debugPrint('Bootstrap: App Operating Mode initialized');
-
-    // 3.5. Exclude database file from OS backup (iOS iCloud / Android handled via XML)
-    debugPrint('Bootstrap: Excluding database from backup...');
-    final dbPath = getIt.isRegistered<IPowerSyncService>()
-        ? getIt<IPowerSyncService>().dbPath
-        : null;
-    if (dbPath != null) {
-      await getIt<BackupExclusionService>().excludeDatabaseFromBackup(dbPath);
-      debugPrint('Bootstrap: Database backup exclusion complete');
-    } else {
-      debugPrint('Bootstrap: WARNING - dbPath is null, skipping backup exclusion');
-    }
 
     // 4. Initialize E2EE Puller
     if (getIt.isRegistered<IE2EEPuller>()) {
