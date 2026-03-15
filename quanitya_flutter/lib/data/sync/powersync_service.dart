@@ -38,6 +38,12 @@ abstract class IPowerSyncService {
 
   /// Connect PowerSync if mode supports sync, disconnect if local mode
   Future<void> handleModeChange(AppSyncingMode mode, Client serverpodClient);
+
+  /// Stream of real-time sync status from PowerSync.
+  Stream<SyncStatus> get statusStream;
+
+  /// Force disconnect and reconnect PowerSync.
+  Future<void> retrySync();
 }
 
 /// PowerSync service with integrated Drift database
@@ -58,6 +64,7 @@ class PowerSyncService implements IPowerSyncService {
   bool _isConnected = false;
   String? _dbPath;
   AppSyncingMode? _currentMode;
+  Client? _currentClient;
 
   @override
   String? get dbPath => _dbPath;
@@ -165,6 +172,7 @@ class PowerSyncService implements IPowerSyncService {
       await _powerSyncDb!.connect(connector: connector);
       _isConnected = true;
       _currentMode = mode;
+      _currentClient = serverpodClient;
     } catch (e, stack) {
       debugPrintStack(stackTrace: stack, label: 'PowerSync connection failed: $e');
       // Don't rethrow - app can work offline
@@ -177,6 +185,22 @@ class PowerSyncService implements IPowerSyncService {
     if (!_isConnected) return;
     await _powerSyncDb!.disconnect();
     _isConnected = false;
+  }
+
+  @override
+  Stream<SyncStatus> get statusStream {
+    if (_powerSyncDb == null) return const Stream.empty();
+    return _powerSyncDb!.statusStream;
+  }
+
+  @override
+  Future<void> retrySync() async {
+    final client = _currentClient;
+    final mode = _currentMode;
+    if (_powerSyncDb == null || client == null || mode == null) return;
+    if (!mode.supportsSync) return;
+    await disconnect();
+    await connect(client, mode);
   }
 
   /// Handle app operating mode changes - connect/disconnect PowerSync as needed
