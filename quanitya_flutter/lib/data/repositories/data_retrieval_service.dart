@@ -360,10 +360,6 @@ class DataRetrievalService {
   num? _parseNumeric(dynamic value) {
     if (value == null) return null;
     if (value is num) return value;
-    if (value is Map && value.containsKey('value')) {
-      final v = value['value'];
-      if (v is num) return v;
-    }
     if (value is String) return num.tryParse(value);
     return null;
   }
