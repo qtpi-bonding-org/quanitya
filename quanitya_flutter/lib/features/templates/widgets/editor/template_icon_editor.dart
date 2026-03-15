@@ -67,7 +67,9 @@ class TemplateIconEditor extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Icon bubble with template's accent color
+                      // Icon bubble with template's accent color.
+                      // AppSizes.iconXLarge (48dp) satisfies the minimum touch
+                      // target requirement per design system standards.
                       Container(
                         width: AppSizes.iconXLarge,
                         height: AppSizes.iconXLarge,
@@ -76,7 +78,7 @@ class TemplateIconEditor extends StatelessWidget {
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: accentColor,
-                            width: 2,
+                            width: AppSizes.borderWidthThick,
                           ),
                         ),
                         alignment: Alignment.center,

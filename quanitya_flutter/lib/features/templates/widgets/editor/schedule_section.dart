@@ -164,7 +164,7 @@ class _TimePicker extends StatelessWidget {
                 border: Border(
                   bottom: BorderSide(
                     color: context.colors.textSecondary.withValues(alpha: 0.3),
-                    width: 1,
+                    width: AppSizes.borderWidth,
                   ),
                 ),
               ),

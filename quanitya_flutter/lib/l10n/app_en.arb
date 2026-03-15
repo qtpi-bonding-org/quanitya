@@ -1,5 +1,6 @@
 {
   "@@locale": "en",
+  "onboardingAcceptTerms": "Accept terms",
   "onboardingTitle": "QUANITYA",
   "successGeneric": "Success",
   "errorGeneric": "An error occurred",
@@ -126,6 +127,7 @@
   "deviceLabelLabel": "Device Name",
   "recoverAccount": "Recover Account",
   "recovering": "Recovering...",
+  "logEntryViewLabel": "View log entry",
   "logEntryAction": "Log Entry",
   "createTemplateTitle": "Generate Template",
   "editTemplateTitle": "Edit Template",
@@ -651,6 +653,13 @@
       }
     }
   },
+  "settingsEditApiKey": "Edit API key: {name}",
+  "@settingsEditApiKey": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "settingsEditWebhook": "Edit webhook",
   "settingsLlmSection": "LLM Provider",
   "llmProviderSaved": "Provider config saved",
   "llmProviderDeleted": "Provider config deleted",
@@ -661,6 +670,9 @@
   "llmProviderSearchModels": "Search models...",
   "llmProviderTestConnection": "Test Connection",
   "llmProviderAddConfig": "Add Config",
+  "llmProviderAddOpenRouter": "Add OpenRouter",
+  "llmProviderAddOllama": "Add Ollama",
+  "llmProviderQuanitya": "Quanitya LLM",
   "llmProviderNoConfigs": "No LLM providers configured",
   "llmProviderNoConfigsDescription": "Add an OpenRouter or Ollama config to use AI features",
   "llmProviderModelTested": "Tested",
@@ -710,11 +722,18 @@
     }
   },
 
+  "resultsLoggingActivity": "Logging activity",
   "resultsTabGraphs": "Graphs",
   "resultsTabAnalysis": "Analysis",
   "resultsNoResultsTitle": "No Results Yet",
   "resultsNoResultsGraphsDescription": "Log entries to see visualizations here.",
   "resultsNoResultsAnalysisDescription": "Log entries to see analysis here.",
+  "resultsAnalyzeField": "Analyze field: {fieldName}",
+  "@resultsAnalyzeField": {
+    "placeholders": {
+      "fieldName": { "type": "String" }
+    }
+  },
   "resultsAnalyzeFields": "Analyze Fields",
   "resultsAnalyzeFieldsDescription": "Select a numeric field to create or view analysis scripts",
   "resultsAnalysisResults": "Analysis Results",
@@ -925,5 +944,23 @@
   "syncDownloading": "Downloading...",
   "syncUploading": "Uploading...",
   "syncError": "Sync error",
-  "syncDisconnected": "Not syncing"
+  "syncDisconnected": "Not syncing",
+  "estimatedEntries": "~{count} entries",
+  "@estimatedEntries": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "estimatedEntriesThousands": "~{count}K entries",
+  "@estimatedEntriesThousands": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "estimatedEntriesMillions": "~{count}M entries",
+  "@estimatedEntriesMillions": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

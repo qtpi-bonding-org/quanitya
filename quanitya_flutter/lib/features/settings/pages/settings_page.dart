@@ -339,7 +339,7 @@ class _ApiKeyRow extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'Edit API key: ${apiKey.name}',
+      label: context.l10n.settingsEditApiKey(apiKey.name),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
@@ -479,7 +479,7 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
                   child: SizedBox(
                     width: AppSizes.iconMedium,
                     height: AppSizes.iconMedium,
-                    child: const CircularProgressIndicator(strokeWidth: 2),
+                    child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
                   ),
                 ),
               )
@@ -549,7 +549,7 @@ class _WebhookRow extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'Edit webhook',
+      label: context.l10n.settingsEditWebhook,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSizes.radiusMedium),

@@ -150,8 +150,8 @@ class _LlmConfigFormState extends State<_LlmConfigForm> {
               VSpace.x2,
               if (isOpenRouter && _providers.isNotEmpty) ...[
                 Wrap(
-                  spacing: AppSizes.space * 0.5,
-                  runSpacing: AppSizes.space * 0.5,
+                  spacing: AppSizes.spaceHalf,
+                  runSpacing: AppSizes.spaceHalf,
                   children: _providers.map((provider) {
                     return PenCircledChip(
                       label: provider,

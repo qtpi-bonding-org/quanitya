@@ -186,11 +186,13 @@ class _TemplatePreviewState extends State<TemplatePreview> {
       colors: [
         QuanityaPalette.primary.backgroundPrimary, // Washi White
         QuanityaPalette.primary.primaryColor, // Teal
-        const Color(0xFFF57C00), // Orange (not in palette)
+        // TODO(design): no palette token for orange — needs a data-viz accent token
+        const Color(0xFFF57C00), // Orange (data visualization fallback, not in palette)
       ],
       neutrals: [
         QuanityaPalette.primary.textPrimary, // Sumi Black
-        const Color(0xFFF5F5F5), // Light grey (not in palette)
+        // TODO(design): no palette token for light grey — needs a surface/neutral token
+        const Color(0xFFF5F5F5), // Light grey (data visualization fallback, not in palette)
       ],
     );
   }

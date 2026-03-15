@@ -14,6 +14,8 @@ import '../../cubits/editor/template_editor_state.dart';
 
 /// Widget for editing the color palette of a template (accent and tone colors).
 class ColorPaletteEditor extends StatelessWidget {
+  // Label column width — component-specific; no matching AppSizes token.
+  static const _labelColumnWidth = 80.0;
   const ColorPaletteEditor({super.key});
 
   @override
@@ -40,7 +42,7 @@ class ColorPaletteEditor extends StatelessWidget {
         Row(
           children: [
             SizedBox(
-              width: 80,
+              width: _labelColumnWidth,
               child: Text(
                 context.l10n.templateAccentLabel,
                 style: context.text.bodyMedium?.copyWith(
@@ -80,7 +82,7 @@ class ColorPaletteEditor extends StatelessWidget {
         Row(
           children: [
             SizedBox(
-              width: 80,
+              width: _labelColumnWidth,
               child: Text(
                 context.l10n.templateToneLabel,
                 style: context.text.bodyMedium?.copyWith(

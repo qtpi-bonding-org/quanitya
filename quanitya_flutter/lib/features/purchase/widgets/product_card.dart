@@ -28,7 +28,7 @@ class ProductCard extends StatelessWidget {
   /// Extracts capacity (e.g. "500 MB", "1 GB") from the title.
   /// Returns (capacity, planName, entryEstimate).
   /// If no capacity found, (null, fullTitle, null).
-  ({String? capacity, String planName, String? entryEstimate}) _parseTitle() {
+  ({String? capacity, String planName, _EntryEstimate? entryEstimate}) _parseTitle() {
     final capacityPattern = RegExp(
       r'(\d+(?:\.\d+)?)\s*(KB|MB|GB|TB)',
       caseSensitive: false,
@@ -61,7 +61,10 @@ class ProductCard extends StatelessWidget {
   /// Assumes ~4 KB per entry on the server: encrypted blob (~1 KB in
   /// SQLite) × 4 for PostgreSQL with PowerSync (oplog, indexes,
   /// row overhead, WAL).
-  static String? _estimateEntries(double? value, String unit) {
+  ///
+  /// Returns a structured [_EntryEstimate] to be resolved to a localized
+  /// string in [build] via [_resolveEstimate].
+  static _EntryEstimate? _estimateEntries(double? value, String unit) {
     if (value == null) return null;
 
     final bytesPerEntry = 4096; // ~4 KB server-side
@@ -77,13 +80,25 @@ class ProductCard extends StatelessWidget {
     final entries = (bytes / bytesPerEntry).round();
     final rounded = (entries / 1000).round() * 1000;
     if (rounded >= 1000000) {
-      final millions = rounded / 1000000;
-      return '~${millions.toStringAsFixed(millions.truncateToDouble() == millions ? 0 : 1)}M entries';
+      return _EntryEstimate.millions(rounded ~/ 1000000);
     }
     if (rounded >= 1000) {
-      return '~${rounded ~/ 1000}K entries';
+      return _EntryEstimate.thousands(rounded ~/ 1000);
     }
-    return '~$entries entries';
+    return _EntryEstimate.exact(entries);
+  }
+
+  /// Resolves a structured [_EntryEstimate] to a localized display string.
+  static String _resolveEstimate(BuildContext context, _EntryEstimate estimate) {
+    return switch (estimate) {
+      _EntryEstimate(:final millions?) =>
+        context.l10n.estimatedEntriesMillions(millions),
+      _EntryEstimate(:final thousands?) =>
+        context.l10n.estimatedEntriesThousands(thousands),
+      _EntryEstimate(:final exact?) =>
+        context.l10n.estimatedEntries(exact),
+      _ => '',
+    };
   }
 
   @override
@@ -99,11 +114,15 @@ class ProductCard extends StatelessWidget {
         ? context.l10n.purchaseSubscribe
         : context.l10n.purchaseBuy;
 
+    final entryEstimateLabel = parsed.entryEstimate != null
+        ? _resolveEstimate(context, parsed.entryEstimate!)
+        : null;
+
     // Build a full semantic description for screen readers
     final semanticParts = <String>[
       parsed.planName,
       if (parsed.capacity != null) parsed.capacity ?? '',
-      if (parsed.entryEstimate != null) parsed.entryEstimate ?? '',
+      if (entryEstimateLabel != null) entryEstimateLabel,
       price,
       if (_isSubscription &&
           product.subscriptionPeriod == SubscriptionPeriod.monthly)
@@ -166,10 +185,10 @@ class ProductCard extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  if (parsed.entryEstimate != null) ...[
+                  if (entryEstimateLabel != null) ...[
                     VSpace.x025,
                     Text(
-                      parsed.entryEstimate ?? '',
+                      entryEstimateLabel,
                       style: context.text.bodySmall?.copyWith(
                         color: palette.textSecondary,
                       ),
@@ -249,7 +268,7 @@ class _StringHolePainter extends CustomPainter {
     final stroke = Paint()
       ..color = color.withValues(alpha: 0.25)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
+      ..strokeWidth = AppSizes.borderWidth;
     canvas.drawCircle(holeCenter, holeRadius, stroke);
   }
 
@@ -259,4 +278,23 @@ class _StringHolePainter extends CustomPainter {
     return oldDelegate.color != color ||
         oldDelegate.holeRadius != holeRadius;
   }
+}
+
+/// Structured entry-count estimate returned by [ProductCard._estimateEntries].
+///
+/// Exactly one of the three fields is non-null, representing the magnitude
+/// of the estimate. Resolved to a localized string via
+/// [ProductCard._resolveEstimate].
+class _EntryEstimate {
+  final int? millions;
+  final int? thousands;
+  final int? exact;
+
+  const _EntryEstimate._({this.millions, this.thousands, this.exact});
+
+  factory _EntryEstimate.millions(int value) =>
+      _EntryEstimate._(millions: value);
+  factory _EntryEstimate.thousands(int value) =>
+      _EntryEstimate._(thousands: value);
+  factory _EntryEstimate.exact(int value) => _EntryEstimate._(exact: value);
 }

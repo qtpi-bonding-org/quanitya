@@ -295,7 +295,7 @@ class _ExistingKeysWarning extends StatelessWidget {
               HSpace.x1,
               Expanded(
                 child: Semantics(
-                  label: 'Accept terms',
+                  label: context.l10n.onboardingAcceptTerms,
                   child: GestureDetector(
                     onTap: () => onChanged(!confirmEraseKeys),
                     child: Text(

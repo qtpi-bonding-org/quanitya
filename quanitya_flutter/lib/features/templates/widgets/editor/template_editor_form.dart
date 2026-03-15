@@ -302,7 +302,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
           for (int i = 0; i < types.length; i++) ...[
             if (i > 0)
               Divider(
-                  height: 1,
+                  height: AppSizes.borderWidth,
                   color: context.colors.textSecondary.withValues(alpha: 0.1)),
             _buildAddFieldOption(
                 context, types[i].displayName, types[i].icon, types[i]),

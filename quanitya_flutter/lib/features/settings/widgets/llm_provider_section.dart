@@ -37,7 +37,7 @@ class LlmProviderSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 QuanityaTextButton(
-                  text: 'Add OpenRouter',
+                  text: context.l10n.llmProviderAddOpenRouter,
                   onPressed: () => _showConfigSheet(
                     context,
                     null,
@@ -46,7 +46,7 @@ class LlmProviderSection extends StatelessWidget {
                 ),
                 HSpace.x2,
                 QuanityaTextButton(
-                  text: 'Add Ollama',
+                  text: context.l10n.llmProviderAddOllama,
                   onPressed: () => _showConfigSheet(
                     context,
                     null,
@@ -135,7 +135,7 @@ class _QuanityaProviderRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Quanitya LLM',
+      label: context.l10n.llmProviderQuanitya,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
@@ -158,7 +158,7 @@ class _QuanityaProviderRow extends StatelessWidget {
               HSpace.x2,
               Expanded(
                 child: Text(
-                  'Quanitya LLM',
+                  context.l10n.llmProviderQuanitya,
                   style: context.text.bodyLarge?.copyWith(
                     color: context.colors.textPrimary,
                   ),

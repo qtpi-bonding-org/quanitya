@@ -5,6 +5,7 @@ import 'package:anonaccred_client/anonaccred_client.dart'
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../support/extensions/context_extensions.dart';
 
 /// Displays the user's active entitlements (sync tiers, credits, etc.)
@@ -112,24 +113,23 @@ class EntitlementDisplay extends StatelessWidget {
           // Error/retry — shown when entitlement fetch failed
           if (hasError) ...[
             VSpace.x1,
-            GestureDetector(
-              onTap: onRetry,
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.refresh,
+            Row(
+              children: [
+                QuanityaIconButton(
+                  icon: Icons.refresh,
+                  onPressed: onRetry,
+                  iconSize: AppSizes.iconSmall,
+                  color: palette.cautionColor,
+                  tooltip: context.l10n.entitlementRefreshFailed,
+                ),
+                HSpace.x05,
+                Text(
+                  context.l10n.entitlementRefreshFailed,
+                  style: context.text.bodySmall?.copyWith(
                     color: palette.cautionColor,
-                    size: AppSizes.iconSmall,
                   ),
-                  HSpace.x05,
-                  Text(
-                    context.l10n.entitlementRefreshFailed,
-                    style: context.text.bodySmall?.copyWith(
-                      color: palette.cautionColor,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ],
@@ -147,7 +147,7 @@ class EntitlementDisplay extends StatelessWidget {
 
     final count = entryCount;
     if (count != null) {
-      parts.add('$count entries');
+      parts.add(context.l10n.estimatedEntries(count));
     }
 
     return Text(

@@ -69,6 +69,10 @@ class ContainerStyleEditor extends StatelessWidget {
 
 /// Card widget for displaying a single container style option.
 class _PresetCard extends StatelessWidget {
+  // Preset card dimensions — no matching AppSizes token for these
+  // component-specific sizes; defined as local constants.
+  static const _presetCardWidth = 100.0;
+  static const _presetCardHeight = 72.0;
   final TemplateContainerStyle style;
   final Color accentColor;
   final bool isSelected;
@@ -90,12 +94,12 @@ class _PresetCard extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 100,
-          height: 72,
+          width: _presetCardWidth,
+          height: _presetCardHeight,
           decoration: BoxDecoration(
             border: Border.all(
               color: isSelected ? accentColor : context.colors.textSecondary.withValues(alpha: 0.3),
-              width: isSelected ? 2 : 1,
+              width: isSelected ? AppSizes.borderWidthThick : AppSizes.borderWidth,
             ),
             borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
             color: isSelected ? accentColor.withValues(alpha: 0.05) : null,
@@ -126,6 +130,10 @@ class _PresetMiniPreview extends StatelessWidget {
   final TemplateContainerStyle style;
   final Color accentColor;
 
+  // Mini preview dimensions — component-specific; no matching AppSizes token.
+  static const _miniPreviewWidth = 60.0;
+  static const _miniPreviewHeight = 24.0;
+
   const _PresetMiniPreview({
     required this.style,
     required this.accentColor,
@@ -134,12 +142,15 @@ class _PresetMiniPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 60,
-      height: 24,
+      width: _miniPreviewWidth,
+      height: _miniPreviewHeight,
       child: StyledFieldContainer(
         preset: style,
         accentColor: accentColor,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSizes.space,
+          vertical: AppSizes.space * 0.5,
+        ),
         child: Container(
           decoration: BoxDecoration(
             color: context.colors.textSecondary.withValues(alpha: 0.2),

@@ -1,5 +1,6 @@
 {
   "@@locale": "es",
+  "onboardingAcceptTerms": "Aceptar términos",
   "onboardingTitle": "QUANITYA",
   "successGeneric": "Éxito",
   "errorGeneric": "Ocurrió un error",
@@ -126,6 +127,7 @@
   "deviceLabelLabel": "Nombre del Dispositivo",
   "recoverAccount": "Recuperar Cuenta",
   "recovering": "Recuperando...",
+  "logEntryViewLabel": "Ver registro",
   "logEntryAction": "Añadir Entrada",
   "createTemplateTitle": "Generar Plantilla",
   "editTemplateTitle": "Editar Plantilla",
@@ -433,6 +435,13 @@
   "apiKeysDescription": "Trae tus propias claves para webhooks.",
   "addApiKey": "Añadir API Key",
   "editApiKey": "Editar API Key",
+  "settingsEditApiKey": "Editar API key: {name}",
+  "@settingsEditApiKey": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "settingsEditWebhook": "Editar webhook",
   "apiKeyName": "Nombre",
   "apiKeyNameHint": "ej. Mi API",
   "apiKeyType": "Tipo",
@@ -529,12 +538,17 @@
   "tooltipShowPrivate": "Mostrar entradas privadas",
   "purchaseTitle": "Comprar Días de Sincronización",
   "purchaseAvailableProducts": "Productos Disponibles",
+  "purchaseSectionSubscriptions": "Planes",
+  "purchaseSectionConsumables": "Complementos",
+  "purchasePeriodMonthly": "Mensual",
+  "purchasePeriodYearly": "Anual",
   "purchaseNoProducts": "No hay productos",
   "purchaseSuccessful": "Compra completada",
   "purchaseFailed": "La compra falló",
   "purchaseCancelled": "La compra fue cancelada",
   "purchasePending": "La compra está pendiente — la procesaremos pronto",
   "purchaseAlreadyOwned": "Ya tienes este artículo",
+  "purchaseLoadFailed": "No se pudieron cargar los productos",
   "entitlementRefreshFailed": "No se pudo actualizar — toca para reintentar",
   "settingsPurchase": "Días de Sincronización",
   "settingsErrorReports": "Informes de Error",
@@ -598,6 +612,8 @@
   "syncActive": "Sincronización Activa",
   "syncInactive": "Sin Acceso a Sincronización",
   "entitlementLabel": "Derecho #{id}",
+  "entitlementActive": "Activo",
+  "entitlementInactive": "Inactivo",
   "outboxTitle": "Bandeja de salida",
   "outboxTabFeedback": "Comentarios",
   "outboxTabAnalytics": "Analíticas",
@@ -614,5 +630,33 @@
   "syncDownloading": "Descargando...",
   "syncUploading": "Subiendo...",
   "syncError": "Error de sincronización",
-  "syncDisconnected": "Sin sincronización"
+  "syncDisconnected": "Sin sincronización",
+  "llmProviderAddOpenRouter": "Add OpenRouter",
+  "llmProviderAddOllama": "Add Ollama",
+  "llmProviderQuanitya": "Quanitya LLM",
+  "resultsLoggingActivity": "Registrando actividad",
+  "resultsAnalyzeField": "Analizar campo: {fieldName}",
+  "@resultsAnalyzeField": {
+    "placeholders": {
+      "fieldName": { "type": "String" }
+    }
+  },
+  "estimatedEntries": "~{count} entradas",
+  "@estimatedEntries": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "estimatedEntriesThousands": "~{count}K entradas",
+  "@estimatedEntriesThousands": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "estimatedEntriesMillions": "~{count}M entradas",
+  "@estimatedEntriesMillions": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

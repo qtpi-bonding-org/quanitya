@@ -167,7 +167,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
             // Show "Enable Cross-Device Sync" button if available and no entry exists
             if (_showEnableCrossDeviceButton(state))
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: EdgeInsets.only(bottom: AppSizes.space),
                 child: QuanityaTextButton(
                   text: context.l10n.enableICloudSync,
                   onPressed: () => context
