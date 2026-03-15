@@ -370,15 +370,6 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
     debugPrint(
       '⚡ PowerSync: Syncing op: ${op.op.name} table: ${op.table} id: ${op.id}',
     );
-    // DEBUG: Log full op data for aesthetics
-    if (op.table == 'template_aesthetics') {
-      debugPrint('🔍 DEBUG aesthetics upload data:');
-      data?.forEach((key, value) {
-        final valStr = value?.toString() ?? 'null';
-        debugPrint('🔍 DEBUG   $key = ${valStr.length > 100 ? '${valStr.substring(0, 100)}...' : valStr}');
-      });
-    }
-
     switch (op.op) {
       case UpdateType.put:
         switch (op.table) {
@@ -403,18 +394,11 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
               op.id,
               (data?['encrypted_data'] as String?) ?? '',
             );
-          case 'template_aesthetics':
-            await _client.modules.community.sync.upsertTemplateAesthetics(
+          case 'encrypted_template_aesthetics':
+            await _client.modules.community.sync
+                .upsertEncryptedTemplateAesthetics(
               op.id,
-              (data?['template_id'] as String?) ?? '',
-              (data?['theme_name'] as String?) ?? '',
-              (data?['icon'] as String?) ?? '',
-              (data?['emoji'] as String?) ?? '',
-              (data?['palette_json'] as String?) ?? '',
-              (data?['font_config_json'] as String?) ?? '',
-              (data?['color_mappings_json'] as String?) ?? '',
-              (data?['updated_at'] as String?) ??
-                  DateTime.now().toIso8601String(),
+              (data?['encrypted_data'] as String?) ?? '',
             );
           default:
             debugPrint('⚡ PowerSync: WARN - Unknown table for PUT: ${op.table}');
@@ -445,10 +429,9 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
           case 'encrypted_analysis_scripts':
             await _client.modules.community.sync
                 .deleteEncryptedAnalysisScript(op.id);
-          case 'template_aesthetics':
-            await _client.modules.community.sync.deleteTemplateAesthetics(
-              op.id,
-            );
+          case 'encrypted_template_aesthetics':
+            await _client.modules.community.sync
+                .deleteEncryptedTemplateAesthetics(op.id);
           case 'notifications':
             // TODO: Re-enable when notificationSync endpoint is implemented
             // User dismissed notification (soft delete via marked_at)

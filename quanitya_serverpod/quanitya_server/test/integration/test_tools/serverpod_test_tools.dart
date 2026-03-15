@@ -24,7 +24,8 @@ import 'package:quanitya_server/src/generated/powersync_token.dart' as _i8;
 import 'package:quanitya_server/src/generated/encrypted_template.dart' as _i9;
 import 'package:quanitya_server/src/generated/encrypted_entry.dart' as _i10;
 import 'package:quanitya_server/src/generated/encrypted_schedule.dart' as _i11;
-import 'package:quanitya_server/src/generated/template_aesthetics.dart' as _i12;
+import 'package:quanitya_server/src/generated/encrypted_template_aesthetics.dart'
+    as _i12;
 import 'package:quanitya_server/src/generated/encrypted_analysis_script.dart'
     as _i13;
 import 'package:quanitya_server/src/generated/storage_usage_response.dart'
@@ -931,39 +932,26 @@ class _SyncEndpoint {
     });
   }
 
-  _i3.Future<_i12.TemplateAesthetics> upsertTemplateAesthetics(
+  _i3.Future<_i12.EncryptedTemplateAesthetics>
+  upsertEncryptedTemplateAesthetics(
     _i1.TestSessionBuilder sessionBuilder,
     String id,
-    String templateId,
-    String? themeName,
-    String? icon,
-    String? emoji,
-    String? paletteJson,
-    String? fontConfigJson,
-    String? colorMappingsJson,
-    String? updatedAt,
+    String encryptedData,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'sync',
-            method: 'upsertTemplateAesthetics',
+            method: 'upsertEncryptedTemplateAesthetics',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'sync',
-          methodName: 'upsertTemplateAesthetics',
+          methodName: 'upsertEncryptedTemplateAesthetics',
           parameters: _i1.testObjectToJson({
             'id': id,
-            'templateId': templateId,
-            'themeName': themeName,
-            'icon': icon,
-            'emoji': emoji,
-            'paletteJson': paletteJson,
-            'fontConfigJson': fontConfigJson,
-            'colorMappingsJson': colorMappingsJson,
-            'updatedAt': updatedAt,
+            'encryptedData': encryptedData,
           }),
           serializationManager: _serializationManager,
         );
@@ -972,7 +960,7 @@ class _SyncEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i12.TemplateAesthetics>);
+                as _i3.Future<_i12.EncryptedTemplateAesthetics>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -980,7 +968,7 @@ class _SyncEndpoint {
     });
   }
 
-  _i3.Future<bool> deleteTemplateAesthetics(
+  _i3.Future<bool> deleteEncryptedTemplateAesthetics(
     _i1.TestSessionBuilder sessionBuilder,
     String id,
   ) async {
@@ -988,13 +976,13 @@ class _SyncEndpoint {
       var _localUniqueSession =
           (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
             endpoint: 'sync',
-            method: 'deleteTemplateAesthetics',
+            method: 'deleteEncryptedTemplateAesthetics',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
           endpointPath: 'sync',
-          methodName: 'deleteTemplateAesthetics',
+          methodName: 'deleteEncryptedTemplateAesthetics',
           parameters: _i1.testObjectToJson({'id': id}),
           serializationManager: _serializationManager,
         );

@@ -49,6 +49,10 @@ sync_rules:
           - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at
             FROM encrypted_analysis_scripts
             WHERE "accountId" = bucket.user_id
+          # Template Aesthetics (E2EE)
+          - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at
+            FROM encrypted_template_aesthetics
+            WHERE "accountId" = bucket.user_id
 
       # Greetings (Demo data)
       user_greetings:
@@ -56,19 +60,6 @@ sync_rules:
           - SELECT id AS user_id FROM anon_accounts WHERE "ultimateSigningPublicKeyHex" = request.user_id()
         data:
           - SELECT * FROM greeting WHERE owner = bucket.user_id
-
-      # User-specific bucket for template aesthetics (non-E2EE)
-      user_template_aesthetics:
-        parameters:
-          - SELECT id AS user_id FROM anon_accounts WHERE "ultimateSigningPublicKeyHex" = request.user_id()
-        data:
-          - SELECT id, "templateId" as template_id, "themeName" as theme_name, 
-                   icon, emoji, "paletteJson" as palette_json, 
-                   "fontConfigJson" as font_config_json, 
-                   "colorMappingsJson" as color_mappings_json, 
-                   "updatedAt" as updated_at
-            FROM template_aesthetics 
-            WHERE "accountId" = bucket.user_id
 
       # Global bucket for broadcast notifications (syncs to ALL users)
       global_notifications:

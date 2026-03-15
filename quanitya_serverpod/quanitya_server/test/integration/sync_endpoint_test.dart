@@ -251,68 +251,55 @@ void main() {
       });
 
       // ───────────────────────────────────────────────────────────────────
-      // Template Aesthetics
+      // Encrypted Template Aesthetics
       // ───────────────────────────────────────────────────────────────────
 
-      group('Template Aesthetics', () {
-        test('upsert inserts aesthetics and returns them', () async {
+      group('Encrypted Template Aesthetics', () {
+        test('upsert inserts encrypted aesthetics and returns them', () async {
           final id = const Uuid().v4();
-          final templateId = const Uuid().v4();
+          const encryptedData = 'base64-encoded-encrypted-aesthetics-data';
 
-          final result = await endpoints.sync.upsertTemplateAesthetics(
+          final result = await endpoints.sync.upsertEncryptedTemplateAesthetics(
             authedSession,
             id,
-            templateId,
-            'zen-dark',   // themeName
-            'star',       // icon
-            '🌟',        // emoji
-            '{"primary":"#FF0000"}', // paletteJson
-            '{"family":"Roboto"}',   // fontConfigJson
-            '{"bg":"#000"}',         // colorMappingsJson
-            null,         // updatedAt
+            encryptedData,
           );
 
           expect(result.id.toString(), equals(id));
-          expect(result.templateId, equals(templateId));
-          expect(result.themeName, equals('zen-dark'));
-          expect(result.icon, equals('star'));
-          expect(result.emoji, equals('🌟'));
-          expect(result.paletteJson, equals('{"primary":"#FF0000"}'));
+          expect(result.encryptedData, equals(encryptedData));
         });
 
-        test('upsert updates existing aesthetics', () async {
+        test('upsert updates existing encrypted aesthetics', () async {
           final id = const Uuid().v4();
-          final templateId = const Uuid().v4();
+          const originalData = 'original-encrypted-data';
+          const updatedData = 'updated-encrypted-data';
 
-          await endpoints.sync.upsertTemplateAesthetics(
+          await endpoints.sync.upsertEncryptedTemplateAesthetics(
             authedSession,
             id,
-            templateId,
-            'zen-dark', null, null, null, null, null, null,
+            originalData,
           );
 
-          final updated = await endpoints.sync.upsertTemplateAesthetics(
+          final updated = await endpoints.sync.upsertEncryptedTemplateAesthetics(
             authedSession,
             id,
-            templateId,
-            'zen-light', null, null, null, null, null, null,
+            updatedData,
           );
 
-          expect(updated.themeName, equals('zen-light'));
+          expect(updated.encryptedData, equals(updatedData));
         });
 
-        test('delete removes existing aesthetics', () async {
+        test('delete removes existing encrypted aesthetics', () async {
           final id = const Uuid().v4();
-          final templateId = const Uuid().v4();
+          const encryptedData = 'encrypted-data-to-delete';
 
-          await endpoints.sync.upsertTemplateAesthetics(
+          await endpoints.sync.upsertEncryptedTemplateAesthetics(
             authedSession,
             id,
-            templateId,
-            null, null, null, null, null, null, null,
+            encryptedData,
           );
 
-          final result = await endpoints.sync.deleteTemplateAesthetics(
+          final result = await endpoints.sync.deleteEncryptedTemplateAesthetics(
             authedSession,
             id,
           );

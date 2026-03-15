@@ -1,0 +1,22 @@
+# EncryptedTemplateAesthetics: E2EE encrypted template aesthetics data
+# Client encrypts aesthetics data before upload, server stores opaque blob
+# PowerSync syncs this to client SQLite for offline access
+class: EncryptedTemplateAesthetics
+table: encrypted_template_aesthetics
+fields:
+  # UUID primary key for PowerSync syncing (generated on client)
+  id: UuidValue, defaultModel=random
+
+  # Foreign key to account (for sync bucket filtering)
+  # References anon_account table from anonaccred module
+  accountId: int
+
+  # Client-encrypted aesthetics data (JSON blob encrypted with data key)
+  encryptedData: String
+
+  # Last update timestamp for sync conflict resolution
+  updatedAt: DateTime, default=now
+indexes:
+  encrypted_template_aesthetics_account_idx:
+    fields: accountId
+    unique: false

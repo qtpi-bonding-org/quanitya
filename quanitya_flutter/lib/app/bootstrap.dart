@@ -10,6 +10,8 @@ import '../app_router.dart';
 import '../logic/analytics/analytics_service.dart';
 import '../data/repositories/error_box_repository.dart';
 import '../features/app_operating_mode/repositories/app_operating_repository.dart';
+import '../data/dao/template_aesthetics_dual_dao.dart';
+import '../data/db/app_database.dart';
 import '../data/repositories/e2ee_puller.dart';
 import '../data/sync/powersync_service.dart';
 import '../infrastructure/auth/auth_service.dart';
@@ -79,6 +81,9 @@ Future<void> bootstrap() async {
       final e2eePuller = getIt<IE2EEPuller>();
       await e2eePuller.initialize();
       debugPrint('Bootstrap: E2EE Puller initialized');
+
+      // 4.1. One-time migration: encrypt existing plaintext aesthetics
+      await _migrateAestheticsToE2EE();
     }
 
     // 4. Initialize Serverpod client auth
@@ -335,5 +340,48 @@ void _configureErrorPrivserver() {
     debugPrint(
       '  - ErrorBoxRepository: ${getIt.isRegistered<ErrorBoxRepository>()}',
     );
+  }
+}
+
+/// One-time migration: encrypt existing plaintext aesthetics for E2EE sync.
+///
+/// Runs on first launch after E2EE aesthetics migration.
+/// Reads all local aesthetics, encrypts each via DualDAO,
+/// which writes to both local + encrypted tables.
+Future<void> _migrateAestheticsToE2EE() async {
+  try {
+    if (!getIt.isRegistered<TemplateAestheticsDualDao>() ||
+        !getIt.isRegistered<AppDatabase>()) {
+      return;
+    }
+
+    final db = getIt<AppDatabase>();
+
+    // Check if migration already done (encrypted table has data)
+    final encryptedCount = await db
+        .customSelect('SELECT COUNT(*) as c FROM encrypted_template_aesthetics')
+        .getSingle()
+        .then((row) => row.read<int>('c'));
+
+    if (encryptedCount > 0) {
+      debugPrint('E2EE Migration: Aesthetics already migrated ($encryptedCount records)');
+      return;
+    }
+
+    // Read all existing plaintext aesthetics
+    final existingAesthetics = await db.select(db.templateAesthetics).get();
+    if (existingAesthetics.isEmpty) {
+      debugPrint('E2EE Migration: No aesthetics to migrate');
+      return;
+    }
+
+    debugPrint('E2EE Migration: Migrating ${existingAesthetics.length} aesthetics to E2EE');
+
+    final dualDao = getIt<TemplateAestheticsDualDao>();
+    await dualDao.bulkUpsert(existingAesthetics);
+
+    debugPrint('E2EE Migration: Complete');
+  } catch (e) {
+    debugPrint('E2EE Migration: Failed (non-fatal): $e');
   }
 }

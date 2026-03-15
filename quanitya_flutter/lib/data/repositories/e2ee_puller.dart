@@ -10,6 +10,7 @@ import '../dao/table_pairs.dart';
 import '../../infrastructure/crypto/data_encryption_service.dart';
 import '../../logic/analytics/enums/analysis_output_mode.dart';
 import '../../logic/analytics/models/analysis_enums.dart';
+import '../../logic/templates/models/shared/template_aesthetics.dart';
 
 /// Interface for background decryption and sync hydration
 ///
@@ -333,6 +334,59 @@ class AnalysisScriptProcessor
   }
 }
 
+/// TemplateAesthetics processor - type-safe pairing
+class AestheticsProcessor
+    extends EncryptedTableProcessor<TemplateAesthetic, EncryptedTemplateAesthetic> {
+  AestheticsProcessor({required super.db, required super.encryption})
+    : super(tables: TablePairs.templateAesthetics(db));
+
+  @override
+  TemplateAesthetic jsonToEntity(Map<String, dynamic> json) {
+    final model = TemplateAestheticsModel.fromJson(json);
+    return TemplateAesthetic(
+      id: model.id,
+      templateId: model.templateId,
+      themeName: model.themeName,
+      icon: model.icon,
+      emoji: model.emoji,
+      paletteJson: model.paletteJson,
+      fontConfigJson: model.fontConfigJson,
+      colorMappingsJson: model.colorMappingsJson,
+      containerStyle: model.containerStyle?.name,
+      updatedAt: model.updatedAt,
+    );
+  }
+
+  @override
+  Insertable<TemplateAesthetic> entityToInsertable(TemplateAesthetic entity) {
+    return TemplateAestheticsCompanion(
+      id: Value(entity.id),
+      templateId: Value(entity.templateId),
+      themeName: Value(entity.themeName),
+      icon: Value(entity.icon),
+      emoji: Value(entity.emoji),
+      paletteJson: Value(entity.paletteJson),
+      fontConfigJson: Value(entity.fontConfigJson),
+      colorMappingsJson: Value(entity.colorMappingsJson),
+      containerStyle: Value(entity.containerStyle),
+      updatedAt: Value(entity.updatedAt),
+    );
+  }
+
+  @override
+  String getEntityId(TemplateAesthetic entity) => entity.id;
+
+  @override
+  DateTime getEntityUpdatedAt(TemplateAesthetic entity) => entity.updatedAt;
+
+  @override
+  Future<TemplateAesthetic?> findLocalById(String id) async {
+    return await (db.select(
+      db.templateAesthetics,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+  }
+}
+
 /// Sync status information for monitoring E2EE operations
 class SyncStatus {
   final DateTime lastSyncTime;
@@ -371,11 +425,13 @@ class E2EEPuller implements IE2EEPuller {
   late final LogEntryProcessor _entryProcessor;
   late final ScheduleProcessor _scheduleProcessor;
   late final AnalysisScriptProcessor _pipelineProcessor;
+  late final AestheticsProcessor _aestheticsProcessor;
 
   StreamSubscription<List<EncryptedTemplate>>? _templateSubscription;
   StreamSubscription<List<EncryptedEntry>>? _entrySubscription;
   StreamSubscription<List<EncryptedSchedule>>? _scheduleSubscription;
   StreamSubscription<List<EncryptedAnalysisScript>>? _pipelineSubscription;
+  StreamSubscription<List<EncryptedTemplateAesthetic>>? _aestheticsSubscription;
   bool _isListening = false;
   DateTime? _lastSyncTime;
 
@@ -388,6 +444,10 @@ class E2EEPuller implements IE2EEPuller {
     _entryProcessor = LogEntryProcessor(db: _db, encryption: _encryption);
     _scheduleProcessor = ScheduleProcessor(db: _db, encryption: _encryption);
     _pipelineProcessor = AnalysisScriptProcessor(
+      db: _db,
+      encryption: _encryption,
+    );
+    _aestheticsProcessor = AestheticsProcessor(
       db: _db,
       encryption: _encryption,
     );
@@ -447,6 +507,17 @@ class E2EEPuller implements IE2EEPuller {
           _lastSyncTime = DateTime.now();
         });
 
+    _aestheticsSubscription = _db
+        .select(_db.encryptedTemplateAesthetics)
+        .watch()
+        .listen((aesthetics) async {
+          debugPrint(
+            'E2EEPuller: Received ${aesthetics.length} encrypted aesthetics',
+          );
+          await _aestheticsProcessor.processEncryptedRecords(aesthetics);
+          _lastSyncTime = DateTime.now();
+        });
+
     _isListening = true;
     _lastSyncTime = DateTime.now();
     debugPrint('E2EEPuller: Streams initialized and listening');
@@ -458,10 +529,12 @@ class E2EEPuller implements IE2EEPuller {
     await _entrySubscription?.cancel();
     await _scheduleSubscription?.cancel();
     await _pipelineSubscription?.cancel();
+    await _aestheticsSubscription?.cancel();
     _templateSubscription = null;
     _entrySubscription = null;
     _scheduleSubscription = null;
     _pipelineSubscription = null;
+    _aestheticsSubscription = null;
     _isListening = false;
   }
 

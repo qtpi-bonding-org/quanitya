@@ -209,84 +209,71 @@ class SyncEndpoint extends Endpoint {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Template Aesthetics (non-E2EE, no quota tracking)
+  // Encrypted Template Aesthetics (E2EE, with quota tracking)
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Upsert template aesthetics
-  Future<TemplateAesthetics> upsertTemplateAesthetics(
+  /// Upsert encrypted template aesthetics
+  Future<EncryptedTemplateAesthetics> upsertEncryptedTemplateAesthetics(
     Session session,
     String id,
-    String templateId,
-    String? themeName,
-    String? icon,
-    String? emoji,
-    String? paletteJson,
-    String? fontConfigJson,
-    String? colorMappingsJson,
-    String? updatedAt,
+    String encryptedData,
   ) async {
     final accountId = int.parse(session.authenticated!.userIdentifier);
     final uuidId = UuidValue.fromString(id);
 
-    // DEBUG: Log what the server receives and what accountId it will store
-    session.log(
-      'DEBUG SyncEndpoint.upsertTemplateAesthetics: '
-      'id=$id, accountId=$accountId, templateId=$templateId, '
-      'icon=$icon, emoji=$emoji, userIdentifier=${session.authenticated!.userIdentifier}',
-      level: LogLevel.info,
-    );
-
-    final existing = await TemplateAesthetics.db.findById(session, uuidId);
-
-    // DEBUG: Log existing record state
-    session.log(
-      'DEBUG SyncEndpoint.upsertTemplateAesthetics: '
-      'existing=${existing != null ? "found (accountId=${existing.accountId})" : "null"}',
-      level: LogLevel.info,
-    );
-
-    final parsedUpdatedAt = _parseDateTime(updatedAt) ?? DateTime.now();
+    final existing = await EncryptedTemplateAesthetics.db.findById(session, uuidId);
+    final delta = encryptedData.length -
+        (existing != null && existing.accountId == accountId
+            ? existing.encryptedData.length
+            : 0);
+    if (delta > 0) {
+      await StorageQuotaService.enforceQuota(session, accountId, delta);
+    }
 
     if (existing != null && existing.accountId == accountId) {
+      final oldSize = existing.encryptedData.length;
       final updated = existing.copyWith(
-        templateId: templateId,
-        themeName: themeName,
-        icon: icon,
-        emoji: emoji,
-        paletteJson: paletteJson,
-        fontConfigJson: fontConfigJson,
-        colorMappingsJson: colorMappingsJson,
-        updatedAt: parsedUpdatedAt,
+        encryptedData: encryptedData,
+        updatedAt: DateTime.now(),
       );
-      return await TemplateAesthetics.db.updateRow(session, updated);
+      final result = await EncryptedTemplateAesthetics.db.updateRow(session, updated);
+      await StorageQuotaService.adjustUsage(
+        session, accountId, encryptedData.length - oldSize, 0,
+      );
+      return result;
     } else {
-      final aesthetics = TemplateAesthetics(
+      final aesthetics = EncryptedTemplateAesthetics(
         id: uuidId,
         accountId: accountId,
-        templateId: templateId,
-        themeName: themeName,
-        icon: icon,
-        emoji: emoji,
-        paletteJson: paletteJson,
-        fontConfigJson: fontConfigJson,
-        colorMappingsJson: colorMappingsJson,
-        updatedAt: parsedUpdatedAt,
+        encryptedData: encryptedData,
+        updatedAt: DateTime.now(),
       );
-      return await TemplateAesthetics.db.insertRow(session, aesthetics);
+      final result = await EncryptedTemplateAesthetics.db.insertRow(session, aesthetics);
+      await StorageQuotaService.incrementUsage(
+        session, accountId, encryptedData.length, 1,
+      );
+      return result;
     }
   }
 
-  /// Delete template aesthetics
-  Future<bool> deleteTemplateAesthetics(Session session, String id) async {
+  /// Delete encrypted template aesthetics
+  Future<bool> deleteEncryptedTemplateAesthetics(
+    Session session,
+    String id,
+  ) async {
     final accountId = int.parse(session.authenticated!.userIdentifier);
     final uuidId = UuidValue.fromString(id);
 
-    final existing = await TemplateAesthetics.db.findById(session, uuidId);
+    final existing = await EncryptedTemplateAesthetics.db.findById(session, uuidId);
     if (existing == null || existing.accountId != accountId) {
       return false;
     }
 
-    await TemplateAesthetics.db.deleteRow(session, existing);
+    final removedSize = existing.encryptedData.length;
+    await EncryptedTemplateAesthetics.db.deleteRow(session, existing);
+    await StorageQuotaService.decrementUsage(
+      session, accountId, removedSize, 1,
+    );
     return true;
   }
 
@@ -378,9 +365,4 @@ class SyncEndpoint extends Endpoint {
     );
   }
 
-  /// Safely parse a DateTime string, returning null on invalid input.
-  static DateTime? _parseDateTime(String? value) {
-    if (value == null) return null;
-    return DateTime.tryParse(value);
-  }
 }

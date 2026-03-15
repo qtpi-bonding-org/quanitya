@@ -21,18 +21,19 @@ import 'encrypted_analysis_script.dart' as _i8;
 import 'encrypted_entry.dart' as _i9;
 import 'encrypted_schedule.dart' as _i10;
 import 'encrypted_template.dart' as _i11;
-import 'greeting.dart' as _i12;
-import 'notification_inbox.dart' as _i13;
-import 'powersync_token.dart' as _i14;
-import 'storage_usage_response.dart' as _i15;
-import 'template_aesthetics.dart' as _i16;
-import 'package:quanitya_client/src/protocol/archived_month.dart' as _i17;
+import 'encrypted_template_aesthetics.dart' as _i12;
+import 'greeting.dart' as _i13;
+import 'notification_inbox.dart' as _i14;
+import 'powersync_token.dart' as _i15;
+import 'storage_usage_response.dart' as _i16;
+import 'template_aesthetics.dart' as _i17;
+import 'package:quanitya_client/src/protocol/archived_month.dart' as _i18;
 import 'package:quanitya_client/src/protocol/archive_search_result.dart'
-    as _i18;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i19;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i20;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i21;
 export 'account_storage_usage.dart';
 export 'archival_schedule_data.dart';
 export 'archive_metadata.dart';
@@ -43,6 +44,7 @@ export 'encrypted_analysis_script.dart';
 export 'encrypted_entry.dart';
 export 'encrypted_schedule.dart';
 export 'encrypted_template.dart';
+export 'encrypted_template_aesthetics.dart';
 export 'greeting.dart';
 export 'notification_inbox.dart';
 export 'powersync_token.dart';
@@ -116,20 +118,23 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i11.EncryptedTemplate) {
       return _i11.EncryptedTemplate.fromJson(data) as T;
     }
-    if (t == _i12.Greeting) {
-      return _i12.Greeting.fromJson(data) as T;
+    if (t == _i12.EncryptedTemplateAesthetics) {
+      return _i12.EncryptedTemplateAesthetics.fromJson(data) as T;
     }
-    if (t == _i13.NotificationInbox) {
-      return _i13.NotificationInbox.fromJson(data) as T;
+    if (t == _i13.Greeting) {
+      return _i13.Greeting.fromJson(data) as T;
     }
-    if (t == _i14.PowerSyncToken) {
-      return _i14.PowerSyncToken.fromJson(data) as T;
+    if (t == _i14.NotificationInbox) {
+      return _i14.NotificationInbox.fromJson(data) as T;
     }
-    if (t == _i15.StorageUsageResponse) {
-      return _i15.StorageUsageResponse.fromJson(data) as T;
+    if (t == _i15.PowerSyncToken) {
+      return _i15.PowerSyncToken.fromJson(data) as T;
     }
-    if (t == _i16.TemplateAesthetics) {
-      return _i16.TemplateAesthetics.fromJson(data) as T;
+    if (t == _i16.StorageUsageResponse) {
+      return _i16.StorageUsageResponse.fromJson(data) as T;
+    }
+    if (t == _i17.TemplateAesthetics) {
+      return _i17.TemplateAesthetics.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.AccountStorageUsage?>()) {
       return (data != null ? _i2.AccountStorageUsage.fromJson(data) : null)
@@ -165,21 +170,27 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i11.EncryptedTemplate?>()) {
       return (data != null ? _i11.EncryptedTemplate.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i12.Greeting?>()) {
-      return (data != null ? _i12.Greeting.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i13.NotificationInbox?>()) {
-      return (data != null ? _i13.NotificationInbox.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i14.PowerSyncToken?>()) {
-      return (data != null ? _i14.PowerSyncToken.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i15.StorageUsageResponse?>()) {
-      return (data != null ? _i15.StorageUsageResponse.fromJson(data) : null)
+    if (t == _i1.getType<_i12.EncryptedTemplateAesthetics?>()) {
+      return (data != null
+              ? _i12.EncryptedTemplateAesthetics.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i16.TemplateAesthetics?>()) {
-      return (data != null ? _i16.TemplateAesthetics.fromJson(data) : null)
+    if (t == _i1.getType<_i13.Greeting?>()) {
+      return (data != null ? _i13.Greeting.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i14.NotificationInbox?>()) {
+      return (data != null ? _i14.NotificationInbox.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i15.PowerSyncToken?>()) {
+      return (data != null ? _i15.PowerSyncToken.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i16.StorageUsageResponse?>()) {
+      return (data != null ? _i16.StorageUsageResponse.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i17.TemplateAesthetics?>()) {
+      return (data != null ? _i17.TemplateAesthetics.fromJson(data) : null)
           as T;
     }
     if (t == List<_i5.ArchiveMonthInfo>) {
@@ -212,23 +223,23 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i17.ArchivedMonth>) {
+    if (t == List<_i18.ArchivedMonth>) {
       return (data as List)
-              .map((e) => deserialize<_i17.ArchivedMonth>(e))
+              .map((e) => deserialize<_i18.ArchivedMonth>(e))
               .toList()
           as T;
     }
-    if (t == List<_i18.ArchiveSearchResult>) {
+    if (t == List<_i19.ArchiveSearchResult>) {
       return (data as List)
-              .map((e) => deserialize<_i18.ArchiveSearchResult>(e))
+              .map((e) => deserialize<_i19.ArchiveSearchResult>(e))
               .toList()
           as T;
     }
-    try {
-      return _i19.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
       return _i20.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i21.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -245,11 +256,12 @@ class Protocol extends _i1.SerializationManager {
       _i9.EncryptedEntry => 'EncryptedEntry',
       _i10.EncryptedSchedule => 'EncryptedSchedule',
       _i11.EncryptedTemplate => 'EncryptedTemplate',
-      _i12.Greeting => 'Greeting',
-      _i13.NotificationInbox => 'NotificationInbox',
-      _i14.PowerSyncToken => 'PowerSyncToken',
-      _i15.StorageUsageResponse => 'StorageUsageResponse',
-      _i16.TemplateAesthetics => 'TemplateAesthetics',
+      _i12.EncryptedTemplateAesthetics => 'EncryptedTemplateAesthetics',
+      _i13.Greeting => 'Greeting',
+      _i14.NotificationInbox => 'NotificationInbox',
+      _i15.PowerSyncToken => 'PowerSyncToken',
+      _i16.StorageUsageResponse => 'StorageUsageResponse',
+      _i17.TemplateAesthetics => 'TemplateAesthetics',
       _ => null,
     };
   }
@@ -284,22 +296,24 @@ class Protocol extends _i1.SerializationManager {
         return 'EncryptedSchedule';
       case _i11.EncryptedTemplate():
         return 'EncryptedTemplate';
-      case _i12.Greeting():
+      case _i12.EncryptedTemplateAesthetics():
+        return 'EncryptedTemplateAesthetics';
+      case _i13.Greeting():
         return 'Greeting';
-      case _i13.NotificationInbox():
+      case _i14.NotificationInbox():
         return 'NotificationInbox';
-      case _i14.PowerSyncToken():
+      case _i15.PowerSyncToken():
         return 'PowerSyncToken';
-      case _i15.StorageUsageResponse():
+      case _i16.StorageUsageResponse():
         return 'StorageUsageResponse';
-      case _i16.TemplateAesthetics():
+      case _i17.TemplateAesthetics():
         return 'TemplateAesthetics';
     }
-    className = _i19.Protocol().getClassNameForObject(data);
+    className = _i20.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i20.Protocol().getClassNameForObject(data);
+    className = _i21.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -342,28 +356,31 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'EncryptedTemplate') {
       return deserialize<_i11.EncryptedTemplate>(data['data']);
     }
+    if (dataClassName == 'EncryptedTemplateAesthetics') {
+      return deserialize<_i12.EncryptedTemplateAesthetics>(data['data']);
+    }
     if (dataClassName == 'Greeting') {
-      return deserialize<_i12.Greeting>(data['data']);
+      return deserialize<_i13.Greeting>(data['data']);
     }
     if (dataClassName == 'NotificationInbox') {
-      return deserialize<_i13.NotificationInbox>(data['data']);
+      return deserialize<_i14.NotificationInbox>(data['data']);
     }
     if (dataClassName == 'PowerSyncToken') {
-      return deserialize<_i14.PowerSyncToken>(data['data']);
+      return deserialize<_i15.PowerSyncToken>(data['data']);
     }
     if (dataClassName == 'StorageUsageResponse') {
-      return deserialize<_i15.StorageUsageResponse>(data['data']);
+      return deserialize<_i16.StorageUsageResponse>(data['data']);
     }
     if (dataClassName == 'TemplateAesthetics') {
-      return deserialize<_i16.TemplateAesthetics>(data['data']);
+      return deserialize<_i17.TemplateAesthetics>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i19.Protocol().deserializeByClassName(data);
+      return _i20.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i20.Protocol().deserializeByClassName(data);
+      return _i21.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -378,10 +395,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i19.Protocol().mapRecordToJson(record);
+      return _i20.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i20.Protocol().mapRecordToJson(record);
+      return _i21.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

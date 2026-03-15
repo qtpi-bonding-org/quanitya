@@ -24,8 +24,8 @@ sync:
   - deleteEncryptedEntry:
   - upsertEncryptedSchedule:
   - deleteEncryptedSchedule:
-  - upsertTemplateAesthetics:
-  - deleteTemplateAesthetics:
+  - upsertEncryptedTemplateAesthetics:
+  - deleteEncryptedTemplateAesthetics:
   - upsertEncryptedAnalysisScript:
   - deleteEncryptedAnalysisScript:
   - getStorageUsage:

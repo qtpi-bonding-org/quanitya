@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/db/app_database.dart';
 import '../../data/dao/log_entry_dual_dao.dart';
+import '../../data/dao/template_aesthetics_dual_dao.dart';
 import '../../data/dao/tracker_template_dual_dao.dart';
 import '../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../data/interfaces/analysis_script_interface.dart';
@@ -29,6 +29,7 @@ class DevSeederService {
   final ICryptoKeyRepository _cryptoKeyRepo;
   final LogEntryDualDao _logEntryDao;
   final TrackerTemplateDualDao _templateDao;
+  final TemplateAestheticsDualDao _aestheticsDao;
   final IAnalysisScriptRepository _pipelineRepo;
   final _uuid = const Uuid();
   final _random = Random();
@@ -38,6 +39,7 @@ class DevSeederService {
     this._cryptoKeyRepo,
     this._logEntryDao,
     this._templateDao,
+    this._aestheticsDao,
     this._pipelineRepo,
   );
 
@@ -323,14 +325,14 @@ class DevSeederService {
 
   Future<void> _seedAesthetics(String templateId, String emoji, String icon, {String? color}) async {
     // Build palette - use custom color if provided, otherwise defaults
-    final palette = color != null 
+    final palette = color != null
         ? ColorPaletteData(
             accents: [color, '#4D5B60'], // Custom accent + secondary
             tones: ['#4D5B60', '#7A8A8F'],
           )
         : ColorPaletteData.defaults();
-    
-    final aesthetics = TemplateAestheticsModel(
+
+    final model = TemplateAestheticsModel(
       id: _uuid.v4(),
       templateId: templateId,
       emoji: emoji,
@@ -341,18 +343,8 @@ class DevSeederService {
       updatedAt: DateTime.now(),
     );
 
-    await _db.into(_db.templateAesthetics).insert(
-      TemplateAestheticsCompanion.insert(
-        id: aesthetics.id,
-        templateId: templateId,
-        icon: Value('material:$icon'),
-        emoji: Value(emoji),
-        paletteJson: aesthetics.paletteJson,
-        fontConfigJson: aesthetics.fontConfigJson,
-        colorMappingsJson: aesthetics.colorMappingsJson,
-        updatedAt: DateTime.now(),
-      ),
-    );
+    final entity = _aestheticsDao.modelToEntity(model);
+    await _aestheticsDao.upsert(entity);
   }
 
   // ─────────────────────────────────────────────────────────────────────────

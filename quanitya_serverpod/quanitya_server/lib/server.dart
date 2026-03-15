@@ -89,7 +89,7 @@ void _sendPasswordResetCode(
 ///
 /// Uses the legacy registration API since `type: module` does not generate
 /// the typed future call dispatch.
-class _CommunityMonthlyBackup extends MonthlyBackupFutureCall {
+class CommunityMonthlyBackup extends MonthlyBackupFutureCall {
   @override
   Future<void> runMonthlyBackup(Session session, int iteration) async {
     // Self-schedule next run FIRST (crash-safe) using legacy API
@@ -120,7 +120,7 @@ class _CommunityMonthlyBackup extends MonthlyBackupFutureCall {
 Future<void> _registerBackgroundTasks(Serverpod pod) async {
   // Register the future call with legacy API (required for type: module)
   pod.registerFutureCall(
-      _CommunityMonthlyBackup(), MonthlyBackupFutureCall.callName);
+      CommunityMonthlyBackup(), MonthlyBackupFutureCall.callName);
 
   // Schedule first run on 1st of next month at 2 AM
   final now = DateTime.now();

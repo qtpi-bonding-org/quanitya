@@ -532,53 +532,18 @@ class Endpoints extends _i1.EndpointDispatch {
                     params['id'],
                   ),
         ),
-        'upsertTemplateAesthetics': _i1.MethodConnector(
-          name: 'upsertTemplateAesthetics',
+        'upsertEncryptedTemplateAesthetics': _i1.MethodConnector(
+          name: 'upsertEncryptedTemplateAesthetics',
           params: {
             'id': _i1.ParameterDescription(
               name: 'id',
               type: _i1.getType<String>(),
               nullable: false,
             ),
-            'templateId': _i1.ParameterDescription(
-              name: 'templateId',
+            'encryptedData': _i1.ParameterDescription(
+              name: 'encryptedData',
               type: _i1.getType<String>(),
               nullable: false,
-            ),
-            'themeName': _i1.ParameterDescription(
-              name: 'themeName',
-              type: _i1.getType<String?>(),
-              nullable: true,
-            ),
-            'icon': _i1.ParameterDescription(
-              name: 'icon',
-              type: _i1.getType<String?>(),
-              nullable: true,
-            ),
-            'emoji': _i1.ParameterDescription(
-              name: 'emoji',
-              type: _i1.getType<String?>(),
-              nullable: true,
-            ),
-            'paletteJson': _i1.ParameterDescription(
-              name: 'paletteJson',
-              type: _i1.getType<String?>(),
-              nullable: true,
-            ),
-            'fontConfigJson': _i1.ParameterDescription(
-              name: 'fontConfigJson',
-              type: _i1.getType<String?>(),
-              nullable: true,
-            ),
-            'colorMappingsJson': _i1.ParameterDescription(
-              name: 'colorMappingsJson',
-              type: _i1.getType<String?>(),
-              nullable: true,
-            ),
-            'updatedAt': _i1.ParameterDescription(
-              name: 'updatedAt',
-              type: _i1.getType<String?>(),
-              nullable: true,
             ),
           },
           call:
@@ -586,21 +551,14 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async => (endpoints['sync'] as _i6.SyncEndpoint)
-                  .upsertTemplateAesthetics(
+                  .upsertEncryptedTemplateAesthetics(
                     session,
                     params['id'],
-                    params['templateId'],
-                    params['themeName'],
-                    params['icon'],
-                    params['emoji'],
-                    params['paletteJson'],
-                    params['fontConfigJson'],
-                    params['colorMappingsJson'],
-                    params['updatedAt'],
+                    params['encryptedData'],
                   ),
         ),
-        'deleteTemplateAesthetics': _i1.MethodConnector(
-          name: 'deleteTemplateAesthetics',
+        'deleteEncryptedTemplateAesthetics': _i1.MethodConnector(
+          name: 'deleteEncryptedTemplateAesthetics',
           params: {
             'id': _i1.ParameterDescription(
               name: 'id',
@@ -613,7 +571,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async => (endpoints['sync'] as _i6.SyncEndpoint)
-                  .deleteTemplateAesthetics(
+                  .deleteEncryptedTemplateAesthetics(
                     session,
                     params['id'],
                   ),

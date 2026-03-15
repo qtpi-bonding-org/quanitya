@@ -318,6 +318,22 @@ class EncryptedAnalysisScripts extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// EncryptedTemplateAesthetics shadow table - PowerSync sync target for encrypted aesthetics data
+/// Contains only essential columns for E2EE synchronization
+class EncryptedTemplateAesthetics extends Table {
+  /// UUID only - matches TemplateAesthetics.id
+  TextColumn get id => text()();
+
+  /// E2EE encrypted aesthetics data blob
+  TextColumn get encryptedData => text().named('encrypted_data')();
+
+  /// Timestamp only for sync ordering
+  DateTimeColumn get updatedAt => dateTime().named('updated_at')();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// AppOperatingSettings table - stores app operating mode configuration
 ///
 /// LOCAL-ONLY - never synced. Single row table for app-wide settings.

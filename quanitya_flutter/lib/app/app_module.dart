@@ -8,7 +8,7 @@ import 'package:serverpod_flutter/serverpod_flutter.dart';
 import '../data/db/app_database.dart';
 import '../data/sync/powersync_service.dart';
 import '../data/dao/tracker_template_dual_dao.dart';
-import '../data/dao/template_aesthetics_dao.dart';
+import '../data/dao/template_aesthetics_dual_dao.dart';
 import '../data/dao/template_query_dao.dart';
 import '../data/dao/dual_dao.dart';
 import '../data/repositories/template_with_aesthetics_repository.dart';
@@ -63,12 +63,12 @@ abstract class RepositoryModule {
   @lazySingleton
   TemplateWithAestheticsRepository templateWithAestheticsRepo(
     DualDao<TrackerTemplate, EncryptedTemplate> dualDao,
-    TemplateAestheticsDao aestheticsDao,
+    TemplateAestheticsDualDao aestheticsDualDao,
     TemplateQueryDao queryDao,
     WebhookRepository webhookRepo,
   ) => TemplateWithAestheticsRepository(
     dualDao,
-    aestheticsDao,
+    aestheticsDualDao,
     queryDao,
     webhookRepo,
   );

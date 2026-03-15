@@ -23,7 +23,8 @@ import 'package:quanitya_client/src/protocol/powersync_token.dart' as _i8;
 import 'package:quanitya_client/src/protocol/encrypted_template.dart' as _i9;
 import 'package:quanitya_client/src/protocol/encrypted_entry.dart' as _i10;
 import 'package:quanitya_client/src/protocol/encrypted_schedule.dart' as _i11;
-import 'package:quanitya_client/src/protocol/template_aesthetics.dart' as _i12;
+import 'package:quanitya_client/src/protocol/encrypted_template_aesthetics.dart'
+    as _i12;
 import 'package:quanitya_client/src/protocol/encrypted_analysis_script.dart'
     as _i13;
 import 'package:quanitya_client/src/protocol/storage_usage_response.dart'
@@ -444,38 +445,25 @@ class EndpointSync extends _i1.EndpointRef {
         {'id': id},
       );
 
-  /// Upsert template aesthetics
-  _i2.Future<_i12.TemplateAesthetics> upsertTemplateAesthetics(
+  /// Upsert encrypted template aesthetics
+  _i2.Future<_i12.EncryptedTemplateAesthetics>
+  upsertEncryptedTemplateAesthetics(
     String id,
-    String templateId,
-    String? themeName,
-    String? icon,
-    String? emoji,
-    String? paletteJson,
-    String? fontConfigJson,
-    String? colorMappingsJson,
-    String? updatedAt,
-  ) => caller.callServerEndpoint<_i12.TemplateAesthetics>(
+    String encryptedData,
+  ) => caller.callServerEndpoint<_i12.EncryptedTemplateAesthetics>(
     'quanitya.sync',
-    'upsertTemplateAesthetics',
+    'upsertEncryptedTemplateAesthetics',
     {
       'id': id,
-      'templateId': templateId,
-      'themeName': themeName,
-      'icon': icon,
-      'emoji': emoji,
-      'paletteJson': paletteJson,
-      'fontConfigJson': fontConfigJson,
-      'colorMappingsJson': colorMappingsJson,
-      'updatedAt': updatedAt,
+      'encryptedData': encryptedData,
     },
   );
 
-  /// Delete template aesthetics
-  _i2.Future<bool> deleteTemplateAesthetics(String id) =>
+  /// Delete encrypted template aesthetics
+  _i2.Future<bool> deleteEncryptedTemplateAesthetics(String id) =>
       caller.callServerEndpoint<bool>(
         'quanitya.sync',
-        'deleteTemplateAesthetics',
+        'deleteEncryptedTemplateAesthetics',
         {'id': id},
       );
 

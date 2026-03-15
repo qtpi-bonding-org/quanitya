@@ -1,6 +1,6 @@
 import '../../logic/templates/services/engine/json_to_model_parser.dart';
 import '../../infrastructure/webhooks/webhook_repository.dart';
-import '../dao/template_aesthetics_dao.dart';
+import '../dao/template_aesthetics_dual_dao.dart';
 import '../dao/tracker_template_dual_dao.dart';
 import '../dao/template_query_dao.dart';
 import '../dao/dual_dao.dart';
@@ -51,16 +51,16 @@ class TemplateWithAesthetics {
 // Repository
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Repository that wraps TrackerTemplateDualDao + TemplateAestheticsDao.
+/// Repository that wraps TrackerTemplateDualDao + TemplateAestheticsDualDao.
 ///
 /// Uses DualDao for writes (E2EE) and TemplateQueryDao for reads.
 /// - TrackerTemplate: Uses DualDAO for writes (E2EE for PII)
-/// - TemplateAesthetics: Uses simple DAO (no E2EE, not PII)
+/// - TemplateAesthetics: Uses DualDAO for writes (E2EE)
 ///
 /// ## Schema Change Rules
-/// 
+///
 /// When updating an existing template, the following rules apply to fields:
-/// 
+///
 /// | Operation    | Allowed | Notes                                      |
 /// |--------------|---------|-------------------------------------------|
 /// | ADD field    | ✅      | Old logs show null, new logs can fill it  |
@@ -72,13 +72,13 @@ class TemplateWithAesthetics {
 /// All write operations are atomic via database transactions.
 class TemplateWithAestheticsRepository {
   final DualDao<TrackerTemplate, EncryptedTemplate> _dualDao;
-  final TemplateAestheticsDao _aestheticsDao;
+  final TemplateAestheticsDualDao _aestheticsDualDao;
   final TemplateQueryDao _queryDao;
   final WebhookRepository _webhookRepo;
 
   TemplateWithAestheticsRepository(
     this._dualDao,
-    this._aestheticsDao,
+    this._aestheticsDualDao,
     this._queryDao,
     this._webhookRepo,
   );
@@ -115,8 +115,14 @@ class TemplateWithAestheticsRepository {
       final entity = _templateDao.modelToEntity(data.template);
       await _dualDao.upsert(entity);
 
-      // Save aesthetics via simple DAO
-      await _aestheticsDao.upsert(data.aesthetics);
+      // Save aesthetics via DualDAO (handles E2EE internally)
+      final aestheticsEntity = _aestheticsDualDao.modelToEntity(data.aesthetics);
+      _aestheticsDualDao.useTransaction = false;
+      try {
+        await _aestheticsDualDao.upsert(aestheticsEntity);
+      } finally {
+        _aestheticsDualDao.useTransaction = true;
+      }
     });
   }
 
@@ -296,7 +302,16 @@ class TemplateWithAestheticsRepository {
   /// WARNING: This is destructive and cannot be undone.
   Future<void> deletePermanently(String templateId) async {
     await _dualDao.runInTransaction(() async {
-      await _aestheticsDao.deleteByTemplateId(templateId);
+      // Find aesthetics for this template to get its ID
+      final aesthetics = await _queryDao.findAestheticsById(templateId);
+      if (aesthetics != null) {
+        _aestheticsDualDao.useTransaction = false;
+        try {
+          await _aestheticsDualDao.delete(aesthetics.id);
+        } finally {
+          _aestheticsDualDao.useTransaction = true;
+        }
+      }
       await _dualDao.delete(templateId);
     });
   }

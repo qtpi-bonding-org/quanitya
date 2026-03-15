@@ -44,6 +44,15 @@ class TablePairs {
       encryptedTableName: 'encrypted_analysis_scripts',
     );
   
+  /// TemplateAesthetics table pairing
+  /// Links template_aesthetics ↔ encrypted_template_aesthetics
+  static TablePair<TemplateAesthetic, EncryptedTemplateAesthetic> templateAesthetics(AppDatabase db) =>
+    TablePair<TemplateAesthetic, EncryptedTemplateAesthetic>(
+      localTable: db.templateAesthetics,
+      encryptedTable: db.encryptedTemplateAesthetics,
+      encryptedTableName: 'encrypted_template_aesthetics',
+    );
+
   // Private constructor to prevent instantiation
   TablePairs._();
 }

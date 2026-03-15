@@ -27,6 +27,7 @@ part 'app_database.g.dart';
     EncryptedEntries,
     EncryptedSchedules,
     EncryptedAnalysisScripts,
+    EncryptedTemplateAesthetics,
     ApiKeys,
     Webhooks,
     AppOperatingSettings,
