@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../cubits/app_operating_cubit.dart';
+import '../cubits/app_operating_state.dart';
 import '../models/app_operating_mode.dart';
 
 /// Displays a small icon indicating the current server connection status.
