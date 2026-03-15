@@ -7,17 +7,10 @@ import '../services/snapshot_backup_service.dart';
 /// Abstract monthly full-snapshot backup future call.
 ///
 /// Defines the shared backup logic. Concrete subclasses are created in each
-/// server project (community standalone and cloud) so that `serverpod generate`
-/// produces the typed dispatch for that server's `type`.
-///
-/// This is the Serverpod-recommended pattern for modules that expose future
-/// calls: the module defines an `abstract` FutureCall and consuming servers
-/// provide concrete implementations.
+/// server project (cloud) so that `serverpod generate` produces the typed
+/// dispatch for that server.
 abstract class MonthlyBackupFutureCall extends FutureCall {
-  /// The name used to register this future call for scheduling.
-  static const String callName = 'MonthlyBackupFutureCall';
-
-  /// Perform the backup. Called by [runMonthlyBackup] after scheduling.
+  /// Perform the backup. Called by [runMonthlyBackup].
   ///
   /// Subclasses can override to use a different backup service.
   Future<void> performBackup(Session session) async {
@@ -45,11 +38,9 @@ abstract class MonthlyBackupFutureCall extends FutureCall {
 
   /// Run the backup and log completion.
   ///
-  /// Self-scheduling is the responsibility of the concrete subclass or the
-  /// server's registration code, since it depends on the generated dispatch
-  /// (for `type: server`) or legacy API (for `type: module` standalone).
-  Future<void> runMonthlyBackup(Session session, int iteration) async {
+  /// Self-scheduling is the responsibility of the concrete subclass.
+  Future<void> runMonthlyBackup(Session session) async {
     await performBackup(session);
-    session.log('Monthly backup iteration $iteration completed');
+    session.log('Monthly backup completed');
   }
 }
