@@ -1,4 +1,3 @@
-import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -114,31 +113,23 @@ class _OfficePageState extends State<OfficePage> {
             child: child,
           ),
         ],
-        child: BlocListener<PurchaseCubit, PurchaseState>(
-          listenWhen: (previous, current) =>
-              current.status == UiFlowStatus.success &&
-              current.lastOperation == PurchaseOperation.purchase,
-          listener: (context, state) {
-            context.read<AppSyncingCubit>().switchToCloud();
-          },
-          child: Builder(
-            builder: (innerContext) => SwipeablePageShell(
-              onPageChanged: (index) =>
-                  _onPageChanged(innerContext, index),
-              pages: const [
-                SettingsContent(),
-                PurchaseTabContent(),
-                AppInfoTabContent(),
-              ],
-              labels: [
-                _buildLabel(
-                    context, l10n.officeTabSettings, _currentIndex == 0),
-                _buildLabel(
-                    context, l10n.officeTabPurchases, _currentIndex == 1),
-                _buildLabel(
-                    context, l10n.officeTabInfo, _currentIndex == 2),
-              ],
-            ),
+        child: Builder(
+          builder: (innerContext) => SwipeablePageShell(
+            onPageChanged: (index) =>
+                _onPageChanged(innerContext, index),
+            pages: const [
+              SettingsContent(),
+              PurchaseTabContent(),
+              AppInfoTabContent(),
+            ],
+            labels: [
+              _buildLabel(
+                  context, l10n.officeTabSettings, _currentIndex == 0),
+              _buildLabel(
+                  context, l10n.officeTabPurchases, _currentIndex == 1),
+              _buildLabel(
+                  context, l10n.officeTabInfo, _currentIndex == 2),
+            ],
           ),
         ),
       ),
