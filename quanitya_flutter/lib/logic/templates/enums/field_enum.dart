@@ -20,7 +20,7 @@ enum FieldEnum {
   /// Selection from predefined options (dropdown/radio buttons)
   enumerated,
   
-  /// Physical measurement with units (requires DimensionEnum)
+  /// Physical measurement with units (requires MeasurementUnit)
   dimension,
   
   /// Reference to another tracker template entry

@@ -13,7 +13,7 @@ extension FieldEnumDisplayName on FieldEnum {
       FieldEnum.boolean => 'Toggle',
       FieldEnum.datetime => 'Date',
       FieldEnum.enumerated => 'Choice',
-      FieldEnum.dimension => 'Dimension',
+      FieldEnum.dimension => 'Measurement',
       FieldEnum.reference => 'Reference',
       FieldEnum.location => 'Location',
     };

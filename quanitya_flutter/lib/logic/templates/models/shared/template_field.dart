@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 import '../../enums/field_enum.dart';
-import '../../enums/dimension_enum.dart';
+import '../../enums/measurement_unit.dart';
 import '../../enums/ui_element_enum.dart';
 import 'field_validator.dart';
 
@@ -36,8 +36,8 @@ class TemplateField with _$TemplateField {
     /// Whether this field accepts multiple values (stored as JSON array)
     @Default(false) bool isList,
 
-    /// Required when type is dimension - defines the physical measurement concept
-    DimensionEnum? dimension,
+    /// Required when type is dimension - defines the measurement unit
+    MeasurementUnit? unit,
 
     /// Required when type is reference - points to another TrackerTemplate ID
     String? targetTemplateId,
@@ -65,7 +65,7 @@ class TemplateField with _$TemplateField {
     UiElementEnum? uiElement,
     bool isDeleted = false,
     bool isList = false,
-    DimensionEnum? dimension,
+    MeasurementUnit? unit,
     String? targetTemplateId,
     List<String>? options,
     List<FieldValidator> validators = const [],
@@ -78,7 +78,7 @@ class TemplateField with _$TemplateField {
       type: type,
       uiElement: uiElement,
       isList: isList,
-      dimension: dimension,
+      unit: unit,
       targetTemplateId: targetTemplateId,
       options: options,
       validators: validators,

@@ -565,7 +565,7 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
       FieldEnum.enumerated => field.options?.firstOrNull,
       FieldEnum.dimension => {
         'value': 0.0,
-        'unit': field.dimension?.name ?? 'unit',
+        'unit': field.unit?.name ?? 'unit',
       },
       FieldEnum.reference => null,
       FieldEnum.location => null,

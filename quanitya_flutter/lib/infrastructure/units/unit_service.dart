@@ -1,6 +1,6 @@
 import 'package:injectable/injectable.dart';
 
-import '../../logic/templates/enums/unit_enum.dart';
+import '../../logic/templates/enums/measurement_unit.dart';
 import '../../logic/templates/models/dimension.dart';
 
 /// Interface for unit management and dimensional analysis operations.
@@ -16,7 +16,7 @@ abstract class IUnitService {
   /// Returns all units that are compatible with the specified SI dimension.
   ///
   /// Example: For Dimension.M (mass), returns [kilograms, pounds, grams, ...]
-  List<UnitEnum> getUnitsForDimension(Dimension dimension);
+  List<MeasurementUnit> getUnitsForDimension(Dimension dimension);
 
   /// Validates that a unit belongs to the specified SI dimension.
   ///
@@ -24,31 +24,31 @@ abstract class IUnitService {
   ///
   /// Example:
   /// ```dart
-  /// isValidUnitForDimension(UnitEnum.kilograms, Dimension.M) // true
-  /// isValidUnitForDimension(UnitEnum.meters, Dimension.M)    // false
-  /// isValidUnitForDimension(UnitEnum.liters, Dimension.volume) // true
+  /// isValidUnitForDimension(MeasurementUnit.kilograms, Dimension.M) // true
+  /// isValidUnitForDimension(MeasurementUnit.meters, Dimension.M)    // false
+  /// isValidUnitForDimension(MeasurementUnit.liters, Dimension.volume) // true
   /// ```
-  bool isValidUnitForDimension(UnitEnum unit, Dimension dimension);
+  bool isValidUnitForDimension(MeasurementUnit unit, Dimension dimension);
 
   /// Formats a value with its unit as a human-readable string.
   ///
-  /// Example: format(100.5, UnitEnum.kilograms) returns "100.5 kg"
-  String format(double value, UnitEnum unit);
+  /// Example: format(100.5, MeasurementUnit.kilograms) returns "100.5 kg"
+  String format(double value, MeasurementUnit unit);
 
   /// Returns the SI dimension for a given unit.
   ///
-  /// Example: getDimension(UnitEnum.meters) returns Dimension.L
-  Dimension getDimension(UnitEnum unit);
+  /// Example: getDimension(MeasurementUnit.meters) returns Dimension.L
+  Dimension getDimension(MeasurementUnit unit);
 
   /// Checks if two units are dimensionally compatible (can be converted).
   ///
   /// Example:
   /// ```dart
-  /// areCompatible(UnitEnum.kilograms, UnitEnum.pounds) // true (both M¹)
-  /// areCompatible(UnitEnum.meters, UnitEnum.feet)      // true (both L¹)
-  /// areCompatible(UnitEnum.kilograms, UnitEnum.meters) // false
+  /// areCompatible(MeasurementUnit.kilograms, MeasurementUnit.pounds) // true (both M¹)
+  /// areCompatible(MeasurementUnit.meters, MeasurementUnit.feet)      // true (both L¹)
+  /// areCompatible(MeasurementUnit.kilograms, MeasurementUnit.meters) // false
   /// ```
-  bool areCompatible(UnitEnum unit1, UnitEnum unit2);
+  bool areCompatible(MeasurementUnit unit1, MeasurementUnit unit2);
 }
 
 /// Concrete implementation of IUnitService.
@@ -58,19 +58,19 @@ abstract class IUnitService {
 @Injectable(as: IUnitService)
 class UnitService implements IUnitService {
   @override
-  List<UnitEnum> getUnitsForDimension(Dimension dimension) {
-    return UnitEnum.values
-        .where((unit) => unit.siDimension == dimension)
+  List<MeasurementUnit> getUnitsForDimension(Dimension dimension) {
+    return MeasurementUnit.values
+        .where((unit) => unit.measurementDimension.dimension == dimension)
         .toList();
   }
 
   @override
-  bool isValidUnitForDimension(UnitEnum unit, Dimension dimension) {
-    return unit.siDimension == dimension;
+  bool isValidUnitForDimension(MeasurementUnit unit, Dimension dimension) {
+    return unit.measurementDimension.dimension == dimension;
   }
 
   @override
-  String format(double value, UnitEnum unit) {
+  String format(double value, MeasurementUnit unit) {
     // Format number with appropriate precision
     final String formattedValue;
     if (value == value.roundToDouble()) {
@@ -94,12 +94,12 @@ class UnitService implements IUnitService {
   }
 
   @override
-  Dimension getDimension(UnitEnum unit) {
-    return unit.siDimension;
+  Dimension getDimension(MeasurementUnit unit) {
+    return unit.measurementDimension.dimension;
   }
 
   @override
-  bool areCompatible(UnitEnum unit1, UnitEnum unit2) {
-    return unit1.siDimension == unit2.siDimension;
+  bool areCompatible(MeasurementUnit unit1, MeasurementUnit unit2) {
+    return unit1.measurementDimension == unit2.measurementDimension;
   }
 }

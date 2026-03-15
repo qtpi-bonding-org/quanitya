@@ -10,7 +10,8 @@ export 'models/shared/field_validator.dart';
 // Enums
 export 'enums/field_enum.dart';
 export 'enums/ui_element_enum.dart';
-export 'enums/dimension_enum.dart';
+export 'enums/measurement_dimension.dart';
+export 'enums/measurement_unit.dart';
 export 'enums/ai/allowed_font.dart';
 export 'enums/ai/color_palette_color.dart';
 

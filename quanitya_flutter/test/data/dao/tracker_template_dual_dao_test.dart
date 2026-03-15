@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quanitya_flutter/logic/templates/models/shared/tracker_template.dart';
 import 'package:quanitya_flutter/logic/templates/models/shared/template_field.dart';
 import 'package:quanitya_flutter/logic/templates/enums/field_enum.dart';
-import 'package:quanitya_flutter/logic/templates/enums/dimension_enum.dart';
+import 'package:quanitya_flutter/logic/templates/enums/measurement_unit.dart';
 void main() {
   group('TrackerTemplateDualDao', () {
     group('Model/Entity Conversion Tests', () {
@@ -55,7 +55,7 @@ void main() {
             id: 'field-1',
             label: 'Weight',
             type: FieldEnum.float,
-            dimension: DimensionEnum.mass,
+            unit: MeasurementUnit.kilograms,
             isDeleted: false,
             isList: false,
           ),
@@ -75,7 +75,7 @@ void main() {
         expect(model.fields, hasLength(1));
         expect(model.fields.first.label, 'Weight');
         expect(model.fields.first.type, FieldEnum.float);
-        expect(model.fields.first.dimension, DimensionEnum.mass);
+        expect(model.fields.first.unit, MeasurementUnit.kilograms);
       });
     });
 

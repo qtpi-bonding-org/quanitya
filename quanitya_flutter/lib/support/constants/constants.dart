@@ -5,8 +5,8 @@
 library;
 
 export '../../logic/templates/enums/field_enum.dart';
-export '../../logic/templates/enums/dimension_enum.dart';
-export '../../logic/templates/enums/unit_enum.dart';
+export '../../logic/templates/enums/measurement_dimension.dart';
+export '../../logic/templates/enums/measurement_unit.dart';
 export '../../logic/templates/models/shared/field_display_options.dart';
 export '../../logic/templates/enums/ui_element_enum.dart';
 export '../../logic/templates/enums/ui_validator_coupling.dart';

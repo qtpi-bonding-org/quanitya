@@ -19,7 +19,7 @@ class FieldValidator with _$FieldValidator {
     /// - required: {"message": "This field is required"}
     /// - numeric: {"min": 0, "max": 100, "allowDecimals": true}
     /// - text: {"minLength": 1, "maxLength": 255, "pattern": "^[a-zA-Z]+$"}
-    /// - dimension: {"allowedUnits": ["UnitEnum.kg", "UnitEnum.lbs"], "minValue": 0}
+    /// - dimension: {"minValue": 0, "maxValue": 500}
     required Map<String, dynamic> validatorData,
     
     /// Custom error message to display when validation fails (optional)
