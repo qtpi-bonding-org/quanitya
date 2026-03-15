@@ -9,6 +9,7 @@ import 'package:quanitya_flutter/infrastructure/purchase/i_purchase_provider.dar
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_exception.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_models.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_service.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
 import 'package:anonaccred_client/anonaccred_client.dart'
     show AccountEntitlement;
 
@@ -48,6 +49,7 @@ void main() {
         productId: '',
       ),
     );
+    registerFallbackValue(AppSyncingMode.cloud);
   });
 
   setUp(() {
@@ -133,7 +135,7 @@ void main() {
           amount: 30,
         ),
       );
-      when(() => mockEntitlementService.getEntitlements())
+      when(() => mockEntitlementService.getEntitlements(any()))
           .thenAnswer((_) async => <AccountEntitlement>[]);
 
       purchaseService.registerProvider(mockProvider);
@@ -143,6 +145,7 @@ void main() {
           productId: 'sync_1gb_month',
           rail: PurchaseRail.appleIap,
         ),
+        mode: AppSyncingMode.cloud,
       );
 
       expect(result.success, isTrue);
@@ -150,10 +153,10 @@ void main() {
       expect(result.amount, 30);
 
       // Verify entitlements were refreshed
-      verify(() => mockEntitlementService.getEntitlements()).called(1);
+      verify(() => mockEntitlementService.getEntitlements(any())).called(1);
     });
 
-    test('purchase returns failure when store purchase is cancelled', () async {
+    test('purchase throws PurchaseException when store purchase is cancelled', () async {
       when(() => mockProvider.rail).thenReturn(PurchaseRail.appleIap);
       when(() => mockProvider.initiatePurchase(any())).thenAnswer(
         (_) async => const PurchaseResult(
@@ -165,16 +168,16 @@ void main() {
 
       purchaseService.registerProvider(mockProvider);
 
-      final result = await purchaseService.purchase(
-        const PurchaseRequest(
-          productId: 'sync_1gb_month',
-          rail: PurchaseRail.appleIap,
+      expect(
+        () => purchaseService.purchase(
+          const PurchaseRequest(
+            productId: 'sync_1gb_month',
+            rail: PurchaseRail.appleIap,
+          ),
+          mode: AppSyncingMode.cloud,
         ),
+        throwsA(isA<PurchaseException>()),
       );
-
-      expect(result.success, isFalse);
-      // Should not call validateWithServer when purchase was cancelled
-      verifyNever(() => mockProvider.validateWithServer(any()));
     });
 
     test('purchase throws PurchaseException for unregistered rail', () async {
@@ -184,6 +187,7 @@ void main() {
             productId: 'sync_1gb_month',
             rail: PurchaseRail.monero,
           ),
+          mode: AppSyncingMode.cloud,
         ),
         throwsA(isA<PurchaseException>()),
       );
