@@ -108,9 +108,10 @@ class PowerSyncService implements IPowerSyncService {
 
       // Provision the SQLCipher encryption key (device-only, not backed up)
       final keyResult = await _keyService.getOrCreateEncryptedAtRestKey();
-      if (keyResult.wasCreated && await File(path).exists()) {
+      if (!kIsWeb && keyResult.wasCreated && await File(path).exists()) {
         // Keychain was wiped (iOS reinstall) — stale encrypted DB can't be opened.
         // Delete it; PowerSync will create a fresh one. E2EE data restores from sync.
+        // (Web: dart:io File is unavailable; web storage is managed by the browser.)
         debugPrint('⚡ PowerSync: Keychain wipe detected — deleting stale DB at $path');
         await File(path).delete();
       }
@@ -137,7 +138,7 @@ class PowerSyncService implements IPowerSyncService {
       } catch (e) {
         debugPrint('⚡ PowerSync: DB open failed (bad key?), recovering: $e');
         await _keyService.deleteEncryptedAtRestKey();
-        if (await File(path).exists()) await File(path).delete();
+        if (!kIsWeb && await File(path).exists()) await File(path).delete();
         final freshKey = (await _keyService.getOrCreateEncryptedAtRestKey()).key;
         final freshFactory = PowerSyncSQLCipherOpenFactory(path: path, key: freshKey);
         _powerSyncDb = PowerSyncDatabase.withFactory(
