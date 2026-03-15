@@ -4,6 +4,7 @@ import 'package:anonaccred_client/anonaccred_client.dart'
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
+import '../../features/app_operating_mode/models/app_operating_mode.dart';
 import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
 import '../crypto/data_encryption_service.dart';
@@ -26,7 +27,8 @@ class EntitlementService implements IEntitlementService {
   EntitlementService(this._client, this._keyRepository, this._encryption);
 
   @override
-  Future<List<AccountEntitlement>> getEntitlements() {
+  Future<List<AccountEntitlement>> getEntitlements(AppOperatingMode mode) {
+    if (!mode.requiresServer) return Future.value([]);
     return tryMethod(
       () async {
         await _getAuthParams();
@@ -38,7 +40,8 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<double> getEntitlementBalance(String tag) {
+  Future<double> getEntitlementBalance(String tag, AppOperatingMode mode) {
+    if (!mode.requiresServer) return Future.value(0);
     return tryMethod(
       () async {
         await _getAuthParams();
@@ -52,11 +55,12 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<bool> hasSyncAccess() {
+  Future<bool> hasSyncAccess(AppOperatingMode mode) {
+    if (!mode.requiresServer) return Future.value(false);
     return tryMethod(
       () async {
         for (final tag in syncEntitlementTags) {
-          final balance = await getEntitlementBalance(tag);
+          final balance = await getEntitlementBalance(tag, mode);
           if (balance > 0) return true;
         }
         return false;
@@ -67,7 +71,8 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<void> consumeEntitlement(String tag, double quantity) {
+  Future<void> consumeEntitlement(String tag, double quantity, AppOperatingMode mode) {
+    if (!mode.requiresServer) return Future.value();
     return tryMethod(
       () async {
         await _getAuthParams();

@@ -1,17 +1,19 @@
 import 'package:anonaccred_client/anonaccred_client.dart'
     show AccountEntitlement;
 
+import '../../features/app_operating_mode/models/app_operating_mode.dart';
+
 /// Interface for querying entitlement balances and feature access.
 abstract class IEntitlementService {
   /// Get all entitlements for the current account.
-  Future<List<AccountEntitlement>> getEntitlements();
+  Future<List<AccountEntitlement>> getEntitlements(AppOperatingMode mode);
 
   /// Get the balance for a specific entitlement tag.
-  Future<double> getEntitlementBalance(String tag);
+  Future<double> getEntitlementBalance(String tag, AppOperatingMode mode);
 
   /// Check if the account has sync access (sync-day credits > 0).
-  Future<bool> hasSyncAccess();
+  Future<bool> hasSyncAccess(AppOperatingMode mode);
 
   /// Consume entitlement credits for a specific tag.
-  Future<void> consumeEntitlement(String tag, double quantity);
+  Future<void> consumeEntitlement(String tag, double quantity, AppOperatingMode mode);
 }
