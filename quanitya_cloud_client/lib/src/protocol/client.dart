@@ -53,17 +53,17 @@ import 'package:quanitya_cloud_client/src/protocol/notification_details.dart'
     as _i24;
 import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
     as _i25;
+import 'package:quanitya_client/quanitya_client.dart' as _i26;
 import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
-    as _i26;
-import 'package:quanitya_cloud_client/src/protocol/sync_access_info.dart'
     as _i27;
-import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
+import 'package:quanitya_cloud_client/src/protocol/sync_access_info.dart'
     as _i28;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
     as _i29;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i30;
-import 'package:quanitya_client/quanitya_client.dart' as _i31;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i31;
 import 'package:anonaccred_client/anonaccred_client.dart' as _i32;
 import 'protocol.dart' as _i33;
 
@@ -2153,11 +2153,11 @@ class EndpointSyncAccess extends _i3.EndpointAuthenticated {
   /// Checks if user has active sync access (sync_days > 0) and generates
   /// a JWT token for PowerSync authentication.
   ///
-  /// Returns JWT token string
+  /// Returns PowerSyncToken with JWT, expiry, and endpoint URL
   ///
   /// Throws ServerException if no sync days remaining
-  _i2.Future<String> generatePowerSyncToken() =>
-      caller.callServerEndpoint<String>(
+  _i2.Future<_i26.PowerSyncToken> generatePowerSyncToken() =>
+      caller.callServerEndpoint<_i26.PowerSyncToken>(
         'syncAccess',
         'generatePowerSyncToken',
         {},
@@ -2170,8 +2170,8 @@ class EndpointSyncAccess extends _i3.EndpointAuthenticated {
   /// - syncDaysRemaining: days of sync remaining
   /// - accessExpiry: estimated expiry date
   /// - needsTopUp: whether user needs to purchase more sync days
-  _i2.Future<_i26.SyncAccessStatus> checkSyncAccess() =>
-      caller.callServerEndpoint<_i26.SyncAccessStatus>(
+  _i2.Future<_i27.SyncAccessStatus> checkSyncAccess() =>
+      caller.callServerEndpoint<_i27.SyncAccessStatus>(
         'syncAccess',
         'checkSyncAccess',
         {},
@@ -2193,8 +2193,8 @@ class EndpointSyncAccess extends _i3.EndpointAuthenticated {
   ///
   /// Returns typed model with current balances per sync tier and overall access status.
   /// Pricing is sourced from the app stores — not served from the backend.
-  _i2.Future<_i27.SyncAccessInfo> getSyncAccessInfo() =>
-      caller.callServerEndpoint<_i27.SyncAccessInfo>(
+  _i2.Future<_i28.SyncAccessInfo> getSyncAccessInfo() =>
+      caller.callServerEndpoint<_i28.SyncAccessInfo>(
         'syncAccess',
         'getSyncAccessInfo',
         {},
@@ -2204,8 +2204,8 @@ class EndpointSyncAccess extends _i3.EndpointAuthenticated {
   ///
   /// Generates a new PowerSync JWT token with extended expiry,
   /// provided the user still has active sync access.
-  _i2.Future<String> refreshPowerSyncToken() =>
-      caller.callServerEndpoint<String>(
+  _i2.Future<_i26.PowerSyncToken> refreshPowerSyncToken() =>
+      caller.callServerEndpoint<_i26.PowerSyncToken>(
         'syncAccess',
         'refreshPowerSyncToken',
         {},
@@ -2214,8 +2214,8 @@ class EndpointSyncAccess extends _i3.EndpointAuthenticated {
   /// Get sync usage statistics for authenticated user
   ///
   /// Returns usage information and consumption history
-  _i2.Future<_i28.SyncUsageStats> getSyncUsageStats() =>
-      caller.callServerEndpoint<_i28.SyncUsageStats>(
+  _i2.Future<_i29.SyncUsageStats> getSyncUsageStats() =>
+      caller.callServerEndpoint<_i29.SyncUsageStats>(
         'syncAccess',
         'getSyncUsageStats',
         {},
@@ -2224,18 +2224,18 @@ class EndpointSyncAccess extends _i3.EndpointAuthenticated {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i29.Caller(client);
-    serverpod_auth_core = _i30.Caller(client);
-    community = _i31.Caller(client);
+    serverpod_auth_idp = _i30.Caller(client);
+    serverpod_auth_core = _i31.Caller(client);
+    community = _i26.Caller(client);
     anonaccount = _i3.Caller(client);
     anonaccred = _i32.Caller(client);
   }
 
-  late final _i29.Caller serverpod_auth_idp;
+  late final _i30.Caller serverpod_auth_idp;
 
-  late final _i30.Caller serverpod_auth_core;
+  late final _i31.Caller serverpod_auth_core;
 
-  late final _i31.Caller community;
+  late final _i26.Caller community;
 
   late final _i3.Caller anonaccount;
 
