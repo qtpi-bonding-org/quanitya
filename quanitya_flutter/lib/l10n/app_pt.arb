@@ -608,5 +608,11 @@
         "type": "int"
       }
     }
-  }
+  },
+  "syncConnecting": "Conectando...",
+  "syncConnected": "Sincronizado",
+  "syncDownloading": "Baixando...",
+  "syncUploading": "Enviando...",
+  "syncError": "Erro de sincronização",
+  "syncDisconnected": "Sem sincronização"
 }

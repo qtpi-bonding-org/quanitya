@@ -919,5 +919,11 @@
     }
   },
   "fieldBuilderUpdateLocation": "Update Location",
-  "fieldBuilderCaptureLocation": "Capture Location"
+  "fieldBuilderCaptureLocation": "Capture Location",
+  "syncConnecting": "Connecting...",
+  "syncConnected": "Synced",
+  "syncDownloading": "Downloading...",
+  "syncUploading": "Uploading...",
+  "syncError": "Sync error",
+  "syncDisconnected": "Not syncing"
 }

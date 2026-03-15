@@ -21,6 +21,7 @@ import '../cubits/purchase_cubit.dart';
 import '../cubits/purchase_message_mapper.dart';
 import '../cubits/purchase_state.dart';
 import '../widgets/entitlement_display.dart';
+import '../../sync_status/widgets/sync_status_indicator.dart';
 import '../widgets/consumable_card.dart';
 import '../widgets/product_card.dart';
 
@@ -56,6 +57,9 @@ class PurchaseTabContent extends StatelessWidget {
         child: ListView(
           padding: AppPadding.verticalSingle,
           children: [
+            const SyncStatusIndicator(),
+            VSpace.x1,
+
             // Entitlement balance section
             BlocBuilder<EntitlementCubit, EntitlementState>(
               builder: (context, state) {
