@@ -29,8 +29,8 @@ packages:
     dependency: "direct main"
     description:
       path: anonaccount_client
-      ref: c5b02faa1cdd665f20b8aed21bc65d5164815619
-      resolved-ref: c5b02faa1cdd665f20b8aed21bc65d5164815619
+      ref: "762b84ff6b976be1ca15fc647ecb10e7a8bf206b"
+      resolved-ref: "762b84ff6b976be1ca15fc647ecb10e7a8bf206b"
       url: "https://github.com/qtpi-bonding-org/serverpod_anonaccred.git"
     source: git
     version: "0.1.0"
@@ -38,8 +38,8 @@ packages:
     dependency: "direct main"
     description:
       path: anonaccred_client
-      ref: c5b02faa1cdd665f20b8aed21bc65d5164815619
-      resolved-ref: c5b02faa1cdd665f20b8aed21bc65d5164815619
+      ref: "762b84ff6b976be1ca15fc647ecb10e7a8bf206b"
+      resolved-ref: "762b84ff6b976be1ca15fc647ecb10e7a8bf206b"
       url: "https://github.com/qtpi-bonding-org/serverpod_anonaccred.git"
     source: git
     version: "0.1.0+1"
@@ -1823,30 +1823,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.3"
-  powersync:
-    dependency: "direct main"
-    description:
-      name: powersync
-      sha256: "5023a9a68ea2f01f1fdf7c05c84ea7f966574a84a5ee368cde2570497ae51e0f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.17.0"
   powersync_core:
     dependency: transitive
     description:
       name: powersync_core
-      sha256: "20ff37895eff15c8f9791c76b90364c4a1cb18c55dc50d96024e44507d435e2e"
+      sha256: "74422b5c66cdd749155380df9bd994591a23a5373ae3163516f47123963da94d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.7.0"
+    version: "1.8.0"
   powersync_flutter_libs:
     dependency: transitive
     description:
       name: powersync_flutter_libs
-      sha256: cf039113be13ecb6a9fa9831415436526a40ac6461babcb904a759140b1776d9
+      sha256: "3836fd9b4f351aae3229eed1fb0346a2dffa9151792c90f83682e6508ff4df0b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.14"
+    version: "0.4.15+1"
+  powersync_sqlcipher:
+    dependency: "direct main"
+    description:
+      name: powersync_sqlcipher
+      sha256: "315fc6fad8df9451318fc5e1b424fc70aec845085b6308f8100ba8016adba361"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.16"
   provider:
     dependency: transitive
     description:
@@ -2218,6 +2218,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.1"
+  sqlcipher_flutter_libs:
+    dependency: transitive
+    description:
+      name: sqlcipher_flutter_libs
+      sha256: dd1fcc74d5baf3c36ad53e2652b2d06c9f8747494a3ccde0076e88b159dfe622
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.8"
   sqlite3:
     dependency: transitive
     description:
@@ -2226,14 +2234,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.9.4"
-  sqlite3_flutter_libs:
-    dependency: "direct main"
-    description:
-      name: sqlite3_flutter_libs
-      sha256: "1e800ebe7f85a80a66adacaa6febe4d5f4d8b75f244e9838a27cb2ffc7aec08d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.5.41"
   sqlite3_web:
     dependency: transitive
     description:
