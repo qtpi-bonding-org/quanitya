@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_it/get_it.dart';
 
+import 'package:quanitya_flutter/logic/templates/enums/measurement_unit.dart';
 import 'package:quanitya_flutter/logic/templates/services/ai/ai_template_generator.dart';
 import 'package:quanitya_flutter/logic/templates/services/engine/symbolic_combination_generator.dart';
 import 'package:quanitya_flutter/infrastructure/llm/services/llm_service.dart';
@@ -12,19 +13,19 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'live_api_test_helper.dart';
 
 void main() {
+  // Load env synchronously so skip: checks work at test registration time
+  LiveApiTestHelper.loadEnvSync();
+  final hasApiKey = LiveApiTestHelper.hasOpenRouterKey;
+
   group('LLM Schema Validation Tests', () {
     late GetIt testGetIt;
     late AiTemplateGenerator aiGenerator;
     late LlmService llmService;
     late LlmConfig llmConfig;
-    bool hasApiKey = false;
 
     setUpAll(() async {
-      await LiveApiTestHelper.loadEnv();
-      hasApiKey = LiveApiTestHelper.hasOpenRouterKey;
-      
       if (!hasApiKey) return;
-      
+
       final apiKey = LiveApiTestHelper.openRouterApiKey!;
       
       testGetIt = GetIt.asNewInstance();
@@ -209,6 +210,95 @@ Follow the schema constraints exactly.''',
             expect(weight % 100, equals(0));
             expect(weight >= 100 && weight <= 900, isTrue);
           }
+        }
+      }
+    }, timeout: const Timeout(Duration(seconds: 45)), skip: !hasApiKey ? 'OPENROUTER_API_KEY not found in .env' : null);
+
+    test('Test LLM generates dimension fields with valid measurement units', () async {
+      final schema = aiGenerator.generateSchema();
+
+      final request = LlmRequest(
+        systemPrompt: '''You are a fitness template generator. Create a template that tracks physical measurements.
+You MUST include dimension fields with units. Use fieldType "dimension" for any measurement that has a unit (weight, distance, volume, etc.).
+Each dimension field requires a "unit" value from the allowed enum.
+
+Follow the schema constraints exactly.''',
+        userPrompt: 'Create a workout tracker with: body weight (kg), run distance (km), water intake (mL), and rest time (minutes).',
+        jsonSchema: schema,
+      );
+
+      final response = await llmService.execute(llmConfig, request);
+
+      expect(response.data.containsKey('fields'), isTrue);
+      final fields = response.data['fields'] as List;
+      expect(fields, isNotEmpty);
+
+      // Collect all valid MeasurementUnit names
+      final validUnits = MeasurementUnit.values.map((u) => u.name).toSet();
+
+      // Find dimension fields and verify they have valid units
+      final dimensionFields = fields
+          .cast<Map<String, dynamic>>()
+          .where((f) => f['fieldType'] == 'dimension')
+          .toList();
+
+      expect(dimensionFields, isNotEmpty,
+          reason: 'LLM should generate at least one dimension field for a workout tracker');
+
+      for (final field in dimensionFields) {
+        final label = field['label'] as String;
+        expect(field.containsKey('unit'), isTrue,
+            reason: 'Dimension field "$label" must have a unit');
+
+        final unit = field['unit'] as String;
+        expect(validUnits.contains(unit), isTrue,
+            reason: 'Unit "$unit" on field "$label" must be a valid MeasurementUnit enum value. '
+                'Valid values: $validUnits');
+      }
+    }, timeout: const Timeout(Duration(seconds: 45)), skip: !hasApiKey ? 'OPENROUTER_API_KEY not found in .env' : null);
+
+    test('Test LLM generates enumerated fields with valid options', () async {
+      final schema = aiGenerator.generateSchema();
+
+      final request = LlmRequest(
+        systemPrompt: '''You are a health tracker template generator.
+You MUST include enumerated fields with options. Use fieldType "enumerated" for any field where the user picks from a predefined list.
+Each enumerated field requires an "options" array of string values.
+
+Follow the schema constraints exactly.''',
+        userPrompt: 'Create a daily wellness tracker with: mood (happy, neutral, sad, anxious, energetic), sleep quality (poor, fair, good, excellent), and exercise type (running, cycling, swimming, yoga, weights, none).',
+        jsonSchema: schema,
+      );
+
+      final response = await llmService.execute(llmConfig, request);
+
+      expect(response.data.containsKey('fields'), isTrue);
+      final fields = response.data['fields'] as List;
+      expect(fields, isNotEmpty);
+
+      final enumeratedFields = fields
+          .cast<Map<String, dynamic>>()
+          .where((f) => f['fieldType'] == 'enumerated')
+          .toList();
+
+      expect(enumeratedFields, isNotEmpty,
+          reason: 'LLM should generate at least one enumerated field for a wellness tracker');
+
+      for (final field in enumeratedFields) {
+        final label = field['label'] as String;
+        expect(field.containsKey('options'), isTrue,
+            reason: 'Enumerated field "$label" must have options');
+
+        final options = field['options'] as List;
+        expect(options.length, greaterThanOrEqualTo(2),
+            reason: 'Enumerated field "$label" must have at least 2 options');
+
+        for (final option in options) {
+          expect(option, isA<String>(),
+              reason: 'Each option in "$label" must be a string');
+          expect((option as String).isNotEmpty,
+              isTrue,
+              reason: 'Options in "$label" must not be empty');
         }
       }
     }, timeout: const Timeout(Duration(seconds: 45)), skip: !hasApiKey ? 'OPENROUTER_API_KEY not found in .env' : null);

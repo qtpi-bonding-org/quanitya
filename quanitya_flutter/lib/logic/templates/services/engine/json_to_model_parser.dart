@@ -3,6 +3,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../enums/ai/template_preset.dart';
 import '../../enums/field_enum.dart';
+import '../../enums/measurement_unit.dart';
 import '../../enums/ui_element_enum.dart';
 import '../../models/shared/field_validator.dart';
 import '../../models/shared/template_aesthetics.dart';
@@ -204,16 +205,36 @@ class JsonToModelParser {
         ? (fieldJson['options'] as List<dynamic>?)?.cast<String>()
         : null;
     
+    // Parse unit for dimension fields
+    final MeasurementUnit? unit;
+    if (fieldType == FieldEnum.dimension) {
+      final unitName = fieldJson['unit'] as String?;
+      if (unitName == null) {
+        throw TemplateParsingException(
+          'Dimension field "$label" requires a unit',
+          jsonPath: 'unit',
+        );
+      }
+      try {
+        unit = MeasurementUnit.values.firstWhere((u) => u.name == unitName);
+      } catch (_) {
+        throw TemplateParsingException.invalidField('unit', unitName);
+      }
+    } else {
+      unit = null;
+    }
+
     // Parse and validate defaultValue (AI only sends for int/float/text)
     final rawDefault = fieldJson['defaultValue'];
     final defaultValue = _defaultHandler.parseDefault(rawDefault, fieldType);
-    
+
     // Build field first to validate default against it
     final field = TemplateField.create(
       label: label,
       type: fieldType,
       uiElement: uiElement,
       isList: isList,
+      unit: unit,
       validators: validators,
       options: options,
       defaultValue: defaultValue,
@@ -311,9 +332,23 @@ class JsonToModelParser {
           );
         }
 
+      case FieldEnum.dimension:
+        // Dimension fields are numeric with a unit — support min/max validation
+        final dimValidatorData = <String, dynamic>{};
+        if (args.containsKey('min')) dimValidatorData['min'] = args['min'];
+        if (args.containsKey('max')) dimValidatorData['max'] = args['max'];
+
+        if (dimValidatorData.isNotEmpty) {
+          validators.add(
+            FieldValidator.create(
+              validatorType: ValidatorType.numeric,
+              validatorData: dimValidatorData,
+            ),
+          );
+        }
+
       case FieldEnum.boolean:
       case FieldEnum.datetime:
-      case FieldEnum.dimension:
       case FieldEnum.reference:
       case FieldEnum.location:
         // No additional validators needed

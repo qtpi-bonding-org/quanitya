@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Helper for live API tests that require API keys.
@@ -15,19 +14,36 @@ class LiveApiTestHelper {
   static String? _openaiApiKey;
   static String? _openRouterApiKey;
   
-  /// Load dotenv and cache API keys
-  static Future<void> loadEnv() async {
+  /// Synchronous env loader — call from main() before test registration
+  /// so that skip: checks work at registration time.
+  static void loadEnvSync() {
     if (_dotenvLoaded) return;
-    
-    try {
-      await dotenv.load(fileName: '.env');
-      _dotenvLoaded = true;
-      _geminiApiKey = dotenv.env['GEMINI_API_KEY'];
-      _openaiApiKey = dotenv.env['OPENAI_API_KEY'];
-      _openRouterApiKey = dotenv.env['OPENROUTER_API_KEY'];
-    } catch (e) {
-      // .env file might not exist
-      _dotenvLoaded = true;
+    _dotenvLoaded = true;
+    _loadFromFile();
+  }
+
+  /// Async env loader — kept for backward compatibility.
+  static Future<void> loadEnv() async {
+    loadEnvSync();
+  }
+
+  static void _loadFromFile() {
+    final envFile = File('.env');
+    if (!envFile.existsSync()) return;
+
+    final lines = envFile.readAsLinesSync();
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty || trimmed.startsWith('#')) continue;
+      final eqIdx = trimmed.indexOf('=');
+      if (eqIdx < 0) continue;
+      final key = trimmed.substring(0, eqIdx).trim();
+      final value = trimmed.substring(eqIdx + 1).trim();
+      switch (key) {
+        case 'GEMINI_API_KEY': _geminiApiKey = value;
+        case 'OPENAI_API_KEY': _openaiApiKey = value;
+        case 'OPENROUTER_API_KEY': _openRouterApiKey = value;
+      }
     }
   }
   

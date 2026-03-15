@@ -4,6 +4,7 @@ import '../../../../design_system/widgets/quanitya/generatable/quanitya_widget_r
 import '../../enums/ai/allowed_font.dart';
 import '../../enums/ai/template_preset.dart';
 import '../../enums/field_enum.dart';
+import '../../enums/measurement_unit.dart';
 import '../../enums/ui_element_enum.dart';
 import '../../models/shared/field_validator.dart';
 
@@ -176,6 +177,31 @@ class UnifiedSchemaGenerator {
     if (colorConfigSchema != null) {
       properties['colorConfiguration'] = colorConfigSchema;
       required.add('colorConfiguration');
+    }
+
+    // Add unit enum for dimension fields (required — every dimension field needs a unit)
+    if (fieldType == FieldEnum.dimension) {
+      properties['unit'] = {
+        'type': 'string',
+        'enum': MeasurementUnit.values.map((u) => u.name).toList(),
+        'description':
+            'Measurement unit for this dimension field. '
+            'Choose the most appropriate unit for what the user is tracking '
+            '(e.g., "kilograms" for body weight, "milliliters" for water intake).',
+      };
+      required.add('unit');
+    }
+
+    // Add options for enumerated fields
+    if (fieldType == FieldEnum.enumerated) {
+      properties['options'] = {
+        'type': 'array',
+        'items': {'type': 'string', 'minLength': 1, 'maxLength': 50},
+        'minItems': 2,
+        'maxItems': 20,
+        'description': 'List of selectable options for this enumerated field',
+      };
+      required.add('options');
     }
 
     // NOTE: defaultValue is NOT included in AI schema because OpenAI strict mode

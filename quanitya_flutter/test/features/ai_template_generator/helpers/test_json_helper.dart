@@ -100,7 +100,7 @@ Map<String, dynamic> createValidField(FieldEnum fieldType, UiElementEnum uiEleme
       break;
       
     case FieldEnum.dimension:
-      fieldData['dimension'] = 'mass';
+      fieldData['unit'] = 'kilograms';
       break;
       
     case FieldEnum.reference:
