@@ -664,6 +664,10 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       MeasurementDimension.length => context.l10n.dimensionLength,
       MeasurementDimension.volume => context.l10n.dimensionVolume,
       MeasurementDimension.time => context.l10n.dimensionTime,
+      MeasurementDimension.temperature => context.l10n.dimensionTemperature,
+      MeasurementDimension.speed => context.l10n.dimensionSpeed,
+      MeasurementDimension.energy => context.l10n.dimensionEnergy,
+      MeasurementDimension.frequency => context.l10n.dimensionFrequency,
     };
   }
 

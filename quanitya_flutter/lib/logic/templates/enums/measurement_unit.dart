@@ -47,7 +47,33 @@ enum MeasurementUnit {
   days(MeasurementDimension.time, 'd', 'Days'),
   weeks(MeasurementDimension.time, 'wk', 'Weeks'),
   months(MeasurementDimension.time, 'mo', 'Months'),
-  years(MeasurementDimension.time, 'yr', 'Years');
+  years(MeasurementDimension.time, 'yr', 'Years'),
+
+  // -- Temperature ------------------------------------------------------------
+  celsius(MeasurementDimension.temperature, '°C', 'Celsius'),
+  fahrenheit(MeasurementDimension.temperature, '°F', 'Fahrenheit'),
+  kelvin(MeasurementDimension.temperature, 'K', 'Kelvin'),
+
+  // -- Speed ------------------------------------------------------------------
+  kilometersPerHour(MeasurementDimension.speed, 'km/h', 'Kilometers per Hour'),
+  milesPerHour(MeasurementDimension.speed, 'mph', 'Miles per Hour'),
+  metersPerSecond(MeasurementDimension.speed, 'm/s', 'Meters per Second'),
+  knots(MeasurementDimension.speed, 'kn', 'Knots'),
+  minutesPerKilometer(MeasurementDimension.speed, 'min/km', 'Minutes per Kilometer'),
+  minutesPerMile(MeasurementDimension.speed, 'min/mi', 'Minutes per Mile'),
+
+  // -- Energy -----------------------------------------------------------------
+  calories(MeasurementDimension.energy, 'cal', 'Calories'),
+  kilocalories(MeasurementDimension.energy, 'kcal', 'Kilocalories'),
+  joules(MeasurementDimension.energy, 'J', 'Joules'),
+  kilojoules(MeasurementDimension.energy, 'kJ', 'Kilojoules'),
+  kilowattHours(MeasurementDimension.energy, 'kWh', 'Kilowatt Hours'),
+
+  // -- Frequency --------------------------------------------------------------
+  hertz(MeasurementDimension.frequency, 'Hz', 'Hertz'),
+  beatsPerMinute(MeasurementDimension.frequency, 'bpm', 'Beats per Minute'),
+  revolutionsPerMinute(MeasurementDimension.frequency, 'rpm', 'Revolutions per Minute'),
+  breathsPerMinute(MeasurementDimension.frequency, 'br/min', 'Breaths per Minute');
 
   const MeasurementUnit(
     this.measurementDimension,

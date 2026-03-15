@@ -21,7 +21,19 @@ enum MeasurementDimension {
   volume(Dimension.volume),
 
   /// Time duration measurements (seconds, minutes, hours, etc.)
-  time(Dimension.T);
+  time(Dimension.T),
+
+  /// Temperature measurements (°C, °F, K)
+  temperature(Dimension.theta),
+
+  /// Speed/velocity measurements (km/h, mph, m/s)
+  speed(Dimension.velocity),
+
+  /// Energy measurements (calories, joules, kWh)
+  energy(Dimension.energy),
+
+  /// Frequency measurements (bpm, Hz, rpm)
+  frequency(Dimension.frequency);
 
   const MeasurementDimension(this.dimension);
 
