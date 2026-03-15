@@ -6,6 +6,7 @@ import '../structures/column.dart';
 import 'quanitya/general/quanitya_text_button.dart';
 
 class QuanityaConfirmationDialog extends StatelessWidget {
+  static const _shadowColor = Color.fromRGBO(0, 0, 0, 0.15);
   final String title;
   final String message;
   final String? confirmText;
@@ -87,7 +88,7 @@ class QuanityaConfirmationDialog extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
             boxShadow: const [
               BoxShadow(
-                color: Color.fromRGBO(0, 0, 0, 0.15),
+                color: _shadowColor,
                 offset: Offset(2, 3),
                 blurRadius: 4,
               ),

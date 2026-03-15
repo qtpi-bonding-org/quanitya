@@ -214,7 +214,7 @@ class ZenGridDot extends StatelessWidget {
     required this.column,
     required this.row,
     this.size = 6.0,
-    this.color = const Color(0xFFBC4B41),
+    this.color = const Color(0xFFBC4B41), // Matches QuanityaPalette.primary.destructiveColor
   });
 
   @override

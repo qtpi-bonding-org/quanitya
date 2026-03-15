@@ -82,6 +82,10 @@ class CategoricalScatterChart extends StatelessWidget {
   }
 }
 
+// AppSizes has no 11px token; chart axis labels use a size between fontMini (12)
+// and fontSmall (14) — define locally until a chart-specific token is added.
+const double _chartAxisFontSize = 11.0;
+
 class _CategoricalScatterPainter extends CustomPainter {
   final List<CategoricalPoint> data;
   final List<String> categories;
@@ -118,7 +122,7 @@ class _CategoricalScatterPainter extends CustomPainter {
       ..color = gridColor.withValues(alpha: 0.3)
       ..strokeWidth = 1;
 
-    final textStyle = TextStyle(color: textColor, fontSize: 11);
+    final textStyle = TextStyle(color: textColor, fontSize: _chartAxisFontSize);
     
     for (var i = 0; i < categories.length; i++) {
       final y = chartTop + (i + 0.5) * (chartHeight / categories.length);

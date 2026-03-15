@@ -72,6 +72,9 @@ class LocationScatterMap extends StatelessWidget {
               color: color.withValues(alpha: alpha),
               shape: BoxShape.circle,
               border: Border.all(
+                // True white for contrast against varied OSM map tile backgrounds.
+                // backgroundPrimary (0xFFFAF7F0) is warm-tinted and would reduce
+                // legibility across different tile color schemes.
                 color: Colors.white.withValues(alpha: alpha * 0.8),
                 width: 1.5,
               ),
