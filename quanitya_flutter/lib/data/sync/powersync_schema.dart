@@ -1,4 +1,4 @@
-import 'package:powersync/powersync.dart';
+import 'package:powersync_sqlcipher/powersync.dart';
 
 /// PowerSync schema - defines tables that sync to/from backend
 ///

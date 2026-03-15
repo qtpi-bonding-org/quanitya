@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_sqlite_async/drift_sqlite_async.dart';
-import 'package:powersync/powersync.dart' hide Table;
+import 'package:powersync_sqlcipher/powersync.dart' hide Table;
 
 import '../tables/tables.dart';
 import '../../features/app_operating_mode/models/app_operating_mode.dart';

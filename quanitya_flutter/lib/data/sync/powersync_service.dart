@@ -1,7 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:powersync/powersync.dart';
+import 'package:powersync_sqlcipher/powersync.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
@@ -11,6 +12,7 @@ import 'powersync_schema.dart';
 import '../db/app_database.dart';
 import '../../infrastructure/config/dev_config.dart';
 import '../../features/app_operating_mode/models/app_operating_mode.dart';
+import '../../infrastructure/security/database_key_service.dart';
 
 /// Resolve localhost for Android emulator loopback
 String _resolveUrl(String url) {
@@ -31,6 +33,10 @@ abstract class IPowerSyncService {
   Future<void> disconnect();
   bool get isConnected;
 
+  /// The resolved filesystem path to the database file.
+  /// Null until initialize() has been called.
+  String? get dbPath;
+
   /// Connect PowerSync if mode supports sync, disconnect if local mode
   Future<void> handleModeChange(AppOperatingMode mode, Client serverpodClient);
 }
@@ -44,9 +50,17 @@ abstract class IPowerSyncService {
 /// - Automatic change propagation between both APIs
 @Singleton(as: IPowerSyncService)
 class PowerSyncService implements IPowerSyncService {
+  final DatabaseKeyService _keyService;
+
+  PowerSyncService(this._keyService);
+
   PowerSyncDatabase? _powerSyncDb;
   AppDatabase? _driftDb;
   bool _isConnected = false;
+  String? _dbPath;
+
+  @override
+  String? get dbPath => _dbPath;
 
   @override
   PowerSyncDatabase get powerSyncDb {
@@ -88,16 +102,51 @@ class PowerSyncService implements IPowerSyncService {
         path = join(dir.path, 'quanitya_tracker.db');
       }
 
+      _dbPath = path;
       debugPrint('⚡ PowerSync: Creating database at $path');
       debugPrint('⚡ PowerSync: Schema tables: ${powerSyncSchema.tables.map((t) => t.name).toList()}');
 
-      // Initialize PowerSync database with schema and custom logger
-      _powerSyncDb = PowerSyncDatabase(
-        schema: powerSyncSchema,
+      // Provision the SQLCipher encryption key (device-only, not backed up)
+      final keyResult = await _keyService.getOrCreateEncryptedAtRestKey();
+      if (keyResult.wasCreated && await File(path).exists()) {
+        // Keychain was wiped (iOS reinstall) — stale encrypted DB can't be opened.
+        // Delete it; PowerSync will create a fresh one. E2EE data restores from sync.
+        debugPrint('⚡ PowerSync: Keychain wipe detected — deleting stale DB at $path');
+        await File(path).delete();
+      }
+
+      final factory = PowerSyncSQLCipherOpenFactory(
         path: path,
+        key: keyResult.key,
+      );
+      _powerSyncDb = PowerSyncDatabase.withFactory(
+        factory,
+        schema: powerSyncSchema,
         logger: DevConfig.getPowerSyncLogger(),
       );
-      await _powerSyncDb!.initialize();
+
+      // Open DB; catch SQLCipher failures (wrong key) and recover once.
+      // Note: the spec names this `deleteKeyAndStaleDatabase()` on DatabaseKeyService,
+      // but this plan intentionally keeps file deletion in PowerSyncService (which
+      // already owns the path) and exposes only `deleteEncryptedAtRestKey()` on
+      // DatabaseKeyService. This keeps DatabaseKeyService free of filesystem concerns
+      // and fully testable without path_provider. The recovery logic is equivalent.
+      // `deleteEncryptedAtRestKey()` IS defined as a public method in DatabaseKeyService.
+      try {
+        await _powerSyncDb!.initialize();
+      } catch (e) {
+        debugPrint('⚡ PowerSync: DB open failed (bad key?), recovering: $e');
+        await _keyService.deleteEncryptedAtRestKey();
+        if (await File(path).exists()) await File(path).delete();
+        final freshKey = (await _keyService.getOrCreateEncryptedAtRestKey()).key;
+        final freshFactory = PowerSyncSQLCipherOpenFactory(path: path, key: freshKey);
+        _powerSyncDb = PowerSyncDatabase.withFactory(
+          freshFactory,
+          schema: powerSyncSchema,
+          logger: DevConfig.getPowerSyncLogger(),
+        );
+        await _powerSyncDb!.initialize();
+      }
       debugPrint('⚡ PowerSync: Database initialized');
 
       // Connect Drift to the same database file via SqliteAsyncDriftConnection

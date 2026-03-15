@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import 'dart:io';
 
-import 'package:powersync/powersync.dart' hide Table;
+import 'package:powersync_sqlcipher/powersync.dart' hide Table;
 import 'package:sqlite3/open.dart' as sqlite_open;
 import 'package:sqlite3/sqlite3.dart' as sqlite3_lib;
 import 'package:sqlite_async/sqlite_async.dart';

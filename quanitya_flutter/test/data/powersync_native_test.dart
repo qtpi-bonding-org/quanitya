@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' hide isNotNull;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:powersync/powersync.dart' hide Table;
+import 'package:powersync_sqlcipher/powersync.dart' hide Table;
 
 import '../helpers/powersync_test_helper.dart';
 
