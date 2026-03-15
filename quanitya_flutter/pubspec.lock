@@ -1842,10 +1842,11 @@ packages:
   powersync_sqlcipher:
     dependency: "direct main"
     description:
-      name: powersync_sqlcipher
-      sha256: "315fc6fad8df9451318fc5e1b424fc70aec845085b6308f8100ba8016adba361"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/powersync_sqlcipher"
+      ref: fix-ios-sqlcipher-extension-loading
+      resolved-ref: "919806e1b7cbbb81359e55baa4b19875939d6ccf"
+      url: "git@github.com:qtpi-bonding/powersync.dart.git"
+    source: git
     version: "0.1.16"
   provider:
     dependency: transitive

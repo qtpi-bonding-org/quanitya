@@ -14,10 +14,9 @@ import UIKit
 
     // Method channel: exclude a file from iCloud backup
     // Called by BackupExclusionService after DB is opened each app start.
-    let controller = window?.rootViewController as! FlutterViewController
     let backupChannel = FlutterMethodChannel(
       name: "com.quanitya.app/backup",
-      binaryMessenger: controller.binaryMessenger
+      binaryMessenger: self.registrar(forPlugin: "backup")!.messenger()
     )
     backupChannel.setMethodCallHandler { call, result in
       if call.method == "excludeFromBackup" {

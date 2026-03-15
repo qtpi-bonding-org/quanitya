@@ -114,7 +114,13 @@ dependencies:
   intl: ^0.20.2
   
   # PowerSync for offline-first sync (SQLCipher encrypted)
-  powersync_sqlcipher: ^0.1.16
+  # Using fork until iOS fix is merged upstream:
+  # https://github.com/qtpi-bonding/powersync.dart/tree/fix-ios-sqlcipher-extension-loading
+  powersync_sqlcipher:
+    git:
+      url: git@github.com:qtpi-bonding/powersync.dart.git
+      path: packages/powersync_sqlcipher
+      ref: fix-ios-sqlcipher-extension-loading
   drift_sqlite_async: ^0.2.6
   
   # JSON Dynamic Widget
