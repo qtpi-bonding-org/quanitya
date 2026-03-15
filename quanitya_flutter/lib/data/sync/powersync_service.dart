@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -90,8 +89,6 @@ class PowerSyncService implements IPowerSyncService {
   /// Initialize PowerSync database and connect Drift to it
   @override
   Future<void> initialize() async {
-    debugPrint('⚡ PowerSync: initialize() called');
-
     try {
       String path;
       if (kIsWeb) {
@@ -103,8 +100,6 @@ class PowerSyncService implements IPowerSyncService {
       }
 
       _dbPath = path;
-      debugPrint('⚡ PowerSync: Creating database at $path');
-      debugPrint('⚡ PowerSync: Schema tables: ${powerSyncSchema.tables.map((t) => t.name).toList()}');
 
       // Provision the SQLCipher encryption key (device-only, not backed up)
       final keyResult = await _keyService.getOrCreateEncryptedAtRestKey();
@@ -112,7 +107,6 @@ class PowerSyncService implements IPowerSyncService {
         // Keychain was wiped (iOS reinstall) — stale encrypted DB can't be opened.
         // Delete it; PowerSync will create a fresh one. E2EE data restores from sync.
         // (Web: dart:io File is unavailable; web storage is managed by the browser.)
-        debugPrint('⚡ PowerSync: Keychain wipe detected — deleting stale DB at $path');
         await File(path).delete();
       }
 
@@ -136,7 +130,6 @@ class PowerSyncService implements IPowerSyncService {
       try {
         await _powerSyncDb!.initialize();
       } catch (e) {
-        debugPrint('⚡ PowerSync: DB open failed (bad key?), recovering: $e');
         await _keyService.deleteEncryptedAtRestKey();
         if (!kIsWeb && await File(path).exists()) await File(path).delete();
         final freshKey = (await _keyService.getOrCreateEncryptedAtRestKey()).key;
@@ -148,15 +141,11 @@ class PowerSyncService implements IPowerSyncService {
         );
         await _powerSyncDb!.initialize();
       }
-      debugPrint('⚡ PowerSync: Database initialized');
 
       // Connect Drift to the same database file via SqliteAsyncDriftConnection
       _driftDb = AppDatabase(_powerSyncDb!);
-      debugPrint('⚡ PowerSync: Drift connected to database');
-      debugPrint('⚡ PowerSync: Initialization complete at $path');
     } catch (e, stack) {
-      debugPrint('⚡ PowerSync: ERROR during initialization: $e');
-      debugPrintStack(stackTrace: stack);
+      debugPrintStack(stackTrace: stack, label: 'PowerSync initialization failed: $e');
       rethrow; // Re-throw so service locator knows it failed
     }
   }
@@ -164,51 +153,18 @@ class PowerSyncService implements IPowerSyncService {
   /// Connect to sync with Serverpod backend
   @override
   Future<void> connect(Client serverpodClient) async {
-    debugPrint('⚡ PowerSync: connect() called');
-    debugPrint('⚡ PowerSync: _isConnected=$_isConnected, _powerSyncDb=${_powerSyncDb != null ? "exists" : "null"}');
-
-    if (_isConnected) {
-      debugPrint('⚡ PowerSync: Already connected, skipping');
-      return;
-    }
-
-    if (_powerSyncDb == null) {
-      debugPrint('⚡ PowerSync: ERROR - database not initialized, call initialize() first');
-      return;
-    }
+    if (_isConnected) return;
+    if (_powerSyncDb == null) return;
 
     try {
-      // DEBUG: Snapshot table state BEFORE connect
-      await _debugLogTableState('BEFORE connect');
-
       // Disconnect first to avoid "Stream already listened to" on hot restart
-      debugPrint('⚡ PowerSync: Disconnecting existing connection (hot restart safety)...');
       await _powerSyncDb!.disconnect();
 
-      // DEBUG: Snapshot table state AFTER disconnect
-      await _debugLogTableState('AFTER disconnect');
-
-      debugPrint('⚡ PowerSync: Creating _ServerpodConnector...');
       final connector = _ServerpodConnector(serverpodClient);
-
-      debugPrint('⚡ PowerSync: Calling powerSyncDb.connect()...');
       await _powerSyncDb!.connect(connector: connector);
       _isConnected = true;
-      debugPrint('⚡ PowerSync: Connected successfully');
-
-      // DEBUG: Snapshot table state AFTER connect (immediate)
-      await _debugLogTableState('AFTER connect (immediate)');
-
-      // DEBUG: Snapshot again after a delay to catch server state application
-      Future.delayed(const Duration(seconds: 3), () async {
-        await _debugLogTableState('AFTER connect (+3s)');
-      });
-      Future.delayed(const Duration(seconds: 10), () async {
-        await _debugLogTableState('AFTER connect (+10s)');
-      });
     } catch (e, stack) {
-      debugPrint('⚡ PowerSync: ERROR - Connection failed: $e');
-      debugPrintStack(stackTrace: stack);
+      debugPrintStack(stackTrace: stack, label: 'PowerSync connection failed: $e');
       // Don't rethrow - app can work offline
     }
   }
@@ -216,51 +172,9 @@ class PowerSyncService implements IPowerSyncService {
   /// Disconnect from sync
   @override
   Future<void> disconnect() async {
-    debugPrint('⚡ PowerSync: disconnect() called, _isConnected=$_isConnected');
-    if (!_isConnected) {
-      debugPrint('⚡ PowerSync: Not connected, skipping disconnect');
-      return;
-    }
+    if (!_isConnected) return;
     await _powerSyncDb!.disconnect();
     _isConnected = false;
-    debugPrint('⚡ PowerSync: Disconnected');
-  }
-
-  /// DEBUG: Log the state of all PowerSync tables
-  Future<void> _debugLogTableState(String label) async {
-    try {
-      final db = _powerSyncDb;
-      if (db == null) return;
-
-      debugPrint('🔍 DEBUG [$label] ─────────────────────────────────────');
-
-      // Template aesthetics (the problematic table)
-      final aesthetics = await db.getAll('SELECT id, template_id, icon, emoji, updated_at FROM template_aesthetics');
-      debugPrint('🔍 DEBUG [$label] template_aesthetics: ${aesthetics.length} rows');
-      for (final row in aesthetics) {
-        debugPrint('🔍 DEBUG [$label]   id=${row['id']}, template_id=${row['template_id']}, icon=${row['icon']}, emoji=${row['emoji']}');
-      }
-
-      // Encrypted templates
-      final templates = await db.getAll('SELECT id, LENGTH(encrypted_data) as data_len FROM encrypted_templates');
-      debugPrint('🔍 DEBUG [$label] encrypted_templates: ${templates.length} rows');
-
-      // Encrypted entries
-      final entries = await db.getAll('SELECT COUNT(*) as cnt FROM encrypted_entries');
-      debugPrint('🔍 DEBUG [$label] encrypted_entries: ${entries.first['cnt']} rows');
-
-      // Encrypted analysis scripts
-      final scripts = await db.getAll('SELECT COUNT(*) as cnt FROM encrypted_analysis_scripts');
-      debugPrint('🔍 DEBUG [$label] encrypted_analysis_scripts: ${scripts.first['cnt']} rows');
-
-      // CRUD queue status
-      final pending = await db.getAll('SELECT COUNT(*) as cnt FROM ps_crud');
-      debugPrint('🔍 DEBUG [$label] ps_crud (pending uploads): ${pending.first['cnt']} rows');
-
-      debugPrint('🔍 DEBUG [$label] ─────────────────────────────────────');
-    } catch (e) {
-      debugPrint('🔍 DEBUG [$label] ERROR reading table state: $e');
-    }
   }
 
   /// Handle app operating mode changes - connect/disconnect PowerSync as needed
@@ -269,24 +183,15 @@ class PowerSyncService implements IPowerSyncService {
     AppOperatingMode mode,
     Client serverpodClient,
   ) async {
-    debugPrint('⚡ PowerSync: handleModeChange() called with mode=${mode.name}');
-    debugPrint('⚡ PowerSync: supportsSync=${mode.supportsSync}, _isConnected=$_isConnected');
-
     if (mode.supportsSync) {
       // Mode supports sync - ensure PowerSync is connected
       if (!_isConnected) {
-        debugPrint('⚡ PowerSync: Mode changed to ${mode.name} - connecting...');
         await connect(serverpodClient);
-      } else {
-        debugPrint('⚡ PowerSync: Already connected, no action needed');
       }
     } else {
       // Local mode - ensure PowerSync is disconnected
       if (_isConnected) {
-        debugPrint('⚡ PowerSync: Mode changed to ${mode.name} - disconnecting...');
         await disconnect();
-      } else {
-        debugPrint('⚡ PowerSync: Already disconnected, no action needed');
       }
     }
   }
@@ -301,98 +206,38 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
   final Client _client;
   String? _cachedEndpoint;
 
-  _ServerpodConnector(this._client) {
-    debugPrint('⚡ PowerSync: _ServerpodConnector created');
-  }
+  _ServerpodConnector(this._client);
 
   @override
   Future<PowerSyncCredentials?> fetchCredentials() async {
-    debugPrint('⚡ PowerSync: fetchCredentials() called');
-
     try {
       final authHeader = await _client.authKeyProvider?.authHeaderValue;
-      if (authHeader == null) {
-        debugPrint('⚡ PowerSync: No auth credentials available yet');
-        return null;
-      }
+      if (authHeader == null) return null;
 
       // Always fetch a fresh token (cheap single authenticated call).
       // Cache only the endpoint URL since it doesn't change mid-session.
-      debugPrint('⚡ PowerSync: Fetching fresh token...');
-      final tokenResponse = await _client.modules.community.powerSync
-          .getToken();
+      final tokenResponse = await _client.modules.community.powerSync.getToken();
       _cachedEndpoint ??= _resolveUrl(tokenResponse.endpoint);
-
-      debugPrint('⚡ PowerSync: Got token, expires at ${tokenResponse.expiresAt}');
-      debugPrint('⚡ PowerSync: Endpoint: $_cachedEndpoint');
-
-      // DEBUG: Decode JWT to see what user_id is being used
-      try {
-        final parts = tokenResponse.token.split('.');
-        if (parts.length >= 2) {
-          final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
-          final claims = jsonDecode(payload) as Map<String, dynamic>;
-          debugPrint('🔍 DEBUG JWT claims: user_id=${claims['user_id']}, sub=${claims['sub']}');
-          debugPrint('🔍 DEBUG JWT user_id type: ${claims['user_id'].runtimeType}');
-          debugPrint('🔍 DEBUG JWT user_id length: ${claims['user_id']?.toString().length}');
-          debugPrint('🔍 DEBUG JWT: Is user_id a public key hex? ${(claims['user_id']?.toString().length ?? 0) > 60 ? "YES (looks like hex)" : "NO (looks like integer ID — THIS IS THE BUG)"}');
-        }
-      } catch (e) {
-        debugPrint('🔍 DEBUG: Failed to decode JWT: $e');
-      }
 
       return PowerSyncCredentials(
         endpoint: _cachedEndpoint!,
         token: tokenResponse.token,
       );
-    } catch (e, stack) {
-      debugPrint('⚡ PowerSync: ERROR - Failed to fetch credentials: $e');
-      debugPrintStack(stackTrace: stack);
+    } catch (e) {
       return null;
     }
   }
 
   @override
   Future<void> uploadData(PowerSyncDatabase database) async {
-    debugPrint('⚡ PowerSync: uploadData() called');
-
     // Check if client has auth credentials before trying to upload
     final authHeader = await _client.authKeyProvider?.authHeaderValue;
-    if (authHeader == null) {
-      debugPrint('⚡ PowerSync: Skipping upload - no auth credentials');
-      return;
-    }
-
-    // DEBUG: Log table state at start of upload
-    debugPrint('🔍 DEBUG uploadData() called — checking table state');
+    if (authHeader == null) return;
 
     // Process all pending CRUD transactions
-    int transactionCount = 0;
     while (true) {
       final transaction = await database.getNextCrudTransaction();
-      if (transaction == null) {
-        if (transactionCount > 0) {
-          debugPrint('⚡ PowerSync: Completed upload of $transactionCount transactions');
-          // DEBUG: Log table state after all uploads
-          try {
-            final aesthetics = await database.getAll('SELECT id, icon, emoji FROM template_aesthetics');
-            debugPrint('🔍 DEBUG post-upload template_aesthetics: ${aesthetics.length} rows');
-            for (final row in aesthetics) {
-              debugPrint('🔍 DEBUG post-upload   icon=${row['icon']}, emoji=${row['emoji']}');
-            }
-          } catch (e) {
-            debugPrint('🔍 DEBUG post-upload table check failed: $e');
-          }
-        } else {
-          debugPrint('⚡ PowerSync: No pending transactions to upload');
-        }
-        break;
-      }
-      transactionCount++;
-
-      debugPrint(
-        '⚡ PowerSync: Uploading transaction #${transaction.transactionId} with ${transaction.crud.length} ops',
-      );
+      if (transaction == null) break;
 
       try {
         // Send changes to Serverpod sync endpoints
@@ -401,14 +246,11 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
         }
 
         await transaction.complete();
-        debugPrint(
-          '⚡ PowerSync: Completed transaction #${transaction.transactionId}',
-        );
       } catch (e, stack) {
-        debugPrint(
-          '⚡ PowerSync: ERROR - Upload failed for transaction #${transaction.transactionId}: $e',
+        debugPrintStack(
+          stackTrace: stack,
+          label: 'PowerSync upload failed for transaction #${transaction.transactionId}: $e',
         );
-        debugPrintStack(stackTrace: stack);
         // Don't complete transaction - will retry later
         rethrow;
       }
@@ -417,9 +259,6 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
 
   Future<void> _syncOperation(CrudEntry op) async {
     final data = op.opData;
-    debugPrint(
-      '⚡ PowerSync: Syncing op: ${op.op.name} table: ${op.table} id: ${op.id}',
-    );
     switch (op.op) {
       case UpdateType.put:
         switch (op.table) {
@@ -450,8 +289,6 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
               op.id,
               (data?['encrypted_data'] as String?) ?? '',
             );
-          default:
-            debugPrint('⚡ PowerSync: WARN - Unknown table for PUT: ${op.table}');
         }
       case UpdateType.patch:
         switch (op.table) {
@@ -462,11 +299,7 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
             //   op.id,
             //   (data?['marked_at'] as String?) ?? DateTime.now().toIso8601String(),
             // );
-            debugPrint(
-              '⚡ PowerSync: Notification patch sync disabled (endpoint not available)',
-            );
-          default:
-            debugPrint('⚡ PowerSync: WARN - Unknown table for PATCH: ${op.table}');
+            break;
         }
       case UpdateType.delete:
         switch (op.table) {
@@ -486,11 +319,7 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
             // TODO: Re-enable when notificationSync endpoint is implemented
             // User dismissed notification (soft delete via marked_at)
             // await _client.modules.community.notificationSync.dismiss(op.id);
-            debugPrint(
-              '⚡ PowerSync: Notification delete sync disabled (endpoint not available)',
-            );
-          default:
-            debugPrint('⚡ PowerSync: WARN - Unknown table for DELETE: ${op.table}');
+            break;
         }
     }
   }
