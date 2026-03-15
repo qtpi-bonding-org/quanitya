@@ -3,6 +3,7 @@ import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     show Client, RailCatalogEntry;
 
+import '../../features/app_operating_mode/models/app_operating_mode.dart';
 import '../core/try_operation.dart';
 import '../platform/platform_capability_service.dart';
 import '../public_submission/public_submission_service.dart';
@@ -70,7 +71,7 @@ class PurchaseService implements IPurchaseService {
   }
 
   @override
-  Future<PurchaseValidationResult> purchase(PurchaseRequest request) {
+  Future<PurchaseValidationResult> purchase(PurchaseRequest request, {required AppOperatingMode mode}) {
     return tryMethod(
       () async {
         final provider = _providers[request.rail];
@@ -90,7 +91,7 @@ class PurchaseService implements IPurchaseService {
         if (validation.success) {
           // Refresh entitlements after successful purchase
           try {
-            await _entitlementService.getEntitlements();
+            await _entitlementService.getEntitlements(mode);
           } catch (e) {
             debugPrint('PurchaseService: Failed to refresh entitlements: $e');
           }
