@@ -15,6 +15,7 @@ import '../cubits/entitlement_cubit.dart';
 import '../cubits/entitlement_state.dart';
 import '../widgets/consumable_card.dart';
 import '../widgets/product_card.dart';
+import '../../app_operating_mode/cubits/app_operating_cubit.dart';
 import '../widgets/balance_display.dart';
 
 /// Purchase content — embedded in [NotebookShell] via OfficePage.
@@ -28,11 +29,12 @@ class PurchaseTabContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () async {
+        final mode = context.read<AppOperatingCubit>().state.mode;
         context.read<PurchaseCubit>().loadProducts();
         context.read<EntitlementCubit>()
-          ..loadEntitlements()
-          ..checkSyncAccess()
-          ..loadStorageUsage();
+          ..loadEntitlements(mode: mode)
+          ..checkSyncAccess(mode: mode)
+          ..loadStorageUsage(mode: mode);
       },
       child: ListView(
         padding: AppPadding.verticalSingle,
@@ -172,11 +174,13 @@ class PurchaseTabContent extends StatelessWidget {
   }
 
   void _onBuy(BuildContext context, PurchaseProduct product) {
+    final mode = context.read<AppOperatingCubit>().state.mode;
     context.read<PurchaseCubit>().purchase(
           PurchaseRequest(
             productId: product.productId,
             rail: product.rail,
           ),
+          mode: mode,
         );
   }
 }

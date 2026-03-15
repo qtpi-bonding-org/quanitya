@@ -7,6 +7,7 @@ import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../infrastructure/auth/auth_service.dart';
 import '../../../infrastructure/purchase/i_purchase_service.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
+import '../../../features/app_operating_mode/models/app_operating_mode.dart';
 import 'purchase_state.dart';
 
 @injectable
@@ -47,10 +48,10 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
     }, emitLoading: true);
   }
 
-  Future<void> purchase(PurchaseRequest request) async {
+  Future<void> purchase(PurchaseRequest request, {required AppOperatingMode mode}) async {
     await tryOperation(() async {
       await _ensureRegistered();
-      final result = await _purchaseService.purchase(request);
+      final result = await _purchaseService.purchase(request, mode: mode);
       analytics?.trackPurchaseCompleted(productId: request.productId);
       return state.copyWith(
         status: UiFlowStatus.success,

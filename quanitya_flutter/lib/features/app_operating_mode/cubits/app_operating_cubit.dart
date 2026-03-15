@@ -207,7 +207,7 @@ class AppOperatingCubit extends QuanityaCubit<AppOperatingState> {
       // Verify entitlement (sync days) before allowing cloud mode
       if (GetIt.instance.isRegistered<IEntitlementService>()) {
         final hasSyncAccess =
-            await GetIt.instance<IEntitlementService>().hasSyncAccess();
+            await GetIt.instance<IEntitlementService>().hasSyncAccess(AppOperatingMode.cloud);
         if (!hasSyncAccess) {
           throw const AppOperatingException(
             'Cloud access requires sync days. Purchase sync time to continue.',

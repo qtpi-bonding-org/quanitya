@@ -53,10 +53,11 @@ class _OfficePageState extends State<OfficePage> {
     if (index == 1 && !_purchasesLoaded) {
       _purchasesLoaded = true;
       context.read<PurchaseCubit>().loadProducts();
+      final mode = context.read<AppOperatingCubit>().state.mode;
       context.read<EntitlementCubit>()
-        ..loadEntitlements()
-        ..checkSyncAccess()
-        ..loadStorageUsage();
+        ..loadEntitlements(mode: mode)
+        ..checkSyncAccess(mode: mode)
+        ..loadStorageUsage(mode: mode);
     }
   }
 
