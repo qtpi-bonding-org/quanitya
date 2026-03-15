@@ -17,12 +17,10 @@ class ProductCard extends StatelessWidget {
     super.key,
     required this.product,
     required this.onBuy,
-    this.isLoading = false,
   });
 
   final PurchaseProduct product;
   final VoidCallback onBuy;
-  final bool isLoading;
 
   bool get _isSubscription =>
       product.productType == StoreProductType.subscription;
@@ -118,7 +116,7 @@ class ProductCard extends StatelessWidget {
 
     return Semantics(
       button: true,
-      enabled: !isLoading,
+      enabled: true,
       label: semanticParts.join(', '),
       excludeSemantics: true,
       child: Container(
@@ -207,21 +205,11 @@ class ProductCard extends StatelessWidget {
 
                 VSpace.x2,
 
-                // Action
-                if (isLoading)
-                  SizedBox(
-                    width: AppSizes.iconSmall,
-                    height: AppSizes.iconSmall,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: palette.interactableColor,
-                    ),
-                  )
-                else
-                  QuanityaTextButton(
-                    text: buttonLabel,
-                    onPressed: onBuy,
-                  ),
+                // Action — page-level overlay handles loading
+                QuanityaTextButton(
+                  text: buttonLabel,
+                  onPressed: onBuy,
+                ),
               ],
             ),
           ),

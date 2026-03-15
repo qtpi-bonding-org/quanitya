@@ -18,12 +18,10 @@ class ConsumableCard extends StatelessWidget {
     super.key,
     required this.product,
     required this.onBuy,
-    this.isLoading = false,
   });
 
   final PurchaseProduct product;
   final VoidCallback onBuy;
-  final bool isLoading;
 
   /// Formats price as a clean denomination — sub-dollar amounts use
   /// the cent symbol (e.g. "49¢") for a gift-card feel.
@@ -135,7 +133,7 @@ class ConsumableCard extends StatelessWidget {
 
     return Semantics(
       button: true,
-      enabled: !isLoading,
+      enabled: true,
       label: semanticParts.join(', '),
       excludeSemantics: true,
       child: Container(
@@ -230,21 +228,11 @@ class ConsumableCard extends StatelessWidget {
 
                 VSpace.x3,
 
-                // Action
-                if (isLoading)
-                  SizedBox(
-                    width: AppSizes.iconSmall,
-                    height: AppSizes.iconSmall,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: palette.interactableColor,
-                    ),
-                  )
-                else
-                  QuanityaTextButton(
-                    text: buttonLabel,
-                    onPressed: onBuy,
-                  ),
+                // Action — page-level overlay handles loading
+                QuanityaTextButton(
+                  text: buttonLabel,
+                  onPressed: onBuy,
+                ),
               ],
             ),
           ),

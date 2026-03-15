@@ -2,21 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:get_it/get_it.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/multi_ui_flow_listener.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../cubits/purchase_cubit.dart';
-import '../cubits/purchase_state.dart';
+import '../../app_operating_mode/cubits/app_operating_cubit.dart';
+import '../../app_operating_mode/models/app_operating_mode.dart';
 import '../cubits/entitlement_cubit.dart';
+import '../cubits/entitlement_message_mapper.dart';
 import '../cubits/entitlement_state.dart';
+import '../cubits/purchase_cubit.dart';
+import '../cubits/purchase_message_mapper.dart';
+import '../cubits/purchase_state.dart';
+import '../widgets/balance_display.dart';
 import '../widgets/consumable_card.dart';
 import '../widgets/product_card.dart';
-import '../../app_operating_mode/cubits/app_operating_cubit.dart';
-import '../widgets/balance_display.dart';
 
 /// Purchase content — embedded in [NotebookShell] via OfficePage.
 ///
@@ -27,148 +33,122 @@ class PurchaseTabContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        final mode = context.read<AppOperatingCubit>().state.mode;
-        context.read<PurchaseCubit>().loadProducts();
-        context.read<EntitlementCubit>()
-          ..loadEntitlements(mode: mode)
-          ..checkSyncAccess(mode: mode)
-          ..loadStorageUsage(mode: mode);
-      },
-      child: ListView(
-        padding: AppPadding.verticalSingle,
-        children: [
-          // Entitlement balance section
-          BlocBuilder<EntitlementCubit, EntitlementState>(
-            builder: (context, state) {
-              return BalanceDisplay(
-                entitlements: state.entitlements,
-                hasSyncAccess: state.hasSyncAccess,
-                storageBytes: state.storageBytes,
-                entryCount: state.entryCount,
-              );
-            },
-          ),
-
-          VSpace.x2,
-
-          // Products section
-          BlocBuilder<PurchaseCubit, PurchaseState>(
-            builder: (context, state) {
-              if (state.status == UiFlowStatus.loading &&
-                  state.lastOperation == PurchaseOperation.loadProducts) {
-                return Center(
-                  child: Padding(
-                    padding: AppPadding.allTriple,
-                    child: const CircularProgressIndicator(),
-                  ),
+    return MultiUiFlowListener(
+      listeners: [
+        (child) => UiFlowListener<PurchaseCubit, PurchaseState>(
+              mapper: GetIt.instance<PurchaseMessageMapper>(),
+              child: child,
+            ),
+        (child) => UiFlowListener<EntitlementCubit, EntitlementState>(
+              mapper: GetIt.instance<EntitlementMessageMapper>(),
+              child: child,
+            ),
+      ],
+      child: RefreshIndicator(
+        onRefresh: () async {
+          final mode = context.read<AppOperatingCubit>().state.mode;
+          context.read<PurchaseCubit>().loadProducts();
+          context.read<EntitlementCubit>()
+            ..loadEntitlements(mode: mode)
+            ..checkSyncAccess(mode: mode)
+            ..loadStorageUsage(mode: mode);
+        },
+        child: ListView(
+          padding: AppPadding.verticalSingle,
+          children: [
+            // Entitlement balance section
+            BlocBuilder<EntitlementCubit, EntitlementState>(
+              builder: (context, state) {
+                final mode = context.read<AppOperatingCubit>().state.mode;
+                return BalanceDisplay(
+                  entitlements: state.entitlements,
+                  hasSyncAccess: state.hasSyncAccess,
+                  storageBytes: state.storageBytes,
+                  entryCount: state.entryCount,
+                  hasError: state.hasError && mode.requiresServer,
+                  onRetry: () {
+                    context.read<EntitlementCubit>()
+                      ..loadEntitlements(mode: mode)
+                      ..checkSyncAccess(mode: mode);
+                  },
                 );
-              }
+              },
+            ),
 
-              if (state.status == UiFlowStatus.failure &&
-                  state.lastOperation == PurchaseOperation.loadProducts) {
-                return Center(
-                  child: Padding(
-                    padding: AppPadding.allTriple,
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: context.colors.errorColor,
-                        ),
-                        VSpace.x1,
-                        Text(
-                          context.l10n.purchaseLoadFailed,
-                          style: context.text.bodyMedium?.copyWith(
+            VSpace.x2,
+
+            // Products section
+            BlocBuilder<PurchaseCubit, PurchaseState>(
+              builder: (context, state) {
+                if (state.status == UiFlowStatus.loading &&
+                    state.lastOperation == PurchaseOperation.loadProducts) {
+                  return Center(
+                    child: Padding(
+                      padding: AppPadding.allTriple,
+                      child: const CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
+                if (state.status == UiFlowStatus.failure &&
+                    state.lastOperation == PurchaseOperation.loadProducts) {
+                  return Center(
+                    child: Padding(
+                      padding: AppPadding.allTriple,
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
                             color: context.colors.errorColor,
                           ),
-                        ),
-                        VSpace.x2,
-                        QuanityaTextButton(
-                          text: context.l10n.actionRetry,
-                          onPressed: () =>
-                              context.read<PurchaseCubit>().loadProducts(),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-
-              if (state.products.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: AppPadding.allTriple,
-                    child: Text(context.l10n.purchaseNoProducts),
-                  ),
-                );
-              }
-
-              final isPurchasing =
-                  state.status == UiFlowStatus.loading &&
-                      state.lastOperation == PurchaseOperation.purchase;
-
-              return _ProductSections(
-                products: state.products,
-                isPurchasing: isPurchasing,
-                onBuy: (product) => _onBuy(context, product),
-              );
-            },
-          ),
-
-          VSpace.x2,
-
-          // Restore purchases
-          Center(
-            child: QuanityaTextButton(
-              text: context.l10n.restorePurchases,
-              onPressed: () =>
-                  context.read<PurchaseCubit>().recoverPurchases(),
-            ),
-          ),
-          VSpace.x3,
-
-          // Validation result feedback
-          BlocBuilder<PurchaseCubit, PurchaseState>(
-            builder: (context, state) {
-              final validation = state.lastValidation;
-              if (validation == null) return const SizedBox.shrink();
-
-              final palette = QuanityaPalette.primary;
-              final feedbackColor = validation.success
-                  ? palette.successColor
-                  : palette.errorColor;
-
-              return Padding(
-                padding: AppPadding.pageHorizontal,
-                child: Row(
-                  children: [
-                    Icon(
-                      validation.success
-                          ? Icons.check_circle_outline
-                          : Icons.error_outline,
-                      color: feedbackColor,
-                      size: AppSizes.iconSmall,
-                    ),
-                    HSpace.x1,
-                    Expanded(
-                      child: Text(
-                        validation.success
-                            ? context.l10n.purchaseSuccessful
-                            : validation.errorMessage ??
-                                context.l10n.purchaseFailed,
-                        style: context.text.bodyMedium?.copyWith(
-                          color: feedbackColor,
-                        ),
+                          VSpace.x1,
+                          Text(
+                            context.l10n.purchaseLoadFailed,
+                            style: context.text.bodyMedium?.copyWith(
+                              color: context.colors.errorColor,
+                            ),
+                          ),
+                          VSpace.x2,
+                          QuanityaTextButton(
+                            text: context.l10n.actionRetry,
+                            onPressed: () =>
+                                context.read<PurchaseCubit>().loadProducts(),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
+                  );
+                }
+
+                if (state.products.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: AppPadding.allTriple,
+                      child: Text(context.l10n.purchaseNoProducts),
+                    ),
+                  );
+                }
+
+                return _ProductSections(
+                  products: state.products,
+                  onBuy: (product) => _onBuy(context, product),
+                );
+              },
+            ),
+
+            VSpace.x2,
+
+            // Restore purchases
+            Center(
+              child: QuanityaTextButton(
+                text: context.l10n.restorePurchases,
+                onPressed: () =>
+                    context.read<PurchaseCubit>().recoverPurchases(),
+              ),
+            ),
+            VSpace.x3,
+          ],
+        ),
       ),
     );
   }
@@ -192,12 +172,10 @@ class PurchaseTabContent extends StatelessWidget {
 class _ProductSections extends StatelessWidget {
   const _ProductSections({
     required this.products,
-    required this.isPurchasing,
     required this.onBuy,
   });
 
   final List<PurchaseProduct> products;
-  final bool isPurchasing;
   final void Function(PurchaseProduct) onBuy;
 
   static const _typeOrder = [
@@ -249,7 +227,6 @@ class _ProductSections extends StatelessWidget {
                           width: AppSizes.space * 20,
                           child: ConsumableCard(
                             product: product,
-                            isLoading: isPurchasing,
                             onBuy: () => onBuy(product),
                           ),
                         ))
@@ -291,14 +268,12 @@ class _ProductSections extends StatelessWidget {
                 _PeriodColumn(
                   title: context.l10n.purchasePeriodMonthly,
                   products: monthly,
-                  isPurchasing: isPurchasing,
                   onBuy: onBuy,
                 ),
                 HSpace.x1,
                 _PeriodColumn(
                   title: context.l10n.purchasePeriodYearly,
                   products: yearly,
-                  isPurchasing: isPurchasing,
                   onBuy: onBuy,
                 ),
               ],
@@ -308,13 +283,11 @@ class _ProductSections extends StatelessWidget {
         else
           ...monthly.followedBy(yearly).map((product) => ProductCard(
                 product: product,
-                isLoading: isPurchasing,
                 onBuy: () => onBuy(product),
               )),
         // Unknown period — flat list sorted by price.
         ...rest.map((product) => ProductCard(
               product: product,
-              isLoading: isPurchasing,
               onBuy: () => onBuy(product),
             )),
       ],
@@ -334,13 +307,11 @@ class _PeriodColumn extends StatelessWidget {
   const _PeriodColumn({
     required this.title,
     required this.products,
-    required this.isPurchasing,
     required this.onBuy,
   });
 
   final String title;
   final List<PurchaseProduct> products;
-  final bool isPurchasing;
   final void Function(PurchaseProduct) onBuy;
 
   @override
@@ -362,7 +333,6 @@ class _PeriodColumn extends StatelessWidget {
               padding: EdgeInsets.only(bottom: AppSizes.space * 2),
               child: ProductCard(
                 product: product,
-                isLoading: isPurchasing,
                 onBuy: () => onBuy(product),
               ),
             )),

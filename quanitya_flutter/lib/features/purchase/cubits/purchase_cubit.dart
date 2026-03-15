@@ -51,12 +51,11 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
   Future<void> purchase(PurchaseRequest request, {required AppOperatingMode mode}) async {
     await tryOperation(() async {
       await _ensureRegistered();
-      final result = await _purchaseService.purchase(request, mode: mode);
+      await _purchaseService.purchase(request, mode: mode);
       analytics?.trackPurchaseCompleted(productId: request.productId);
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: PurchaseOperation.purchase,
-        lastValidation: result,
       );
     }, emitLoading: true);
   }

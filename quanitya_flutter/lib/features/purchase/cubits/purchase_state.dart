@@ -19,7 +19,6 @@ class PurchaseState with _$PurchaseState, UiFlowStateMixin implements IUiFlowSta
     Object? error,
     PurchaseOperation? lastOperation,
     @Default([]) List<PurchaseProduct> products,
-    PurchaseValidationResult? lastValidation,
     @Default([]) List<RailCatalogEntry> railCatalog,
   }) = _PurchaseState;
 }

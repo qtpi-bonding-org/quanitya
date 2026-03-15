@@ -17,12 +17,16 @@ class BalanceDisplay extends StatelessWidget {
     required this.hasSyncAccess,
     this.storageBytes,
     this.entryCount,
+    this.hasError = false,
+    this.onRetry,
   });
 
   final List<AccountEntitlement> entitlements;
   final bool hasSyncAccess;
   final int? storageBytes;
   final int? entryCount;
+  final bool hasError;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +122,30 @@ class BalanceDisplay extends StatelessWidget {
                 ),
               );
             }),
+          ],
+
+          // Error/retry — shown when entitlement fetch failed
+          if (hasError) ...[
+            VSpace.x1,
+            GestureDetector(
+              onTap: onRetry,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.refresh,
+                    color: palette.cautionColor,
+                    size: AppSizes.iconSmall,
+                  ),
+                  HSpace.x05,
+                  Text(
+                    context.l10n.entitlementRefreshFailed,
+                    style: context.text.bodySmall?.copyWith(
+                      color: palette.cautionColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ],
       ),
