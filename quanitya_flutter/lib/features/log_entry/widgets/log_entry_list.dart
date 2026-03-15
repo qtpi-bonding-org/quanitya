@@ -47,7 +47,7 @@ class LogEntryList extends StatelessWidget {
           final entry = entries[index];
           return Semantics(
             button: onEntryTap != null,
-            label: 'View log entry',
+            label: context.l10n.logEntryViewLabel,
             child: GestureDetector(
               onTap: onEntryTap != null ? () => onEntryTap!(entry) : null,
               behavior: HitTestBehavior.opaque,

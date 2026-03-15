@@ -329,7 +329,7 @@ class _StatsSummary extends StatelessWidget {
         Center(
           child: BooleanHeatmapChart(
             data: contributionData,
-            title: 'Logging activity',
+            title: context.l10n.resultsLoggingActivity,
             height: AppSizes.space * 20,
             trueColor: QuanityaPalette.category10[0],
             weeks: 12,

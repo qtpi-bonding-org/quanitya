@@ -47,6 +47,9 @@ class AnalysisBuilderPage extends StatefulWidget {
 }
 
 class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
+  static const _codeEditorFontFamily = 'monospace';
+  static const _codeEditorLineHeight = 1.6;
+
   bool _isGenerating = false;
   late final CodeController _codeController;
   String _lastSnippet = '';
@@ -263,16 +266,16 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
             cubit.updateSnippet(value);
           },
           textStyle: TextStyle(
-            fontFamily: 'monospace',
+            fontFamily: _codeEditorFontFamily,
             fontSize: AppSizes.fontSmall,
-            height: 1.6,
+            height: _codeEditorLineHeight,
           ),
           gutterStyle: GutterStyle(
             showLineNumbers: true,
             showFoldingHandles: false,
             showErrors: false,
             textStyle: TextStyle(
-              fontFamily: 'monospace',
+              fontFamily: _codeEditorFontFamily,
               fontSize: AppSizes.fontMini,
               color: QuanityaPalette.primary.textSecondary,
             ),

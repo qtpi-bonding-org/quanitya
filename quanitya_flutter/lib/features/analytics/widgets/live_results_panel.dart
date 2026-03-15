@@ -51,7 +51,7 @@ class LiveResultsPanel extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
           border: Border.all(
             color: QuanityaPalette.primary.successColor.withValues(alpha: 0.3),
-            width: 1,
+            width: AppSizes.borderWidth,
           ),
         ),
         child: Column(

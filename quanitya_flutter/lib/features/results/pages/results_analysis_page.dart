@@ -298,7 +298,7 @@ class _FieldAnalysisCard extends StatelessWidget {
       margin: EdgeInsets.only(bottom: AppSizes.space),
       child: Semantics(
         button: true,
-        label: 'Analyze field: ${fieldData.field.label}',
+        label: context.l10n.resultsAnalyzeField(fieldData.field.label),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
