@@ -14,8 +14,6 @@ import '../crypto/crypto_key_repository.dart';
 import '../crypto/data_encryption_service.dart';
 import '../crypto/interfaces/i_secure_storage.dart';
 import '../crypto/utils/hashcash.dart';
-import '../../features/app_operating_mode/repositories/app_operating_repository.dart';
-import '../../features/app_operating_mode/models/app_operating_mode.dart';
 import 'registration_payload.dart';
 
 /// Serverpod 3.x auth key provider using device public key as Bearer token
@@ -150,7 +148,6 @@ class AuthService {
   final IDataEncryptionService _encryption;
   final Client _client;
   final ISecureStorage _secureStorage;
-  final AppOperatingRepository _appOperatingRepository;
   late final AnonAccredAuthKeyProvider _authKeyProvider;
 
   static const _registrationPayloadKey = 'quanitya_registration_payload';
@@ -164,7 +161,6 @@ class AuthService {
     this._encryption,
     this._client,
     this._secureStorage,
-    this._appOperatingRepository,
   ) {
     _authKeyProvider = AnonAccredAuthKeyProvider(_keyRepository);
   }
@@ -303,7 +299,6 @@ class AuthService {
         if (_keyRepository.isCrossDeviceStorageAvailable) {
           try {
             final label = _keyRepository.crossDeviceLabel;
-            debugPrint('🔐 AuthService: Generating cross-device key ($label)...');
             final crossDeviceKeyDuo = await _keyRepository.generateCrossDeviceKey();
 
             // Encrypt symmetric key with cross-device key's encryption public key
@@ -325,11 +320,8 @@ class AuthService {
                 'label': label,
               }),
             );
-
-            debugPrint('🔐 AuthService: Cross-device key generated and stored');
           } catch (e) {
-            // Cross-device key is non-critical — log and continue
-            debugPrint('🔐 AuthService: Cross-device key generation failed (non-critical): $e');
+            // Cross-device key is non-critical — continue
           }
         }
 
@@ -373,30 +365,15 @@ class AuthService {
   Future<void> registerAccountWithServer({required String deviceLabel}) {
     return tryMethod(
       () async {
-        debugPrint(
-          '🔐 AuthService: registerAccountWithServer called with deviceLabel: "$deviceLabel"',
-        );
-
         // 1. Retrieve stored registration payload
-        debugPrint('🔐 AuthService: Retrieving stored registration payload...');
         final payload = await _getRegistrationPayload();
         if (payload == null) {
-          debugPrint('🔐 AuthService: ERROR - No registration payload found');
           throw const AccountCreationException(
             'No registration payload found - create account first',
           );
         }
-        debugPrint(
-          '🔐 AuthService: Registration payload found, devicePublicKeyHex length: ${payload.devicePublicKeyHex.length}',
-        );
-        debugPrint(
-          '🔐 AuthService: Registration payload devicePublicKeyHex prefix: ${payload.devicePublicKeyHex.length > 20 ? payload.devicePublicKeyHex.substring(0, 20) : payload.devicePublicKeyHex}...',
-        );
 
         // 2. Verify signature using the payload's own ultimatePublicKeyHex (self-consistent check)
-        debugPrint(
-          '🔐 AuthService: Verifying registration payload signature...',
-        );
         final signableData = payload.signableData;
         final signableBytes = Uint8List.fromList(signableData.codeUnits);
         final signatureBytes = base64Decode(payload.signature);
@@ -409,22 +386,12 @@ class AuthService {
             );
 
         if (!isValid) {
-          debugPrint(
-            '🔐 AuthService: ERROR - Registration payload signature verification failed',
-          );
           throw const AccountCreationException(
             'Registration payload signature verification failed - payload may be corrupted',
           );
         }
-        debugPrint(
-          '🔐 AuthService: Registration payload signature verified successfully',
-        );
 
         // 3. Register account with server
-        debugPrint('🔐 AuthService: Registering account with server...');
-        debugPrint(
-          '🔐 AuthService: Account registration params - devicePublicKeyHex: ${payload.devicePublicKeyHex.length} chars, recoveryBlob: ${payload.recoveryBlob.length} chars, ultimatePublicKeyHex: ${payload.ultimatePublicKeyHex.length} chars',
-        );
         try {
           // Account creation requires proof-of-work via accountRegistration endpoint
           final challengeResponse = await _client.accountRegistration.getChallenge();
@@ -445,15 +412,8 @@ class AuthService {
             encryptedDataKey: payload.recoveryBlob,
             ultimatePublicKey: payload.ultimatePublicKeyHex,
           );
-          debugPrint(
-            '🔐 AuthService: Account created successfully',
-          );
 
           // 4. Register device — uses ultimate key to look up account
-          debugPrint('🔐 AuthService: Registering device with server...');
-          debugPrint(
-            '🔐 AuthService: Device registration params - devicePublicKeyHex: ${payload.devicePublicKeyHex.length} chars, deviceBlob: ${payload.deviceBlob.length} chars, label: "$deviceLabel"',
-          );
           final deviceChallenge =
               await _client.modules.anonaccount.entrypoint.getChallenge();
           final devicePow = await _computeProofOfWork(
@@ -474,7 +434,6 @@ class AuthService {
             encryptedDataKey: payload.deviceBlob,
             label: deviceLabel,
           );
-          debugPrint('🔐 AuthService: Device registered successfully');
 
           // 4.5. Register cross-device key if prepared during createAccount
           try {
@@ -485,7 +444,6 @@ class AuthService {
               final blob = data['blob'] as String;
               final label = data['label'] as String;
 
-              debugPrint('🔐 AuthService: Registering cross-device key ($label) with server...');
               final crossChallenge =
                   await _client.modules.anonaccount.entrypoint.getChallenge();
               final crossPow = await _computeProofOfWork(
@@ -512,14 +470,12 @@ class AuthService {
                 encryptedDataKey: blob,
                 label: label,
               );
-              debugPrint('🔐 AuthService: Cross-device key registered');
 
               // Clean up the stored blob
               await _secureStorage.deleteSecureData(_crossDeviceRegistrationBlobKey);
             }
           } catch (e) {
             // Cross-device registration is non-critical
-            debugPrint('🔐 AuthService: Cross-device key registration failed (non-critical): $e');
           }
 
           // 5. Mark device as registered with server
@@ -527,18 +483,7 @@ class AuthService {
             _registeredWithServerKey,
             'true',
           );
-
-          // 6. Switch app to cloud mode after successful server registration
-          debugPrint('🔐 AuthService: Switching app to cloud mode...');
-          await _appOperatingRepository.updateMode(AppOperatingMode.cloud);
-          debugPrint('🔐 AuthService: App switched to cloud mode successfully');
-        } catch (serverError, serverStackTrace) {
-          debugPrint(
-            '🔐 AuthService: Server error during registration: $serverError',
-          );
-          debugPrint(
-            '🔐 AuthService: Server error stack trace: $serverStackTrace',
-          );
+        } catch (serverError) {
           rethrow;
         }
       },
@@ -682,13 +627,6 @@ class AuthService {
           'true',
         );
 
-        // 10. Switch app to cloud mode after successful recovery
-        debugPrint(
-          '🔐 AuthService: Switching app to cloud mode after recovery...',
-        );
-        await _appOperatingRepository.updateMode(AppOperatingMode.cloud);
-        debugPrint('🔐 AuthService: App switched to cloud mode successfully');
-
         // Note: Ultimate key is NOT stored - it was only used for this recovery operation
       },
       (message, [cause]) => AccountRecoveryException(message, cause: cause),
@@ -711,9 +649,6 @@ class AuthService {
   Future<void> recoverFromCrossDeviceKey({required String deviceLabel}) {
     return tryMethod(
       () async {
-        final crossDeviceLabel = _keyRepository.crossDeviceLabel;
-        debugPrint('🔐 AuthService: Starting cross-device key recovery ($crossDeviceLabel)...');
-
         // 1. Get cross-device key
         final crossDeviceKeyDuo = await _keyRepository.getCrossDeviceKey();
         if (crossDeviceKeyDuo == null) {
@@ -724,7 +659,6 @@ class AuthService {
 
         // 2. Auth with server using cross-device key
         final crossDeviceKeyHex = await crossDeviceKeyDuo.signingKeyPair.exportPublicKeyHex();
-        debugPrint('🔐 AuthService: Authenticating with cross-device key...');
 
         final authChallengeResponse =
             await _client.modules.anonaccount.entrypoint.getChallenge();
@@ -750,7 +684,6 @@ class AuthService {
             authResult.errorMessage ?? 'Cross-device key authentication failed',
           );
         }
-        debugPrint('🔐 AuthService: Cross-device key authenticated');
 
         // 3. Get encrypted data key for cross-device entry
         final deviceInfoChallenge =
@@ -783,7 +716,6 @@ class AuthService {
           deviceDataKeyResponse.encryptedDataKey,
           privateKey,
         );
-        debugPrint('🔐 AuthService: Symmetric key recovered from cross-device entry');
 
         // 5. Generate new local device key
         await _keyRepository.generateAndStoreDeviceKey();
@@ -806,7 +738,6 @@ class AuthService {
           localBlob,
           deviceLabel,
         );
-        debugPrint('🔐 AuthService: New local device registered');
 
         // 7. Store symmetric key locally
         await _keyRepository.storeSymmetricDataKeyJwk(symmetricKeyJwk);
@@ -816,10 +747,6 @@ class AuthService {
           _registeredWithServerKey,
           'true',
         );
-
-        // 9. Switch app to cloud mode
-        await _appOperatingRepository.updateMode(AppOperatingMode.cloud);
-        debugPrint('🔐 AuthService: Cross-device key recovery complete');
       },
       (message, [cause]) => AccountRecoveryException(message, cause: cause),
       'recoverFromCrossDeviceKey',
@@ -836,7 +763,6 @@ class AuthService {
     return tryMethod(
       () async {
         final label = _keyRepository.crossDeviceLabel;
-        debugPrint('🔐 AuthService: Recreating cross-device key ($label)...');
 
         // Get symmetric key to create encrypted blob
         final symmetricKeyJwk = await _keyRepository.getSymmetricDataKeyJwk();
@@ -860,8 +786,6 @@ class AuthService {
           crossDeviceBlob,
           label,
         );
-
-        debugPrint('🔐 AuthService: Cross-device key recreated and registered');
       },
       _wrapAuthError,
       'recreateCrossDeviceKey',
