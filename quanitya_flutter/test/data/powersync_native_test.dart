@@ -40,38 +40,30 @@ void main() {
       expect(rows.first['encrypted_data'], equals('encrypted-blob-data'));
     });
 
-    test('can write and read from template_aesthetics table', () async {
+    test('can write and read from encrypted_template_aesthetics table', () async {
       await db.execute(
-        'INSERT INTO template_aesthetics '
-        '(id, template_id, theme_name, icon, emoji, palette_json, font_config_json, color_mappings_json, container_style, updated_at) '
-        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO encrypted_template_aesthetics '
+        '(id, encrypted_data, updated_at) '
+        'VALUES (?, ?, ?)',
         [
           'aes-1',
-          'tmpl-1',
-          'default',
-          'star',
-          '',
-          '{}',
-          '{}',
-          '{}',
-          'card',
+          'encrypted-aesthetics-blob',
           '2026-03-12T00:00:00Z',
         ],
       );
 
-      final rows = await db.getAll('SELECT * FROM template_aesthetics');
+      final rows = await db.getAll('SELECT * FROM encrypted_template_aesthetics');
       expect(rows.length, equals(1));
-      expect(rows.first['template_id'], equals('tmpl-1'));
+      expect(rows.first['encrypted_data'], equals('encrypted-aesthetics-blob'));
     });
 
     test('can write and read from notifications table', () async {
       await db.execute(
         'INSERT INTO notifications '
-        '(id, account_id, title, message, type, created_at, expires_at, updated_at) '
-        'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        '(id, title, message, type, created_at, expires_at, updated_at) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?)',
         [
           'notif-1',
-          'user-42',
           'Welcome',
           'Hello!',
           'inform',
@@ -107,11 +99,10 @@ void main() {
       // Write via PowerSync raw SQL
       await dbs.powerSync.execute(
         'INSERT INTO notifications '
-        '(id, account_id, title, message, type, created_at, expires_at, updated_at) '
-        'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        '(id, title, message, type, created_at, expires_at, updated_at) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?)',
         [
           'notif-drift',
-          'user-1',
           'Drift Test',
           'Read via Drift',
           'inform',

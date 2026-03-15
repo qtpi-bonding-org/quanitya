@@ -36,8 +36,7 @@ void main() {
     blocTest<PurchaseCubit, PurchaseState>(
       'loadProducts emits loading then success with products',
       build: () {
-        when(() => mockService.getProducts(rail: any(named: 'rail')))
-            .thenAnswer(
+        when(() => mockService.getProducts()).thenAnswer(
           (_) async => [
             const PurchaseProduct(
               productId: 'sync_1gb_month',
@@ -59,6 +58,12 @@ void main() {
       },
       act: (cubit) => cubit.loadProducts(),
       expect: () => [
+        predicate<PurchaseState>(
+          (s) =>
+              s.status == UiFlowStatus.idle &&
+              s.lastOperation == PurchaseOperation.loadProducts,
+          'idle state with operation set',
+        ),
         predicate<PurchaseState>(
           (s) => s.status == UiFlowStatus.loading,
           'loading state',

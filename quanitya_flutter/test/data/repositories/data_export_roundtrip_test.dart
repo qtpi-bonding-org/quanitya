@@ -348,7 +348,7 @@ void main() {
       final jsonString = jsonEncode(exportData);
       final reimported = jsonDecode(jsonString) as Map<String, dynamic>;
 
-      expect(reimported['schemaVersion'], equals(5));
+      expect(reimported['schemaVersion'], equals(1));
       expect(reimported['format'], equals('raw_tables'));
       expect(reimported['exportedAt'], isA<String>());
     });

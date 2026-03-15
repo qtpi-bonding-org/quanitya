@@ -268,8 +268,8 @@ void main() {
         await service.sync([HealthDataType.STEPS]);
         await service.sync([HealthDataType.STEPS]);
 
-        // findByName should only be called once (second time uses cache)
-        verify(mockTemplateQueryDao.findByName('Steps')).called(1);
+        // findByName is called once per sync (no cross-sync caching)
+        verify(mockTemplateQueryDao.findByName('Steps')).called(2);
       });
     });
   });

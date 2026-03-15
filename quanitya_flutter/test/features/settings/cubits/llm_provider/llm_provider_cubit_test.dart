@@ -167,6 +167,7 @@ void main() {
     test('returns LlmConfig for Ollama config', () async {
       await configRepo.save(LlmProviderConfigModel(
         id: 'ollama-config',
+        provider: LlmProvider.ollama,
         baseUrl: 'http://localhost:11434/v1',
         modelId: 'llama3',
         lastUsedAt: DateTime.now(),
