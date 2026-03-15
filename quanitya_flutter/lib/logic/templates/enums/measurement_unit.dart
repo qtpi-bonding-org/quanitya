@@ -70,10 +70,9 @@ enum MeasurementUnit {
   kilowattHours(MeasurementDimension.energy, 'kWh', 'Kilowatt Hours'),
 
   // -- Frequency --------------------------------------------------------------
-  hertz(MeasurementDimension.frequency, 'Hz', 'Hertz'),
-  beatsPerMinute(MeasurementDimension.frequency, 'bpm', 'Beats per Minute'),
-  revolutionsPerMinute(MeasurementDimension.frequency, 'rpm', 'Revolutions per Minute'),
-  breathsPerMinute(MeasurementDimension.frequency, 'br/min', 'Breaths per Minute');
+  hertz(MeasurementDimension.frequency, 'Hz', 'Per Second'),
+  perMinute(MeasurementDimension.frequency, '/min', 'Per Minute'),
+  perHour(MeasurementDimension.frequency, '/h', 'Per Hour');
 
   const MeasurementUnit(
     this.measurementDimension,
