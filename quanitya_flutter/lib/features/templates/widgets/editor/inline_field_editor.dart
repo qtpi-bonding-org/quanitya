@@ -15,6 +15,7 @@ import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya_text_field.dart';
+import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
@@ -279,28 +280,29 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
           ),
         ),
         VSpace.x05,
-        // Group units by dimension
-        for (final dimension in MeasurementDimension.values) ...[
-          Text(
-            _getDimensionDisplayName(context, dimension),
-            style: context.text.bodySmall?.copyWith(
-              color: draftColor.withValues(alpha: 0.6),
+        // Group units by dimension, each in a collapsible fold
+        for (final dimension in MeasurementDimension.values)
+          NotebookFold(
+            initiallyExpanded: _selectedUnit?.measurementDimension == dimension,
+            semanticLabel: _getDimensionDisplayName(context, dimension),
+            header: Text(
+              _getDimensionDisplayName(context, dimension),
+              style: context.text.bodySmall?.copyWith(
+                color: draftColor.withValues(alpha: 0.6),
+              ),
+            ),
+            child: Wrap(
+              spacing: AppSizes.space,
+              runSpacing: AppSizes.space * 0.5,
+              children: MeasurementUnit.unitsFor(dimension).map((unit) =>
+                _DraftChip(
+                  label: '${unit.fullName} (${unit.displayName})',
+                  isSelected: _selectedUnit == unit,
+                  onTap: () => setState(() => _selectedUnit = unit),
+                ),
+              ).toList(),
             ),
           ),
-          VSpace.x025,
-          Wrap(
-            spacing: AppSizes.space,
-            runSpacing: AppSizes.space * 0.5,
-            children: MeasurementUnit.unitsFor(dimension).map((unit) =>
-              _DraftChip(
-                label: '${unit.fullName} (${unit.displayName})',
-                isSelected: _selectedUnit == unit,
-                onTap: () => setState(() => _selectedUnit = unit),
-              ),
-            ).toList(),
-          ),
-          VSpace.x05,
-        ],
       ],
     );
   }
