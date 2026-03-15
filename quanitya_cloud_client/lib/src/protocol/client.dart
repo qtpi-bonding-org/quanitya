@@ -148,26 +148,6 @@ class EndpointAccountRegistration extends _i3.EndpointPowProtected {
     },
   );
 
-  /// Look up account for recovery with proof-of-work verification.
-  ///
-  /// Requires PoW to prevent brute-force probing of public keys.
-  /// Returns [AnonAccount] if found, or `null` if no account matches.
-  _i2.Future<_i3.AnonAccount?> getAccountForRecovery({
-    required String challenge,
-    required String proofOfWork,
-    required String ultimatePublicKey,
-    required String signature,
-  }) => caller.callServerEndpoint<_i3.AnonAccount?>(
-    'accountRegistration',
-    'getAccountForRecovery',
-    {
-      'challenge': challenge,
-      'proofOfWork': proofOfWork,
-      'ultimatePublicKey': ultimatePublicKey,
-      'signature': signature,
-    },
-  );
-
   /// Get challenge for proof-of-work.
   ///
   /// Returns a challenge string, difficulty, and expiration timestamp.

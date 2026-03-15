@@ -7,7 +7,7 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:serverpod_client/serverpod_client.dart'
     show ClientAuthKeyProvider;
 import 'package:anonaccount_client/anonaccount_client.dart'
-    show AccountDevice, AccountMethods, AuthenticationResult, DeviceMethods;
+    show AccountDevice, AccountMethods, AuthenticationResult, DataKeyMethods, DeviceMethods;
 
 import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
@@ -597,31 +597,25 @@ class AuthService {
         final ultimatePublicKeyHex = await ultimateKeyDuo.signingKeyPair
             .exportPublicKeyHex();
 
-        // 3. Look up account on server (PoW-protected)
+        // 3. Recover encrypted data key from server (PoW-protected)
         final challengeResponse =
-            await _client.accountRegistration.getChallenge();
+            await _client.modules.anonaccount.entrypoint.getChallenge();
         final proofOfWork = await _computeProofOfWork(
           challengeResponse.challenge,
           challengeResponse.difficulty,
         );
         final recoveryPayload =
-            '${challengeResponse.challenge}:${AccountMethods.getAccountForRecovery}:$ultimatePublicKeyHex';
+            '${challengeResponse.challenge}:${DataKeyMethods.recoverEncryptedDataKey}:$ultimatePublicKeyHex';
         final recoverySig =
             await _encryption.signWithKeyDuo(recoveryPayload, ultimateKeyDuo);
 
-        final account = await _client.accountRegistration
-            .getAccountForRecovery(
+        final dataKeyResponse = await _client.modules.anonaccount.dataKey
+            .recoverEncryptedDataKey(
           challenge: challengeResponse.challenge,
           proofOfWork: proofOfWork,
-          ultimatePublicKey: ultimatePublicKeyHex,
+          ultimateSigningPublicKeyHex: ultimatePublicKeyHex,
           signature: recoverySig,
         );
-
-        if (account == null) {
-          throw const AccountRecoveryException(
-            'No account found for this recovery key',
-          );
-        }
 
         // 4. Decrypt recovery blob to get symmetric key
         final privateKey = ultimateKeyDuo.encryption.privateKey;
@@ -632,7 +626,7 @@ class AuthService {
         }
 
         final symmetricKeyJwk = await _encryption.decryptBlob(
-          account.encryptedDataKey,
+          dataKeyResponse.encryptedDataKey,
           privateKey,
         );
 
@@ -766,22 +760,17 @@ class AuthService {
           deviceInfoChallenge.difficulty,
         );
         final deviceInfoSignPayload =
-            '${deviceInfoChallenge.challenge}:${DeviceMethods.getDeviceBySigningKey}:$crossDeviceKeyHex';
+            '${deviceInfoChallenge.challenge}:${DataKeyMethods.retrieveEncryptedDataKey}:$crossDeviceKeyHex';
         final deviceInfoSignature =
             await _encryption.signWithKeyDuo(deviceInfoSignPayload, crossDeviceKeyDuo);
 
-        final deviceInfo = await _client.modules.anonaccount.device
-            .getDeviceBySigningKey(
+        final deviceDataKeyResponse = await _client.modules.anonaccount.dataKey
+            .retrieveEncryptedDataKey(
           challenge: deviceInfoChallenge.challenge,
           proofOfWork: deviceInfoPow,
           signature: deviceInfoSignature,
-          signingPublicKeyHex: crossDeviceKeyHex,
+          deviceSigningPublicKeyHex: crossDeviceKeyHex,
         );
-        if (deviceInfo == null) {
-          throw const AccountRecoveryException(
-            'Cross-device entry not found on server',
-          );
-        }
 
         // 4. Decrypt to recover symmetric data key
         final privateKey = crossDeviceKeyDuo.encryption.privateKey;
@@ -791,7 +780,7 @@ class AuthService {
           );
         }
         final symmetricKeyJwk = await _encryption.decryptBlob(
-          deviceInfo.encryptedDataKey,
+          deviceDataKeyResponse.encryptedDataKey,
           privateKey,
         );
         debugPrint('🔐 AuthService: Symmetric key recovered from cross-device entry');
