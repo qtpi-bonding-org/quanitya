@@ -214,42 +214,31 @@ check_flutter() {
     log_success "Flutter available: $(flutter --version | head -n1)"
 }
 
-# Setup PowerSync web assets
+# Setup PowerSync web assets (SQLCipher-enabled)
 setup_powersync_web() {
-    log_info "Setting up PowerSync web assets..."
+    log_info "Setting up PowerSync SQLCipher web assets..."
     mkdir -p web
-    
-    if [[ -f "web/sqlite3.wasm" && -f "web/powersync_db.worker.js" ]]; then
-        log_success "PowerSync assets already exist"
-        return
-    fi
-    
-    log_info "Downloading sqlite3.wasm..."
-    if ! curl -L -o web/sqlite3.wasm "https://github.com/powersync-ja/powersync.dart/releases/download/powersync-v1.17.0/sqlite3.wasm"; then
-        log_error "Failed to download sqlite3.wasm"
+
+    # Use the official setup command from powersync_sqlcipher — downloads the
+    # SQLCipher-enabled sqlite3.wasm and powersync_db.worker.js into web/.
+    # This replaces manual curl downloads; the package version is pinned in pubspec.yaml.
+    if ! dart run powersync_sqlcipher:setup_web; then
+        log_error "Failed to set up powersync_sqlcipher web assets"
         exit 1
     fi
-    
-    log_info "Downloading powersync_db.worker.js..."
-    if ! curl -L -o web/powersync_db.worker.js "https://github.com/powersync-ja/powersync.dart/releases/download/powersync-v1.17.0/powersync_db.worker.js"; then
-        log_error "Failed to download powersync_db.worker.js"
-        exit 1
-    fi
-    
+
     # Verify assets
     if [[ ! -f "web/sqlite3.wasm" ]]; then
-        log_error "sqlite3.wasm not found after download"
+        log_error "sqlite3.wasm not found after setup"
         exit 1
     fi
-    
-    if [[ ! -f "web/powersync_db.worker.js" ]]; then
-        log_error "powersync_db.worker.js not found after download"
-        exit 1
-    fi
-    
 
-    
-    log_success "PowerSync web assets downloaded and configured"
+    if [[ ! -f "web/powersync_db.worker.js" ]]; then
+        log_error "powersync_db.worker.js not found after setup"
+        exit 1
+    fi
+
+    log_success "PowerSync SQLCipher web assets configured"
 }
 
 # Setup environment file
