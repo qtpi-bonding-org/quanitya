@@ -52,9 +52,12 @@ void main() {
         expect(units.length, equals(7));
       });
 
-      test('returns empty list for compound dimensions without units', () {
+      test('returns speed units for Dimension.velocity', () {
         final units = service.getUnitsForDimension(Dimension.velocity);
-        expect(units, isEmpty);
+        expect(units, contains(MeasurementUnit.kilometersPerHour));
+        expect(units, contains(MeasurementUnit.milesPerHour));
+        expect(units, contains(MeasurementUnit.metersPerSecond));
+        expect(units.length, equals(3));
       });
     });
 

@@ -2,51 +2,66 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 import 'package:quanitya_flutter/infrastructure/crypto/models/account_keys.dart';
 
+/// Whether webcrypto native symbols are available in this test environment.
+/// Set once in setUpAll; checked by each test.
+bool _webcryptoAvailable = true;
+
 void main() {
   group('AccountKeys', () {
-    late IKeyDuo mockUltimateKeys;
-    late IKeyDuo mockDeviceKeys;
-    
+    IKeyDuo? ultimateKeys;
+    IKeyDuo? deviceKeys;
+
+    setUpAll(() async {
+      try {
+        await GenerationService.generateKeyDuo();
+      } on UnsupportedError {
+        _webcryptoAvailable = false;
+      }
+    });
+
     setUp(() async {
-      // Generate real key duos for testing using new ECDH-based GenerationService
-      mockUltimateKeys = await GenerationService.generateKeyDuo();
-      mockDeviceKeys = await GenerationService.generateKeyDuo();
+      if (!_webcryptoAvailable) return;
+      ultimateKeys = await GenerationService.generateKeyDuo();
+      deviceKeys = await GenerationService.generateKeyDuo();
     });
 
     test('creates AccountKeys with required fields', () {
-      // Arrange
+      if (!_webcryptoAvailable) {
+        markTestSkipped('webcrypto native library not available');
+        return;
+      }
       const symmetricDataKey = 'test-symmetric-key';
       const recoveryBlob = 'test-recovery-blob';
       const deviceBlob = 'test-device-blob';
 
-      // Act
       final accountKeys = AccountKeys(
-        ultimateKeys: mockUltimateKeys,
-        deviceKeys: mockDeviceKeys,
+        ultimateKeys: ultimateKeys!,
+        deviceKeys: deviceKeys!,
         symmetricDataKey: symmetricDataKey,
         recoveryBlob: recoveryBlob,
         deviceBlob: deviceBlob,
       );
 
-      // Assert
-      expect(accountKeys.ultimateKeys, equals(mockUltimateKeys));
-      expect(accountKeys.deviceKeys, equals(mockDeviceKeys));
+      expect(accountKeys.ultimateKeys, equals(ultimateKeys));
+      expect(accountKeys.deviceKeys, equals(deviceKeys));
       expect(accountKeys.symmetricDataKey, equals(symmetricDataKey));
       expect(accountKeys.recoveryBlob, equals(recoveryBlob));
       expect(accountKeys.deviceBlob, equals(deviceBlob));
     });
 
     test('provides access to key duo properties', () {
-      // Arrange
+      if (!_webcryptoAvailable) {
+        markTestSkipped('webcrypto native library not available');
+        return;
+      }
       final accountKeys = AccountKeys(
-        ultimateKeys: mockUltimateKeys,
-        deviceKeys: mockDeviceKeys,
+        ultimateKeys: ultimateKeys!,
+        deviceKeys: deviceKeys!,
         symmetricDataKey: 'test-key',
         recoveryBlob: 'test-recovery',
         deviceBlob: 'test-device',
       );
 
-      // Act & Assert
       expect(accountKeys.ultimateKeys.signing, isNotNull);
       expect(accountKeys.ultimateKeys.encryption, isNotNull);
       expect(accountKeys.deviceKeys.signing, isNotNull);
@@ -54,16 +69,18 @@ void main() {
     });
 
     test('key duos have private keys available', () {
-      // Arrange
+      if (!_webcryptoAvailable) {
+        markTestSkipped('webcrypto native library not available');
+        return;
+      }
       final accountKeys = AccountKeys(
-        ultimateKeys: mockUltimateKeys,
-        deviceKeys: mockDeviceKeys,
+        ultimateKeys: ultimateKeys!,
+        deviceKeys: deviceKeys!,
         symmetricDataKey: 'test-key',
         recoveryBlob: 'test-recovery',
         deviceBlob: 'test-device',
       );
 
-      // Act & Assert
       expect(accountKeys.ultimateKeys.signing.hasPrivateKey, isTrue);
       expect(accountKeys.ultimateKeys.encryption.hasPrivateKey, isTrue);
       expect(accountKeys.deviceKeys.signing.hasPrivateKey, isTrue);
