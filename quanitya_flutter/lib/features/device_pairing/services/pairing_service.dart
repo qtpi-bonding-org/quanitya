@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:anonaccount_client/anonaccount_client.dart';
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
@@ -208,13 +209,13 @@ class PairingService implements IPairingService {
     try {
       // PoW flow for monitorRegistration
       final challengeResponse =
-          await _client.modules.anonaccount.device.getChallenge();
+          await _client.modules.anonaccount.entrypoint.getChallenge();
       final proofOfWork = await Hashcash.mint(
         challengeResponse.challenge,
         difficulty: challengeResponse.difficulty,
       );
       final signPayload =
-          '${challengeResponse.challenge}:monitorRegistration:$signingKeyHex';
+          '${challengeResponse.challenge}:${DeviceMethods.monitorRegistration}:$signingKeyHex';
       final signature = await _encryption.signWithDeviceKey(signPayload);
 
       final stream = _client.modules.anonaccount.device.monitorRegistration(

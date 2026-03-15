@@ -7,7 +7,7 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:serverpod_client/serverpod_client.dart'
     show ClientAuthKeyProvider;
 import 'package:anonaccount_client/anonaccount_client.dart'
-    show AuthenticationResult, AccountDevice;
+    show AccountDevice, AccountMethods, AuthenticationResult, DeviceMethods;
 
 import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
@@ -433,7 +433,7 @@ class AuthService {
             challengeResponse.difficulty,
           );
           final signPayload =
-              '${challengeResponse.challenge}:createAccount:${payload.ultimatePublicKeyHex}';
+              '${challengeResponse.challenge}:${AccountMethods.createAccount}:${payload.ultimatePublicKeyHex}';
           final powSignature = await _encryption.signWithDeviceKey(signPayload);
 
           await _client.accountRegistration.createAccount(
@@ -455,13 +455,13 @@ class AuthService {
             '🔐 AuthService: Device registration params - devicePublicKeyHex: ${payload.devicePublicKeyHex.length} chars, deviceBlob: ${payload.deviceBlob.length} chars, label: "$deviceLabel"',
           );
           final deviceChallenge =
-              await _client.modules.anonaccount.device.getChallenge();
+              await _client.modules.anonaccount.entrypoint.getChallenge();
           final devicePow = await _computeProofOfWork(
             deviceChallenge.challenge,
             deviceChallenge.difficulty,
           );
           final deviceSignPayload =
-              '${deviceChallenge.challenge}:registerDevice:${payload.devicePublicKeyHex}';
+              '${deviceChallenge.challenge}:${DeviceMethods.registerDevice}:${payload.devicePublicKeyHex}';
           final deviceSignature =
               await _encryption.signWithDeviceKey(deviceSignPayload);
 
@@ -487,13 +487,13 @@ class AuthService {
 
               debugPrint('🔐 AuthService: Registering cross-device key ($label) with server...');
               final crossChallenge =
-                  await _client.modules.anonaccount.device.getChallenge();
+                  await _client.modules.anonaccount.entrypoint.getChallenge();
               final crossPow = await _computeProofOfWork(
                 crossChallenge.challenge,
                 crossChallenge.difficulty,
               );
               final crossSignPayload =
-                  '${crossChallenge.challenge}:registerDevice:$keyHex';
+                  '${crossChallenge.challenge}:${DeviceMethods.registerDevice}:$keyHex';
               final crossDeviceKeyDuo = await _keyRepository.getCrossDeviceKey();
               if (crossDeviceKeyDuo == null) {
                 throw const AccountCreationException(
@@ -605,7 +605,7 @@ class AuthService {
           challengeResponse.difficulty,
         );
         final recoveryPayload =
-            '${challengeResponse.challenge}:getAccountForRecovery:$ultimatePublicKeyHex';
+            '${challengeResponse.challenge}:${AccountMethods.getAccountForRecovery}:$ultimatePublicKeyHex';
         final recoverySig =
             await _encryption.signWithKeyDuo(recoveryPayload, ultimateKeyDuo);
 
@@ -659,13 +659,13 @@ class AuthService {
 
         // 7. Register new device with account (uses ultimate key, not int id)
         final regChallenge =
-            await _client.modules.anonaccount.device.getChallenge();
+            await _client.modules.anonaccount.entrypoint.getChallenge();
         final regPow = await _computeProofOfWork(
           regChallenge.challenge,
           regChallenge.difficulty,
         );
         final regSignPayload =
-            '${regChallenge.challenge}:registerDevice:$devicePublicKeyHex';
+            '${regChallenge.challenge}:${DeviceMethods.registerDevice}:$devicePublicKeyHex';
         final regSignature =
             await _encryption.signWithDeviceKey(regSignPayload);
 
@@ -733,26 +733,23 @@ class AuthService {
         debugPrint('🔐 AuthService: Authenticating with cross-device key...');
 
         final authChallengeResponse =
-            await _client.modules.anonaccount.device.getChallenge();
+            await _client.modules.anonaccount.entrypoint.getChallenge();
         final authPow = await _computeProofOfWork(
           authChallengeResponse.challenge,
           authChallengeResponse.difficulty,
         );
         final authSignPayload =
-            '${authChallengeResponse.challenge}:getSignableNonce:$crossDeviceKeyHex';
+            '${authChallengeResponse.challenge}:${DeviceMethods.signIn}:$crossDeviceKeyHex';
         final authPowSignature =
             await _encryption.signWithKeyDuo(authSignPayload, crossDeviceKeyDuo);
 
-        final challenge = await _client.modules.anonaccount.device
-            .getSignableNonce(
+        final authResult = await _client.modules.anonaccount.device
+            .signIn(
           challenge: authChallengeResponse.challenge,
           proofOfWork: authPow,
           signature: authPowSignature,
-          devicePublicKey: crossDeviceKeyHex,
+          devicePublicKeyHex: crossDeviceKeyHex,
         );
-        final signature = await _encryption.signWithKeyDuo(challenge, crossDeviceKeyDuo);
-        final authResult = await _client.modules.anonaccount.deviceManagement
-            .authenticateDevice(challenge, signature);
 
         if (!authResult.success) {
           throw AccountRecoveryException(
@@ -763,13 +760,13 @@ class AuthService {
 
         // 3. Get encrypted data key for cross-device entry
         final deviceInfoChallenge =
-            await _client.modules.anonaccount.device.getChallenge();
+            await _client.modules.anonaccount.entrypoint.getChallenge();
         final deviceInfoPow = await _computeProofOfWork(
           deviceInfoChallenge.challenge,
           deviceInfoChallenge.difficulty,
         );
         final deviceInfoSignPayload =
-            '${deviceInfoChallenge.challenge}:getDeviceBySigningKey:$crossDeviceKeyHex';
+            '${deviceInfoChallenge.challenge}:${DeviceMethods.getDeviceBySigningKey}:$crossDeviceKeyHex';
         final deviceInfoSignature =
             await _encryption.signWithKeyDuo(deviceInfoSignPayload, crossDeviceKeyDuo);
 
@@ -906,30 +903,24 @@ class AuthService {
 
         // 1. Get PoW challenge, then generate auth challenge
         final powChallengeResponse =
-            await _client.modules.anonaccount.device.getChallenge();
+            await _client.modules.anonaccount.entrypoint.getChallenge();
         final powProof = await _computeProofOfWork(
           powChallengeResponse.challenge,
           powChallengeResponse.difficulty,
         );
         final powSignPayload =
-            '${powChallengeResponse.challenge}:getSignableNonce:$devicePublicKeyHex';
+            '${powChallengeResponse.challenge}:${DeviceMethods.signIn}:$devicePublicKeyHex';
         final powSignature =
             await _encryption.signWithDeviceKey(powSignPayload);
 
-        final challenge = await _client.modules.anonaccount.device
-            .getSignableNonce(
+        // 2. Sign in with server (PoW + signature verification)
+        final result = await _client.modules.anonaccount.device
+            .signIn(
           challenge: powChallengeResponse.challenge,
           proofOfWork: powProof,
           signature: powSignature,
-          devicePublicKey: devicePublicKeyHex,
+          devicePublicKeyHex: devicePublicKeyHex,
         );
-
-        // 2. Sign challenge with ECDSA P-256 via DataEncryptionService
-        final signature = await _encryption.signWithDeviceKey(challenge);
-
-        // 3. Verify with server
-        final result = await _client.modules.anonaccount.deviceManagement
-            .authenticateDevice(challenge, signature);
 
         if (!result.success) {
           throw DeviceAuthenticationException(

@@ -1,3 +1,4 @@
+import 'package:anonaccount_client/anonaccount_client.dart';
 import 'package:anonaccred_client/anonaccred_client.dart'
     show AccountEntitlement;
 import 'package:injectable/injectable.dart';
@@ -80,35 +81,32 @@ class EntitlementService implements IEntitlementService {
     );
   }
 
-  /// Get authentication parameters needed for commerce API calls.
-  Future<_AuthParams> _getAuthParams() async {
+  /// Authenticate device with server for commerce API calls.
+  Future<void> _getAuthParams() async {
     final publicKeyHex = await _keyRepository.getDeviceSigningPublicKeyHex();
     if (publicKeyHex == null) {
       throw const EntitlementException('Device key not found');
     }
 
-    // PoW flow for getSignableNonce
+    // PoW flow for signIn
     final powChallengeResponse =
-        await _client.modules.anonaccount.device.getChallenge();
+        await _client.modules.anonaccount.entrypoint.getChallenge();
     final proofOfWork = await Hashcash.mint(
       powChallengeResponse.challenge,
       difficulty: powChallengeResponse.difficulty,
     );
     final powSignPayload =
-        '${powChallengeResponse.challenge}:getSignableNonce:$publicKeyHex';
+        '${powChallengeResponse.challenge}:${DeviceMethods.signIn}:$publicKeyHex';
     final powSignature = await _encryption.signWithDeviceKey(powSignPayload);
 
     // Authenticate with server
-    final challenge = await _client.modules.anonaccount.device
-        .getSignableNonce(
+    final authResult = await _client.modules.anonaccount.device
+        .signIn(
       challenge: powChallengeResponse.challenge,
       proofOfWork: proofOfWork,
       signature: powSignature,
-      devicePublicKey: publicKeyHex,
+      devicePublicKeyHex: publicKeyHex,
     );
-    final signature = await _encryption.signWithDeviceKey(challenge);
-    final authResult = await _client.modules.anonaccount.deviceManagement
-        .authenticateDevice(challenge, signature);
 
     if (!authResult.success) {
       throw EntitlementException(
@@ -116,20 +114,5 @@ class EntitlementService implements IEntitlementService {
         '(success=${authResult.success})',
       );
     }
-
-    return _AuthParams(
-      publicKeyHex: publicKeyHex,
-      signature: signature,
-    );
   }
-}
-
-class _AuthParams {
-  final String publicKeyHex;
-  final String signature;
-
-  const _AuthParams({
-    required this.publicKeyHex,
-    required this.signature,
-  });
 }

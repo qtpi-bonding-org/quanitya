@@ -7,6 +7,7 @@ import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
+import 'package:anonaccount_client/anonaccount_client.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
@@ -265,28 +266,25 @@ class InAppPurchaseProvider implements IPurchaseProvider {
         debugPrint('validateWithServer: device key found, '
             'requesting auth challenge...');
 
-        // PoW flow for getSignableNonce
+        // PoW flow for signIn
         final powChallengeResponse =
-            await _client.modules.anonaccount.device.getChallenge();
+            await _client.modules.anonaccount.entrypoint.getChallenge();
         final powProof = await Hashcash.mint(
           powChallengeResponse.challenge,
           difficulty: powChallengeResponse.difficulty,
         );
         final powSignPayload =
-            '${powChallengeResponse.challenge}:getSignableNonce:$publicKeyHex';
+            '${powChallengeResponse.challenge}:${DeviceMethods.signIn}:$publicKeyHex';
         final powSignature =
             await _encryption.signWithDeviceKey(powSignPayload);
 
-        final challenge = await _client.modules.anonaccount.device
-            .getSignableNonce(
+        final authResult = await _client.modules.anonaccount.device
+            .signIn(
           challenge: powChallengeResponse.challenge,
           proofOfWork: powProof,
           signature: powSignature,
-          devicePublicKey: publicKeyHex,
+          devicePublicKeyHex: publicKeyHex,
         );
-        final signature = await _encryption.signWithDeviceKey(challenge);
-        final authResult = await _client.modules.anonaccount.deviceManagement
-            .authenticateDevice(challenge, signature);
 
         debugPrint('validateWithServer: auth result='
             'success=${authResult.success}');
