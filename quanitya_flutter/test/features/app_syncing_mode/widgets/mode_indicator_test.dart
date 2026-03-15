@@ -4,24 +4,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:quanitya_flutter/features/app_operating_mode/cubits/app_operating_cubit.dart';
-import 'package:quanitya_flutter/features/app_operating_mode/cubits/app_operating_state.dart';
-import 'package:quanitya_flutter/features/app_operating_mode/models/app_operating_mode.dart';
-import 'package:quanitya_flutter/features/app_operating_mode/widgets/mode_indicator.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/cubits/app_syncing_cubit.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/cubits/app_syncing_state.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/widgets/mode_indicator.dart';
 
-class MockAppOperatingCubit extends MockCubit<AppOperatingState>
-    implements AppOperatingCubit {}
+class MockAppSyncingCubit extends MockCubit<AppSyncingState>
+    implements AppSyncingCubit {}
 
 void main() {
-  late MockAppOperatingCubit mockCubit;
+  late MockAppSyncingCubit mockCubit;
 
   setUp(() {
-    mockCubit = MockAppOperatingCubit();
+    mockCubit = MockAppSyncingCubit();
   });
 
   Widget buildSubject() {
     return MaterialApp(
-      home: BlocProvider<AppOperatingCubit>.value(
+      home: BlocProvider<AppSyncingCubit>.value(
         value: mockCubit,
         child: const Scaffold(body: ModeIndicator()),
       ),
@@ -30,7 +30,7 @@ void main() {
 
   testWidgets('hidden in local mode', (tester) async {
     when(() => mockCubit.state).thenReturn(
-      const AppOperatingState(mode: AppOperatingMode.local),
+      const AppSyncingState(mode: AppSyncingMode.local),
     );
     await tester.pumpWidget(buildSubject());
     expect(find.byType(Icon), findsNothing);
@@ -38,8 +38,8 @@ void main() {
 
   testWidgets('shows cloud icon when in cloud mode connected', (tester) async {
     when(() => mockCubit.state).thenReturn(
-      const AppOperatingState(
-        mode: AppOperatingMode.cloud,
+      const AppSyncingState(
+        mode: AppSyncingMode.cloud,
         isConnected: true,
       ),
     );
@@ -49,8 +49,8 @@ void main() {
 
   testWidgets('shows dns icon when in selfHosted mode', (tester) async {
     when(() => mockCubit.state).thenReturn(
-      const AppOperatingState(
-        mode: AppOperatingMode.selfHosted,
+      const AppSyncingState(
+        mode: AppSyncingMode.selfHosted,
         isConnected: true,
       ),
     );

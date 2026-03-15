@@ -22,7 +22,7 @@ import '../../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../../infrastructure/webhooks/models/webhook_model.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
-import '../../app_operating_mode/cubits/app_operating_cubit.dart';
+import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../cubits/data_export/data_export_cubit.dart';
 import '../cubits/recovery_key/recovery_key_cubit.dart';
 import '../cubits/device_management/device_management_cubit.dart';
@@ -44,7 +44,7 @@ bool get _supportsHealthData => !kIsWeb && (Platform.isIOS || Platform.isAndroid
 /// Settings content — embedded in [NotebookShell] via OfficePage.
 ///
 /// Expects [DataExportCubit], [RecoveryKeyCubit], [DeviceManagementCubit],
-/// [WebhookCubit], and [AppOperatingCubit] to be available above.
+/// [WebhookCubit], and [AppSyncingCubit] to be available above.
 class SettingsContent extends StatelessWidget {
   const SettingsContent({super.key});
 

@@ -4,7 +4,7 @@ import 'package:anonaccred_client/anonaccred_client.dart'
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
-import '../../features/app_operating_mode/models/app_operating_mode.dart';
+import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
 import '../crypto/data_encryption_service.dart';
@@ -27,7 +27,7 @@ class EntitlementService implements IEntitlementService {
   EntitlementService(this._client, this._keyRepository, this._encryption);
 
   @override
-  Future<List<AccountEntitlement>> getEntitlements(AppOperatingMode mode) {
+  Future<List<AccountEntitlement>> getEntitlements(AppSyncingMode mode) {
     if (!mode.requiresServer) return Future.value([]);
     return tryMethod(
       () async {
@@ -40,7 +40,7 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<double> getEntitlementBalance(String tag, AppOperatingMode mode) {
+  Future<double> getEntitlementBalance(String tag, AppSyncingMode mode) {
     if (!mode.requiresServer) return Future.value(0);
     return tryMethod(
       () async {
@@ -55,7 +55,7 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<bool> hasSyncAccess(AppOperatingMode mode) {
+  Future<bool> hasSyncAccess(AppSyncingMode mode) {
     if (!mode.requiresServer) return Future.value(false);
     return tryMethod(
       () async {
@@ -71,7 +71,7 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<void> consumeEntitlement(String tag, double quantity, AppOperatingMode mode) {
+  Future<void> consumeEntitlement(String tag, double quantity, AppSyncingMode mode) {
     if (!mode.requiresServer) return Future.value();
     return tryMethod(
       () async {

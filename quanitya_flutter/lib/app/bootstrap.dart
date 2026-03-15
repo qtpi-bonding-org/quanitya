@@ -9,7 +9,7 @@ import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import '../app_router.dart';
 import '../logic/analytics/analytics_service.dart';
 import '../data/repositories/error_box_repository.dart';
-import '../features/app_operating_mode/repositories/app_operating_repository.dart';
+import '../features/app_syncing_mode/repositories/app_syncing_repository.dart';
 import '../data/dao/template_aesthetics_dual_dao.dart';
 import '../data/db/app_database.dart';
 import '../data/repositories/e2ee_puller.dart';
@@ -26,8 +26,8 @@ import '../infrastructure/fonts/font_preloader_service.dart';
 import '../infrastructure/notifications/notification_service.dart';
 import '../logic/schedules/services/schedule_generator_service.dart';
 import '../features/settings/services/tested_models_service.dart';
-import '../features/app_operating_mode/cubits/app_operating_cubit.dart';
-import '../features/app_operating_mode/models/app_operating_mode.dart';
+import '../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
+import '../features/app_syncing_mode/models/app_syncing_mode.dart';
 import 'bootstrap.config.dart';
 
 /// Global service locator instance
@@ -72,7 +72,7 @@ Future<void> bootstrap() async {
 
     // 3. Initialize App Operating Mode (must be early for AuthService)
     debugPrint('Bootstrap: Initializing App Operating Mode...');
-    await _initializeAppOperatingMode();
+    await _initializeAppSyncingMode();
     debugPrint('Bootstrap: App Operating Mode initialized');
 
     // 4. Initialize E2EE Puller
@@ -133,7 +133,7 @@ Future<void> bootstrap() async {
 
     // 6. Connect PowerSync for cloud sync (only if not in local mode AND user is authenticated)
     if (getIt.isRegistered<IPowerSyncService>()) {
-      final appOperatingCubit = getIt<AppOperatingCubit>();
+      final appOperatingCubit = getIt<AppSyncingCubit>();
       final currentMode = appOperatingCubit.state.mode;
 
       if (currentMode.supportsSync) {
@@ -211,14 +211,14 @@ Future<void> bootstrap() async {
 
     // 12. Auto-send analytics if enabled (non-blocking)
     if (getIt.isRegistered<AnalyticsService>() &&
-        getIt.isRegistered<AppOperatingRepository>()) {
+        getIt.isRegistered<AppSyncingRepository>()) {
       _autoSendAnalytics();
     }
 
     // 13. Auto-send error reports if enabled (non-blocking)
     if (getIt.isRegistered<ErrorReporterService>() &&
         getIt.isRegistered<ErrorBoxRepository>() &&
-        getIt.isRegistered<AppOperatingRepository>()) {
+        getIt.isRegistered<AppSyncingRepository>()) {
       _autoSendErrors();
     }
 
@@ -249,9 +249,9 @@ void _initializeClientAuth() {
   c.auth.initialize();
 }
 
-Future<void> _initializeAppOperatingMode() async {
-  if (getIt.isRegistered<AppOperatingCubit>()) {
-    final appOperatingCubit = getIt<AppOperatingCubit>();
+Future<void> _initializeAppSyncingMode() async {
+  if (getIt.isRegistered<AppSyncingCubit>()) {
+    final appOperatingCubit = getIt<AppSyncingCubit>();
     await appOperatingCubit.initialize();
     debugPrint(
       'Bootstrap: App Operating Mode loaded - current mode: ${appOperatingCubit.state.mode.name}',
@@ -264,7 +264,7 @@ Future<void> _initializeAppOperatingMode() async {
 void _autoSendAnalytics() {
   Future(() async {
     try {
-      final settingsRepo = getIt<AppOperatingRepository>();
+      final settingsRepo = getIt<AppSyncingRepository>();
       final autoSend = await settingsRepo.getAnalyticsAutoSend();
       if (!autoSend) return;
 
@@ -283,7 +283,7 @@ void _autoSendAnalytics() {
 void _autoSendErrors() {
   Future(() async {
     try {
-      final settingsRepo = getIt<AppOperatingRepository>();
+      final settingsRepo = getIt<AppSyncingRepository>();
       final autoSend = await settingsRepo.getErrorAutoSend();
       if (!autoSend) return;
 

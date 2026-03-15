@@ -7,8 +7,8 @@ import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:webcrypto/webcrypto.dart';
 
-import '../../../features/app_operating_mode/models/app_operating_mode.dart';
-import '../../../features/app_operating_mode/repositories/app_operating_repository.dart';
+import '../../../features/app_syncing_mode/models/app_syncing_mode.dart';
+import '../../../features/app_syncing_mode/repositories/app_syncing_repository.dart';
 import '../../../infrastructure/core/try_operation.dart';
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../infrastructure/crypto/data_encryption_service.dart';
@@ -101,7 +101,7 @@ class PairingService implements IPairingService {
   final ICryptoKeyRepository _keyRepository;
   final IDataEncryptionService _encryption;
   final Client _client;
-  final AppOperatingRepository _appOperatingRepository;
+  final AppSyncingRepository _appOperatingRepository;
 
   PairingService(
     this._keyRepository,
@@ -267,7 +267,7 @@ class PairingService implements IPairingService {
         debugPrint(
           '🔐 PairingService: Switching app to cloud mode after pairing...',
         );
-        await _appOperatingRepository.updateMode(AppOperatingMode.cloud);
+        await _appOperatingRepository.updateMode(AppSyncingMode.cloud);
         debugPrint(
           '🔐 PairingService: App switched to cloud mode successfully',
         );

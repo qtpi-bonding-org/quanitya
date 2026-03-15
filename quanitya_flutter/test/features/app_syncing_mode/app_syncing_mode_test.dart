@@ -4,55 +4,55 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
-import 'package:quanitya_flutter/features/app_operating_mode/models/app_operating_mode.dart';
-import 'package:quanitya_flutter/features/app_operating_mode/cubits/app_operating_state.dart';
-import 'package:quanitya_flutter/features/app_operating_mode/cubits/app_operating_cubit.dart';
-import 'package:quanitya_flutter/features/app_operating_mode/repositories/app_operating_repository.dart';
-import 'package:quanitya_flutter/features/app_operating_mode/services/network_service.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/cubits/app_syncing_state.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/cubits/app_syncing_cubit.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/repositories/app_syncing_repository.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/services/network_service.dart';
 
-import 'app_operating_mode_test.mocks.dart';
+import 'app_syncing_mode_test.mocks.dart';
 
-@GenerateMocks([AppOperatingRepository, INetworkService])
+@GenerateMocks([AppSyncingRepository, INetworkService])
 void main() {
-  late AppOperatingCubit cubit;
-  late MockAppOperatingRepository mockRepository;
+  late AppSyncingCubit cubit;
+  late MockAppSyncingRepository mockRepository;
   late MockINetworkService mockNetworkService;
 
   setUp(() {
     GetIt.instance.reset();
-    mockRepository = MockAppOperatingRepository();
+    mockRepository = MockAppSyncingRepository();
     mockNetworkService = MockINetworkService();
-    cubit = AppOperatingCubit(mockRepository, mockNetworkService);
+    cubit = AppSyncingCubit(mockRepository, mockNetworkService);
   });
 
   tearDown(() {
     cubit.close();
   });
 
-  group('AppOperatingMode', () {
+  group('AppSyncingMode', () {
     test('should have correct default values', () {
-      expect(AppOperatingMode.local.requiresServer, false);
-      expect(AppOperatingMode.selfHosted.requiresServer, true);
-      expect(AppOperatingMode.cloud.requiresServer, true);
-      
-      expect(AppOperatingMode.local.supportsSync, false);
-      expect(AppOperatingMode.selfHosted.supportsSync, true);
-      expect(AppOperatingMode.cloud.supportsSync, true);
+      expect(AppSyncingMode.local.requiresServer, false);
+      expect(AppSyncingMode.selfHosted.requiresServer, true);
+      expect(AppSyncingMode.cloud.requiresServer, true);
+
+      expect(AppSyncingMode.local.supportsSync, false);
+      expect(AppSyncingMode.selfHosted.supportsSync, true);
+      expect(AppSyncingMode.cloud.supportsSync, true);
     });
 
     test('should have correct display names', () {
-      expect(AppOperatingMode.local.displayName, 'Local Only');
-      expect(AppOperatingMode.selfHosted.displayName, 'Self-Hosted');
-      expect(AppOperatingMode.cloud.displayName, 'Quanitya Cloud');
+      expect(AppSyncingMode.local.displayName, 'Local Only');
+      expect(AppSyncingMode.selfHosted.displayName, 'Self-Hosted');
+      expect(AppSyncingMode.cloud.displayName, 'Quanitya Cloud');
     });
   });
 
-  group('AppOperatingState', () {
+  group('AppSyncingState', () {
     test('should have correct initial state', () {
-      const state = AppOperatingState();
-      
+      const state = AppSyncingState();
+
       expect(state.status, UiFlowStatus.idle);
-      expect(state.mode, AppOperatingMode.local);
+      expect(state.mode, AppSyncingMode.local);
       expect(state.isConnected, false);
       expect(state.hasTriedConnection, false);
       expect(state.serverpodUrl, 'http://localhost:8080/');
@@ -61,45 +61,45 @@ void main() {
 
     test('canCreateAccount should work correctly', () {
       // Local mode - always can create
-      const localState = AppOperatingState(mode: AppOperatingMode.local);
+      const localState = AppSyncingState(mode: AppSyncingMode.local);
       expect(localState.canCreateAccount, true);
-      
+
       // Server modes - depends on connection
-      const connectedSelfHosted = AppOperatingState(
-        mode: AppOperatingMode.selfHosted,
+      const connectedSelfHosted = AppSyncingState(
+        mode: AppSyncingMode.selfHosted,
         isConnected: true,
       );
       expect(connectedSelfHosted.canCreateAccount, true);
-      
-      const disconnectedSelfHosted = AppOperatingState(
-        mode: AppOperatingMode.selfHosted,
+
+      const disconnectedSelfHosted = AppSyncingState(
+        mode: AppSyncingMode.selfHosted,
         isConnected: false,
       );
       expect(disconnectedSelfHosted.canCreateAccount, false);
     });
   });
 
-  group('AppOperatingCubit', () {
+  group('AppSyncingCubit', () {
     test('should start with correct initial state', () {
-      expect(cubit.state.mode, AppOperatingMode.local);
+      expect(cubit.state.mode, AppSyncingMode.local);
       expect(cubit.state.status, UiFlowStatus.idle);
     });
 
     test('should switch to local mode successfully', () async {
       // Arrange
-      when(mockRepository.updateMode(AppOperatingMode.local))
+      when(mockRepository.updateMode(AppSyncingMode.local))
           .thenAnswer((_) async {});
 
       // Act
       await cubit.switchToLocal();
 
       // Assert
-      expect(cubit.state.mode, AppOperatingMode.local);
+      expect(cubit.state.mode, AppSyncingMode.local);
       expect(cubit.state.status, UiFlowStatus.success);
       expect(cubit.state.isConnected, false);
-      expect(cubit.state.lastOperation, AppOperatingOperation.switchMode);
-      
-      verify(mockRepository.updateMode(AppOperatingMode.local)).called(1);
+      expect(cubit.state.lastOperation, AppSyncingOperation.switchMode);
+
+      verify(mockRepository.updateMode(AppSyncingMode.local)).called(1);
     });
 
     test('should test connection successfully', () async {
@@ -118,8 +118,8 @@ void main() {
       expect(cubit.state.isConnected, true);
       expect(cubit.state.hasTriedConnection, true);
       expect(cubit.state.lastTestedUrl, testUrl);
-      expect(cubit.state.lastOperation, AppOperatingOperation.testConnection);
-      
+      expect(cubit.state.lastOperation, AppSyncingOperation.testConnection);
+
       verify(mockNetworkService.testConnection(testUrl)).called(1);
       verify(mockRepository.updateConnectionStatus(true)).called(1);
     });
@@ -140,7 +140,7 @@ void main() {
       expect(cubit.state.isConnected, false);
       expect(cubit.state.hasTriedConnection, true);
       expect(cubit.state.lastTestedUrl, testUrl);
-      
+
       verify(mockNetworkService.testConnection(testUrl)).called(1);
       verify(mockRepository.updateConnectionStatus(false)).called(1);
     });

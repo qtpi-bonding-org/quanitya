@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import '../../features/app_operating_mode/models/app_operating_mode.dart';
+import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../logic/analytics/enums/analysis_output_mode.dart';
 import '../../logic/analytics/models/analysis_enums.dart';
 

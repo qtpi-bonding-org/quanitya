@@ -10,7 +10,7 @@ import 'package:injectable/injectable.dart';
 import 'powersync_schema.dart';
 import '../db/app_database.dart';
 import '../../infrastructure/config/dev_config.dart';
-import '../../features/app_operating_mode/models/app_operating_mode.dart';
+import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../infrastructure/security/database_key_service.dart';
 
 /// Resolve localhost for Android emulator loopback
@@ -28,7 +28,7 @@ abstract class IPowerSyncService {
   PowerSyncDatabase get powerSyncDb;
   AppDatabase get driftDb;
   Future<void> initialize();
-  Future<void> connect(Client serverpodClient, AppOperatingMode mode);
+  Future<void> connect(Client serverpodClient, AppSyncingMode mode);
   Future<void> disconnect();
   bool get isConnected;
 
@@ -37,7 +37,7 @@ abstract class IPowerSyncService {
   String? get dbPath;
 
   /// Connect PowerSync if mode supports sync, disconnect if local mode
-  Future<void> handleModeChange(AppOperatingMode mode, Client serverpodClient);
+  Future<void> handleModeChange(AppSyncingMode mode, Client serverpodClient);
 }
 
 /// PowerSync service with integrated Drift database
@@ -57,7 +57,7 @@ class PowerSyncService implements IPowerSyncService {
   AppDatabase? _driftDb;
   bool _isConnected = false;
   String? _dbPath;
-  AppOperatingMode? _currentMode;
+  AppSyncingMode? _currentMode;
 
   @override
   String? get dbPath => _dbPath;
@@ -153,7 +153,7 @@ class PowerSyncService implements IPowerSyncService {
 
   /// Connect to sync with Serverpod backend
   @override
-  Future<void> connect(Client serverpodClient, AppOperatingMode mode) async {
+  Future<void> connect(Client serverpodClient, AppSyncingMode mode) async {
     if (_isConnected) return;
     if (_powerSyncDb == null) return;
 
@@ -185,7 +185,7 @@ class PowerSyncService implements IPowerSyncService {
   /// because the connector routes token fetches to different endpoints per mode.
   @override
   Future<void> handleModeChange(
-    AppOperatingMode mode,
+    AppSyncingMode mode,
     Client serverpodClient,
   ) async {
     if (mode.supportsSync) {
@@ -213,7 +213,7 @@ class PowerSyncService implements IPowerSyncService {
 /// - Uploading local changes to Serverpod endpoints
 class _ServerpodConnector extends PowerSyncBackendConnector {
   final Client _client;
-  final AppOperatingMode _mode;
+  final AppSyncingMode _mode;
   String? _cachedEndpoint;
 
   _ServerpodConnector(this._client, this._mode);
@@ -228,17 +228,17 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
       final String endpoint;
 
       switch (_mode) {
-        case AppOperatingMode.cloud:
+        case AppSyncingMode.cloud:
           // Cloud: SyncAccessEndpoint — JWT user_id = 128-char hex public key
           final response = await _client.syncAccess.generatePowerSyncToken();
           token = response.token;
           endpoint = _resolveUrl(response.endpoint);
-        case AppOperatingMode.selfHosted:
+        case AppSyncingMode.selfHosted:
           // Self-hosted: community module — JWT user_id = integer account ID
           final response = await _client.modules.community.powerSync.getToken();
           token = response.token;
           endpoint = _resolveUrl(response.endpoint);
-        case AppOperatingMode.local:
+        case AppSyncingMode.local:
           return null; // Should never be called in local mode
       }
 

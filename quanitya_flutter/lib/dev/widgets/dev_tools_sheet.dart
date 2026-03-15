@@ -15,7 +15,7 @@ import '../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../support/extensions/context_extensions.dart';
-import '../../features/app_operating_mode/cubits/app_operating_cubit.dart';
+import '../../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../infrastructure/auth/auth_service.dart';
 import '../../data/dao/template_query_dao.dart';
 import '../../data/interfaces/log_entry_interface.dart';
@@ -125,7 +125,7 @@ class DevToolsSheet extends StatelessWidget {
                 child: _DevActionButton(
                   text: l10n.devConnect,
                   onPressed: () async {
-                    final cubit = GetIt.instance<AppOperatingCubit>();
+                    final cubit = GetIt.instance<AppSyncingCubit>();
                     await cubit.switchToCloud();
                     if (cubit.state.status == cubit_ui_flow.UiFlowStatus.failure) {
                       throw cubit.state.error ?? Exception('switchToCloud failed');
@@ -144,7 +144,7 @@ class DevToolsSheet extends StatelessWidget {
                   onPressed: () async {
                     final powerSync = GetIt.instance<IPowerSyncService>();
                     final client = GetIt.instance<Client>();
-                    final mode = GetIt.instance<AppOperatingCubit>().state.mode;
+                    final mode = GetIt.instance<AppSyncingCubit>().state.mode;
                     await powerSync.connect(client, mode);
                     if (!powerSync.isConnected) {
                       throw Exception('PowerSync failed to connect — check logs');

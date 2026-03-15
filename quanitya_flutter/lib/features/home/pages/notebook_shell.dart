@@ -4,7 +4,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../../app_operating_mode/widgets/mode_indicator.dart';
+import '../../app_syncing_mode/widgets/mode_indicator.dart';
 import '../../error_reporting/cubits/error_box_cubit.dart';
 import '../../notifications/cubits/notification_inbox_cubit.dart';
 import '../../outbox/pages/outbox_page.dart';

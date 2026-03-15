@@ -1,7 +1,7 @@
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     show RailCatalogEntry;
 
-import '../../features/app_operating_mode/models/app_operating_mode.dart';
+import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import 'i_purchase_provider.dart';
 import 'purchase_models.dart';
 
@@ -20,7 +20,7 @@ abstract class IPurchaseService {
   Future<IPurchaseProvider?> getDefaultProvider();
 
   /// Execute a full purchase flow: initiate → validate → fulfill.
-  Future<PurchaseValidationResult> purchase(PurchaseRequest request, {required AppOperatingMode mode});
+  Future<PurchaseValidationResult> purchase(PurchaseRequest request, {required AppSyncingMode mode});
 
   /// Recover and validate any pending purchases across all providers.
   Future<void> recoverPendingPurchases();

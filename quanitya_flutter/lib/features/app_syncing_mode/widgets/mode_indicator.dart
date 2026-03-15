@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
-import '../cubits/app_operating_cubit.dart';
-import '../cubits/app_operating_state.dart';
-import '../models/app_operating_mode.dart';
+import '../cubits/app_syncing_cubit.dart';
+import '../cubits/app_syncing_state.dart';
+import '../models/app_syncing_mode.dart';
 
 /// Displays a small icon indicating the current server connection status.
 ///
@@ -17,11 +17,11 @@ class ModeIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AppOperatingCubit, AppOperatingState>(
+    return BlocBuilder<AppSyncingCubit, AppSyncingState>(
       buildWhen: (prev, curr) =>
           prev.mode != curr.mode || prev.isConnected != curr.isConnected,
       builder: (context, state) {
-        if (state.mode == AppOperatingMode.local) {
+        if (state.mode == AppSyncingMode.local) {
           return const SizedBox.shrink();
         }
 
@@ -31,9 +31,9 @@ class ModeIndicator extends StatelessWidget {
             : palette.cautionColor;
 
         final icon = switch (state.mode) {
-          AppOperatingMode.cloud => Icons.cloud,
-          AppOperatingMode.selfHosted => Icons.dns,
-          AppOperatingMode.local => Icons.cloud, // unreachable
+          AppSyncingMode.cloud => Icons.cloud,
+          AppSyncingMode.selfHosted => Icons.dns,
+          AppSyncingMode.local => Icons.cloud, // unreachable
         };
 
         return Padding(

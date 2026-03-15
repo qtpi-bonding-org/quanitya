@@ -3,34 +3,34 @@ import 'package:drift/drift.dart';
 import 'package:quanitya_flutter/infrastructure/core/try_operation.dart';
 import 'package:quanitya_flutter/data/db/app_database.dart';
 import 'package:quanitya_flutter/infrastructure/config/app_config.dart';
-import '../models/app_operating_mode.dart';
-import '../exceptions/app_operating_exceptions.dart';
+import '../models/app_syncing_mode.dart';
+import '../exceptions/app_syncing_exceptions.dart';
 
 @lazySingleton
-class AppOperatingRepository {
+class AppSyncingRepository {
   final AppDatabase _db;
   final AppConfig _config;
-  
-  AppOperatingRepository(this._db, this._config);
-  
-  /// Get current operating mode - always from database
+
+  AppSyncingRepository(this._db, this._config);
+
+  /// Get current syncing mode - always from database
   /// Initializes with local mode on first run
-  Future<AppOperatingMode> getCurrentMode() {
+  Future<AppSyncingMode> getCurrentMode() {
     return tryMethod(() async {
       await _ensureInitialized();
       final settings = await _db.select(_db.appOperatingSettings).getSingle();
       return settings.mode;
-    }, AppOperatingException.new, 'getCurrentMode');
+    }, AppSyncingException.new, 'getCurrentMode');
   }
-  
+
   /// Get full settings - always from database
   Future<AppOperatingSetting> getSettings() {
     return tryMethod(() async {
       await _ensureInitialized();
       return await _db.select(_db.appOperatingSettings).getSingle();
-    }, AppOperatingException.new, 'getSettings');
+    }, AppSyncingException.new, 'getSettings');
   }
-  
+
   /// Watch settings changes - stream from database
   /// Automatically initializes if needed
   Stream<AppOperatingSetting> watchSettings() {
@@ -41,16 +41,16 @@ class AppOperatingRepository {
       return await _db.select(_db.appOperatingSettings).getSingle();
     });
   }
-  
+
   /// Get serverpod URL from environment config (not stored in DB)
   String get serverpodUrl => _config.serverpodUrl;
-  
+
   /// Get base URL from environment config (not stored in DB)
   /// Extracts base URL from serverpod URL for health checks
   String get baseUrl => _config.baseUrl;
-  
-  /// Update operating mode and persist immediately
-  Future<void> updateMode(AppOperatingMode mode, {String? selfHostedUrl}) {
+
+  /// Update syncing mode and persist immediately
+  Future<void> updateMode(AppSyncingMode mode, {String? selfHostedUrl}) {
     return tryMethod(() async {
       final updated = await _db.update(_db.appOperatingSettings).write(
         AppOperatingSettingsCompanion(
@@ -59,13 +59,13 @@ class AppOperatingRepository {
           updatedAt: Value(DateTime.now()),
         ),
       );
-      
+
       if (updated == 0) {
-        throw const AppOperatingException('Failed to update operating mode');
+        throw const AppSyncingException('Failed to update syncing mode');
       }
-    }, AppOperatingException.new, 'updateMode');
+    }, AppSyncingException.new, 'updateMode');
   }
-  
+
   /// Update connection status
   Future<void> updateConnectionStatus(bool isConnected) {
     return tryMethod(() async {
@@ -76,20 +76,20 @@ class AppOperatingRepository {
           updatedAt: Value(DateTime.now()),
         ),
       );
-      
+
       if (updated == 0) {
-        throw const AppOperatingException('Failed to update connection status');
+        throw const AppSyncingException('Failed to update connection status');
       }
-    }, AppOperatingException.new, 'updateConnectionStatus');
+    }, AppSyncingException.new, 'updateConnectionStatus');
   }
-  
+
   /// Get whether analytics auto-send is enabled
   Future<bool> getAnalyticsAutoSend() {
     return tryMethod(() async {
       await _ensureInitialized();
       final settings = await _db.select(_db.appOperatingSettings).getSingle();
       return settings.analyticsAutoSend;
-    }, AppOperatingException.new, 'getAnalyticsAutoSend');
+    }, AppSyncingException.new, 'getAnalyticsAutoSend');
   }
 
   /// Update analytics auto-send preference
@@ -103,9 +103,9 @@ class AppOperatingRepository {
       );
 
       if (updated == 0) {
-        throw const AppOperatingException('Failed to update analytics auto-send');
+        throw const AppSyncingException('Failed to update analytics auto-send');
       }
-    }, AppOperatingException.new, 'updateAnalyticsAutoSend');
+    }, AppSyncingException.new, 'updateAnalyticsAutoSend');
   }
 
   /// Get whether error auto-send is enabled
@@ -114,7 +114,7 @@ class AppOperatingRepository {
       await _ensureInitialized();
       final settings = await _db.select(_db.appOperatingSettings).getSingle();
       return settings.errorAutoSend;
-    }, AppOperatingException.new, 'getErrorAutoSend');
+    }, AppSyncingException.new, 'getErrorAutoSend');
   }
 
   /// Update error auto-send preference
@@ -128,24 +128,27 @@ class AppOperatingRepository {
       );
 
       if (updated == 0) {
-        throw const AppOperatingException('Failed to update error auto-send');
+        throw const AppSyncingException('Failed to update error auto-send');
       }
-    }, AppOperatingException.new, 'updateErrorAutoSend');
+    }, AppSyncingException.new, 'updateErrorAutoSend');
   }
 
   /// Ensure database has initial settings (local mode)
   /// Called on every app startup - idempotent
   Future<void> _ensureInitialized() async {
     final count = await _db.select(_db.appOperatingSettings).get().then((rows) => rows.length);
-    
+
     if (count == 0) {
       // First time - insert local mode as default
       await _db.into(_db.appOperatingSettings).insert(
         AppOperatingSettingsCompanion.insert(
-          mode: AppOperatingMode.local,
+          mode: AppSyncingMode.local,
           isConnected: const Value(false),
         ),
       );
     }
   }
 }
+
+/// Typedef for backward compatibility
+typedef AppOperatingRepository = AppSyncingRepository;

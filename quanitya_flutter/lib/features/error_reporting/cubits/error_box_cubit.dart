@@ -6,7 +6,7 @@ import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../data/repositories/error_box_repository.dart';
-import '../../../features/app_operating_mode/repositories/app_operating_repository.dart';
+import '../../../features/app_syncing_mode/repositories/app_syncing_repository.dart';
 import '../../../infrastructure/error_reporting/error_reporter_service.dart';
 import 'error_box_state.dart';
 
@@ -14,7 +14,7 @@ import 'error_box_state.dart';
 class ErrorBoxCubit extends QuanityaCubit<ErrorBoxState> {
   final ErrorBoxRepository _repo;
   final ErrorReporterService _reporter;
-  final AppOperatingRepository _settingsRepo;
+  final AppSyncingRepository _settingsRepo;
 
   StreamSubscription<List<ErrorBoxEntry>>? _errorsSub;
 

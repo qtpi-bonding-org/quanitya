@@ -1,89 +1,96 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import '../models/app_operating_mode.dart';
+import '../models/app_syncing_mode.dart';
 
-part 'app_operating_state.freezed.dart';
+part 'app_syncing_state.freezed.dart';
 
 /// Operations tracked for message mapping
-enum AppOperatingOperation {
+enum AppSyncingOperation {
   testConnection,
   switchMode,
   configure,
   externalChange, // Mode changed by external source (e.g., AuthService)
 }
 
+/// Typedef for backward compatibility
+typedef AppOperatingOperation = AppSyncingOperation;
+
 @freezed
-class AppOperatingState with _$AppOperatingState implements IUiFlowState {
-  const factory AppOperatingState({
+class AppSyncingState with _$AppSyncingState implements IUiFlowState {
+  const factory AppSyncingState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,
-    AppOperatingOperation? lastOperation,
-    
+    AppSyncingOperation? lastOperation,
+
     // Core state
-    @Default(AppOperatingMode.local) AppOperatingMode mode,
+    @Default(AppSyncingMode.local) AppSyncingMode mode,
     @Default(false) bool isConnected,
     @Default(false) bool hasTriedConnection,
-    
+
     // Server URLs
     @Default('http://localhost:8080/') String serverpodUrl,
     String? selfHostedUrl,
-    
+
     // Connection test results
     String? lastTestedUrl,
     DateTime? lastConnectionTest,
-  }) = _AppOperatingState;
+  }) = _AppSyncingState;
 
   // IUiFlowState implementations
-  const AppOperatingState._();
-  
+  const AppSyncingState._();
+
   @override
   bool get isIdle => status == UiFlowStatus.idle;
-  
+
   @override
   bool get isLoading => status == UiFlowStatus.loading;
-  
+
   @override
   bool get isSuccess => status == UiFlowStatus.success;
-  
+
   @override
   bool get isFailure => status == UiFlowStatus.failure;
-  
+
   @override
   bool get hasError => error != null;
 }
 
-extension AppOperatingStateExtension on AppOperatingState {
+/// Typedef for backward compatibility
+typedef AppOperatingState = AppSyncingState;
+
+extension AppSyncingStateExtension on AppSyncingState {
   /// Current server URL based on mode and connection status
   String? get currentServerUrl {
     if (!isConnected) return null;
-    
+
     return switch (mode) {
-      AppOperatingMode.local => null,
-      AppOperatingMode.selfHosted => selfHostedUrl,
-      AppOperatingMode.cloud => serverpodUrl,
+      AppSyncingMode.local => null,
+      AppSyncingMode.selfHosted => selfHostedUrl,
+      AppSyncingMode.cloud => serverpodUrl,
     };
   }
-  
+
   /// Extract base URL from serverpod URL for health checks
   /// e.g., https://staging.quanitya.com/api/ -> https://staging.quanitya.com
   String get baseUrl {
     final uri = Uri.parse(serverpodUrl);
     return '${uri.scheme}://${uri.host}${uri.hasPort ? ':${uri.port}' : ''}';
   }
-  
+
   /// Can create accounts (requires server connection or local mode)
   bool get canCreateAccount => switch (mode) {
-    AppOperatingMode.local => true, // Always can create locally
-    AppOperatingMode.selfHosted || AppOperatingMode.cloud => isConnected,
+    AppSyncingMode.local => true, // Always can create locally
+    AppSyncingMode.selfHosted || AppSyncingMode.cloud => isConnected,
   };
-  
+
   /// Should show sync features in UI
   bool get showSyncFeatures => mode.supportsSync && isConnected;
-  
+
   /// Needs configuration (server modes without connection)
   bool get needsConfiguration => switch (mode) {
-    AppOperatingMode.local => false,
-    AppOperatingMode.selfHosted => selfHostedUrl == null || !isConnected,
-    AppOperatingMode.cloud => !isConnected,
+    AppSyncingMode.local => false,
+    AppSyncingMode.selfHosted => selfHostedUrl == null || !isConnected,
+    AppSyncingMode.cloud => !isConnected,
   };
 }
+

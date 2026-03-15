@@ -6,7 +6,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:quanitya_flutter/infrastructure/auth/auth_service.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_purchase_service.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_models.dart';
-import 'package:quanitya_flutter/features/app_operating_mode/models/app_operating_mode.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/purchase_cubit.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/purchase_state.dart';
 
@@ -22,7 +22,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(FakePurchaseRequest());
-    registerFallbackValue(AppOperatingMode.cloud);
+    registerFallbackValue(AppSyncingMode.cloud);
   });
 
   setUp(() {
@@ -102,7 +102,7 @@ void main() {
           productId: 'sync_1gb_month',
           rail: PurchaseRail.appleIap,
         ),
-        mode: AppOperatingMode.cloud,
+        mode: AppSyncingMode.cloud,
       ),
       expect: () => [
         predicate<PurchaseState>(
@@ -130,7 +130,7 @@ void main() {
           productId: 'sync_1gb_month',
           rail: PurchaseRail.appleIap,
         ),
-        mode: AppOperatingMode.cloud,
+        mode: AppSyncingMode.cloud,
       ),
       expect: () => [
         predicate<PurchaseState>(

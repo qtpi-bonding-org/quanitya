@@ -7,7 +7,7 @@ import 'package:anonaccred_client/anonaccred_client.dart'
 
 import 'package:quanitya_flutter/data/db/app_database.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_entitlement_service.dart';
-import 'package:quanitya_flutter/features/app_operating_mode/models/app_operating_mode.dart';
+import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/entitlement_cubit.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/entitlement_state.dart';
 
@@ -20,7 +20,7 @@ void main() {
   late MockAppDatabase mockDb;
 
   setUpAll(() {
-    registerFallbackValue(AppOperatingMode.cloud);
+    registerFallbackValue(AppSyncingMode.cloud);
   });
 
   setUp(() {
@@ -51,7 +51,7 @@ void main() {
         );
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.loadEntitlements(mode: AppOperatingMode.cloud),
+      act: (cubit) => cubit.loadEntitlements(mode: AppSyncingMode.cloud),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -75,7 +75,7 @@ void main() {
             .thenAnswer((_) async => true);
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.checkSyncAccess(mode: AppOperatingMode.cloud),
+      act: (cubit) => cubit.checkSyncAccess(mode: AppSyncingMode.cloud),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -98,7 +98,7 @@ void main() {
             .thenAnswer((_) async => false);
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.checkSyncAccess(mode: AppOperatingMode.cloud),
+      act: (cubit) => cubit.checkSyncAccess(mode: AppSyncingMode.cloud),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -120,7 +120,7 @@ void main() {
             .thenThrow(Exception('Network error'));
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.checkSyncAccess(mode: AppOperatingMode.cloud),
+      act: (cubit) => cubit.checkSyncAccess(mode: AppSyncingMode.cloud),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -136,11 +136,11 @@ void main() {
     blocTest<EntitlementCubit, EntitlementState>(
       'loadEntitlements in local mode returns empty without server call',
       build: () {
-        when(() => mockService.getEntitlements(AppOperatingMode.local))
+        when(() => mockService.getEntitlements(AppSyncingMode.local))
             .thenAnswer((_) async => []);
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.loadEntitlements(mode: AppOperatingMode.local),
+      act: (cubit) => cubit.loadEntitlements(mode: AppSyncingMode.local),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,

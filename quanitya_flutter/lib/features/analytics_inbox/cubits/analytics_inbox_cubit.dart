@@ -6,14 +6,14 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../logic/analytics/analytics_service.dart';
 import '../../../data/repositories/analytics_inbox_repository.dart';
-import '../../../features/app_operating_mode/repositories/app_operating_repository.dart';
+import '../../../features/app_syncing_mode/repositories/app_syncing_repository.dart';
 import 'analytics_inbox_state.dart';
 
 @injectable
 class AnalyticsInboxCubit extends QuanityaCubit<AnalyticsInboxState> {
   final AnalyticsInboxRepository _inboxRepo;
   final AnalyticsService _analyticsService;
-  final AppOperatingRepository _settingsRepo;
+  final AppSyncingRepository _settingsRepo;
 
   StreamSubscription<List>? _groupedSub;
   StreamSubscription<int>? _countSub;

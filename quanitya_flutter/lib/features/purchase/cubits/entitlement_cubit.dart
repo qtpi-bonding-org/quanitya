@@ -4,7 +4,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import '../../../data/db/app_database.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../infrastructure/purchase/i_entitlement_service.dart';
-import '../../app_operating_mode/models/app_operating_mode.dart';
+import '../../app_syncing_mode/models/app_syncing_mode.dart';
 import 'entitlement_state.dart';
 
 @injectable
@@ -15,7 +15,7 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
   EntitlementCubit(this._entitlementService, this._db)
       : super(const EntitlementState());
 
-  Future<void> loadEntitlements({required AppOperatingMode mode}) async {
+  Future<void> loadEntitlements({required AppSyncingMode mode}) async {
     await tryOperation(() async {
       final entitlements = await _entitlementService.getEntitlements(mode);
       return state.copyWith(
@@ -26,7 +26,7 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
     }, emitLoading: true);
   }
 
-  Future<void> checkSyncAccess({required AppOperatingMode mode}) async {
+  Future<void> checkSyncAccess({required AppSyncingMode mode}) async {
     await tryOperation(() async {
       final hasAccess = await _entitlementService.hasSyncAccess(mode);
       return state.copyWith(
@@ -42,7 +42,7 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
   /// (PowerSync oplog, indexes, row overhead, WAL).
   /// Mode parameter accepted for interface consistency but not used
   /// (this is a local DB query).
-  Future<void> loadStorageUsage({required AppOperatingMode mode}) async {
+  Future<void> loadStorageUsage({required AppSyncingMode mode}) async {
     await tryOperation(() async {
       final result = await _db.customSelect(
         'SELECT '

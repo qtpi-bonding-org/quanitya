@@ -7,7 +7,7 @@ import '../../data/repositories/analytics_inbox_repository.dart' show AnalyticsI
 import '../../data/repositories/data_export_repository.dart' show ImportFailedException, ImportCancelledException;
 import '../../data/repositories/log_entry_repository.dart';
 import '../../data/repositories/template_with_aesthetics_repository.dart';
-import '../../features/app_operating_mode/exceptions/app_operating_exceptions.dart' show AppOperatingException;
+import '../../features/app_syncing_mode/exceptions/app_syncing_exceptions.dart' show AppSyncingException;
 import '../../features/device_pairing/services/pairing_service.dart' show PairingException, PairingFailure;
 import '../../logic/log_entries/exceptions/log_entry_exceptions.dart';
 import '../auth/auth_service.dart' show AuthException, AuthFailure;
@@ -115,8 +115,8 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
       // Notification exceptions
       NotificationException() => const MessageKey.error(L10nKeys.errorNotificationFailed),
 
-      // App settings / operating mode exceptions
-      AppOperatingException() => const MessageKey.error(L10nKeys.errorSettingsFailed),
+      // App settings / syncing mode exceptions
+      AppSyncingException() => const MessageKey.error(L10nKeys.errorSettingsFailed),
 
       // Location exceptions
       LocationException() => const MessageKey.error(L10nKeys.errorLocationFailed),

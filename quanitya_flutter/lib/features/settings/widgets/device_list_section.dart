@@ -12,8 +12,8 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../../../features/app_operating_mode/cubits/app_operating_cubit.dart';
-import '../../../features/app_operating_mode/models/app_operating_mode.dart';
+import '../../../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
+import '../../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../../infrastructure/auth/auth_service.dart' show AuthException, AuthFailure;
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../cubits/device_management/device_management_cubit.dart';
@@ -32,7 +32,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
   void initState() {
     super.initState();
     // Only load devices if app is in a mode that supports server features
-    final appMode = context.read<AppOperatingCubit>().state.mode;
+    final appMode = context.read<AppSyncingCubit>().state.mode;
     if (appMode.requiresServer) {
       context.read<DeviceManagementCubit>().loadDevices();
     }
@@ -54,7 +54,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
 
   @override
   Widget build(BuildContext context) {
-    final appMode = context.watch<AppOperatingCubit>().state.mode;
+    final appMode = context.watch<AppSyncingCubit>().state.mode;
     
     // If in local mode, show message that device management requires server
     if (!appMode.requiresServer) {

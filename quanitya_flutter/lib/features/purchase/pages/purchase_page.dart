@@ -12,8 +12,8 @@ import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dar
 import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../../app_operating_mode/cubits/app_operating_cubit.dart';
-import '../../app_operating_mode/models/app_operating_mode.dart';
+import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
+import '../../app_syncing_mode/models/app_syncing_mode.dart';
 import '../cubits/entitlement_cubit.dart';
 import '../cubits/entitlement_message_mapper.dart';
 import '../cubits/entitlement_state.dart';
@@ -46,7 +46,7 @@ class PurchaseTabContent extends StatelessWidget {
       ],
       child: RefreshIndicator(
         onRefresh: () async {
-          final mode = context.read<AppOperatingCubit>().state.mode;
+          final mode = context.read<AppSyncingCubit>().state.mode;
           context.read<PurchaseCubit>().loadProducts();
           context.read<EntitlementCubit>()
             ..loadEntitlements(mode: mode)
@@ -59,7 +59,7 @@ class PurchaseTabContent extends StatelessWidget {
             // Entitlement balance section
             BlocBuilder<EntitlementCubit, EntitlementState>(
               builder: (context, state) {
-                final mode = context.read<AppOperatingCubit>().state.mode;
+                final mode = context.read<AppSyncingCubit>().state.mode;
                 return BalanceDisplay(
                   entitlements: state.entitlements,
                   hasSyncAccess: state.hasSyncAccess,
@@ -154,7 +154,7 @@ class PurchaseTabContent extends StatelessWidget {
   }
 
   void _onBuy(BuildContext context, PurchaseProduct product) {
-    final mode = context.read<AppOperatingCubit>().state.mode;
+    final mode = context.read<AppSyncingCubit>().state.mode;
     context.read<PurchaseCubit>().purchase(
           PurchaseRequest(
             productId: product.productId,

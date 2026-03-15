@@ -23,7 +23,7 @@ import '../../settings/cubits/webhook/webhook_message_mapper.dart';
 import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../settings/cubits/llm_provider/llm_provider_state.dart';
 import '../../settings/cubits/llm_provider/llm_provider_message_mapper.dart';
-import '../../app_operating_mode/cubits/app_operating_cubit.dart';
+import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../settings/pages/settings_page.dart';
 // Purchase cubits
 import '../../purchase/cubits/purchase_cubit.dart';
@@ -53,7 +53,7 @@ class _OfficePageState extends State<OfficePage> {
     if (index == 1 && !_purchasesLoaded) {
       _purchasesLoaded = true;
       context.read<PurchaseCubit>().loadProducts();
-      final mode = context.read<AppOperatingCubit>().state.mode;
+      final mode = context.read<AppSyncingCubit>().state.mode;
       context.read<EntitlementCubit>()
         ..loadEntitlements(mode: mode)
         ..checkSyncAccess(mode: mode)
@@ -83,7 +83,7 @@ class _OfficePageState extends State<OfficePage> {
         BlocProvider(create: (_) => GetIt.instance<DeviceManagementCubit>()),
         BlocProvider(create: (_) => GetIt.instance<WebhookCubit>()..load()),
         BlocProvider(create: (_) => GetIt.instance<LlmProviderCubit>()..load()),
-        BlocProvider.value(value: GetIt.instance<AppOperatingCubit>()),
+        BlocProvider.value(value: GetIt.instance<AppSyncingCubit>()),
         BlocProvider(create: (_) => GetIt.instance<PurchaseCubit>()),
         BlocProvider(create: (_) => GetIt.instance<EntitlementCubit>()),
       ],
@@ -119,7 +119,7 @@ class _OfficePageState extends State<OfficePage> {
               current.status == UiFlowStatus.success &&
               current.lastOperation == PurchaseOperation.purchase,
           listener: (context, state) {
-            context.read<AppOperatingCubit>().switchToCloud();
+            context.read<AppSyncingCubit>().switchToCloud();
           },
           child: Builder(
             builder: (innerContext) => SwipeablePageShell(
