@@ -18,6 +18,9 @@ import 'package:flutter_color_palette/flutter_color_palette.dart';
 /// - error: #F4C1C1 (Soft pink)
 /// - warning: #F5E6A3 (Pale yellow)
 /// 
+/// Caution color (warning text/icons — visible on paper):
+/// - caution: #8B6508 (Dark amber/ochre - for warning text/icons)
+///
 /// Destructive color:
 /// - destructive: #BC4B41 (Dark red - for delete icons/text)
 ///
@@ -42,6 +45,9 @@ class QuanityaPalette {
       'error': const Color(0xFFF4C1C1),    // Soft pink
       'warning': const Color(0xFFF5E6A3),  // Pale yellow
       
+      // Caution color (for warning text/icons — dark amber, visible on paper)
+      'caution': const Color(0xFF8B6508), // Dark amber/ochre
+
       // Destructive color (for delete icons/text)
       'destructive': const Color(0xFFBC4B41), // Dark red
 
@@ -93,6 +99,9 @@ extension QuanityaColors on IColorPalette {
   Color get errorColor => getColor('error')!;
   Color get warningColor => getColor('warning')!;
   
+  // Caution color (for warning text/icons — visible on paper)
+  Color get cautionColor => getColor('caution')!;
+
   // Destructive color (for delete icons/text)
   Color get destructiveColor => getColor('destructive')!;
 

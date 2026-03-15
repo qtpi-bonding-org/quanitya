@@ -76,7 +76,7 @@ class LiveResultsPanel extends StatelessWidget {
     return Container(
       padding: AppPadding.allSingle,
       decoration: BoxDecoration(
-        color: QuanityaPalette.primary.successColor.withValues(alpha: 0.1),
+        color: QuanityaPalette.primary.textPrimary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(AppSizes.radiusMedium),
           topRight: Radius.circular(AppSizes.radiusMedium),
@@ -87,13 +87,13 @@ class LiveResultsPanel extends StatelessWidget {
           Icon(
             Icons.analytics,
             size: AppSizes.iconSmall,
-            color: QuanityaPalette.primary.successColor,
+            color: QuanityaPalette.primary.textPrimary,
           ),
           HSpace.x05,
           Text(
             context.l10n.livePreview,
             style: context.text.bodyMedium?.copyWith(
-              color: QuanityaPalette.primary.successColor,
+              color: QuanityaPalette.primary.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),

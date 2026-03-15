@@ -30,7 +30,6 @@ class ScalarCard extends StatelessWidget {
       child: Container(
         padding: AppPadding.allDouble,
         decoration: BoxDecoration(
-          color: palette.primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
         ),
         child: Column(

@@ -158,14 +158,14 @@ class _FieldEditorListState extends State<FieldEditorList> {
                       Icon(
                         Icons.warning_amber_outlined,
                         size: AppSizes.size16,
-                        color: context.colors.warningColor,
+                        color: context.colors.cautionColor,
                       ),
                       HSpace.x05,
                       Expanded(
                         child: Text(
                           context.l10n.fieldNoDefaultWarning,
                           style: context.text.bodySmall?.copyWith(
-                            color: context.colors.warningColor,
+                            color: context.colors.cautionColor,
                           ),
                         ),
                       ),

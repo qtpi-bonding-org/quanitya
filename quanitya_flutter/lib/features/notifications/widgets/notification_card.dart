@@ -131,7 +131,7 @@ class _NotificationIcon extends StatelessWidget {
     final colors = context.colors;
     return switch (type) {
       'inform' => (icon: Icons.info_outline, color: colors.infoColor),
-      'warning' => (icon: Icons.warning_amber_outlined, color: colors.warningColor),
+      'warning' => (icon: Icons.warning_amber_outlined, color: colors.cautionColor),
       'failure' => (icon: Icons.error_outline, color: colors.destructiveColor),
       'success' => (icon: Icons.check_circle_outline, color: colors.successColor),
       'announcement' => (icon: Icons.campaign_outlined, color: colors.interactableColor),

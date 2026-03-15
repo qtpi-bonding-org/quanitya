@@ -197,7 +197,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
                     Icon(
                       Icons.insights,
                       size: AppSizes.iconMedium,
-                      color: palette.successColor,
+                      color: palette.textPrimary,
                     ),
                     HSpace.x1,
                     Text(

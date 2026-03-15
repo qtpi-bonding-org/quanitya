@@ -224,14 +224,14 @@ class _BackupMethodTile extends StatelessWidget {
                     Icon(
                       Icons.warning_amber_rounded,
                       size: AppSizes.iconSmall,
-                      color: context.colors.warningColor,
+                      color: context.colors.cautionColor,
                     ),
                     HSpace.x05,
                     Expanded(
                       child: Text(
                         warning!,
                         style: context.text.bodySmall?.copyWith(
-                          color: context.colors.warningColor,
+                          color: context.colors.cautionColor,
                         ),
                       ),
                     ),
