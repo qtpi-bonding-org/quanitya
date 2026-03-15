@@ -7,6 +7,7 @@ import 'package:anonaccred_client/anonaccred_client.dart'
 
 import 'package:quanitya_flutter/data/db/app_database.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_entitlement_service.dart';
+import 'package:quanitya_flutter/features/app_operating_mode/models/app_operating_mode.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/entitlement_cubit.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/entitlement_state.dart';
 
@@ -35,7 +36,7 @@ void main() {
     blocTest<EntitlementCubit, EntitlementState>(
       'loadEntitlements emits loading then success with entitlements',
       build: () {
-        when(() => mockService.getEntitlements()).thenAnswer(
+        when(() => mockService.getEntitlements(any())).thenAnswer(
           (_) async => [
             AccountEntitlement(
               accountId: 1,
@@ -46,7 +47,7 @@ void main() {
         );
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.loadEntitlements(),
+      act: (cubit) => cubit.loadEntitlements(mode: AppOperatingMode.cloud),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -66,11 +67,11 @@ void main() {
     blocTest<EntitlementCubit, EntitlementState>(
       'checkSyncAccess emits true when service says yes',
       build: () {
-        when(() => mockService.hasSyncAccess())
+        when(() => mockService.hasSyncAccess(any()))
             .thenAnswer((_) async => true);
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.checkSyncAccess(),
+      act: (cubit) => cubit.checkSyncAccess(mode: AppOperatingMode.cloud),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -89,11 +90,11 @@ void main() {
     blocTest<EntitlementCubit, EntitlementState>(
       'checkSyncAccess emits false when no credits',
       build: () {
-        when(() => mockService.hasSyncAccess())
+        when(() => mockService.hasSyncAccess(any()))
             .thenAnswer((_) async => false);
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.checkSyncAccess(),
+      act: (cubit) => cubit.checkSyncAccess(mode: AppOperatingMode.cloud),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -111,11 +112,11 @@ void main() {
     blocTest<EntitlementCubit, EntitlementState>(
       'checkSyncAccess emits failure when service throws',
       build: () {
-        when(() => mockService.hasSyncAccess())
+        when(() => mockService.hasSyncAccess(any()))
             .thenThrow(Exception('Network error'));
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.checkSyncAccess(),
+      act: (cubit) => cubit.checkSyncAccess(mode: AppOperatingMode.cloud),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -124,6 +125,28 @@ void main() {
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.failure && s.error != null,
           'failure state with error',
+        ),
+      ],
+    );
+
+    blocTest<EntitlementCubit, EntitlementState>(
+      'loadEntitlements in local mode returns empty without server call',
+      build: () {
+        when(() => mockService.getEntitlements(AppOperatingMode.local))
+            .thenAnswer((_) async => []);
+        return EntitlementCubit(mockService, mockDb);
+      },
+      act: (cubit) => cubit.loadEntitlements(mode: AppOperatingMode.local),
+      expect: () => [
+        predicate<EntitlementState>(
+          (s) => s.status == UiFlowStatus.loading,
+          'loading state',
+        ),
+        predicate<EntitlementState>(
+          (s) =>
+              s.status == UiFlowStatus.success &&
+              s.entitlements.isEmpty,
+          'success state with empty entitlements',
         ),
       ],
     );
