@@ -56,15 +56,15 @@ void main() {
     });
 
     group('division', () {
-      test('L / T = velocity', () {
-        final velocity = Dimension.L / Dimension.T;
-        expect(velocity, equals(Dimension.velocity));
-        expect(velocity.length, equals(1));
-        expect(velocity.time, equals(-1));
+      test('L / T = speed', () {
+        final speed = Dimension.L / Dimension.T;
+        expect(speed, equals(Dimension.speed));
+        expect(speed.length, equals(1));
+        expect(speed.time, equals(-1));
       });
 
-      test('velocity / T = acceleration', () {
-        final acceleration = Dimension.velocity / Dimension.T;
+      test('speed / T = acceleration', () {
+        final acceleration = Dimension.speed / Dimension.T;
         expect(acceleration, equals(Dimension.acceleration));
         expect(acceleration.length, equals(1));
         expect(acceleration.time, equals(-2));
@@ -90,8 +90,8 @@ void main() {
         expect(Dimension.T.inverse(), equals(Dimension.frequency));
       });
 
-      test('velocity.inverse() = T/L', () {
-        final inverse = Dimension.velocity.inverse();
+      test('speed.inverse() = T/L', () {
+        final inverse = Dimension.speed.inverse();
         expect(inverse.length, equals(-1));
         expect(inverse.time, equals(1));
       });
@@ -107,7 +107,7 @@ void main() {
 
       test('different dimensions are not equal', () {
         expect(Dimension.L, isNot(equals(Dimension.M)));
-        expect(Dimension.velocity, isNot(equals(Dimension.acceleration)));
+        expect(Dimension.speed, isNot(equals(Dimension.acceleration)));
       });
     });
 
@@ -125,7 +125,7 @@ void main() {
       test('compound dimensions format with superscripts', () {
         expect(Dimension.area.toString(), equals('L²'));
         expect(Dimension.volume.toString(), equals('L³'));
-        expect(Dimension.velocity.toString(), equals('L·T⁻¹'));
+        expect(Dimension.speed.toString(), equals('L·T⁻¹'));
         expect(Dimension.acceleration.toString(), equals('L·T⁻²'));
         // Order is L, M, T (alphabetical by symbol position in toString)
         expect(Dimension.force.toString(), equals('L·M·T⁻²'));
@@ -136,7 +136,7 @@ void main() {
       test('returns common names for known dimensions', () {
         expect(Dimension.L.toReadableString(), equals('length'));
         expect(Dimension.M.toReadableString(), equals('mass'));
-        expect(Dimension.velocity.toReadableString(), equals('velocity'));
+        expect(Dimension.speed.toReadableString(), equals('speed'));
         expect(Dimension.force.toReadableString(), equals('force'));
         expect(Dimension.energy.toReadableString(), equals('energy'));
       });
@@ -151,7 +151,7 @@ void main() {
       test('toJson only includes non-zero exponents', () {
         expect(Dimension.dimensionless.toJson(), equals({}));
         expect(Dimension.L.toJson(), equals({'L': 1}));
-        expect(Dimension.velocity.toJson(), equals({'L': 1, 'T': -1}));
+        expect(Dimension.speed.toJson(), equals({'L': 1, 'T': -1}));
       });
 
       test('fromJson creates correct dimension', () {
@@ -159,7 +159,7 @@ void main() {
         expect(Dimension.fromJson({'L': 1}), equals(Dimension.L));
         expect(
           Dimension.fromJson({'L': 1, 'T': -1}),
-          equals(Dimension.velocity),
+          equals(Dimension.speed),
         );
         expect(
           Dimension.fromJson({'M': 1, 'L': 1, 'T': -2}),
@@ -172,7 +172,7 @@ void main() {
           Dimension.dimensionless,
           Dimension.L,
           Dimension.M,
-          Dimension.velocity,
+          Dimension.speed,
           Dimension.force,
           Dimension.energy,
           Dimension(length: 2, mass: 1, time: -3, current: -1), // voltage

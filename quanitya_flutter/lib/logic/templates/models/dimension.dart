@@ -24,12 +24,12 @@ import 'package:flutter/foundation.dart';
 /// final time = Dimension.T;
 ///
 /// // Compound dimensions via operators
-/// final velocity = Dimension.L / Dimension.T;           // m/s
+/// final speed = Dimension.L / Dimension.T;              // m/s
 /// final acceleration = Dimension.L / (Dimension.T * Dimension.T); // m/s²
 /// final force = Dimension.M * acceleration;             // kg·m/s² = N
 ///
 /// // Or use predefined common dimensions
-/// final speed = Dimension.velocity;
+/// final speed = Dimension.speed;
 /// final energy = Dimension.energy;
 ///
 /// // Arbitrary user-defined combinations
@@ -109,8 +109,8 @@ class Dimension {
   /// Volume (L³) - cubic meter, liter
   static const volume = Dimension(length: 3);
 
-  /// Velocity/Speed (L·T⁻¹) - meter per second
-  static const velocity = Dimension(length: 1, time: -1);
+  /// Speed (L·T⁻¹) - meter per second
+  static const speed = Dimension(length: 1, time: -1);
 
   /// Acceleration (L·T⁻²) - meter per second squared
   static const acceleration = Dimension(length: 1, time: -2);
@@ -200,7 +200,7 @@ class Dimension {
   ///
   /// Example: Length / Time = Velocity
   /// ```dart
-  /// final velocity = Dimension.L / Dimension.T;
+  /// final speed = Dimension.L / Dimension.T;
   /// // L¹ / T¹ = L¹T⁻¹
   /// ```
   Dimension operator /(Dimension other) => Dimension(
@@ -330,7 +330,7 @@ class Dimension {
   /// Returns a human-readable string representation.
   ///
   /// Uses SI symbols with superscript exponents:
-  /// - "L¹T⁻¹" for velocity
+  /// - "L¹T⁻¹" for speed
   /// - "M¹L²T⁻²" for energy
   /// - "1" for dimensionless
   @override
@@ -372,7 +372,7 @@ class Dimension {
     if (this == J) return 'luminosity';
     if (this == area) return 'area';
     if (this == volume) return 'volume';
-    if (this == velocity) return 'velocity';
+    if (this == speed) return 'speed';
     if (this == acceleration) return 'acceleration';
     if (this == force) return 'force';
     if (this == pressure) return 'pressure';

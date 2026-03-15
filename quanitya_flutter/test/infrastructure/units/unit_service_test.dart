@@ -52,8 +52,8 @@ void main() {
         expect(units.length, equals(7));
       });
 
-      test('returns speed units for Dimension.velocity', () {
-        final units = service.getUnitsForDimension(Dimension.velocity);
+      test('returns speed units for Dimension.speed', () {
+        final units = service.getUnitsForDimension(Dimension.speed);
         expect(units, contains(MeasurementUnit.kilometersPerHour));
         expect(units, contains(MeasurementUnit.milesPerHour));
         expect(units, contains(MeasurementUnit.metersPerSecond));

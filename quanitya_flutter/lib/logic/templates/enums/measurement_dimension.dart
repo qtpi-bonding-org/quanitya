@@ -27,7 +27,7 @@ enum MeasurementDimension {
   temperature(Dimension.theta),
 
   /// Speed/velocity measurements (km/h, mph, m/s)
-  speed(Dimension.velocity),
+  speed(Dimension.speed),
 
   /// Energy measurements (calories, joules, kWh)
   energy(Dimension.energy),
