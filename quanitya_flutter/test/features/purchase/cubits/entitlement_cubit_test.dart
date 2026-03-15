@@ -19,6 +19,10 @@ void main() {
   late MockEntitlementService mockService;
   late MockAppDatabase mockDb;
 
+  setUpAll(() {
+    registerFallbackValue(AppOperatingMode.cloud);
+  });
+
   setUp(() {
     mockService = MockEntitlementService();
     mockDb = MockAppDatabase();
