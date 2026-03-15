@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
+import '../../../design_system/primitives/app_sizes.dart';
 import '../../../support/extensions/context_extensions.dart';
+import '../../app_operating_mode/widgets/mode_indicator.dart';
 import '../../error_reporting/cubits/error_box_cubit.dart';
 import '../../notifications/cubits/notification_inbox_cubit.dart';
 import '../../outbox/pages/outbox_page.dart';
@@ -59,25 +61,35 @@ class _NotebookShellState extends State<NotebookShell> {
 
           return Scaffold(
             backgroundColor: Colors.transparent,
-            body: Column(
+            body: Stack(
               children: [
-                Expanded(
-                  child: IndexedStack(
-                    index: _currentIndex,
-                    children: const [
-                      TemporalHomePage(),
-                      ResultsSection(),
-                      // Postage (Notices + Feedback + Analytics + Errors)
-                      PostagePage(),
-                      OfficePage(),
-                    ],
-                  ),
+                Column(
+                  children: [
+                    Expanded(
+                      child: IndexedStack(
+                        index: _currentIndex,
+                        children: const [
+                          TemporalHomePage(),
+                          ResultsSection(),
+                          // Postage (Notices + Feedback + Analytics + Errors)
+                          PostagePage(),
+                          OfficePage(),
+                        ],
+                      ),
+                    ),
+                    FolderTabBar(
+                      currentIndex: _currentIndex,
+                      onTabSelected: (index) =>
+                          setState(() => _currentIndex = index),
+                      tabs: tabs,
+                    ),
+                  ],
                 ),
-                FolderTabBar(
-                  currentIndex: _currentIndex,
-                  onTabSelected: (index) =>
-                      setState(() => _currentIndex = index),
-                  tabs: tabs,
+                // Mode indicator — top-right, below safe area
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + AppSizes.space,
+                  right: AppSizes.space * 2,
+                  child: const ModeIndicator(),
                 ),
               ],
             ),
