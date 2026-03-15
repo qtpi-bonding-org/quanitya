@@ -2,7 +2,6 @@ import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:async';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
@@ -202,36 +201,26 @@ class AppOperatingCubit extends QuanityaCubit<AppOperatingState> {
 
   /// Switch to cloud mode (requires payment verification)
   Future<void> switchToCloud() async {
-    debugPrint('☁️ switchToCloud: START, current mode=${state.mode.name}');
     emit(state.copyWith(status: UiFlowStatus.loading));
     _isUpdatingFromSelf = true;
     try {
       // Verify entitlement (sync days) before allowing cloud mode
-      debugPrint('☁️ switchToCloud: Checking entitlement...');
       if (GetIt.instance.isRegistered<IEntitlementService>()) {
         final hasSyncAccess =
             await GetIt.instance<IEntitlementService>().hasSyncAccess();
-        debugPrint('☁️ switchToCloud: hasSyncAccess=$hasSyncAccess');
         if (!hasSyncAccess) {
           throw const AppOperatingException(
             'Cloud access requires sync days. Purchase sync time to continue.',
           );
         }
-      } else {
-        debugPrint('☁️ switchToCloud: IEntitlementService not registered, skipping check');
       }
 
-      debugPrint('☁️ switchToCloud: Testing connection to ${state.baseUrl}...');
       final isReachable = await _networkService.testConnection(state.baseUrl);
-      debugPrint('☁️ switchToCloud: isReachable=$isReachable');
 
-      debugPrint('☁️ switchToCloud: Updating mode in repository...');
       await _repository.updateMode(AppOperatingMode.cloud);
 
       // Handle PowerSync mode change
-      debugPrint('☁️ switchToCloud: Calling _handlePowerSyncModeChange...');
       await _handlePowerSyncModeChange(AppOperatingMode.cloud);
-      debugPrint('☁️ switchToCloud: _handlePowerSyncModeChange returned');
 
       emit(state.copyWith(
         mode: AppOperatingMode.cloud,
@@ -242,9 +231,7 @@ class AppOperatingCubit extends QuanityaCubit<AppOperatingState> {
         status: UiFlowStatus.success,
         lastOperation: AppOperatingOperation.switchMode,
       ));
-      debugPrint('☁️ switchToCloud: DONE');
     } catch (e) {
-      debugPrint('☁️ switchToCloud: ERROR: $e');
       emit(state.copyWith(
         status: UiFlowStatus.failure,
         error: e,
@@ -303,21 +290,15 @@ class AppOperatingCubit extends QuanityaCubit<AppOperatingState> {
   /// Handle PowerSync connection/disconnection based on operating mode
   Future<void> _handlePowerSyncModeChange(AppOperatingMode mode) async {
     try {
-      debugPrint('🔄 AppOperatingCubit: Handling PowerSync mode change to: ${mode.name}');
-      if (GetIt.instance.isRegistered<IPowerSyncService>() && 
+      if (GetIt.instance.isRegistered<IPowerSyncService>() &&
           GetIt.instance.isRegistered<Client>()) {
         final powerSync = GetIt.instance<IPowerSyncService>();
         final client = GetIt.instance<Client>();
-        debugPrint('🔄 AppOperatingCubit: PowerSync and Client services found, calling handleModeChange...');
         await powerSync.handleModeChange(mode, client);
-        debugPrint('🔄 AppOperatingCubit: PowerSync mode change completed successfully');
-      } else {
-        debugPrint('🔄 AppOperatingCubit: PowerSync or Client services not registered, skipping mode change');
       }
     } catch (e) {
       // Don't fail the mode switch if PowerSync fails
-      // Just log the error - app can work without sync
-      debugPrint('⚠️ AppOperatingCubit: PowerSync mode change failed: $e');
+      // App can work without sync
     }
   }
 }
