@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
+import '../../../infrastructure/auth/auth_service.dart';
 import '../../../infrastructure/purchase/i_purchase_service.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
 import 'purchase_state.dart';
@@ -9,8 +12,28 @@ import 'purchase_state.dart';
 @injectable
 class PurchaseCubit extends QuanityaCubit<PurchaseState> {
   final IPurchaseService _purchaseService;
+  final AuthService _authService;
+  Completer<void>? _registrationLock;
 
-  PurchaseCubit(this._purchaseService) : super(const PurchaseState());
+  PurchaseCubit(this._purchaseService, this._authService) : super(const PurchaseState());
+
+  Future<void> _ensureRegistered() async {
+    if (await _authService.isRegisteredWithServer) return;
+    if (_registrationLock != null) {
+      await _registrationLock!.future;
+      return;
+    }
+    _registrationLock = Completer<void>();
+    try {
+      await _authService.registerAccountWithServer(deviceLabel: 'auto');
+      _registrationLock!.complete();
+    } catch (e) {
+      _registrationLock!.completeError(e);
+      rethrow;
+    } finally {
+      _registrationLock = null;
+    }
+  }
 
   Future<void> loadProducts() async {
     emit(state.copyWith(lastOperation: PurchaseOperation.loadProducts));
@@ -26,6 +49,7 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
 
   Future<void> purchase(PurchaseRequest request) async {
     await tryOperation(() async {
+      await _ensureRegistered();
       final result = await _purchaseService.purchase(request);
       analytics?.trackPurchaseCompleted(productId: request.productId);
       return state.copyWith(
