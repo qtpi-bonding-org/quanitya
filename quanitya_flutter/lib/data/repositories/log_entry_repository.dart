@@ -330,11 +330,23 @@ class LogEntryRepository implements ILogEntryRepository {
   }
 
   /// Validates that a value matches the expected field type.
+  /// For isList fields, validates the value is a List and checks each item.
   String? _validateFieldType(TemplateField field, dynamic value) {
-    final expectedType = field.type;
-    final label = field.label;
+    if (field.isList) {
+      if (value is! List) return '${field.label} must be a list';
+      for (int i = 0; i < value.length; i++) {
+        final itemError = _validateScalarType(field, value[i]);
+        if (itemError != null) return '$itemError (item ${i + 1})';
+      }
+      return null;
+    }
+    return _validateScalarType(field, value);
+  }
 
-    return switch (expectedType) {
+  /// Validates a single scalar value against the field's expected type.
+  String? _validateScalarType(TemplateField field, dynamic value) {
+    final label = field.label;
+    return switch (field.type) {
       FieldEnum.integer => value is int ? null : '$label must be an integer',
       FieldEnum.float => value is num ? null : '$label must be a number',
       FieldEnum.boolean => value is bool ? null : '$label must be a boolean',
@@ -344,9 +356,16 @@ class LogEntryRepository implements ILogEntryRepository {
       FieldEnum.dimension => value is num ? null : '$label must be a number',
       FieldEnum.reference =>
         value is String ? null : '$label must be a reference ID',
-      FieldEnum.location =>
-        value is Map ? null : '$label must be a location map',
+      FieldEnum.location => _validateLocation(value, label),
     };
+  }
+
+  String? _validateLocation(dynamic value, String label) {
+    if (value is! Map) return '$label must be a location';
+    if (value['latitude'] is! num || value['longitude'] is! num) {
+      return '$label must have numeric latitude and longitude';
+    }
+    return null;
   }
 
   String? _validateDateTime(dynamic value, String label) {
