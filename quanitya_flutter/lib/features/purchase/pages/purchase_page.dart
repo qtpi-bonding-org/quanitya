@@ -20,7 +20,7 @@ import '../cubits/entitlement_state.dart';
 import '../cubits/purchase_cubit.dart';
 import '../cubits/purchase_message_mapper.dart';
 import '../cubits/purchase_state.dart';
-import '../widgets/balance_display.dart';
+import '../widgets/entitlement_display.dart';
 import '../widgets/consumable_card.dart';
 import '../widgets/product_card.dart';
 
@@ -60,16 +60,13 @@ class PurchaseTabContent extends StatelessWidget {
             BlocBuilder<EntitlementCubit, EntitlementState>(
               builder: (context, state) {
                 final mode = context.read<AppSyncingCubit>().state.mode;
-                return BalanceDisplay(
+                return EntitlementDisplay(
                   entitlements: state.entitlements,
-                  hasSyncAccess: state.hasSyncAccess,
                   storageBytes: state.storageBytes,
                   entryCount: state.entryCount,
                   hasError: state.hasError && mode.requiresServer,
                   onRetry: () {
-                    context.read<EntitlementCubit>()
-                      ..loadEntitlements(mode: mode)
-                      ..checkSyncAccess(mode: mode);
+                    context.read<EntitlementCubit>().loadEntitlements(mode: mode);
                   },
                 );
               },

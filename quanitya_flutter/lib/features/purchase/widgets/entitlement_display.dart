@@ -7,14 +7,17 @@ import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../support/extensions/context_extensions.dart';
 
-/// Displays the user's entitlement balances (sync days, credits, etc.)
+/// Displays the user's active entitlements (sync tiers, credits, etc.)
+///
+/// Only active entitlements are shown:
+/// - Sync tiers (tag starts with `sync_`): shown if balance > 0, labelled "Active"
+/// - Consumables (everything else): shown if balance >= 1, labelled with numeric balance
 ///
 /// Manuscript style: no card wrapper, just pen-styled text and icon.
-class BalanceDisplay extends StatelessWidget {
-  const BalanceDisplay({
+class EntitlementDisplay extends StatelessWidget {
+  const EntitlementDisplay({
     super.key,
     required this.entitlements,
-    required this.hasSyncAccess,
     this.storageBytes,
     this.entryCount,
     this.hasError = false,
@@ -22,52 +25,38 @@ class BalanceDisplay extends StatelessWidget {
   });
 
   final List<AccountEntitlement> entitlements;
-  final bool hasSyncAccess;
   final int? storageBytes;
   final int? entryCount;
   final bool hasError;
   final VoidCallback? onRetry;
 
+  List<AccountEntitlement> get _activeEntitlements {
+    return entitlements.where((e) {
+      final isSyncTier = e.entitlement?.tag.startsWith('sync_') ?? false;
+      if (isSyncTier) {
+        return e.balance > 0;
+      } else {
+        return e.balance >= 1;
+      }
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
-    final statusColor =
-        hasSyncAccess ? palette.successColor : palette.errorColor;
+    final active = _activeEntitlements;
 
     return Padding(
       padding: AppPadding.pageHorizontal,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                hasSyncAccess ? Icons.cloud_done : Icons.cloud_off,
-                color: statusColor,
-                size: AppSizes.iconMedium,
-              ),
-              HSpace.x1,
-              Expanded(
-                child: Text(
-                  hasSyncAccess
-                      ? context.l10n.syncActive
-                      : context.l10n.syncInactive,
-                  style: context.text.titleMedium?.copyWith(
-                    color: statusColor,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-
           // Storage usage
           if (storageBytes != null || entryCount != null) ...[
-            VSpace.x1,
             _buildStorageRow(context),
           ],
 
-          if (entitlements.isNotEmpty) ...[
+          if (active.isNotEmpty) ...[
             VSpace.x2,
             // Pen-drawn divider
             CustomPaint(
@@ -77,7 +66,7 @@ class BalanceDisplay extends StatelessWidget {
               ),
             ),
             VSpace.x1,
-            ...entitlements.map((e) {
+            ...active.map((e) {
               final name = e.entitlement?.name ??
                   context.l10n.entitlementLabel(e.entitlementId);
               final isSyncTier =
@@ -98,13 +87,9 @@ class BalanceDisplay extends StatelessWidget {
                     HSpace.x1,
                     if (isSyncTier)
                       Text(
-                        e.balance > 0
-                            ? context.l10n.entitlementActive
-                            : context.l10n.entitlementInactive,
+                        context.l10n.entitlementActive,
                         style: context.text.bodyMedium?.copyWith(
-                          color: e.balance > 0
-                              ? palette.successColor
-                              : palette.textSecondary,
+                          color: palette.successColor,
                           fontWeight: FontWeight.bold,
                         ),
                       )
