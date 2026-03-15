@@ -97,9 +97,10 @@ class _FieldEditorListState extends State<FieldEditorList> {
   }
 
   Widget _buildFieldItem(BuildContext context, TemplateField field) {
-    // Build subtitle: "Integer · Slider · List" or "Text · Text Field"
+    // Build subtitle: "Integer · Slider · List" or "Measurement · kg · Stepper"
     final parts = <String>[
       field.type.displayName,
+      if (field.unit != null) field.unit!.displayName,
       if (field.uiElement != null)
         _getWidgetDisplayName(context, field.uiElement!),
       if (field.isList) context.l10n.fieldIsListLabel,

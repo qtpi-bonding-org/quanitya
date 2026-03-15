@@ -3,6 +3,8 @@ import 'package:get_it/get_it.dart';
 
 import '../../../../logic/templates/enums/field_enum.dart';
 import '../../../../logic/templates/enums/field_enum_extensions.dart';
+import '../../../../logic/templates/enums/measurement_dimension.dart';
+import '../../../../logic/templates/enums/measurement_unit.dart';
 import '../../../../logic/templates/enums/ui_element_enum.dart';
 import '../../../../logic/templates/models/shared/template_field.dart';
 import '../../../../logic/templates/services/engine/symbolic_combination_generator.dart';
@@ -58,7 +60,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   late UiElementEnum _selectedWidget;
   late bool _isList;
   late List<String> _options;
-  
+  MeasurementUnit? _selectedUnit;
+
   // Default value state (type varies by field)
   Object? _defaultValue;
   String? _defaultValueError;
@@ -77,6 +80,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       _selectedWidget = field.uiElement ?? _validWidgets.first;
       _isList = field.isList;
       _options = List.from(field.options ?? []);
+      _selectedUnit = field.unit;
       _defaultValue = field.defaultValue;
       _defaultValueController = TextEditingController(
         text: _defaultValueToString(field.defaultValue),
@@ -86,6 +90,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       _selectedWidget = _validWidgets.first;
       _isList = false;
       _options = [];
+      _selectedUnit = null;
       _defaultValue = null;
       _defaultValueController = TextEditingController();
     }
@@ -137,7 +142,13 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             VSpace.x1,
             _buildOptionsEditor(context, draftColor),
           ],
-          
+
+          // Unit selector for dimension fields
+          if (widget.fieldType == FieldEnum.dimension) ...[
+            VSpace.x1,
+            _buildUnitSelector(context, draftColor),
+          ],
+
           // Default value editor (for supported types, not for lists)
           if (supportsDefault && !_isList) ...[
             VSpace.x1,
@@ -253,6 +264,43 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             onPressed: _addOption,
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildUnitSelector(BuildContext context, Color draftColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Unit',
+          style: context.text.labelMedium?.copyWith(
+            color: draftColor,
+          ),
+        ),
+        VSpace.x05,
+        // Group units by dimension
+        for (final dimension in MeasurementDimension.values) ...[
+          Text(
+            dimension.name[0].toUpperCase() + dimension.name.substring(1),
+            style: context.text.bodySmall?.copyWith(
+              color: draftColor.withValues(alpha: 0.6),
+            ),
+          ),
+          VSpace.x025,
+          Wrap(
+            spacing: AppSizes.space,
+            runSpacing: AppSizes.space * 0.5,
+            children: MeasurementUnit.unitsFor(dimension).map((unit) =>
+              _DraftChip(
+                label: '${unit.fullName} (${unit.displayName})',
+                isSelected: _selectedUnit == unit,
+                onTap: () => setState(() => _selectedUnit = unit),
+              ),
+            ).toList(),
+          ),
+          VSpace.x05,
+        ],
       ],
     );
   }
@@ -550,12 +598,17 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   bool get _canSave {
     final label = _labelController.text.trim();
     if (label.isEmpty) return false;
-    
+
     // Enumerated fields need at least one option
     if (widget.fieldType == FieldEnum.enumerated && _options.isEmpty) {
       return false;
     }
-    
+
+    // Dimension fields need a unit
+    if (widget.fieldType == FieldEnum.dimension && _selectedUnit == null) {
+      return false;
+    }
+
     return true;
   }
 
@@ -572,6 +625,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             label: label,
             uiElement: _selectedWidget,
             isList: _isList,
+            unit: widget.fieldType == FieldEnum.dimension ? _selectedUnit : null,
             options: widget.fieldType == FieldEnum.enumerated ? _options : null,
             defaultValue: effectiveDefault,
           )
@@ -580,6 +634,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             label: label,
             uiElement: _selectedWidget,
             isList: _isList,
+            unit: widget.fieldType == FieldEnum.dimension ? _selectedUnit : null,
             options: widget.fieldType == FieldEnum.enumerated ? _options : null,
             defaultValue: effectiveDefault,
           );
