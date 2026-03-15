@@ -164,7 +164,7 @@ Future<void> bootstrap() async {
           );
           final powerSync = getIt<IPowerSyncService>();
           final serverpodClient = getIt<Client>();
-          await powerSync.connect(serverpodClient);
+          await powerSync.connect(serverpodClient, currentMode);
           debugPrint(
             'Bootstrap: PowerSync connected = ${powerSync.isConnected}',
           );

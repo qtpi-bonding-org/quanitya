@@ -144,7 +144,8 @@ class DevToolsSheet extends StatelessWidget {
                   onPressed: () async {
                     final powerSync = GetIt.instance<IPowerSyncService>();
                     final client = GetIt.instance<Client>();
-                    await powerSync.connect(client);
+                    final mode = GetIt.instance<AppOperatingCubit>().state.mode;
+                    await powerSync.connect(client, mode);
                     if (!powerSync.isConnected) {
                       throw Exception('PowerSync failed to connect — check logs');
                     }

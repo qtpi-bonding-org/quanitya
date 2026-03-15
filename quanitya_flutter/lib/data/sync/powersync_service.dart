@@ -28,7 +28,7 @@ abstract class IPowerSyncService {
   PowerSyncDatabase get powerSyncDb;
   AppDatabase get driftDb;
   Future<void> initialize();
-  Future<void> connect(Client serverpodClient);
+  Future<void> connect(Client serverpodClient, AppOperatingMode mode);
   Future<void> disconnect();
   bool get isConnected;
 
@@ -57,6 +57,7 @@ class PowerSyncService implements IPowerSyncService {
   AppDatabase? _driftDb;
   bool _isConnected = false;
   String? _dbPath;
+  AppOperatingMode? _currentMode;
 
   @override
   String? get dbPath => _dbPath;
@@ -152,7 +153,7 @@ class PowerSyncService implements IPowerSyncService {
 
   /// Connect to sync with Serverpod backend
   @override
-  Future<void> connect(Client serverpodClient) async {
+  Future<void> connect(Client serverpodClient, AppOperatingMode mode) async {
     if (_isConnected) return;
     if (_powerSyncDb == null) return;
 
@@ -160,9 +161,10 @@ class PowerSyncService implements IPowerSyncService {
       // Disconnect first to avoid "Stream already listened to" on hot restart
       await _powerSyncDb!.disconnect();
 
-      final connector = _ServerpodConnector(serverpodClient);
+      final connector = _ServerpodConnector(serverpodClient, mode);
       await _powerSyncDb!.connect(connector: connector);
       _isConnected = true;
+      _currentMode = mode;
     } catch (e, stack) {
       debugPrintStack(stackTrace: stack, label: 'PowerSync connection failed: $e');
       // Don't rethrow - app can work offline
@@ -178,21 +180,28 @@ class PowerSyncService implements IPowerSyncService {
   }
 
   /// Handle app operating mode changes - connect/disconnect PowerSync as needed
+  ///
+  /// Force reconnects when switching between sync modes (e.g. selfHosted → cloud)
+  /// because the connector routes token fetches to different endpoints per mode.
   @override
   Future<void> handleModeChange(
     AppOperatingMode mode,
     Client serverpodClient,
   ) async {
     if (mode.supportsSync) {
-      // Mode supports sync - ensure PowerSync is connected
+      if (_isConnected && _currentMode != mode) {
+        // Switching between sync modes — force reconnect with new connector
+        await disconnect();
+      }
       if (!_isConnected) {
-        await connect(serverpodClient);
+        await connect(serverpodClient, mode);
       }
     } else {
       // Local mode - ensure PowerSync is disconnected
       if (_isConnected) {
         await disconnect();
       }
+      _currentMode = mode;
     }
   }
 }
@@ -200,13 +209,14 @@ class PowerSyncService implements IPowerSyncService {
 /// Serverpod backend connector for PowerSync
 ///
 /// Handles:
-/// - JWT token fetching from Serverpod for PowerSync auth
+/// - JWT token fetching from Serverpod for PowerSync auth (routed by mode)
 /// - Uploading local changes to Serverpod endpoints
 class _ServerpodConnector extends PowerSyncBackendConnector {
   final Client _client;
+  final AppOperatingMode _mode;
   String? _cachedEndpoint;
 
-  _ServerpodConnector(this._client);
+  _ServerpodConnector(this._client, this._mode);
 
   @override
   Future<PowerSyncCredentials?> fetchCredentials() async {
@@ -214,14 +224,29 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
       final authHeader = await _client.authKeyProvider?.authHeaderValue;
       if (authHeader == null) return null;
 
-      // Always fetch a fresh token (cheap single authenticated call).
-      // Cache only the endpoint URL since it doesn't change mid-session.
-      final tokenResponse = await _client.modules.community.powerSync.getToken();
-      _cachedEndpoint ??= _resolveUrl(tokenResponse.endpoint);
+      final String token;
+      final String endpoint;
+
+      switch (_mode) {
+        case AppOperatingMode.cloud:
+          // Cloud: SyncAccessEndpoint — JWT user_id = 128-char hex public key
+          final response = await _client.syncAccess.generatePowerSyncToken();
+          token = response.token;
+          endpoint = _resolveUrl(response.endpoint);
+        case AppOperatingMode.selfHosted:
+          // Self-hosted: community module — JWT user_id = integer account ID
+          final response = await _client.modules.community.powerSync.getToken();
+          token = response.token;
+          endpoint = _resolveUrl(response.endpoint);
+        case AppOperatingMode.local:
+          return null; // Should never be called in local mode
+      }
+
+      _cachedEndpoint ??= endpoint;
 
       return PowerSyncCredentials(
         endpoint: _cachedEndpoint!,
-        token: tokenResponse.token,
+        token: token,
       );
     } catch (e) {
       return null;
