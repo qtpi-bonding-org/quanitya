@@ -181,18 +181,11 @@ class _TemplatePreviewState extends State<TemplatePreview> {
   }
 
   IColorPalette _getDefaultPalette() {
-    // Use QuanityaPalette colors for default palette
     return AppColorPalette.enumerated(
-      colors: [
-        QuanityaPalette.primary.backgroundPrimary, // Washi White
-        QuanityaPalette.primary.primaryColor, // Teal
-        // TODO(design): no palette token for orange — needs a data-viz accent token
-        const Color(0xFFF57C00), // Orange (data visualization fallback, not in palette)
-      ],
+      colors: QuanityaPalette.category10,
       neutrals: [
-        QuanityaPalette.primary.textPrimary, // Sumi Black
-        // TODO(design): no palette token for light grey — needs a surface/neutral token
-        const Color(0xFFF5F5F5), // Light grey (data visualization fallback, not in palette)
+        QuanityaPalette.primary.textPrimary,
+        QuanityaPalette.primary.backgroundPrimary,
       ],
     );
   }
