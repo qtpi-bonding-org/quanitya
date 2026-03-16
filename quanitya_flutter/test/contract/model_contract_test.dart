@@ -21,16 +21,15 @@ void main() {
       test('has required fields for account creation', () {
         // This test fails at COMPILE TIME if fields are removed/renamed
         final account = AnonAccount(
-          id: 1,
-          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+          id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           ultimateSigningPublicKeyHex: 'device_public_key_hex_128_chars',
           encryptedDataKey: 'encrypted_recovery_blob_base64',
           ultimatePublicKey: 'ultimate_public_key_hex_128_chars',
         );
 
         // Field accessors must exist
-        expect(account.id, equals(1));
-        expect(account.accountUuid, isNotNull);
+        expect(account.id, isNotNull);
+        expect(account.id, isA<UuidValue>());
         expect(account.ultimateSigningPublicKeyHex, isNotEmpty);
         expect(account.encryptedDataKey, isNotEmpty);
         expect(account.ultimatePublicKey, isNotEmpty);
@@ -38,7 +37,6 @@ void main() {
 
       test('id is nullable (server assigns)', () {
         final account = AnonAccount(
-          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           ultimateSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
           ultimatePublicKey: 'ultimate',
@@ -53,14 +51,14 @@ void main() {
       test('has required fields for device registration', () {
         final device = AccountDevice(
           id: 1,
-          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
+          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
           deviceSigningPublicKeyHex: 'ecdsa_p256_public_key_hex_128_chars',
           encryptedDataKey: 'encrypted_sdk_blob_base64',
           label: 'iPhone 15 Pro',
         );
 
         expect(device.id, equals(1));
-        expect(device.accountUuid, isNotNull);
+        expect(device.anonAccountId, isNotNull);
         expect(device.deviceSigningPublicKeyHex, isNotEmpty);
         expect(device.encryptedDataKey, isNotEmpty);
         expect(device.label, equals('iPhone 15 Pro'));
@@ -69,7 +67,7 @@ void main() {
       test('has optional fields for device management', () {
         final device = AccountDevice(
           id: 1,
-          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           deviceSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
           label: 'Test Device',
@@ -85,7 +83,7 @@ void main() {
       test('isRevoked defaults correctly', () {
         final device = AccountDevice(
           id: 1,
-          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           deviceSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
           label: 'Device',
@@ -122,8 +120,7 @@ void main() {
   group('Model Contracts - JSON Serialization', () {
     test('AnonAccount roundtrips through JSON', () {
       final original = AnonAccount(
-        id: 1,
-        accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+        id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
         ultimateSigningPublicKeyHex: 'key',
         encryptedDataKey: 'blob',
         ultimatePublicKey: 'ultimate',
@@ -139,7 +136,7 @@ void main() {
     test('AccountDevice roundtrips through JSON', () {
       final original = AccountDevice(
         id: 1,
-        accountUuid: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
+        anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
         deviceSigningPublicKeyHex: 'key',
         encryptedDataKey: 'blob',
         label: 'Device',

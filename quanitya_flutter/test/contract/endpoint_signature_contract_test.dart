@@ -28,8 +28,7 @@ void main() {
       // This verifies the return type contract
       Future<AnonAccount> simulatedCall() async {
         return AnonAccount(
-          id: 1,
-          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+          id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           ultimateSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
           ultimatePublicKey: 'ultimate',
@@ -50,7 +49,7 @@ void main() {
       Future<AccountDevice> simulatedCall() async {
         return AccountDevice(
           id: 1,
-          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
+          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
           deviceSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
           label: 'Device',
@@ -128,7 +127,6 @@ void main() {
         String ultimatePublicKey,
       ) async {
         return AnonAccount(
-          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
           encryptedDataKey: encryptedDataKey,
           ultimatePublicKey: ultimatePublicKey,
@@ -149,7 +147,7 @@ void main() {
         String label,
       ) async {
         return AccountDevice(
-          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'), // Server fills this from ultimate key lookup
+          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'), // Server fills this from ultimate key lookup
           deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
           encryptedDataKey: encryptedDataKey,
           label: label,
@@ -170,7 +168,7 @@ void main() {
         String label,
       ) async {
         return AccountDevice(
-          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'), // Server fills this
+          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'), // Server fills this
           deviceSigningPublicKeyHex: signingKeyHex,
           encryptedDataKey: encryptedDataKey,
           label: label,
