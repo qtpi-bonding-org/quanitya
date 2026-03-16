@@ -31,33 +31,33 @@ sync_rules:
       # Replaces individual buckets to improve replication reliability
       user_encrypted_data_v4:
         parameters:
-          - SELECT id AS user_id FROM anon_accounts WHERE "ultimateSigningPublicKeyHex" = request.user_id()
+          - SELECT id AS user_id FROM anon_account WHERE "ultimateSigningPublicKeyHex" = request.user_id()
         data:
           # Templates
           - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at 
             FROM encrypted_templates 
-            WHERE "accountId" = bucket.user_id
+            WHERE "accountUuid" = bucket.user_id
           # Log Entries (The main data bulk)
           - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at 
             FROM encrypted_entries 
-            WHERE "accountId" = bucket.user_id
+            WHERE "accountUuid" = bucket.user_id
           # Schedules
           - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at 
             FROM encrypted_schedules 
-            WHERE "accountId" = bucket.user_id
+            WHERE "accountUuid" = bucket.user_id
           # Analysis Scripts
           - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at
             FROM encrypted_analysis_scripts
-            WHERE "accountId" = bucket.user_id
+            WHERE "accountUuid" = bucket.user_id
           # Template Aesthetics (E2EE)
           - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at
             FROM encrypted_template_aesthetics
-            WHERE "accountId" = bucket.user_id
+            WHERE "accountUuid" = bucket.user_id
 
       # Greetings (Demo data)
       user_greetings:
         parameters:
-          - SELECT id AS user_id FROM anon_accounts WHERE "ultimateSigningPublicKeyHex" = request.user_id()
+          - SELECT id AS user_id FROM anon_account WHERE "ultimateSigningPublicKeyHex" = request.user_id()
         data:
           - SELECT * FROM greeting WHERE owner = bucket.user_id
 
@@ -69,19 +69,19 @@ sync_rules:
                    "actionUrl" as action_url, "actionLabel" as action_label,
                    "markedAt" as marked_at, "updatedAt" as updated_at
             FROM notifications
-            WHERE "accountId" IS NULL
+            WHERE "accountUuid" IS NULL
 
       # User-specific bucket for individual notifications
       user_notifications:
         parameters:
-          - SELECT id AS user_id FROM anon_accounts WHERE "ultimateSigningPublicKeyHex" = request.user_id()
+          - SELECT id AS user_id FROM anon_account WHERE "ultimateSigningPublicKeyHex" = request.user_id()
         data:
           - SELECT id, title, message, type,
                    "createdAt" as created_at, "expiresAt" as expires_at,
                    "actionUrl" as action_url, "actionLabel" as action_label,
                    "markedAt" as marked_at, "updatedAt" as updated_at
             FROM notifications
-            WHERE "accountId" = bucket.user_id
+            WHERE "accountUuid" = bucket.user_id
 
 # Telemetry configuration
 # Disable sharing of anonymized usage metrics with PowerSync
