@@ -4,8 +4,9 @@ import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
-import 'package:serverpod_client/serverpod_client.dart'
-    show ClientAuthKeyProvider;
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
+    show AuthSuccess, FlutterAuthSessionManagerExtension;
+import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
 import 'package:anonaccount_client/anonaccount_client.dart'
     show AccountDevice, AccountMethods, AuthenticationResult, DataKeyMethods, DeviceMethods;
 
@@ -15,48 +16,6 @@ import '../crypto/data_encryption_service.dart';
 import '../crypto/interfaces/i_secure_storage.dart';
 import '../crypto/utils/hashcash.dart';
 import 'registration_payload.dart';
-
-/// Serverpod 3.x auth key provider using device public key as Bearer token
-///
-/// Implements [ClientAuthKeyProvider] to provide ECDSA P-256 public key
-/// (128 hex chars) as Bearer token for all authenticated requests.
-///
-/// Auth flow:
-/// - Server extracts public key from `Authorization: Bearer <public_key_hex>`
-/// - Server verifies device ownership via challenge-response when needed
-class AnonAccredAuthKeyProvider implements ClientAuthKeyProvider {
-  final ICryptoKeyRepository _keyRepository;
-
-  AnonAccredAuthKeyProvider(this._keyRepository);
-
-  @override
-  Future<String?> get authHeaderValue async {
-    try {
-      final publicKeyHex = await _keyRepository.getDeviceSigningPublicKeyHex();
-      debugPrint(
-        'AuthKeyProvider: Public key hex available: ${publicKeyHex != null}',
-      );
-      if (publicKeyHex != null) {
-        debugPrint(
-          'AuthKeyProvider: Public key hex length: ${publicKeyHex.length}',
-        );
-        debugPrint(
-          'AuthKeyProvider: Public key hex prefix: ${publicKeyHex.length > 20 ? publicKeyHex.substring(0, 20) : publicKeyHex}...',
-        );
-      }
-      if (publicKeyHex == null) return null;
-
-      // Return as Bearer token - server expects 128-char hex public key
-      final bearerToken = 'Bearer $publicKeyHex';
-      debugPrint('AuthKeyProvider: Bearer token length: ${bearerToken.length}');
-      return bearerToken;
-    } catch (e) {
-      debugPrint('AuthKeyProvider: Error getting auth header: $e');
-      // Auth provider should not throw - return null if keys unavailable
-      return null;
-    }
-  }
-}
 
 /// Result of account creation - contains the ultimate private key for user backup
 class AccountCreationResult {
@@ -148,7 +107,6 @@ class AuthService {
   final IDataEncryptionService _encryption;
   final Client _client;
   final ISecureStorage _secureStorage;
-  late final AnonAccredAuthKeyProvider _authKeyProvider;
 
   static const _registrationPayloadKey = 'quanitya_registration_payload';
   static const _crossDeviceRegistrationBlobKey = 'quanitya_cross_device_registration';
@@ -161,19 +119,16 @@ class AuthService {
     this._encryption,
     this._client,
     this._secureStorage,
-  ) {
-    _authKeyProvider = AnonAccredAuthKeyProvider(_keyRepository);
-  }
+  );
 
-  /// Initialize auth service and set up auth provider on client
+  /// Initialize auth service
+  ///
+  /// Note: The FlutterAuthSessionManager is set up in bootstrap.dart via
+  /// `_initializeClientAuth()`. This method no longer sets an auth key provider.
   Future<void> initialize() {
     return tryMethod(
       () async {
         if (_isInitialized) return;
-
-        // Set up the new Serverpod 3.x auth key provider
-        _client.authKeyProvider = _authKeyProvider;
-
         _isInitialized = true;
       },
       _wrapAuthError,
@@ -394,7 +349,7 @@ class AuthService {
         // 3. Register account with server
         try {
           // Account creation requires proof-of-work via accountRegistration endpoint
-          final challengeResponse = await _client.accountRegistration.getChallenge();
+          final challengeResponse = await _client.modules.anonaccount.entrypoint.getChallenge();
           final proofOfWork = await _computeProofOfWork(
             challengeResponse.challenge,
             challengeResponse.difficulty,
@@ -685,6 +640,9 @@ class AuthService {
           );
         }
 
+        // Store JWT session from sign-in
+        await _storeAuthSession(authResult);
+
         // 3. Get encrypted data key for cross-device entry
         final deviceInfoChallenge =
             await _client.modules.anonaccount.entrypoint.getChallenge();
@@ -733,10 +691,26 @@ class AuthService {
           symmetricKeyJwk,
           localDeviceKey.encryption.publicKey,
         );
+        final regDevChallenge =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final regDevPow = await _computeProofOfWork(
+          regDevChallenge.challenge,
+          regDevChallenge.difficulty,
+        );
+        final callerKeyHex =
+            await _keyRepository.getDeviceSigningPublicKeyHex();
+        final regDevSignPayload =
+            '${regDevChallenge.challenge}:registerDeviceForAccount:$callerKeyHex';
+        final regDevSignature =
+            await _encryption.signWithDeviceKey(regDevSignPayload);
         await _client.modules.anonaccount.deviceManagement.registerDeviceForAccount(
-          localKeyHex,
-          localBlob,
-          deviceLabel,
+          challenge: regDevChallenge.challenge,
+          proofOfWork: regDevPow,
+          publicKeyHex: callerKeyHex!,
+          signature: regDevSignature,
+          newDeviceSigningPublicKeyHex: localKeyHex,
+          newDeviceEncryptedDataKey: localBlob,
+          label: deviceLabel,
         );
 
         // 7. Store symmetric key locally
@@ -780,11 +754,27 @@ class AuthService {
           crossDeviceKeyDuo.encryption.publicKey,
         );
 
-        // Register with server using authenticated session
+        // Register with server using SignedPoW
+        final cdChallenge =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final cdPow = await _computeProofOfWork(
+          cdChallenge.challenge,
+          cdChallenge.difficulty,
+        );
+        final cdCallerKeyHex =
+            await _keyRepository.getDeviceSigningPublicKeyHex();
+        final cdSignPayload =
+            '${cdChallenge.challenge}:registerDeviceForAccount:$cdCallerKeyHex';
+        final cdSignature =
+            await _encryption.signWithDeviceKey(cdSignPayload);
         await _client.modules.anonaccount.deviceManagement.registerDeviceForAccount(
-          crossDeviceKeyHex,
-          crossDeviceBlob,
-          label,
+          challenge: cdChallenge.challenge,
+          proofOfWork: cdPow,
+          publicKeyHex: cdCallerKeyHex!,
+          signature: cdSignature,
+          newDeviceSigningPublicKeyHex: crossDeviceKeyHex,
+          newDeviceEncryptedDataKey: crossDeviceBlob,
+          label: label,
         );
       },
       _wrapAuthError,
@@ -797,7 +787,8 @@ class AuthService {
   /// Flow:
   /// 1. Get challenge from server
   /// 2. Sign challenge with device private key (ECDSA P-256) via DataEncryptionService
-  /// 3. Server verifies signature
+  /// 3. Server verifies signature and issues JWT
+  /// 4. Store JWT in Serverpod's FlutterAuthSessionManager
   ///
   /// Returns [AuthenticationResult] with success status and account/device IDs
   ///
@@ -841,11 +832,45 @@ class AuthService {
           );
         }
 
+        // 3. Store JWT in Serverpod's session manager
+        await _storeAuthSession(result);
+
         return result;
       },
       (message, [cause]) => DeviceAuthenticationException(message, cause: cause),
       'authenticateDevice',
     );
+  }
+
+  /// Store authentication result as a Serverpod auth session.
+  ///
+  /// Constructs an [AuthSuccess] from the [AuthenticationResult.details] map
+  /// and stores it via the [FlutterAuthSessionManager]. This enables
+  /// Serverpod's built-in JWT auth header management and token refresh.
+  Future<void> _storeAuthSession(AuthenticationResult result) async {
+    final details = result.details;
+    if (details == null) return;
+
+    final token = details['token'];
+    final authUserIdStr = details['authUserId'];
+    final authStrategy = details['authStrategy'] ?? 'jwt';
+    if (token == null || authUserIdStr == null) return;
+
+    final tokenExpiresAtStr = details['tokenExpiresAt'];
+    final refreshToken = details['refreshToken'];
+
+    final authSuccess = AuthSuccess(
+      authStrategy: authStrategy,
+      token: token,
+      tokenExpiresAt: tokenExpiresAtStr != null
+          ? DateTime.tryParse(tokenExpiresAtStr)
+          : null,
+      refreshToken: refreshToken,
+      authUserId: UuidValue.fromString(authUserIdStr),
+      scopeNames: {},
+    );
+
+    await _client.auth.updateSignedInUser(authSuccess);
   }
 
   /// Get list of devices registered to this account
@@ -854,7 +879,23 @@ class AuthService {
   Future<List<AccountDevice>> listDevices() {
     return tryMethod(
       () async {
-        return await _client.modules.anonaccount.deviceManagement.listDevices();
+        final challenge =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final pow = await _computeProofOfWork(
+          challenge.challenge,
+          challenge.difficulty,
+        );
+        final pubKeyHex =
+            await _keyRepository.getDeviceSigningPublicKeyHex();
+        final signPayload =
+            '${challenge.challenge}:listDevices:$pubKeyHex';
+        final sig = await _encryption.signWithDeviceKey(signPayload);
+        return await _client.modules.anonaccount.deviceManagement.listDevices(
+          challenge: challenge.challenge,
+          proofOfWork: pow,
+          publicKeyHex: pubKeyHex!,
+          signature: sig,
+        );
       },
       _wrapAuthError,
       'listDevices',
@@ -867,7 +908,24 @@ class AuthService {
   Future<void> revokeDevice(int deviceId) {
     return tryMethod(
       () async {
-        await _client.modules.anonaccount.deviceManagement.revokeDevice(deviceId);
+        final challenge =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final pow = await _computeProofOfWork(
+          challenge.challenge,
+          challenge.difficulty,
+        );
+        final pubKeyHex =
+            await _keyRepository.getDeviceSigningPublicKeyHex();
+        final signPayload =
+            '${challenge.challenge}:revokeDevice:$pubKeyHex';
+        final sig = await _encryption.signWithDeviceKey(signPayload);
+        await _client.modules.anonaccount.deviceManagement.revokeDevice(
+          challenge: challenge.challenge,
+          proofOfWork: pow,
+          publicKeyHex: pubKeyHex!,
+          signature: sig,
+          deviceId: deviceId,
+        );
       },
       _wrapAuthError,
       'revokeDevice',

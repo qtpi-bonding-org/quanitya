@@ -15,7 +15,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class Notification implements _i1.SerializableModel {
   Notification._({
     this.id,
-    this.accountId,
+    this.accountUuid,
     required this.title,
     required this.message,
     required this.type,
@@ -29,7 +29,7 @@ abstract class Notification implements _i1.SerializableModel {
 
   factory Notification({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     required String title,
     required String message,
     required String type,
@@ -46,7 +46,7 @@ abstract class Notification implements _i1.SerializableModel {
       id: jsonSerialization['id'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      accountId: jsonSerialization['accountId'] as int?,
+      accountUuid: jsonSerialization['accountUuid'] as String?,
       title: jsonSerialization['title'] as String,
       message: jsonSerialization['message'] as String,
       type: jsonSerialization['type'] as String,
@@ -72,7 +72,7 @@ abstract class Notification implements _i1.SerializableModel {
   /// the id will be null.
   _i1.UuidValue? id;
 
-  int? accountId;
+  String? accountUuid;
 
   String title;
 
@@ -97,7 +97,7 @@ abstract class Notification implements _i1.SerializableModel {
   @_i1.useResult
   Notification copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? title,
     String? message,
     String? type,
@@ -113,7 +113,7 @@ abstract class Notification implements _i1.SerializableModel {
     return {
       '__className__': 'Notification',
       if (id != null) 'id': id?.toJson(),
-      if (accountId != null) 'accountId': accountId,
+      if (accountUuid != null) 'accountUuid': accountUuid,
       'title': title,
       'message': message,
       'type': type,
@@ -137,7 +137,7 @@ class _Undefined {}
 class _NotificationImpl extends Notification {
   _NotificationImpl({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     required String title,
     required String message,
     required String type,
@@ -149,7 +149,7 @@ class _NotificationImpl extends Notification {
     required DateTime updatedAt,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          title: title,
          message: message,
          type: type,
@@ -167,7 +167,7 @@ class _NotificationImpl extends Notification {
   @override
   Notification copyWith({
     Object? id = _Undefined,
-    Object? accountId = _Undefined,
+    Object? accountUuid = _Undefined,
     String? title,
     String? message,
     String? type,
@@ -180,7 +180,7 @@ class _NotificationImpl extends Notification {
   }) {
     return Notification(
       id: id is _i1.UuidValue? ? id : this.id,
-      accountId: accountId is int? ? accountId : this.accountId,
+      accountUuid: accountUuid is String? ? accountUuid : this.accountUuid,
       title: title ?? this.title,
       message: message ?? this.message,
       type: type ?? this.type,

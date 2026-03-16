@@ -172,23 +172,11 @@ class PublicSubmissionService implements IPublicSubmissionService {
     );
   }
 
-  /// Get challenge from server for specific endpoint.
+  /// Get challenge from server via the single entrypoint endpoint.
   Future<PublicChallengeResponse> _getChallenge(String endpoint) async {
     try {
-      switch (endpoint) {
-        case 'errorReport':
-          return await _client.errorReport.getChallenge();
-        case 'feedback':
-          return await _client.feedback.getChallenge();
-        case 'analyticsEvent':
-          return await _client.analyticsEvent.getChallenge();
-        case 'productCatalog':
-          return await _client.productCatalog.getChallenge();
-        default:
-          throw PublicSubmissionException('Unknown endpoint: $endpoint');
-      }
+      return await _client.modules.anonaccount.entrypoint.getChallenge();
     } catch (e) {
-      if (e is PublicSubmissionException) rethrow;
       throw PublicSubmissionException('Failed to get challenge: $e');
     }
   }

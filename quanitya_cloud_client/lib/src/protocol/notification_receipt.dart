@@ -16,7 +16,7 @@ abstract class NotificationReceipt implements _i1.SerializableModel {
   NotificationReceipt._({
     this.id,
     required this.notificationId,
-    required this.accountId,
+    required this.accountUuid,
     required this.markedAt,
     required this.createdAt,
   });
@@ -24,7 +24,7 @@ abstract class NotificationReceipt implements _i1.SerializableModel {
   factory NotificationReceipt({
     _i1.UuidValue? id,
     required _i1.UuidValue notificationId,
-    required int accountId,
+    required String accountUuid,
     required DateTime markedAt,
     required DateTime createdAt,
   }) = _NotificationReceiptImpl;
@@ -37,7 +37,7 @@ abstract class NotificationReceipt implements _i1.SerializableModel {
       notificationId: _i1.UuidValueJsonExtension.fromJson(
         jsonSerialization['notificationId'],
       ),
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       markedAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['markedAt'],
       ),
@@ -54,7 +54,7 @@ abstract class NotificationReceipt implements _i1.SerializableModel {
 
   _i1.UuidValue notificationId;
 
-  int accountId;
+  String accountUuid;
 
   DateTime markedAt;
 
@@ -66,7 +66,7 @@ abstract class NotificationReceipt implements _i1.SerializableModel {
   NotificationReceipt copyWith({
     _i1.UuidValue? id,
     _i1.UuidValue? notificationId,
-    int? accountId,
+    String? accountUuid,
     DateTime? markedAt,
     DateTime? createdAt,
   });
@@ -76,7 +76,7 @@ abstract class NotificationReceipt implements _i1.SerializableModel {
       '__className__': 'NotificationReceipt',
       if (id != null) 'id': id?.toJson(),
       'notificationId': notificationId.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'markedAt': markedAt.toJson(),
       'createdAt': createdAt.toJson(),
     };
@@ -94,13 +94,13 @@ class _NotificationReceiptImpl extends NotificationReceipt {
   _NotificationReceiptImpl({
     _i1.UuidValue? id,
     required _i1.UuidValue notificationId,
-    required int accountId,
+    required String accountUuid,
     required DateTime markedAt,
     required DateTime createdAt,
   }) : super._(
          id: id,
          notificationId: notificationId,
-         accountId: accountId,
+         accountUuid: accountUuid,
          markedAt: markedAt,
          createdAt: createdAt,
        );
@@ -112,14 +112,14 @@ class _NotificationReceiptImpl extends NotificationReceipt {
   NotificationReceipt copyWith({
     Object? id = _Undefined,
     _i1.UuidValue? notificationId,
-    int? accountId,
+    String? accountUuid,
     DateTime? markedAt,
     DateTime? createdAt,
   }) {
     return NotificationReceipt(
       id: id is _i1.UuidValue? ? id : this.id,
       notificationId: notificationId ?? this.notificationId,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       markedAt: markedAt ?? this.markedAt,
       createdAt: createdAt ?? this.createdAt,
     );

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
 import 'package:anonaccred_client/anonaccred_client.dart'
     show AccountEntitlement;
 
@@ -43,7 +44,7 @@ void main() {
         when(() => mockService.getEntitlements(any())).thenAnswer(
           (_) async => [
             AccountEntitlement(
-              accountId: 1,
+              accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
               entitlementId: 1,
               balance: 25.0,
             ),

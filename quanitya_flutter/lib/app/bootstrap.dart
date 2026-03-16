@@ -91,7 +91,7 @@ Future<void> bootstrap() async {
     _initializeClientAuth();
     debugPrint('Bootstrap: Serverpod client auth initialized');
 
-    // 5. Initialize AuthService (sets up AnonAccred auth key provider)
+    // 5. Initialize AuthService
     if (getIt.isRegistered<AuthService>()) {
       debugPrint('Bootstrap: Initializing AuthService...');
       final authService = getIt<AuthService>();

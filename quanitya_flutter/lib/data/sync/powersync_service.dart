@@ -5,6 +5,8 @@ import 'package:powersync_sqlcipher/powersync.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
+    show FlutterAuthSessionManagerExtension;
 import 'package:injectable/injectable.dart';
 
 import 'powersync_schema.dart';
@@ -245,8 +247,7 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
   @override
   Future<PowerSyncCredentials?> fetchCredentials() async {
     try {
-      final authHeader = await _client.authKeyProvider?.authHeaderValue;
-      if (authHeader == null) return null;
+      if (!_client.auth.isAuthenticated) return null;
 
       final String token;
       final String endpoint;
@@ -279,9 +280,8 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
 
   @override
   Future<void> uploadData(PowerSyncDatabase database) async {
-    // Check if client has auth credentials before trying to upload
-    final authHeader = await _client.authKeyProvider?.authHeaderValue;
-    if (authHeader == null) return;
+    // Check if client has auth session before trying to upload
+    if (!_client.auth.isAuthenticated) return;
 
     // Process all pending CRUD transactions
     while (true) {

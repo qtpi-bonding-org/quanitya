@@ -42,27 +42,27 @@ import 'package:quanitya_cloud_client/src/protocol/feedback_report.dart'
     as _i19;
 import 'package:quanitya_cloud_client/src/protocol/feedback_statistics.dart'
     as _i20;
-import 'package:quanitya_cloud_client/src/protocol/notification_create_result.dart'
-    as _i21;
-import 'package:quanitya_cloud_client/src/protocol/notification_type.dart'
-    as _i22;
-import 'package:quanitya_cloud_client/src/protocol/notification_statistics.dart'
-    as _i23;
-import 'package:quanitya_cloud_client/src/protocol/paginated_notifications.dart'
-    as _i24;
-import 'package:quanitya_cloud_client/src/protocol/notification_details.dart'
-    as _i25;
-import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
-    as _i26;
-import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
-    as _i27;
-import 'package:quanitya_cloud_client/src/protocol/sync_access_info.dart'
-    as _i28;
-import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
-    as _i29;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i30;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i21;
+import 'package:quanitya_cloud_client/src/protocol/notification_create_result.dart'
+    as _i22;
+import 'package:quanitya_cloud_client/src/protocol/notification_type.dart'
+    as _i23;
+import 'package:quanitya_cloud_client/src/protocol/notification_statistics.dart'
+    as _i24;
+import 'package:quanitya_cloud_client/src/protocol/paginated_notifications.dart'
+    as _i25;
+import 'package:quanitya_cloud_client/src/protocol/notification_details.dart'
+    as _i26;
+import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
+    as _i27;
+import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
+    as _i28;
+import 'package:quanitya_cloud_client/src/protocol/sync_access_info.dart'
+    as _i29;
+import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
+    as _i30;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i31;
 import 'package:anonaccred_client/anonaccred_client.dart' as _i32;
 import 'protocol.dart' as _i33;
@@ -92,7 +92,7 @@ class EndpointCloudHealth extends _i1.EndpointRef {
 /// by the authenticated user. This satisfies Apple App Store requirement
 /// for account deletion functionality.
 /// {@category Endpoint}
-class EndpointAccountDeletion extends _i3.EndpointAuthenticated {
+class EndpointAccountDeletion extends _i3.EndpointJwt {
   EndpointAccountDeletion(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -116,10 +116,10 @@ class EndpointAccountDeletion extends _i3.EndpointAuthenticated {
 
 /// Account registration and recovery with proof-of-work spam prevention.
 ///
-/// Extends [PowProtectedEndpoint] from anonaccount for hashcash PoW +
+/// Extends [SignedPowEndpoint] from anonaccount for hashcash PoW +
 /// ECDSA signature verification + rate limiting.
 /// {@category Endpoint}
-class EndpointAccountRegistration extends _i3.EndpointPowProtected {
+class EndpointAccountRegistration extends _i3.EndpointSignedPow {
   EndpointAccountRegistration(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -148,10 +148,10 @@ class EndpointAccountRegistration extends _i3.EndpointPowProtected {
     },
   );
 
-  /// Get challenge for proof-of-work.
+  /// Throws — use [EntrypointEndpoint.getChallenge] instead.
   ///
-  /// Returns a challenge string, difficulty, and expiration timestamp.
-  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
+  /// Overridden without `@doNotGenerate` so the generated client class gets a
+  /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
   @override
   _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
       caller.callServerEndpoint<_i3.PublicChallengeResponse>(
@@ -160,9 +160,9 @@ class EndpointAccountRegistration extends _i3.EndpointPowProtected {
         {},
       );
 
-  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
+  /// Verify PoW + ECDSA signature + rate limit.
   ///
-  /// Call this at the top of each PoW-protected endpoint method.
+  /// Call this at the top of each protected endpoint method.
   ///
   /// - [session] Serverpod session
   /// - [challenge] The challenge string from [getChallenge]
@@ -171,7 +171,7 @@ class EndpointAccountRegistration extends _i3.EndpointPowProtected {
   /// - [signature] ECDSA signature over [payload]
   /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
   @override
-  _i2.Future<void> verifyPow(
+  _i2.Future<void> verifySignedPow(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
@@ -179,13 +179,30 @@ class EndpointAccountRegistration extends _i3.EndpointPowProtected {
     String payload,
   ) => caller.callServerEndpoint<void>(
     'accountRegistration',
-    'verifyPow',
+    'verifySignedPow',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
       'publicKeyHex': publicKeyHex,
       'signature': signature,
       'payload': payload,
+    },
+  );
+
+  /// Verify hashcash proof-of-work only (no signature, no rate limit).
+  ///
+  /// Checks stamp format, challenge existence, and hash quality.
+  /// Consumes the challenge (one-time use).
+  @override
+  _i2.Future<void> verifyHashcash(
+    String challenge,
+    String proofOfWork,
+  ) => caller.callServerEndpoint<void>(
+    'accountRegistration',
+    'verifyHashcash',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
     },
   );
 }
@@ -654,7 +671,7 @@ class EndpointAnalyticsAdmin extends EndpointAdminManagement {
 /// Protected by Hashcash proof-of-work + ECDSA signature for rate limiting.
 /// Events are submitted in batches — one PoW covers the whole batch.
 /// {@category Endpoint}
-class EndpointAnalyticsEvent extends _i3.EndpointPowProtected {
+class EndpointAnalyticsEvent extends _i3.EndpointSignedPow {
   EndpointAnalyticsEvent(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -692,10 +709,10 @@ class EndpointAnalyticsEvent extends _i3.EndpointPowProtected {
     },
   );
 
-  /// Get challenge for proof-of-work.
+  /// Throws — use [EntrypointEndpoint.getChallenge] instead.
   ///
-  /// Returns a challenge string, difficulty, and expiration timestamp.
-  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
+  /// Overridden without `@doNotGenerate` so the generated client class gets a
+  /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
   @override
   _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
       caller.callServerEndpoint<_i3.PublicChallengeResponse>(
@@ -704,9 +721,9 @@ class EndpointAnalyticsEvent extends _i3.EndpointPowProtected {
         {},
       );
 
-  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
+  /// Verify PoW + ECDSA signature + rate limit.
   ///
-  /// Call this at the top of each PoW-protected endpoint method.
+  /// Call this at the top of each protected endpoint method.
   ///
   /// - [session] Serverpod session
   /// - [challenge] The challenge string from [getChallenge]
@@ -715,7 +732,7 @@ class EndpointAnalyticsEvent extends _i3.EndpointPowProtected {
   /// - [signature] ECDSA signature over [payload]
   /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
   @override
-  _i2.Future<void> verifyPow(
+  _i2.Future<void> verifySignedPow(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
@@ -723,13 +740,30 @@ class EndpointAnalyticsEvent extends _i3.EndpointPowProtected {
     String payload,
   ) => caller.callServerEndpoint<void>(
     'analyticsEvent',
-    'verifyPow',
+    'verifySignedPow',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
       'publicKeyHex': publicKeyHex,
       'signature': signature,
       'payload': payload,
+    },
+  );
+
+  /// Verify hashcash proof-of-work only (no signature, no rate limit).
+  ///
+  /// Checks stamp format, challenge existence, and hash quality.
+  /// Consumes the challenge (one-time use).
+  @override
+  _i2.Future<void> verifyHashcash(
+    String challenge,
+    String proofOfWork,
+  ) => caller.callServerEndpoint<void>(
+    'analyticsEvent',
+    'verifyHashcash',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
     },
   );
 }
@@ -855,7 +889,7 @@ abstract class EndpointAdminManagement extends _i1.EndpointRef {
 /// This endpoint provides pay-per-use statistical analysis features.
 /// DISABLED for MVP launch - will be added post-launch.
 /// {@category Endpoint}
-class EndpointCloudAnalysis extends _i3.EndpointAuthenticated {
+class EndpointCloudAnalysis extends _i3.EndpointJwt {
   EndpointCloudAnalysis(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -877,7 +911,7 @@ class EndpointCloudAnalysis extends _i3.EndpointAuthenticated {
 /// Model selection is server-controlled to prevent cost abuse.
 /// Uses OpenRouter's `models` array for automatic failover.
 /// {@category Endpoint}
-class EndpointCloudLlm extends _i3.EndpointAuthenticated {
+class EndpointCloudLlm extends _i3.EndpointJwt {
   EndpointCloudLlm(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -934,13 +968,13 @@ class EndpointEntitlementAdmin extends EndpointAdminManagement {
   ///
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
-  /// [accountId] - Target account ID
+  /// [accountUuidStr] - Target account UUID
   /// [consumableType] - Entitlement ID to add to
   /// [amount] - Amount to add (must be positive)
   _i2.Future<String> addCredits(
     String adminPublicKeyHex,
     String adminSignature,
-    int accountId,
+    String accountUuidStr,
     int consumableType,
     double amount,
   ) => caller.callServerEndpoint<String>(
@@ -949,7 +983,7 @@ class EndpointEntitlementAdmin extends EndpointAdminManagement {
     {
       'adminPublicKeyHex': adminPublicKeyHex,
       'adminSignature': adminSignature,
-      'accountId': accountId,
+      'accountUuidStr': accountUuidStr,
       'consumableType': consumableType,
       'amount': amount,
     },
@@ -959,13 +993,13 @@ class EndpointEntitlementAdmin extends EndpointAdminManagement {
   ///
   /// [adminPublicKeyHex] - Admin ECDSA P-256 public key (128 hex chars)
   /// [adminSignature] - ECDSA signature of request body (128 hex chars)
-  /// [accountId] - Target account ID
+  /// [accountUuidStr] - Target account UUID
   /// [consumableType] - Entitlement ID to consume from
   /// [amount] - Amount to consume (must be positive)
   _i2.Future<String> consumeCredits(
     String adminPublicKeyHex,
     String adminSignature,
-    int accountId,
+    String accountUuidStr,
     int consumableType,
     double amount,
   ) => caller.callServerEndpoint<String>(
@@ -974,7 +1008,7 @@ class EndpointEntitlementAdmin extends EndpointAdminManagement {
     {
       'adminPublicKeyHex': adminPublicKeyHex,
       'adminSignature': adminSignature,
-      'accountId': accountId,
+      'accountUuidStr': accountUuidStr,
       'consumableType': consumableType,
       'amount': amount,
     },
@@ -1333,71 +1367,11 @@ class EndpointErrorReportAdmin extends EndpointAdminManagement {
 /// - Error reports are stored WITHOUT any public key or hash
 /// - Reports remain fully anonymous in the database
 /// {@category Endpoint}
-class EndpointErrorReport extends _i3.EndpointPowProtected {
+class EndpointErrorReport extends _i3.EndpointSignedPow {
   EndpointErrorReport(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'errorReport';
-
-  /// Submit an error report with proof-of-work and signature
-  ///
-  /// The error data is already PII-free by design from the
-  /// flutter_error_privserver library. This endpoint:
-  /// 1. Validates proof-of-work stamp
-  /// 2. Verifies ECDSA signature
-  /// 3. Applies rate limiting by public key
-  /// 4. Adds server-side metadata
-  /// 5. Stores in database WITHOUT any public key or identifier
-  ///
-  /// Parameters:
-  /// - [challenge]: Challenge string from getChallenge()
-  /// - [proofOfWork]: Hashcash stamp (format: "1:20:challenge:nonce")
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars) - REQUIRED for rate limiting
-  /// - [signature]: ECDSA signature (128 hex chars) - REQUIRED for verification
-  /// - [source]: Cubit/class name where error occurred
-  /// - [errorType]: Exception type (e.g., "NetworkException")
-  /// - [errorCode]: Mapped safe code (e.g., "NET_001")
-  /// - [stackTrace]: Full stack trace (no PII)
-  /// - [clientTimestamp]: When error occurred on client
-  /// - [userMessage]: Optional user-friendly message
-  /// - [appVersion]: Optional app version
-  /// - [platform]: Optional platform info (iOS, Android, etc.)
-  /// - [deviceInfo]: Optional device info (already sanitized)
-  ///
-  /// Throws [ServerException] on validation, rate limit, or internal errors.
-  _i2.Future<void> submitErrorReport({
-    required String challenge,
-    required String proofOfWork,
-    required String publicKeyHex,
-    required String signature,
-    required String source,
-    required String errorType,
-    required String errorCode,
-    required String stackTrace,
-    required String clientTimestamp,
-    String? userMessage,
-    String? appVersion,
-    String? platform,
-    String? deviceInfo,
-  }) => caller.callServerEndpoint<void>(
-    'errorReport',
-    'submitErrorReport',
-    {
-      'challenge': challenge,
-      'proofOfWork': proofOfWork,
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'source': source,
-      'errorType': errorType,
-      'errorCode': errorCode,
-      'stackTrace': stackTrace,
-      'clientTimestamp': clientTimestamp,
-      'userMessage': userMessage,
-      'appVersion': appVersion,
-      'platform': platform,
-      'deviceInfo': deviceInfo,
-    },
-  );
 
   /// Submit a batch of error reports with a single proof-of-work and signature.
   ///
@@ -1427,10 +1401,10 @@ class EndpointErrorReport extends _i3.EndpointPowProtected {
     },
   );
 
-  /// Get challenge for proof-of-work.
+  /// Throws — use [EntrypointEndpoint.getChallenge] instead.
   ///
-  /// Returns a challenge string, difficulty, and expiration timestamp.
-  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
+  /// Overridden without `@doNotGenerate` so the generated client class gets a
+  /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
   @override
   _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
       caller.callServerEndpoint<_i3.PublicChallengeResponse>(
@@ -1439,9 +1413,9 @@ class EndpointErrorReport extends _i3.EndpointPowProtected {
         {},
       );
 
-  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
+  /// Verify PoW + ECDSA signature + rate limit.
   ///
-  /// Call this at the top of each PoW-protected endpoint method.
+  /// Call this at the top of each protected endpoint method.
   ///
   /// - [session] Serverpod session
   /// - [challenge] The challenge string from [getChallenge]
@@ -1450,7 +1424,7 @@ class EndpointErrorReport extends _i3.EndpointPowProtected {
   /// - [signature] ECDSA signature over [payload]
   /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
   @override
-  _i2.Future<void> verifyPow(
+  _i2.Future<void> verifySignedPow(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
@@ -1458,13 +1432,30 @@ class EndpointErrorReport extends _i3.EndpointPowProtected {
     String payload,
   ) => caller.callServerEndpoint<void>(
     'errorReport',
-    'verifyPow',
+    'verifySignedPow',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
       'publicKeyHex': publicKeyHex,
       'signature': signature,
       'payload': payload,
+    },
+  );
+
+  /// Verify hashcash proof-of-work only (no signature, no rate limit).
+  ///
+  /// Checks stamp format, challenge existence, and hash quality.
+  /// Consumes the challenge (one-time use).
+  @override
+  _i2.Future<void> verifyHashcash(
+    String challenge,
+    String proofOfWork,
+  ) => caller.callServerEndpoint<void>(
+    'errorReport',
+    'verifyHashcash',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
     },
   );
 }
@@ -1719,7 +1710,7 @@ class EndpointFeedbackAdmin extends EndpointAdminManagement {
 /// - Feedback is stored WITHOUT any public key or hash
 /// - Reports remain fully anonymous in the database
 /// {@category Endpoint}
-class EndpointFeedback extends _i3.EndpointPowProtected {
+class EndpointFeedback extends _i3.EndpointSignedPow {
   EndpointFeedback(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -1759,10 +1750,10 @@ class EndpointFeedback extends _i3.EndpointPowProtected {
     },
   );
 
-  /// Get challenge for proof-of-work.
+  /// Throws — use [EntrypointEndpoint.getChallenge] instead.
   ///
-  /// Returns a challenge string, difficulty, and expiration timestamp.
-  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
+  /// Overridden without `@doNotGenerate` so the generated client class gets a
+  /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
   @override
   _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
       caller.callServerEndpoint<_i3.PublicChallengeResponse>(
@@ -1771,9 +1762,9 @@ class EndpointFeedback extends _i3.EndpointPowProtected {
         {},
       );
 
-  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
+  /// Verify PoW + ECDSA signature + rate limit.
   ///
-  /// Call this at the top of each PoW-protected endpoint method.
+  /// Call this at the top of each protected endpoint method.
   ///
   /// - [session] Serverpod session
   /// - [challenge] The challenge string from [getChallenge]
@@ -1782,7 +1773,7 @@ class EndpointFeedback extends _i3.EndpointPowProtected {
   /// - [signature] ECDSA signature over [payload]
   /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
   @override
-  _i2.Future<void> verifyPow(
+  _i2.Future<void> verifySignedPow(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
@@ -1790,7 +1781,7 @@ class EndpointFeedback extends _i3.EndpointPowProtected {
     String payload,
   ) => caller.callServerEndpoint<void>(
     'feedback',
-    'verifyPow',
+    'verifySignedPow',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
@@ -1798,6 +1789,61 @@ class EndpointFeedback extends _i3.EndpointPowProtected {
       'signature': signature,
       'payload': payload,
     },
+  );
+
+  /// Verify hashcash proof-of-work only (no signature, no rate limit).
+  ///
+  /// Checks stamp format, challenge existence, and hash quality.
+  /// Consumes the challenge (one-time use).
+  @override
+  _i2.Future<void> verifyHashcash(
+    String challenge,
+    String proofOfWork,
+  ) => caller.callServerEndpoint<void>(
+    'feedback',
+    'verifyHashcash',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
+    },
+  );
+}
+
+/// By extending [RefreshJwtTokensEndpoint], the JWT token refresh endpoint
+/// is made available on the server and enables automatic token refresh on the client.
+/// {@category Endpoint}
+class EndpointJwtRefresh extends _i21.EndpointRefreshJwtTokens {
+  EndpointJwtRefresh(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'jwtRefresh';
+
+  /// Creates a new token pair for the given [refreshToken].
+  ///
+  /// Can throw the following exceptions:
+  /// -[RefreshTokenMalformedException]: refresh token is malformed and could
+  ///   not be parsed. Not expected to happen for tokens issued by the server.
+  /// -[RefreshTokenNotFoundException]: refresh token is unknown to the server.
+  ///   Either the token was deleted or generated by a different server.
+  /// -[RefreshTokenExpiredException]: refresh token has expired. Will happen
+  ///   only if it has not been used within configured `refreshTokenLifetime`.
+  /// -[RefreshTokenInvalidSecretException]: refresh token is incorrect, meaning
+  ///   it does not refer to the current secret refresh token. This indicates
+  ///   either a malfunctioning client or a malicious attempt by someone who has
+  ///   obtained the refresh token. In this case the underlying refresh token
+  ///   will be deleted, and access to it will expire fully when the last access
+  ///   token is elapsed.
+  ///
+  /// This endpoint is unauthenticated, meaning the client won't include any
+  /// authentication information with the call.
+  @override
+  _i2.Future<_i21.AuthSuccess> refreshAccessToken({
+    required String refreshToken,
+  }) => caller.callServerEndpoint<_i21.AuthSuccess>(
+    'jwtRefresh',
+    'refreshAccessToken',
+    {'refreshToken': refreshToken},
+    authenticated: false,
   );
 }
 
@@ -1823,7 +1869,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// Parameters:
   /// - [adminPublicKeyHex]: Admin ECDSA P-256 public key (128 hex chars)
   /// - [adminSignature]: ECDSA signature of request body (128 hex chars)
-  /// - [accountIds]: List of user IDs, or null for broadcast (global bucket)
+  /// - [accountUuids]: List of account UUIDs (as strings), or null for broadcast (global bucket)
   /// - [title]: Notification title
   /// - [message]: Notification message (plain text)
   /// - [type]: 'inform', 'warning', 'failure', 'success', 'announcement'
@@ -1833,23 +1879,23 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - List of created notification IDs
-  _i2.Future<_i21.NotificationCreateResult> createNotifications(
+  _i2.Future<_i22.NotificationCreateResult> createNotifications(
     String adminPublicKeyHex,
     String adminSignature, {
-    List<int>? accountIds,
+    List<String>? accountUuids,
     required String title,
     required String message,
-    required _i22.NotificationType type,
+    required _i23.NotificationType type,
     required int expiresInDays,
     String? actionUrl,
     String? actionLabel,
-  }) => caller.callServerEndpoint<_i21.NotificationCreateResult>(
+  }) => caller.callServerEndpoint<_i22.NotificationCreateResult>(
     'notificationAdmin',
     'createNotifications',
     {
       'adminPublicKeyHex': adminPublicKeyHex,
       'adminSignature': adminSignature,
-      'accountIds': accountIds,
+      'accountUuids': accountUuids,
       'title': title,
       'message': message,
       'type': type,
@@ -1871,10 +1917,10 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// - total: Total notification count
   /// - marked: Count of marked notifications
   /// - unmarked: Count of unmarked notifications
-  _i2.Future<_i23.NotificationStatistics> getStatistics(
+  _i2.Future<_i24.NotificationStatistics> getStatistics(
     String adminPublicKeyHex,
     String adminSignature,
-  ) => caller.callServerEndpoint<_i23.NotificationStatistics>(
+  ) => caller.callServerEndpoint<_i24.NotificationStatistics>(
     'notificationAdmin',
     'getStatistics',
     {
@@ -1899,7 +1945,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   ///
   /// Returns:
   /// - Paginated response with notifications
-  _i2.Future<_i24.PaginatedNotifications> listNotifications(
+  _i2.Future<_i25.PaginatedNotifications> listNotifications(
     String adminPublicKeyHex,
     String adminSignature, {
     required int limit,
@@ -1908,7 +1954,7 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
     bool? isExpired,
     DateTime? startDate,
     DateTime? endDate,
-  }) => caller.callServerEndpoint<_i24.PaginatedNotifications>(
+  }) => caller.callServerEndpoint<_i25.PaginatedNotifications>(
     'notificationAdmin',
     'listNotifications',
     {
@@ -1936,11 +1982,11 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
   /// - notification: Notification details
   /// - receiptCount: Number of receipts
   /// - receipts: List of receipts (who acknowledged)
-  _i2.Future<_i25.NotificationDetails> getNotificationDetails(
+  _i2.Future<_i26.NotificationDetails> getNotificationDetails(
     String adminPublicKeyHex,
     String adminSignature,
     String notificationId,
-  ) => caller.callServerEndpoint<_i25.NotificationDetails>(
+  ) => caller.callServerEndpoint<_i26.NotificationDetails>(
     'notificationAdmin',
     'getNotificationDetails',
     {
@@ -2073,13 +2119,13 @@ class EndpointNotificationAdmin extends EndpointAdminManagement {
 
 /// Product catalog endpoint — returns platform-specific rail statuses and products.
 ///
-/// Protected by HashCash proof-of-work + ECDSA signature (inherited from
-/// PublicSubmissionEndpoint). No IP addresses are stored or used.
+/// Protected by HashCash proof-of-work + ECDSA signature via [SignedPowEndpoint].
+/// No IP addresses are stored or used.
 ///
 /// Rail configuration is read from Redis (seeded from platform_rails.csv).
 /// Product data lives in AnonAccred's rail_product table.
 /// {@category Endpoint}
-class EndpointProductCatalog extends _i3.EndpointPowProtected {
+class EndpointProductCatalog extends _i3.EndpointSignedPow {
   EndpointProductCatalog(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -2098,13 +2144,13 @@ class EndpointProductCatalog extends _i3.EndpointPowProtected {
   /// - [platformName]: Platform identifier (e.g. 'ios', 'android', 'web')
   ///
   /// Returns: PlatformCatalogResponse with rails and their product IDs.
-  _i2.Future<_i26.PlatformCatalogResponse> getCatalog(
+  _i2.Future<_i27.PlatformCatalogResponse> getCatalog(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
     String platformName,
-  ) => caller.callServerEndpoint<_i26.PlatformCatalogResponse>(
+  ) => caller.callServerEndpoint<_i27.PlatformCatalogResponse>(
     'productCatalog',
     'getCatalog',
     {
@@ -2116,10 +2162,10 @@ class EndpointProductCatalog extends _i3.EndpointPowProtected {
     },
   );
 
-  /// Get challenge for proof-of-work.
+  /// Throws — use [EntrypointEndpoint.getChallenge] instead.
   ///
-  /// Returns a challenge string, difficulty, and expiration timestamp.
-  /// Clients must solve the hashcash puzzle before calling PoW-protected methods.
+  /// Overridden without `@doNotGenerate` so the generated client class gets a
+  /// concrete implementation, satisfying the abstract [EndpointPow.getChallenge].
   @override
   _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
       caller.callServerEndpoint<_i3.PublicChallengeResponse>(
@@ -2128,9 +2174,9 @@ class EndpointProductCatalog extends _i3.EndpointPowProtected {
         {},
       );
 
-  /// Verify proof-of-work, ECDSA signature, and apply rate limiting.
+  /// Verify PoW + ECDSA signature + rate limit.
   ///
-  /// Call this at the top of each PoW-protected endpoint method.
+  /// Call this at the top of each protected endpoint method.
   ///
   /// - [session] Serverpod session
   /// - [challenge] The challenge string from [getChallenge]
@@ -2139,7 +2185,7 @@ class EndpointProductCatalog extends _i3.EndpointPowProtected {
   /// - [signature] ECDSA signature over [payload]
   /// - [payload] The signed payload (typically `'$challenge:methodName:$publicKeyHex'`)
   @override
-  _i2.Future<void> verifyPow(
+  _i2.Future<void> verifySignedPow(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
@@ -2147,13 +2193,30 @@ class EndpointProductCatalog extends _i3.EndpointPowProtected {
     String payload,
   ) => caller.callServerEndpoint<void>(
     'productCatalog',
-    'verifyPow',
+    'verifySignedPow',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
       'publicKeyHex': publicKeyHex,
       'signature': signature,
       'payload': payload,
+    },
+  );
+
+  /// Verify hashcash proof-of-work only (no signature, no rate limit).
+  ///
+  /// Checks stamp format, challenge existence, and hash quality.
+  /// Consumes the challenge (one-time use).
+  @override
+  _i2.Future<void> verifyHashcash(
+    String challenge,
+    String proofOfWork,
+  ) => caller.callServerEndpoint<void>(
+    'productCatalog',
+    'verifyHashcash',
+    {
+      'challenge': challenge,
+      'proofOfWork': proofOfWork,
     },
   );
 }
@@ -2163,7 +2226,7 @@ class EndpointProductCatalog extends _i3.EndpointPowProtected {
 /// Provides API access for PowerSync JWT generation and sync access management
 /// based on consumable balances. All operations require AnonAccred authentication.
 /// {@category Endpoint}
-class EndpointSyncAccess extends _i3.EndpointAuthenticated {
+class EndpointSyncAccess extends _i3.EndpointJwt {
   EndpointSyncAccess(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -2191,8 +2254,8 @@ class EndpointSyncAccess extends _i3.EndpointAuthenticated {
   /// - syncDaysRemaining: days of sync remaining
   /// - accessExpiry: estimated expiry date
   /// - needsTopUp: whether user needs to purchase more sync days
-  _i2.Future<_i27.SyncAccessStatus> checkSyncAccess() =>
-      caller.callServerEndpoint<_i27.SyncAccessStatus>(
+  _i2.Future<_i28.SyncAccessStatus> checkSyncAccess() =>
+      caller.callServerEndpoint<_i28.SyncAccessStatus>(
         'syncAccess',
         'checkSyncAccess',
         {},
@@ -2214,8 +2277,8 @@ class EndpointSyncAccess extends _i3.EndpointAuthenticated {
   ///
   /// Returns typed model with current balances per sync tier and overall access status.
   /// Pricing is sourced from the app stores — not served from the backend.
-  _i2.Future<_i28.SyncAccessInfo> getSyncAccessInfo() =>
-      caller.callServerEndpoint<_i28.SyncAccessInfo>(
+  _i2.Future<_i29.SyncAccessInfo> getSyncAccessInfo() =>
+      caller.callServerEndpoint<_i29.SyncAccessInfo>(
         'syncAccess',
         'getSyncAccessInfo',
         {},
@@ -2235,8 +2298,8 @@ class EndpointSyncAccess extends _i3.EndpointAuthenticated {
   /// Get sync usage statistics for authenticated user
   ///
   /// Returns usage information and consumption history
-  _i2.Future<_i29.SyncUsageStats> getSyncUsageStats() =>
-      caller.callServerEndpoint<_i29.SyncUsageStats>(
+  _i2.Future<_i30.SyncUsageStats> getSyncUsageStats() =>
+      caller.callServerEndpoint<_i30.SyncUsageStats>(
         'syncAccess',
         'getSyncUsageStats',
         {},
@@ -2245,16 +2308,16 @@ class EndpointSyncAccess extends _i3.EndpointAuthenticated {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i30.Caller(client);
-    serverpod_auth_core = _i31.Caller(client);
+    serverpod_auth_idp = _i31.Caller(client);
+    serverpod_auth_core = _i21.Caller(client);
     community = _i13.Caller(client);
     anonaccount = _i3.Caller(client);
     anonaccred = _i32.Caller(client);
   }
 
-  late final _i30.Caller serverpod_auth_idp;
+  late final _i31.Caller serverpod_auth_idp;
 
-  late final _i31.Caller serverpod_auth_core;
+  late final _i21.Caller serverpod_auth_core;
 
   late final _i13.Caller community;
 
@@ -2306,6 +2369,7 @@ class Client extends _i1.ServerpodClientShared {
     errorReport = EndpointErrorReport(this);
     feedbackAdmin = EndpointFeedbackAdmin(this);
     feedback = EndpointFeedback(this);
+    jwtRefresh = EndpointJwtRefresh(this);
     notificationAdmin = EndpointNotificationAdmin(this);
     productCatalog = EndpointProductCatalog(this);
     syncAccess = EndpointSyncAccess(this);
@@ -2340,6 +2404,8 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointFeedback feedback;
 
+  late final EndpointJwtRefresh jwtRefresh;
+
   late final EndpointNotificationAdmin notificationAdmin;
 
   late final EndpointProductCatalog productCatalog;
@@ -2364,6 +2430,7 @@ class Client extends _i1.ServerpodClientShared {
     'errorReport': errorReport,
     'feedbackAdmin': feedbackAdmin,
     'feedback': feedback,
+    'jwtRefresh': jwtRefresh,
     'notificationAdmin': notificationAdmin,
     'productCatalog': productCatalog,
     'syncAccess': syncAccess,

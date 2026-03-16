@@ -315,14 +315,33 @@ class PairingService implements IPairingService {
           'PairingService:   SDK encrypted successfully (length: ${encryptedDataKey.length})',
         );
 
-        // 3. Register Device B (server derives accountId from our auth)
+        // 3. Register Device B with SignedPoW
+        debugPrint(
+          'PairingService:   Step 3: Getting challenge for registerDeviceForAccount...',
+        );
+        final regChallenge =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final regPow = await Hashcash.mint(
+          regChallenge.challenge,
+          difficulty: regChallenge.difficulty,
+        );
+        final callerKeyHex =
+            await _keyRepository.getDeviceSigningPublicKeyHex();
+        final regSignPayload =
+            '${regChallenge.challenge}:registerDeviceForAccount:$callerKeyHex';
+        final regSignature =
+            await _encryption.signWithDeviceKey(regSignPayload);
         debugPrint(
           'PairingService:   Step 3: Calling server.registerDeviceForAccount...',
         );
         await _client.modules.anonaccount.deviceManagement.registerDeviceForAccount(
-          signingKeyHex,
-          encryptedDataKey,
-          label,
+          challenge: regChallenge.challenge,
+          proofOfWork: regPow,
+          publicKeyHex: callerKeyHex!,
+          signature: regSignature,
+          newDeviceSigningPublicKeyHex: signingKeyHex,
+          newDeviceEncryptedDataKey: encryptedDataKey,
+          label: label,
         );
 
         debugPrint('PairingService: Device registered successfully!');

@@ -14,6 +14,7 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
 import 'package:anonaccount_client/anonaccount_client.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
@@ -28,6 +29,7 @@ void main() {
       Future<AnonAccount> simulatedCall() async {
         return AnonAccount(
           id: 1,
+          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           ultimateSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
           ultimatePublicKey: 'ultimate',
@@ -48,7 +50,7 @@ void main() {
       Future<AccountDevice> simulatedCall() async {
         return AccountDevice(
           id: 1,
-          accountId: 42,
+          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
           deviceSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
           label: 'Device',
@@ -126,6 +128,7 @@ void main() {
         String ultimatePublicKey,
       ) async {
         return AnonAccount(
+          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           ultimateSigningPublicKeyHex: ultimateSigningPublicKeyHex,
           encryptedDataKey: encryptedDataKey,
           ultimatePublicKey: ultimatePublicKey,
@@ -146,7 +149,7 @@ void main() {
         String label,
       ) async {
         return AccountDevice(
-          accountId: 1, // Server fills this from ultimate key lookup
+          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'), // Server fills this from ultimate key lookup
           deviceSigningPublicKeyHex: deviceSigningPublicKeyHex,
           encryptedDataKey: encryptedDataKey,
           label: label,
@@ -160,14 +163,14 @@ void main() {
     });
 
     test('device.registerDeviceForAccount signature: (String, String, String) -> AccountDevice', () {
-      // This endpoint derives accountId from auth, so no accountId param
+      // This endpoint derives accountUuid from auth, so no accountUuid param
       Future<AccountDevice> expectedSignature(
         String signingKeyHex,
         String encryptedDataKey,
         String label,
       ) async {
         return AccountDevice(
-          accountId: 1, // Server fills this
+          accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'), // Server fills this
           deviceSigningPublicKeyHex: signingKeyHex,
           encryptedDataKey: encryptedDataKey,
           label: label,

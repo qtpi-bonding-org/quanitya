@@ -26,40 +26,12 @@ class ErrorReporterService {
 
   /// Send a single error report to server with proof-of-work and signature.
   ///
+  /// Wraps the single report in a batch call to [submitErrorReports].
   /// Returns true if successfully sent, false otherwise.
   /// Never throws - error reporting should never crash the app.
   Future<bool> sendErrorReport(ErrorEntry errorEntry) async {
-    try {
-      final timestamp = errorEntry.timestamp.toIso8601String();
-      final payloadSuffix = '${errorEntry.source}:${errorEntry.errorType}:'
-          '${errorEntry.errorCode}:$timestamp';
-
-      await _submissionService.submitWithVerification(
-        endpoint: 'errorReport',
-        payload: payloadSuffix,
-        submitCallback: (challenge, proofOfWork, publicKeyHex, signature) async {
-          await _client.errorReport.submitErrorReport(
-            challenge: challenge,
-            proofOfWork: proofOfWork,
-            publicKeyHex: publicKeyHex,
-            signature: signature,
-            source: errorEntry.source,
-            errorType: errorEntry.errorType,
-            errorCode: errorEntry.errorCode,
-            stackTrace: errorEntry.stackTrace,
-            clientTimestamp: timestamp,
-            userMessage: errorEntry.userMessage,
-            platform: _getPlatformName(),
-          );
-        },
-      );
-
-      debugPrint('📤 Error report sent successfully: ${errorEntry.errorCode}');
-      return true;
-    } catch (e) {
-      debugPrint('📤 Error sending report: $e');
-      return false;
-    }
+    final result = await sendErrorReports([errorEntry]);
+    return result > 0;
   }
 
   /// Send a batch of error reports with a single PoW + ECDSA verification.

@@ -98,7 +98,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
       final platformName = _getPlatformName();
 
       // 1. Get challenge from server
-      final challengeResponse = await _client.productCatalog.getChallenge();
+      final challengeResponse = await _client.modules.anonaccount.entrypoint.getChallenge();
       final challenge = challengeResponse.challenge;
       final difficulty = challengeResponse.difficulty;
 
