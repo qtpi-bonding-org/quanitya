@@ -98,7 +98,7 @@ class TrackerCard extends StatelessWidget {
                 iconSize: AppSizes.size20,
                 tooltip: _canInstantLog()
                     ? context.l10n.tooltipQuickEntry
-                    : 'No default values set - quick log unavailable',
+                    : context.l10n.tooltipQuickEntryUnavailable,
                 onPressed: _canInstantLog() ? onQuickAction : null,
                 // Uses interactableColor by default
               ),

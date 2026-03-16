@@ -106,7 +106,7 @@ class TimelineWidget extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: QuanityaPalette.primary.interactableColor,
-                        width: 2,
+                        width: AppSizes.borderWidthThick,
                       ),
                     ),
                     alignment: Alignment.center,

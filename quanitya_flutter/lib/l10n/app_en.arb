@@ -206,6 +206,7 @@
   "tooltipEditTemplate": "Edit template",
   "tooltipCustomLog": "Custom log",
   "tooltipQuickEntry": "Quick entry",
+  "tooltipQuickEntryUnavailable": "No default values set — quick log unavailable",
   "reminderLabel": "Reminder",
   "aestheticsSection": "Aesthetics",
   "optionalLabel": "Optional",

@@ -197,6 +197,7 @@
   "tooltipEditTemplate": "Modifier le modèle",
   "tooltipCustomLog": "Journal personnalisé",
   "tooltipQuickEntry": "Entrée rapide",
+  "tooltipQuickEntryUnavailable": "Aucune valeur par défaut — entrée rapide indisponible",
   "reminderLabel": "Rappel",
   "aestheticsSection": "Esthétique",
   "optionalLabel": "Facultatif",

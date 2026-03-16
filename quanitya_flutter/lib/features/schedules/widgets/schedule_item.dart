@@ -164,7 +164,7 @@ class _ScheduleItemState extends State<ScheduleItem> {
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: palette.interactableColor,
-                        width: 2,
+                        width: AppSizes.borderWidthThick,
                       ),
                     ),
                     alignment: Alignment.center,

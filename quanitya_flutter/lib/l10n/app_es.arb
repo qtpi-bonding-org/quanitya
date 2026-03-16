@@ -197,6 +197,7 @@
   "tooltipEditTemplate": "Editar plantilla",
   "tooltipCustomLog": "Registro personalizado",
   "tooltipQuickEntry": "Entrada rápida",
+  "tooltipQuickEntryUnavailable": "Sin valores predeterminados — registro rápido no disponible",
   "reminderLabel": "Recordatorio",
   "aestheticsSection": "Estética",
   "optionalLabel": "Opcional",
