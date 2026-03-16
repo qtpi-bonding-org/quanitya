@@ -12,14 +12,23 @@ import 'package:quanitya_flutter/features/app_syncing_mode/services/network_serv
 
 import 'app_syncing_mode_test.mocks.dart';
 
+/// Stub localization service that returns the dot-notation key as-is.
+class _StubLocalizationService implements ILocalizationService {
+  @override
+  String translate(String key, {Map<String, dynamic>? args}) => key;
+}
+
 @GenerateMocks([AppSyncingRepository, INetworkService])
 void main() {
   late AppSyncingCubit cubit;
   late MockAppSyncingRepository mockRepository;
   late MockINetworkService mockNetworkService;
 
-  setUp(() {
-    GetIt.instance.reset();
+  setUp(() async {
+    await GetIt.instance.reset();
+    GetIt.instance.registerSingleton<ILocalizationService>(
+      _StubLocalizationService(),
+    );
     mockRepository = MockAppSyncingRepository();
     mockNetworkService = MockINetworkService();
     cubit = AppSyncingCubit(mockRepository, mockNetworkService);
@@ -40,10 +49,11 @@ void main() {
       expect(AppSyncingMode.cloud.supportsSync, true);
     });
 
-    test('should have correct display names', () {
-      expect(AppSyncingMode.local.displayName, 'Local Only');
-      expect(AppSyncingMode.selfHosted.displayName, 'Self-Hosted');
-      expect(AppSyncingMode.cloud.displayName, 'Quanitya Cloud');
+    test('should resolve display names via localization service', () {
+      // Stub returns dot-notation keys — verifies correct keys are used
+      expect(AppSyncingMode.local.displayName, 'operating.mode.local');
+      expect(AppSyncingMode.selfHosted.displayName, 'operating.mode.self.hosted');
+      expect(AppSyncingMode.cloud.displayName, 'operating.mode.cloud');
     });
   });
 
