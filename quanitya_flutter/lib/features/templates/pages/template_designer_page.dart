@@ -14,6 +14,7 @@ import '../cubits/sharing/template_sharing_export_cubit.dart';
 import '../../../logic/templates/models/shared/shareable_template.dart';
 import '../widgets/editor/template_editor_form.dart';
 import '../widgets/shared/template_preview.dart';
+import 'template_import_page.dart';
 
 /// Template designer page — create or edit tracker templates.
 ///
@@ -70,6 +71,10 @@ class TemplateDesignerPage extends StatelessWidget {
         },
       ),
       actions: [
+        QuanityaIconButton(
+          icon: Icons.download,
+          onPressed: () => TemplateImportSheet.show(context),
+        ),
         BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
           builder: (context, state) {
             if (state.template == null) return const SizedBox.shrink();

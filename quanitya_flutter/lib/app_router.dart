@@ -9,7 +9,6 @@ import 'features/templates/pages/template_designer_page.dart';
 import 'features/analytics/pages/analysis_builder_page.dart';
 import 'l10n/app_localizations.dart';
 import 'data/repositories/template_with_aesthetics_repository.dart';
-import 'features/log_entry/pages/logged_entries_template_page.dart';
 import 'features/home/pages/notebook_shell.dart';
 import 'design_system/widgets/quanitya/general/zen_paper_background.dart';
 import 'features/onboarding/pages/onboarding_page.dart';
@@ -17,7 +16,6 @@ import 'features/onboarding/pages/about_page.dart';
 import 'features/onboarding/pages/recovery_key_backup_page.dart';
 import 'features/onboarding/pages/account_recovery_page.dart';
 import 'features/onboarding/cubits/onboarding_cubit.dart';
-import 'features/templates/pages/template_import_page.dart';
 import 'features/device_pairing/pages/show_pairing_qr_page.dart';
 import 'features/device_pairing/pages/scan_pairing_qr_page.dart';
 import 'features/onboarding/pages/connect_device_page.dart';
@@ -195,19 +193,6 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: AppRoutes.logHistory,
-            name: RouteNames.logHistory,
-            builder: (context, state) {
-              final templateId = state.pathParameters['templateId']!;
-              return LoggedEntriesTemplatePage(templateId: templateId);
-            },
-          ),
-          GoRoute(
-            path: AppRoutes.templateImport,
-            name: RouteNames.templateImport,
-            builder: (context, state) => const TemplateImportPage(),
-          ),
-          GoRoute(
             path: AppRoutes.scriptBuilder,
             name: RouteNames.scriptBuilder,
             builder: (context, state) {
@@ -248,10 +233,8 @@ class AppRoutes {
   static const String scanPairingQr = '/scan-pairing-qr';
   static const String about = '/about';
   static const String templateEditor = '/template-editor';
-  static const String logHistory = '/log-history/:templateId';
   static const String connectDevice = '/connect-device';
   static const String scriptBuilder = '/script-builder';
-  static const String templateImport = '/template-import';
 }
 
 class RouteNames {
@@ -264,10 +247,8 @@ class RouteNames {
   static const String scanPairingQr = 'scanPairingQr';
   static const String about = 'about';
   static const String templateEditor = 'templateEditor';
-  static const String logHistory = 'logHistory';
   static const String connectDevice = 'connectDevice';
   static const String scriptBuilder = 'scriptBuilder';
-  static const String templateImport = 'templateImport';
 }
 
 class AppNavigation {
@@ -281,13 +262,6 @@ class AppNavigation {
     TemplateWithAesthetics? template,
   ]) {
     context.pushNamed(RouteNames.templateEditor, extra: template);
-  }
-
-  static void toLogHistory(BuildContext context, String templateId) {
-    context.pushNamed(
-      RouteNames.logHistory,
-      pathParameters: {'templateId': templateId},
-    );
   }
 
 
@@ -321,10 +295,6 @@ class AppNavigation {
 
   static void toRecoveryKeyBackup(BuildContext context, OnboardingCubit cubit) {
     context.pushNamed(RouteNames.recoveryKeyBackup, extra: cubit);
-  }
-
-  static void toTemplateImport(BuildContext context) {
-    context.pushNamed(RouteNames.templateImport);
   }
 
   static void toAnalysisBuilder(BuildContext context, {String? fieldId, String? templateId}) {
