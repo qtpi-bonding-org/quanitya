@@ -26,14 +26,13 @@ import 'greeting.dart' as _i13;
 import 'notification_inbox.dart' as _i14;
 import 'powersync_token.dart' as _i15;
 import 'storage_usage_response.dart' as _i16;
-import 'template_aesthetics.dart' as _i17;
-import 'package:quanitya_client/src/protocol/archived_month.dart' as _i18;
+import 'package:quanitya_client/src/protocol/archived_month.dart' as _i17;
 import 'package:quanitya_client/src/protocol/archive_search_result.dart'
-    as _i19;
+    as _i18;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i20;
+    as _i19;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i21;
+    as _i20;
 export 'account_storage_usage.dart';
 export 'archival_schedule_data.dart';
 export 'archive_metadata.dart';
@@ -49,7 +48,6 @@ export 'greeting.dart';
 export 'notification_inbox.dart';
 export 'powersync_token.dart';
 export 'storage_usage_response.dart';
-export 'template_aesthetics.dart';
 export 'client.dart';
 
 class Protocol extends _i1.SerializationManager {
@@ -133,9 +131,6 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i16.StorageUsageResponse) {
       return _i16.StorageUsageResponse.fromJson(data) as T;
     }
-    if (t == _i17.TemplateAesthetics) {
-      return _i17.TemplateAesthetics.fromJson(data) as T;
-    }
     if (t == _i1.getType<_i2.AccountStorageUsage?>()) {
       return (data != null ? _i2.AccountStorageUsage.fromJson(data) : null)
           as T;
@@ -189,10 +184,6 @@ class Protocol extends _i1.SerializationManager {
       return (data != null ? _i16.StorageUsageResponse.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i17.TemplateAesthetics?>()) {
-      return (data != null ? _i17.TemplateAesthetics.fromJson(data) : null)
-          as T;
-    }
     if (t == List<_i5.ArchiveMonthInfo>) {
       return (data as List)
               .map((e) => deserialize<_i5.ArchiveMonthInfo>(e))
@@ -223,23 +214,23 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i18.ArchivedMonth>) {
+    if (t == List<_i17.ArchivedMonth>) {
       return (data as List)
-              .map((e) => deserialize<_i18.ArchivedMonth>(e))
+              .map((e) => deserialize<_i17.ArchivedMonth>(e))
               .toList()
           as T;
     }
-    if (t == List<_i19.ArchiveSearchResult>) {
+    if (t == List<_i18.ArchiveSearchResult>) {
       return (data as List)
-              .map((e) => deserialize<_i19.ArchiveSearchResult>(e))
+              .map((e) => deserialize<_i18.ArchiveSearchResult>(e))
               .toList()
           as T;
     }
     try {
-      return _i20.Protocol().deserialize<T>(data, t);
+      return _i19.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i21.Protocol().deserialize<T>(data, t);
+      return _i20.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -261,7 +252,6 @@ class Protocol extends _i1.SerializationManager {
       _i14.NotificationInbox => 'NotificationInbox',
       _i15.PowerSyncToken => 'PowerSyncToken',
       _i16.StorageUsageResponse => 'StorageUsageResponse',
-      _i17.TemplateAesthetics => 'TemplateAesthetics',
       _ => null,
     };
   }
@@ -306,14 +296,12 @@ class Protocol extends _i1.SerializationManager {
         return 'PowerSyncToken';
       case _i16.StorageUsageResponse():
         return 'StorageUsageResponse';
-      case _i17.TemplateAesthetics():
-        return 'TemplateAesthetics';
     }
-    className = _i20.Protocol().getClassNameForObject(data);
+    className = _i19.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i21.Protocol().getClassNameForObject(data);
+    className = _i20.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -371,16 +359,13 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'StorageUsageResponse') {
       return deserialize<_i16.StorageUsageResponse>(data['data']);
     }
-    if (dataClassName == 'TemplateAesthetics') {
-      return deserialize<_i17.TemplateAesthetics>(data['data']);
-    }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i20.Protocol().deserializeByClassName(data);
+      return _i19.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i21.Protocol().deserializeByClassName(data);
+      return _i20.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -395,10 +380,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i20.Protocol().mapRecordToJson(record);
+      return _i19.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i21.Protocol().mapRecordToJson(record);
+      return _i20.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

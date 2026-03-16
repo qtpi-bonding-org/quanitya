@@ -31,10 +31,9 @@ import 'greeting.dart' as _i16;
 import 'notification_inbox.dart' as _i17;
 import 'powersync_token.dart' as _i18;
 import 'storage_usage_response.dart' as _i19;
-import 'template_aesthetics.dart' as _i20;
-import 'package:quanitya_server/src/generated/archived_month.dart' as _i21;
+import 'package:quanitya_server/src/generated/archived_month.dart' as _i20;
 import 'package:quanitya_server/src/generated/archive_search_result.dart'
-    as _i22;
+    as _i21;
 export 'account_storage_usage.dart';
 export 'archival_schedule_data.dart';
 export 'archive_metadata.dart';
@@ -50,7 +49,6 @@ export 'greeting.dart';
 export 'notification_inbox.dart';
 export 'powersync_token.dart';
 export 'storage_usage_response.dart';
-export 'template_aesthetics.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();
@@ -556,119 +554,6 @@ class Protocol extends _i1.SerializationManagerServer {
       ],
       managed: true,
     ),
-    _i2.TableDefinition(
-      name: 'template_aesthetics',
-      dartName: 'TemplateAesthetics',
-      schema: 'public',
-      module: 'quanitya',
-      columns: [
-        _i2.ColumnDefinition(
-          name: 'id',
-          columnType: _i2.ColumnType.uuid,
-          isNullable: false,
-          dartType: 'UuidValue',
-          columnDefault: 'gen_random_uuid()',
-        ),
-        _i2.ColumnDefinition(
-          name: 'accountUuid',
-          columnType: _i2.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
-        ),
-        _i2.ColumnDefinition(
-          name: 'templateId',
-          columnType: _i2.ColumnType.text,
-          isNullable: false,
-          dartType: 'String',
-        ),
-        _i2.ColumnDefinition(
-          name: 'themeName',
-          columnType: _i2.ColumnType.text,
-          isNullable: true,
-          dartType: 'String?',
-        ),
-        _i2.ColumnDefinition(
-          name: 'icon',
-          columnType: _i2.ColumnType.text,
-          isNullable: true,
-          dartType: 'String?',
-        ),
-        _i2.ColumnDefinition(
-          name: 'emoji',
-          columnType: _i2.ColumnType.text,
-          isNullable: true,
-          dartType: 'String?',
-        ),
-        _i2.ColumnDefinition(
-          name: 'paletteJson',
-          columnType: _i2.ColumnType.text,
-          isNullable: true,
-          dartType: 'String?',
-        ),
-        _i2.ColumnDefinition(
-          name: 'fontConfigJson',
-          columnType: _i2.ColumnType.text,
-          isNullable: true,
-          dartType: 'String?',
-        ),
-        _i2.ColumnDefinition(
-          name: 'colorMappingsJson',
-          columnType: _i2.ColumnType.text,
-          isNullable: true,
-          dartType: 'String?',
-        ),
-        _i2.ColumnDefinition(
-          name: 'updatedAt',
-          columnType: _i2.ColumnType.timestampWithoutTimeZone,
-          isNullable: false,
-          dartType: 'DateTime',
-          columnDefault: 'CURRENT_TIMESTAMP',
-        ),
-      ],
-      foreignKeys: [],
-      indexes: [
-        _i2.IndexDefinition(
-          indexName: 'template_aesthetics_pkey',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'id',
-            ),
-          ],
-          type: 'btree',
-          isUnique: true,
-          isPrimary: true,
-        ),
-        _i2.IndexDefinition(
-          indexName: 'template_aesthetics_account_idx',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountUuid',
-            ),
-          ],
-          type: 'btree',
-          isUnique: false,
-          isPrimary: false,
-        ),
-        _i2.IndexDefinition(
-          indexName: 'template_aesthetics_template_idx',
-          tableSpace: null,
-          elements: [
-            _i2.IndexElementDefinition(
-              type: _i2.IndexElementDefinitionType.column,
-              definition: 'templateId',
-            ),
-          ],
-          type: 'btree',
-          isUnique: false,
-          isPrimary: false,
-        ),
-      ],
-      managed: true,
-    ),
     ..._i3.Protocol.targetTableDefinitions,
     ..._i4.Protocol.targetTableDefinitions,
   ];
@@ -747,9 +632,6 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i19.StorageUsageResponse) {
       return _i19.StorageUsageResponse.fromJson(data) as T;
     }
-    if (t == _i20.TemplateAesthetics) {
-      return _i20.TemplateAesthetics.fromJson(data) as T;
-    }
     if (t == _i1.getType<_i5.AccountStorageUsage?>()) {
       return (data != null ? _i5.AccountStorageUsage.fromJson(data) : null)
           as T;
@@ -803,10 +685,6 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data != null ? _i19.StorageUsageResponse.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i20.TemplateAesthetics?>()) {
-      return (data != null ? _i20.TemplateAesthetics.fromJson(data) : null)
-          as T;
-    }
     if (t == List<_i8.ArchiveMonthInfo>) {
       return (data as List)
               .map((e) => deserialize<_i8.ArchiveMonthInfo>(e))
@@ -837,15 +715,15 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i21.ArchivedMonth>) {
+    if (t == List<_i20.ArchivedMonth>) {
       return (data as List)
-              .map((e) => deserialize<_i21.ArchivedMonth>(e))
+              .map((e) => deserialize<_i20.ArchivedMonth>(e))
               .toList()
           as T;
     }
-    if (t == List<_i22.ArchiveSearchResult>) {
+    if (t == List<_i21.ArchiveSearchResult>) {
       return (data as List)
-              .map((e) => deserialize<_i22.ArchiveSearchResult>(e))
+              .map((e) => deserialize<_i21.ArchiveSearchResult>(e))
               .toList()
           as T;
     }
@@ -878,7 +756,6 @@ class Protocol extends _i1.SerializationManagerServer {
       _i17.NotificationInbox => 'NotificationInbox',
       _i18.PowerSyncToken => 'PowerSyncToken',
       _i19.StorageUsageResponse => 'StorageUsageResponse',
-      _i20.TemplateAesthetics => 'TemplateAesthetics',
       _ => null,
     };
   }
@@ -923,8 +800,6 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'PowerSyncToken';
       case _i19.StorageUsageResponse():
         return 'StorageUsageResponse';
-      case _i20.TemplateAesthetics():
-        return 'TemplateAesthetics';
     }
     className = _i2.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -992,9 +867,6 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'StorageUsageResponse') {
       return deserialize<_i19.StorageUsageResponse>(data['data']);
     }
-    if (dataClassName == 'TemplateAesthetics') {
-      return deserialize<_i20.TemplateAesthetics>(data['data']);
-    }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
       return _i2.Protocol().deserializeByClassName(data);
@@ -1047,8 +919,6 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i15.EncryptedTemplateAesthetics.t;
       case _i17.NotificationInbox:
         return _i17.NotificationInbox.t;
-      case _i20.TemplateAesthetics:
-        return _i20.TemplateAesthetics.t;
     }
     return null;
   }
