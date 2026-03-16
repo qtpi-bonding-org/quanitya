@@ -29,8 +29,8 @@ packages:
     dependency: "direct main"
     description:
       path: anonaccount_client
-      ref: "7b5959f73e88ae815684b438bfee756a1242ab7a"
-      resolved-ref: "7b5959f73e88ae815684b438bfee756a1242ab7a"
+      ref: e28b2e8c71602a6ae01d1788a59c1d3294af5436
+      resolved-ref: e28b2e8c71602a6ae01d1788a59c1d3294af5436
       url: "https://github.com/qtpi-bonding-org/serverpod_anonaccred.git"
     source: git
     version: "0.1.0"
@@ -38,8 +38,8 @@ packages:
     dependency: "direct main"
     description:
       path: anonaccred_client
-      ref: "7b5959f73e88ae815684b438bfee756a1242ab7a"
-      resolved-ref: "7b5959f73e88ae815684b438bfee756a1242ab7a"
+      ref: e28b2e8c71602a6ae01d1788a59c1d3294af5436
+      resolved-ref: e28b2e8c71602a6ae01d1788a59c1d3294af5436
       url: "https://github.com/qtpi-bonding-org/serverpod_anonaccred.git"
     source: git
     version: "0.1.0+1"
