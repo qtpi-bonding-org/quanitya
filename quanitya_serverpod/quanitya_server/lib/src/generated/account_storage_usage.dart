@@ -16,7 +16,7 @@ abstract class AccountStorageUsage
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   AccountStorageUsage._({
     this.id,
-    required this.accountId,
+    required this.accountUuid,
     required this.bytesUsed,
     required this.rowCount,
     DateTime? updatedAt,
@@ -24,7 +24,7 @@ abstract class AccountStorageUsage
 
   factory AccountStorageUsage({
     int? id,
-    required int accountId,
+    required String accountUuid,
     required int bytesUsed,
     required int rowCount,
     DateTime? updatedAt,
@@ -33,7 +33,7 @@ abstract class AccountStorageUsage
   factory AccountStorageUsage.fromJson(Map<String, dynamic> jsonSerialization) {
     return AccountStorageUsage(
       id: jsonSerialization['id'] as int?,
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       bytesUsed: jsonSerialization['bytesUsed'] as int,
       rowCount: jsonSerialization['rowCount'] as int,
       updatedAt: jsonSerialization['updatedAt'] == null
@@ -49,7 +49,7 @@ abstract class AccountStorageUsage
   @override
   int? id;
 
-  int accountId;
+  String accountUuid;
 
   int bytesUsed;
 
@@ -65,7 +65,7 @@ abstract class AccountStorageUsage
   @_i1.useResult
   AccountStorageUsage copyWith({
     int? id,
-    int? accountId,
+    String? accountUuid,
     int? bytesUsed,
     int? rowCount,
     DateTime? updatedAt,
@@ -75,7 +75,7 @@ abstract class AccountStorageUsage
     return {
       '__className__': 'quanitya.AccountStorageUsage',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'bytesUsed': bytesUsed,
       'rowCount': rowCount,
       'updatedAt': updatedAt.toJson(),
@@ -87,7 +87,7 @@ abstract class AccountStorageUsage
     return {
       '__className__': 'quanitya.AccountStorageUsage',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'bytesUsed': bytesUsed,
       'rowCount': rowCount,
       'updatedAt': updatedAt.toJson(),
@@ -129,13 +129,13 @@ class _Undefined {}
 class _AccountStorageUsageImpl extends AccountStorageUsage {
   _AccountStorageUsageImpl({
     int? id,
-    required int accountId,
+    required String accountUuid,
     required int bytesUsed,
     required int rowCount,
     DateTime? updatedAt,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          bytesUsed: bytesUsed,
          rowCount: rowCount,
          updatedAt: updatedAt,
@@ -147,14 +147,14 @@ class _AccountStorageUsageImpl extends AccountStorageUsage {
   @override
   AccountStorageUsage copyWith({
     Object? id = _Undefined,
-    int? accountId,
+    String? accountUuid,
     int? bytesUsed,
     int? rowCount,
     DateTime? updatedAt,
   }) {
     return AccountStorageUsage(
       id: id is int? ? id : this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       bytesUsed: bytesUsed ?? this.bytesUsed,
       rowCount: rowCount ?? this.rowCount,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -166,8 +166,8 @@ class AccountStorageUsageUpdateTable
     extends _i1.UpdateTable<AccountStorageUsageTable> {
   AccountStorageUsageUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> accountId(int value) => _i1.ColumnValue(
-    table.accountId,
+  _i1.ColumnValue<String, String> accountUuid(String value) => _i1.ColumnValue(
+    table.accountUuid,
     value,
   );
 
@@ -192,8 +192,8 @@ class AccountStorageUsageTable extends _i1.Table<int?> {
   AccountStorageUsageTable({super.tableRelation})
     : super(tableName: 'account_storage_usage') {
     updateTable = AccountStorageUsageUpdateTable(this);
-    accountId = _i1.ColumnInt(
-      'accountId',
+    accountUuid = _i1.ColumnString(
+      'accountUuid',
       this,
     );
     bytesUsed = _i1.ColumnInt(
@@ -213,7 +213,7 @@ class AccountStorageUsageTable extends _i1.Table<int?> {
 
   late final AccountStorageUsageUpdateTable updateTable;
 
-  late final _i1.ColumnInt accountId;
+  late final _i1.ColumnString accountUuid;
 
   late final _i1.ColumnInt bytesUsed;
 
@@ -224,7 +224,7 @@ class AccountStorageUsageTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    accountId,
+    accountUuid,
     bytesUsed,
     rowCount,
     updatedAt,

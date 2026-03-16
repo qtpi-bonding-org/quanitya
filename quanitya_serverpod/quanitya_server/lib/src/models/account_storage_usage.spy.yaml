@@ -4,8 +4,8 @@
 class: AccountStorageUsage
 table: account_storage_usage
 fields:
-  # Account ID (one row per account)
-  accountId: int
+  # Account UUID (one row per account, cross-database reference)
+  accountUuid: String
 
   # Running total of LENGTH(encryptedData) across all encrypted tables
   bytesUsed: int
@@ -17,5 +17,5 @@ fields:
   updatedAt: DateTime, default=now
 indexes:
   account_storage_usage_account_idx:
-    fields: accountId
+    fields: accountUuid
     unique: true

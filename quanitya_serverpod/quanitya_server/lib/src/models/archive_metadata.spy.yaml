@@ -2,8 +2,8 @@
 # Used to show users what historical data is available without downloading it
 class: ArchiveMetadata
 fields:
-  # User ID
-  userId: int
+  # Account UUID (cross-database reference)
+  userId: String
   
   # List of available archived months
   availableMonths: List<ArchiveMonthInfo>

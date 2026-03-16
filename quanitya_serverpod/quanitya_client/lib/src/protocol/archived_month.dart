@@ -31,7 +31,7 @@ abstract class ArchivedMonth implements _i1.SerializableModel {
   });
 
   factory ArchivedMonth({
-    required int userId,
+    required String userId,
     required int year,
     required int month,
     required List<_i2.EncryptedEntry> entries,
@@ -44,7 +44,7 @@ abstract class ArchivedMonth implements _i1.SerializableModel {
 
   factory ArchivedMonth.fromJson(Map<String, dynamic> jsonSerialization) {
     return ArchivedMonth(
-      userId: jsonSerialization['userId'] as int,
+      userId: jsonSerialization['userId'] as String,
       year: jsonSerialization['year'] as int,
       month: jsonSerialization['month'] as int,
       entries: _i6.Protocol().deserialize<List<_i2.EncryptedEntry>>(
@@ -67,7 +67,7 @@ abstract class ArchivedMonth implements _i1.SerializableModel {
     );
   }
 
-  int userId;
+  String userId;
 
   int year;
 
@@ -89,7 +89,7 @@ abstract class ArchivedMonth implements _i1.SerializableModel {
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   ArchivedMonth copyWith({
-    int? userId,
+    String? userId,
     int? year,
     int? month,
     List<_i2.EncryptedEntry>? entries,
@@ -123,7 +123,7 @@ abstract class ArchivedMonth implements _i1.SerializableModel {
 
 class _ArchivedMonthImpl extends ArchivedMonth {
   _ArchivedMonthImpl({
-    required int userId,
+    required String userId,
     required int year,
     required int month,
     required List<_i2.EncryptedEntry> entries,
@@ -149,7 +149,7 @@ class _ArchivedMonthImpl extends ArchivedMonth {
   @_i1.useResult
   @override
   ArchivedMonth copyWith({
-    int? userId,
+    String? userId,
     int? year,
     int? month,
     List<_i2.EncryptedEntry>? entries,

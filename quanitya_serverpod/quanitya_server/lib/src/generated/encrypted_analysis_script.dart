@@ -16,7 +16,7 @@ abstract class EncryptedAnalysisScript
     implements _i1.TableRow<_i1.UuidValue>, _i1.ProtocolSerialization {
   EncryptedAnalysisScript._({
     _i1.UuidValue? id,
-    required this.accountId,
+    required this.accountUuid,
     required this.encryptedData,
     DateTime? updatedAt,
   }) : id = id ?? const _i1.Uuid().v4obj(),
@@ -24,7 +24,7 @@ abstract class EncryptedAnalysisScript
 
   factory EncryptedAnalysisScript({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String encryptedData,
     DateTime? updatedAt,
   }) = _EncryptedAnalysisScriptImpl;
@@ -36,7 +36,7 @@ abstract class EncryptedAnalysisScript
       id: jsonSerialization['id'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       encryptedData: jsonSerialization['encryptedData'] as String,
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
@@ -51,7 +51,7 @@ abstract class EncryptedAnalysisScript
   @override
   _i1.UuidValue id;
 
-  int accountId;
+  String accountUuid;
 
   String encryptedData;
 
@@ -65,7 +65,7 @@ abstract class EncryptedAnalysisScript
   @_i1.useResult
   EncryptedAnalysisScript copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? encryptedData,
     DateTime? updatedAt,
   });
@@ -74,7 +74,7 @@ abstract class EncryptedAnalysisScript
     return {
       '__className__': 'quanitya.EncryptedAnalysisScript',
       'id': id.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'encryptedData': encryptedData,
       'updatedAt': updatedAt.toJson(),
     };
@@ -85,7 +85,7 @@ abstract class EncryptedAnalysisScript
     return {
       '__className__': 'quanitya.EncryptedAnalysisScript',
       'id': id.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'encryptedData': encryptedData,
       'updatedAt': updatedAt.toJson(),
     };
@@ -124,12 +124,12 @@ abstract class EncryptedAnalysisScript
 class _EncryptedAnalysisScriptImpl extends EncryptedAnalysisScript {
   _EncryptedAnalysisScriptImpl({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String encryptedData,
     DateTime? updatedAt,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          encryptedData: encryptedData,
          updatedAt: updatedAt,
        );
@@ -140,13 +140,13 @@ class _EncryptedAnalysisScriptImpl extends EncryptedAnalysisScript {
   @override
   EncryptedAnalysisScript copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? encryptedData,
     DateTime? updatedAt,
   }) {
     return EncryptedAnalysisScript(
       id: id ?? this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       encryptedData: encryptedData ?? this.encryptedData,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -157,8 +157,8 @@ class EncryptedAnalysisScriptUpdateTable
     extends _i1.UpdateTable<EncryptedAnalysisScriptTable> {
   EncryptedAnalysisScriptUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> accountId(int value) => _i1.ColumnValue(
-    table.accountId,
+  _i1.ColumnValue<String, String> accountUuid(String value) => _i1.ColumnValue(
+    table.accountUuid,
     value,
   );
 
@@ -179,8 +179,8 @@ class EncryptedAnalysisScriptTable extends _i1.Table<_i1.UuidValue> {
   EncryptedAnalysisScriptTable({super.tableRelation})
     : super(tableName: 'encrypted_analysis_scripts') {
     updateTable = EncryptedAnalysisScriptUpdateTable(this);
-    accountId = _i1.ColumnInt(
-      'accountId',
+    accountUuid = _i1.ColumnString(
+      'accountUuid',
       this,
     );
     encryptedData = _i1.ColumnString(
@@ -196,7 +196,7 @@ class EncryptedAnalysisScriptTable extends _i1.Table<_i1.UuidValue> {
 
   late final EncryptedAnalysisScriptUpdateTable updateTable;
 
-  late final _i1.ColumnInt accountId;
+  late final _i1.ColumnString accountUuid;
 
   late final _i1.ColumnString encryptedData;
 
@@ -205,7 +205,7 @@ class EncryptedAnalysisScriptTable extends _i1.Table<_i1.UuidValue> {
   @override
   List<_i1.Column> get columns => [
     id,
-    accountId,
+    accountUuid,
     encryptedData,
     updatedAt,
   ];

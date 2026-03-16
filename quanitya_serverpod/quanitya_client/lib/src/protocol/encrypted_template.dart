@@ -15,7 +15,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class EncryptedTemplate implements _i1.SerializableModel {
   EncryptedTemplate._({
     _i1.UuidValue? id,
-    required this.accountId,
+    required this.accountUuid,
     required this.encryptedData,
     DateTime? updatedAt,
   }) : id = id ?? const _i1.Uuid().v4obj(),
@@ -23,7 +23,7 @@ abstract class EncryptedTemplate implements _i1.SerializableModel {
 
   factory EncryptedTemplate({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String encryptedData,
     DateTime? updatedAt,
   }) = _EncryptedTemplateImpl;
@@ -33,7 +33,7 @@ abstract class EncryptedTemplate implements _i1.SerializableModel {
       id: jsonSerialization['id'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       encryptedData: jsonSerialization['encryptedData'] as String,
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
@@ -44,7 +44,7 @@ abstract class EncryptedTemplate implements _i1.SerializableModel {
   /// The id of the object.
   _i1.UuidValue id;
 
-  int accountId;
+  String accountUuid;
 
   String encryptedData;
 
@@ -55,7 +55,7 @@ abstract class EncryptedTemplate implements _i1.SerializableModel {
   @_i1.useResult
   EncryptedTemplate copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? encryptedData,
     DateTime? updatedAt,
   });
@@ -64,7 +64,7 @@ abstract class EncryptedTemplate implements _i1.SerializableModel {
     return {
       '__className__': 'quanitya.EncryptedTemplate',
       'id': id.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'encryptedData': encryptedData,
       'updatedAt': updatedAt.toJson(),
     };
@@ -79,12 +79,12 @@ abstract class EncryptedTemplate implements _i1.SerializableModel {
 class _EncryptedTemplateImpl extends EncryptedTemplate {
   _EncryptedTemplateImpl({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String encryptedData,
     DateTime? updatedAt,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          encryptedData: encryptedData,
          updatedAt: updatedAt,
        );
@@ -95,13 +95,13 @@ class _EncryptedTemplateImpl extends EncryptedTemplate {
   @override
   EncryptedTemplate copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? encryptedData,
     DateTime? updatedAt,
   }) {
     return EncryptedTemplate(
       id: id ?? this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       encryptedData: encryptedData ?? this.encryptedData,
       updatedAt: updatedAt ?? this.updatedAt,
     );

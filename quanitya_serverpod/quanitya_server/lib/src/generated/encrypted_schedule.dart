@@ -16,7 +16,7 @@ abstract class EncryptedSchedule
     implements _i1.TableRow<_i1.UuidValue>, _i1.ProtocolSerialization {
   EncryptedSchedule._({
     _i1.UuidValue? id,
-    required this.accountId,
+    required this.accountUuid,
     required this.encryptedData,
     DateTime? updatedAt,
   }) : id = id ?? const _i1.Uuid().v4obj(),
@@ -24,7 +24,7 @@ abstract class EncryptedSchedule
 
   factory EncryptedSchedule({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String encryptedData,
     DateTime? updatedAt,
   }) = _EncryptedScheduleImpl;
@@ -34,7 +34,7 @@ abstract class EncryptedSchedule
       id: jsonSerialization['id'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       encryptedData: jsonSerialization['encryptedData'] as String,
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
@@ -49,7 +49,7 @@ abstract class EncryptedSchedule
   @override
   _i1.UuidValue id;
 
-  int accountId;
+  String accountUuid;
 
   String encryptedData;
 
@@ -63,7 +63,7 @@ abstract class EncryptedSchedule
   @_i1.useResult
   EncryptedSchedule copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? encryptedData,
     DateTime? updatedAt,
   });
@@ -72,7 +72,7 @@ abstract class EncryptedSchedule
     return {
       '__className__': 'quanitya.EncryptedSchedule',
       'id': id.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'encryptedData': encryptedData,
       'updatedAt': updatedAt.toJson(),
     };
@@ -83,7 +83,7 @@ abstract class EncryptedSchedule
     return {
       '__className__': 'quanitya.EncryptedSchedule',
       'id': id.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'encryptedData': encryptedData,
       'updatedAt': updatedAt.toJson(),
     };
@@ -122,12 +122,12 @@ abstract class EncryptedSchedule
 class _EncryptedScheduleImpl extends EncryptedSchedule {
   _EncryptedScheduleImpl({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String encryptedData,
     DateTime? updatedAt,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          encryptedData: encryptedData,
          updatedAt: updatedAt,
        );
@@ -138,13 +138,13 @@ class _EncryptedScheduleImpl extends EncryptedSchedule {
   @override
   EncryptedSchedule copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? encryptedData,
     DateTime? updatedAt,
   }) {
     return EncryptedSchedule(
       id: id ?? this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       encryptedData: encryptedData ?? this.encryptedData,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -155,8 +155,8 @@ class EncryptedScheduleUpdateTable
     extends _i1.UpdateTable<EncryptedScheduleTable> {
   EncryptedScheduleUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> accountId(int value) => _i1.ColumnValue(
-    table.accountId,
+  _i1.ColumnValue<String, String> accountUuid(String value) => _i1.ColumnValue(
+    table.accountUuid,
     value,
   );
 
@@ -177,8 +177,8 @@ class EncryptedScheduleTable extends _i1.Table<_i1.UuidValue> {
   EncryptedScheduleTable({super.tableRelation})
     : super(tableName: 'encrypted_schedules') {
     updateTable = EncryptedScheduleUpdateTable(this);
-    accountId = _i1.ColumnInt(
-      'accountId',
+    accountUuid = _i1.ColumnString(
+      'accountUuid',
       this,
     );
     encryptedData = _i1.ColumnString(
@@ -194,7 +194,7 @@ class EncryptedScheduleTable extends _i1.Table<_i1.UuidValue> {
 
   late final EncryptedScheduleUpdateTable updateTable;
 
-  late final _i1.ColumnInt accountId;
+  late final _i1.ColumnString accountUuid;
 
   late final _i1.ColumnString encryptedData;
 
@@ -203,7 +203,7 @@ class EncryptedScheduleTable extends _i1.Table<_i1.UuidValue> {
   @override
   List<_i1.Column> get columns => [
     id,
-    accountId,
+    accountUuid,
     encryptedData,
     updatedAt,
   ];

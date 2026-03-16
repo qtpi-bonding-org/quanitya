@@ -16,7 +16,7 @@ abstract class EncryptedTemplateAesthetics
     implements _i1.TableRow<_i1.UuidValue>, _i1.ProtocolSerialization {
   EncryptedTemplateAesthetics._({
     _i1.UuidValue? id,
-    required this.accountId,
+    required this.accountUuid,
     required this.encryptedData,
     DateTime? updatedAt,
   }) : id = id ?? const _i1.Uuid().v4obj(),
@@ -24,7 +24,7 @@ abstract class EncryptedTemplateAesthetics
 
   factory EncryptedTemplateAesthetics({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String encryptedData,
     DateTime? updatedAt,
   }) = _EncryptedTemplateAestheticsImpl;
@@ -36,7 +36,7 @@ abstract class EncryptedTemplateAesthetics
       id: jsonSerialization['id'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       encryptedData: jsonSerialization['encryptedData'] as String,
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
@@ -51,7 +51,7 @@ abstract class EncryptedTemplateAesthetics
   @override
   _i1.UuidValue id;
 
-  int accountId;
+  String accountUuid;
 
   String encryptedData;
 
@@ -65,7 +65,7 @@ abstract class EncryptedTemplateAesthetics
   @_i1.useResult
   EncryptedTemplateAesthetics copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? encryptedData,
     DateTime? updatedAt,
   });
@@ -74,7 +74,7 @@ abstract class EncryptedTemplateAesthetics
     return {
       '__className__': 'quanitya.EncryptedTemplateAesthetics',
       'id': id.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'encryptedData': encryptedData,
       'updatedAt': updatedAt.toJson(),
     };
@@ -85,7 +85,7 @@ abstract class EncryptedTemplateAesthetics
     return {
       '__className__': 'quanitya.EncryptedTemplateAesthetics',
       'id': id.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'encryptedData': encryptedData,
       'updatedAt': updatedAt.toJson(),
     };
@@ -124,12 +124,12 @@ abstract class EncryptedTemplateAesthetics
 class _EncryptedTemplateAestheticsImpl extends EncryptedTemplateAesthetics {
   _EncryptedTemplateAestheticsImpl({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String encryptedData,
     DateTime? updatedAt,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          encryptedData: encryptedData,
          updatedAt: updatedAt,
        );
@@ -140,13 +140,13 @@ class _EncryptedTemplateAestheticsImpl extends EncryptedTemplateAesthetics {
   @override
   EncryptedTemplateAesthetics copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? encryptedData,
     DateTime? updatedAt,
   }) {
     return EncryptedTemplateAesthetics(
       id: id ?? this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       encryptedData: encryptedData ?? this.encryptedData,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -157,8 +157,8 @@ class EncryptedTemplateAestheticsUpdateTable
     extends _i1.UpdateTable<EncryptedTemplateAestheticsTable> {
   EncryptedTemplateAestheticsUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> accountId(int value) => _i1.ColumnValue(
-    table.accountId,
+  _i1.ColumnValue<String, String> accountUuid(String value) => _i1.ColumnValue(
+    table.accountUuid,
     value,
   );
 
@@ -179,8 +179,8 @@ class EncryptedTemplateAestheticsTable extends _i1.Table<_i1.UuidValue> {
   EncryptedTemplateAestheticsTable({super.tableRelation})
     : super(tableName: 'encrypted_template_aesthetics') {
     updateTable = EncryptedTemplateAestheticsUpdateTable(this);
-    accountId = _i1.ColumnInt(
-      'accountId',
+    accountUuid = _i1.ColumnString(
+      'accountUuid',
       this,
     );
     encryptedData = _i1.ColumnString(
@@ -196,7 +196,7 @@ class EncryptedTemplateAestheticsTable extends _i1.Table<_i1.UuidValue> {
 
   late final EncryptedTemplateAestheticsUpdateTable updateTable;
 
-  late final _i1.ColumnInt accountId;
+  late final _i1.ColumnString accountUuid;
 
   late final _i1.ColumnString encryptedData;
 
@@ -205,7 +205,7 @@ class EncryptedTemplateAestheticsTable extends _i1.Table<_i1.UuidValue> {
   @override
   List<_i1.Column> get columns => [
     id,
-    accountId,
+    accountUuid,
     encryptedData,
     updatedAt,
   ];

@@ -2,8 +2,8 @@
 # Used by archive retrieval API to return historical data
 class: ArchivedMonth
 fields:
-  # User ID who owns this archived data
-  userId: int
+  # Account UUID who owns this archived data
+  userId: String
   
   # Year of the archived month (e.g., 2024)
   year: int

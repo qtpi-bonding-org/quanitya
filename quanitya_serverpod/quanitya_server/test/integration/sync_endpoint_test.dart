@@ -37,7 +37,7 @@ void main() {
           );
 
           expect(result.id.toString(), equals(id));
-          expect(result.accountId, equals(int.parse(testAccountId)));
+          expect(result.accountUuid, equals(testAccountId));
           expect(result.encryptedData, equals(data));
         });
 
@@ -101,7 +101,7 @@ void main() {
           );
 
           expect(result.id.toString(), equals(id));
-          expect(result.accountId, equals(int.parse(testAccountId)));
+          expect(result.accountUuid, equals(testAccountId));
           expect(result.encryptedData, equals(data));
         });
 
@@ -156,7 +156,7 @@ void main() {
           );
 
           expect(result.id.toString(), equals(id));
-          expect(result.accountId, equals(int.parse(testAccountId)));
+          expect(result.accountUuid, equals(testAccountId));
           expect(result.encryptedData, equals(data));
         });
 
@@ -211,7 +211,7 @@ void main() {
           );
 
           expect(result.id.toString(), equals(id));
-          expect(result.accountId, equals(int.parse(testAccountId)));
+          expect(result.accountUuid, equals(testAccountId));
           expect(result.encryptedData, equals(data));
         });
 

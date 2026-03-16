@@ -15,7 +15,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class AccountStorageUsage implements _i1.SerializableModel {
   AccountStorageUsage._({
     this.id,
-    required this.accountId,
+    required this.accountUuid,
     required this.bytesUsed,
     required this.rowCount,
     DateTime? updatedAt,
@@ -23,7 +23,7 @@ abstract class AccountStorageUsage implements _i1.SerializableModel {
 
   factory AccountStorageUsage({
     int? id,
-    required int accountId,
+    required String accountUuid,
     required int bytesUsed,
     required int rowCount,
     DateTime? updatedAt,
@@ -32,7 +32,7 @@ abstract class AccountStorageUsage implements _i1.SerializableModel {
   factory AccountStorageUsage.fromJson(Map<String, dynamic> jsonSerialization) {
     return AccountStorageUsage(
       id: jsonSerialization['id'] as int?,
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       bytesUsed: jsonSerialization['bytesUsed'] as int,
       rowCount: jsonSerialization['rowCount'] as int,
       updatedAt: jsonSerialization['updatedAt'] == null
@@ -46,7 +46,7 @@ abstract class AccountStorageUsage implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  int accountId;
+  String accountUuid;
 
   int bytesUsed;
 
@@ -59,7 +59,7 @@ abstract class AccountStorageUsage implements _i1.SerializableModel {
   @_i1.useResult
   AccountStorageUsage copyWith({
     int? id,
-    int? accountId,
+    String? accountUuid,
     int? bytesUsed,
     int? rowCount,
     DateTime? updatedAt,
@@ -69,7 +69,7 @@ abstract class AccountStorageUsage implements _i1.SerializableModel {
     return {
       '__className__': 'quanitya.AccountStorageUsage',
       if (id != null) 'id': id,
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'bytesUsed': bytesUsed,
       'rowCount': rowCount,
       'updatedAt': updatedAt.toJson(),
@@ -87,13 +87,13 @@ class _Undefined {}
 class _AccountStorageUsageImpl extends AccountStorageUsage {
   _AccountStorageUsageImpl({
     int? id,
-    required int accountId,
+    required String accountUuid,
     required int bytesUsed,
     required int rowCount,
     DateTime? updatedAt,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          bytesUsed: bytesUsed,
          rowCount: rowCount,
          updatedAt: updatedAt,
@@ -105,14 +105,14 @@ class _AccountStorageUsageImpl extends AccountStorageUsage {
   @override
   AccountStorageUsage copyWith({
     Object? id = _Undefined,
-    int? accountId,
+    String? accountUuid,
     int? bytesUsed,
     int? rowCount,
     DateTime? updatedAt,
   }) {
     return AccountStorageUsage(
       id: id is int? ? id : this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       bytesUsed: bytesUsed ?? this.bytesUsed,
       rowCount: rowCount ?? this.rowCount,
       updatedAt: updatedAt ?? this.updatedAt,

@@ -25,7 +25,7 @@ abstract class ArchiveMetadata
   });
 
   factory ArchiveMetadata({
-    required int userId,
+    required String userId,
     required List<_i2.ArchiveMonthInfo> availableMonths,
     required int totalArchives,
     DateTime? oldestArchive,
@@ -34,7 +34,7 @@ abstract class ArchiveMetadata
 
   factory ArchiveMetadata.fromJson(Map<String, dynamic> jsonSerialization) {
     return ArchiveMetadata(
-      userId: jsonSerialization['userId'] as int,
+      userId: jsonSerialization['userId'] as String,
       availableMonths: _i3.Protocol().deserialize<List<_i2.ArchiveMonthInfo>>(
         jsonSerialization['availableMonths'],
       ),
@@ -52,7 +52,7 @@ abstract class ArchiveMetadata
     );
   }
 
-  int userId;
+  String userId;
 
   List<_i2.ArchiveMonthInfo> availableMonths;
 
@@ -66,7 +66,7 @@ abstract class ArchiveMetadata
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   ArchiveMetadata copyWith({
-    int? userId,
+    String? userId,
     List<_i2.ArchiveMonthInfo>? availableMonths,
     int? totalArchives,
     DateTime? oldestArchive,
@@ -108,7 +108,7 @@ class _Undefined {}
 
 class _ArchiveMetadataImpl extends ArchiveMetadata {
   _ArchiveMetadataImpl({
-    required int userId,
+    required String userId,
     required List<_i2.ArchiveMonthInfo> availableMonths,
     required int totalArchives,
     DateTime? oldestArchive,
@@ -126,7 +126,7 @@ class _ArchiveMetadataImpl extends ArchiveMetadata {
   @_i1.useResult
   @override
   ArchiveMetadata copyWith({
-    int? userId,
+    String? userId,
     List<_i2.ArchiveMonthInfo>? availableMonths,
     int? totalArchives,
     Object? oldestArchive = _Undefined,

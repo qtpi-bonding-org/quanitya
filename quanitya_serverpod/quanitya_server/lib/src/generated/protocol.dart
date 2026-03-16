@@ -74,10 +74,10 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'nextval(\'account_storage_usage_id_seq\'::regclass)',
         ),
         _i2.ColumnDefinition(
-          name: 'accountId',
-          columnType: _i2.ColumnType.bigint,
+          name: 'accountUuid',
+          columnType: _i2.ColumnType.text,
           isNullable: false,
-          dartType: 'int',
+          dartType: 'String',
         ),
         _i2.ColumnDefinition(
           name: 'bytesUsed',
@@ -120,7 +120,7 @@ class Protocol extends _i1.SerializationManagerServer {
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountId',
+              definition: 'accountUuid',
             ),
           ],
           type: 'btree',
@@ -188,10 +188,10 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'gen_random_uuid()',
         ),
         _i2.ColumnDefinition(
-          name: 'accountId',
-          columnType: _i2.ColumnType.bigint,
+          name: 'accountUuid',
+          columnType: _i2.ColumnType.text,
           isNullable: false,
-          dartType: 'int',
+          dartType: 'String',
         ),
         _i2.ColumnDefinition(
           name: 'encryptedData',
@@ -228,7 +228,7 @@ class Protocol extends _i1.SerializationManagerServer {
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountId',
+              definition: 'accountUuid',
             ),
           ],
           type: 'btree',
@@ -252,10 +252,10 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'gen_random_uuid()',
         ),
         _i2.ColumnDefinition(
-          name: 'accountId',
-          columnType: _i2.ColumnType.bigint,
+          name: 'accountUuid',
+          columnType: _i2.ColumnType.text,
           isNullable: false,
-          dartType: 'int',
+          dartType: 'String',
         ),
         _i2.ColumnDefinition(
           name: 'encryptedData',
@@ -292,7 +292,7 @@ class Protocol extends _i1.SerializationManagerServer {
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountId',
+              definition: 'accountUuid',
             ),
           ],
           type: 'btree',
@@ -316,10 +316,10 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'gen_random_uuid()',
         ),
         _i2.ColumnDefinition(
-          name: 'accountId',
-          columnType: _i2.ColumnType.bigint,
+          name: 'accountUuid',
+          columnType: _i2.ColumnType.text,
           isNullable: false,
-          dartType: 'int',
+          dartType: 'String',
         ),
         _i2.ColumnDefinition(
           name: 'encryptedData',
@@ -356,7 +356,7 @@ class Protocol extends _i1.SerializationManagerServer {
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountId',
+              definition: 'accountUuid',
             ),
           ],
           type: 'btree',
@@ -380,10 +380,10 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'gen_random_uuid()',
         ),
         _i2.ColumnDefinition(
-          name: 'accountId',
-          columnType: _i2.ColumnType.bigint,
+          name: 'accountUuid',
+          columnType: _i2.ColumnType.text,
           isNullable: false,
-          dartType: 'int',
+          dartType: 'String',
         ),
         _i2.ColumnDefinition(
           name: 'encryptedData',
@@ -420,7 +420,7 @@ class Protocol extends _i1.SerializationManagerServer {
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountId',
+              definition: 'accountUuid',
             ),
           ],
           type: 'btree',
@@ -444,10 +444,10 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'gen_random_uuid()',
         ),
         _i2.ColumnDefinition(
-          name: 'accountId',
-          columnType: _i2.ColumnType.bigint,
+          name: 'accountUuid',
+          columnType: _i2.ColumnType.text,
           isNullable: false,
-          dartType: 'int',
+          dartType: 'String',
         ),
         _i2.ColumnDefinition(
           name: 'encryptedData',
@@ -484,7 +484,7 @@ class Protocol extends _i1.SerializationManagerServer {
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountId',
+              definition: 'accountUuid',
             ),
           ],
           type: 'btree',
@@ -570,10 +570,10 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'gen_random_uuid()',
         ),
         _i2.ColumnDefinition(
-          name: 'accountId',
-          columnType: _i2.ColumnType.bigint,
+          name: 'accountUuid',
+          columnType: _i2.ColumnType.text,
           isNullable: false,
-          dartType: 'int',
+          dartType: 'String',
         ),
         _i2.ColumnDefinition(
           name: 'templateId',
@@ -646,7 +646,7 @@ class Protocol extends _i1.SerializationManagerServer {
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'accountId',
+              definition: 'accountUuid',
             ),
           ],
           type: 'btree',

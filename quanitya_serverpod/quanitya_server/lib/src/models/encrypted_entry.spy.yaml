@@ -7,16 +7,16 @@ fields:
   # UUID primary key for PowerSync syncing (generated on client)
   id: UuidValue, defaultModel=random
   
-  # Foreign key to account (for sync bucket filtering)
+  # Cross-database reference to account UUID (for sync bucket filtering)
   # References anon_account table from anonaccred module
-  accountId: int
-  
+  accountUuid: String
+
   # Client-encrypted entry data (JSON blob encrypted with data key)
   encryptedData: String
-  
+
   # Last update timestamp for sync conflict resolution
   updatedAt: DateTime, default=now
 indexes:
   encrypted_entry_account_idx:
-    fields: accountId
+    fields: accountUuid
     unique: false

@@ -16,7 +16,7 @@ abstract class TemplateAesthetics
     implements _i1.TableRow<_i1.UuidValue>, _i1.ProtocolSerialization {
   TemplateAesthetics._({
     _i1.UuidValue? id,
-    required this.accountId,
+    required this.accountUuid,
     required this.templateId,
     this.themeName,
     this.icon,
@@ -30,7 +30,7 @@ abstract class TemplateAesthetics
 
   factory TemplateAesthetics({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String templateId,
     String? themeName,
     String? icon,
@@ -46,7 +46,7 @@ abstract class TemplateAesthetics
       id: jsonSerialization['id'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       templateId: jsonSerialization['templateId'] as String,
       themeName: jsonSerialization['themeName'] as String?,
       icon: jsonSerialization['icon'] as String?,
@@ -67,7 +67,7 @@ abstract class TemplateAesthetics
   @override
   _i1.UuidValue id;
 
-  int accountId;
+  String accountUuid;
 
   String templateId;
 
@@ -93,7 +93,7 @@ abstract class TemplateAesthetics
   @_i1.useResult
   TemplateAesthetics copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? templateId,
     String? themeName,
     String? icon,
@@ -108,7 +108,7 @@ abstract class TemplateAesthetics
     return {
       '__className__': 'quanitya.TemplateAesthetics',
       'id': id.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'templateId': templateId,
       if (themeName != null) 'themeName': themeName,
       if (icon != null) 'icon': icon,
@@ -125,7 +125,7 @@ abstract class TemplateAesthetics
     return {
       '__className__': 'quanitya.TemplateAesthetics',
       'id': id.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'templateId': templateId,
       if (themeName != null) 'themeName': themeName,
       if (icon != null) 'icon': icon,
@@ -172,7 +172,7 @@ class _Undefined {}
 class _TemplateAestheticsImpl extends TemplateAesthetics {
   _TemplateAestheticsImpl({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String templateId,
     String? themeName,
     String? icon,
@@ -183,7 +183,7 @@ class _TemplateAestheticsImpl extends TemplateAesthetics {
     DateTime? updatedAt,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          templateId: templateId,
          themeName: themeName,
          icon: icon,
@@ -200,7 +200,7 @@ class _TemplateAestheticsImpl extends TemplateAesthetics {
   @override
   TemplateAesthetics copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? templateId,
     Object? themeName = _Undefined,
     Object? icon = _Undefined,
@@ -212,7 +212,7 @@ class _TemplateAestheticsImpl extends TemplateAesthetics {
   }) {
     return TemplateAesthetics(
       id: id ?? this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       templateId: templateId ?? this.templateId,
       themeName: themeName is String? ? themeName : this.themeName,
       icon: icon is String? ? icon : this.icon,
@@ -233,8 +233,8 @@ class TemplateAestheticsUpdateTable
     extends _i1.UpdateTable<TemplateAestheticsTable> {
   TemplateAestheticsUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> accountId(int value) => _i1.ColumnValue(
-    table.accountId,
+  _i1.ColumnValue<String, String> accountUuid(String value) => _i1.ColumnValue(
+    table.accountUuid,
     value,
   );
 
@@ -286,8 +286,8 @@ class TemplateAestheticsTable extends _i1.Table<_i1.UuidValue> {
   TemplateAestheticsTable({super.tableRelation})
     : super(tableName: 'template_aesthetics') {
     updateTable = TemplateAestheticsUpdateTable(this);
-    accountId = _i1.ColumnInt(
-      'accountId',
+    accountUuid = _i1.ColumnString(
+      'accountUuid',
       this,
     );
     templateId = _i1.ColumnString(
@@ -327,7 +327,7 @@ class TemplateAestheticsTable extends _i1.Table<_i1.UuidValue> {
 
   late final TemplateAestheticsUpdateTable updateTable;
 
-  late final _i1.ColumnInt accountId;
+  late final _i1.ColumnString accountUuid;
 
   late final _i1.ColumnString templateId;
 
@@ -348,7 +348,7 @@ class TemplateAestheticsTable extends _i1.Table<_i1.UuidValue> {
   @override
   List<_i1.Column> get columns => [
     id,
-    accountId,
+    accountUuid,
     templateId,
     themeName,
     icon,

@@ -32,8 +32,8 @@ class PowerSyncEndpoint extends Endpoint {
       throw Exception('User not authenticated');
     }
 
-    final accountIdStr = session.authenticated!.userIdentifier;
-    if (accountIdStr.isEmpty) {
+    final accountUuid = session.authenticated!.userIdentifier;
+    if (accountUuid.isEmpty) {
       session.log(
         'PowerSync: ERROR - userIdentifier is empty',
         level: LogLevel.error,
@@ -46,8 +46,8 @@ class PowerSyncEndpoint extends Endpoint {
       level: LogLevel.info,
     );
 
-    // Use account ID as JWT identity for sync bucket filtering
-    final token = await _createPowerSyncToken(accountIdStr, session);
+    // Use account UUID as JWT identity for sync bucket filtering
+    final token = await _createPowerSyncToken(accountUuid, session);
 
     // Token expires in 5 minutes
     final expiresAt = DateTime.now().add(const Duration(minutes: 5));

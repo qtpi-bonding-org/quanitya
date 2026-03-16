@@ -20,14 +20,14 @@ void main() {
       ];
 
       final result = SnapshotBackupService.createUserSnapshotData(
-        accountId: 42,
+        accountUuid: '00000000-0000-0000-0000-000000000042',
         snapshotDate: snapshotDate,
         entries: entries,
       );
 
       expect(result['version'], '2.0');
       expect(result['type'], 'full_snapshot');
-      expect(result['accountId'], 42);
+      expect(result['accountUuid'], '00000000-0000-0000-0000-000000000042');
       expect(result['snapshotDate'], '2026-03-01T00:00:00.000Z');
       expect(result['entryCount'], 2);
       expect(result['entries'], entries);
@@ -36,14 +36,14 @@ void main() {
 
     test('generateSnapshotKey produces correct R2 path', () {
       final key = SnapshotBackupService.generateSnapshotKey(
-          42, DateTime.utc(2026, 3, 1));
-      expect(key, 'snapshots/user-entries/42/2026-03.json.gz');
+          '00000000-0000-0000-0000-000000000042', DateTime.utc(2026, 3, 1));
+      expect(key, 'snapshots/user-entries/00000000-0000-0000-0000-000000000042/2026-03.json.gz');
     });
 
     test('generateSnapshotKey pads single-digit months', () {
       final key = SnapshotBackupService.generateSnapshotKey(
-          42, DateTime.utc(2026, 1, 1));
-      expect(key, 'snapshots/user-entries/42/2026-01.json.gz');
+          '00000000-0000-0000-0000-000000000042', DateTime.utc(2026, 1, 1));
+      expect(key, 'snapshots/user-entries/00000000-0000-0000-0000-000000000042/2026-01.json.gz');
     });
   });
 

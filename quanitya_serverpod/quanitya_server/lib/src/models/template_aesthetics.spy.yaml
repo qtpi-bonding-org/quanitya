@@ -7,10 +7,10 @@ fields:
   # UUID primary key for PowerSync syncing (generated on client)
   id: UuidValue, defaultModel=random
   
-  # Foreign key to account (for sync bucket filtering)
+  # Cross-database reference to account UUID (for sync bucket filtering)
   # References anon_account table from anonaccred module
-  accountId: int
-  
+  accountUuid: String
+
   # Reference to the template (client-side UUID)
   templateId: String
   
@@ -36,7 +36,7 @@ fields:
   updatedAt: DateTime, default=now
 indexes:
   template_aesthetics_account_idx:
-    fields: accountId
+    fields: accountUuid
     unique: false
   template_aesthetics_template_idx:
     fields: templateId

@@ -15,7 +15,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class TemplateAesthetics implements _i1.SerializableModel {
   TemplateAesthetics._({
     _i1.UuidValue? id,
-    required this.accountId,
+    required this.accountUuid,
     required this.templateId,
     this.themeName,
     this.icon,
@@ -29,7 +29,7 @@ abstract class TemplateAesthetics implements _i1.SerializableModel {
 
   factory TemplateAesthetics({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String templateId,
     String? themeName,
     String? icon,
@@ -45,7 +45,7 @@ abstract class TemplateAesthetics implements _i1.SerializableModel {
       id: jsonSerialization['id'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       templateId: jsonSerialization['templateId'] as String,
       themeName: jsonSerialization['themeName'] as String?,
       icon: jsonSerialization['icon'] as String?,
@@ -62,7 +62,7 @@ abstract class TemplateAesthetics implements _i1.SerializableModel {
   /// The id of the object.
   _i1.UuidValue id;
 
-  int accountId;
+  String accountUuid;
 
   String templateId;
 
@@ -85,7 +85,7 @@ abstract class TemplateAesthetics implements _i1.SerializableModel {
   @_i1.useResult
   TemplateAesthetics copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? templateId,
     String? themeName,
     String? icon,
@@ -100,7 +100,7 @@ abstract class TemplateAesthetics implements _i1.SerializableModel {
     return {
       '__className__': 'quanitya.TemplateAesthetics',
       'id': id.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'templateId': templateId,
       if (themeName != null) 'themeName': themeName,
       if (icon != null) 'icon': icon,
@@ -123,7 +123,7 @@ class _Undefined {}
 class _TemplateAestheticsImpl extends TemplateAesthetics {
   _TemplateAestheticsImpl({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String templateId,
     String? themeName,
     String? icon,
@@ -134,7 +134,7 @@ class _TemplateAestheticsImpl extends TemplateAesthetics {
     DateTime? updatedAt,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          templateId: templateId,
          themeName: themeName,
          icon: icon,
@@ -151,7 +151,7 @@ class _TemplateAestheticsImpl extends TemplateAesthetics {
   @override
   TemplateAesthetics copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? templateId,
     Object? themeName = _Undefined,
     Object? icon = _Undefined,
@@ -163,7 +163,7 @@ class _TemplateAestheticsImpl extends TemplateAesthetics {
   }) {
     return TemplateAesthetics(
       id: id ?? this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       templateId: templateId ?? this.templateId,
       themeName: themeName is String? ? themeName : this.themeName,
       icon: icon is String? ? icon : this.icon,

@@ -11,7 +11,7 @@ import '../generated/protocol.dart';
 class StorageQuotaService {
   /// Optional callback that returns the storage limit in bytes for an account.
   /// Set by the cloud server at startup. Null means no limit (self-hosted).
-  static Future<int> Function(Session session, int accountId)?
+  static Future<int> Function(Session session, String accountUuid)?
       storageLimitProvider;
 
   /// Check if writing [additionalBytes] would exceed the account's storage
@@ -19,15 +19,15 @@ class StorageQuotaService {
   /// (self-hosted).
   static Future<void> enforceQuota(
     Session session,
-    int accountId,
+    String accountUuid,
     int additionalBytes,
   ) async {
     if (storageLimitProvider == null) return;
 
-    final limitBytes = await storageLimitProvider!(session, accountId);
+    final limitBytes = await storageLimitProvider!(session, accountUuid);
     if (limitBytes <= 0) return; // no active tier
 
-    final usage = await getUsage(session, accountId);
+    final usage = await getUsage(session, accountUuid);
     if (usage.bytesUsed + additionalBytes > limitBytes) {
       throw Exception('Storage quota exceeded');
     }
@@ -36,14 +36,14 @@ class StorageQuotaService {
   /// Get or create usage record for account.
   static Future<AccountStorageUsage> getUsage(
     Session session,
-    int accountId,
+    String accountUuid,
   ) async {
     var usage = await AccountStorageUsage.db.findFirstRow(
       session,
-      where: (t) => t.accountId.equals(accountId),
+      where: (t) => t.accountUuid.equals(accountUuid),
     );
     if (usage == null) {
-      usage = await _seedUsage(session, accountId);
+      usage = await _seedUsage(session, accountUuid);
     }
     return usage;
   }
@@ -51,11 +51,11 @@ class StorageQuotaService {
   /// Increment after successful insert.
   static Future<void> incrementUsage(
     Session session,
-    int accountId,
+    String accountUuid,
     int bytes,
     int rows,
   ) async {
-    final usage = await getUsage(session, accountId);
+    final usage = await getUsage(session, accountUuid);
     await AccountStorageUsage.db.updateRow(
       session,
       usage.copyWith(
@@ -69,11 +69,11 @@ class StorageQuotaService {
   /// Adjust after update (delta can be negative).
   static Future<void> adjustUsage(
     Session session,
-    int accountId,
+    String accountUuid,
     int bytesDelta,
     int rowsDelta,
   ) async {
-    final usage = await getUsage(session, accountId);
+    final usage = await getUsage(session, accountUuid);
     await AccountStorageUsage.db.updateRow(
       session,
       usage.copyWith(
@@ -87,38 +87,38 @@ class StorageQuotaService {
   /// Decrement after delete.
   static Future<void> decrementUsage(
     Session session,
-    int accountId,
+    String accountUuid,
     int bytes,
     int rows,
   ) async {
-    await adjustUsage(session, accountId, -bytes, -rows);
+    await adjustUsage(session, accountUuid, -bytes, -rows);
   }
 
   /// Seed usage from actual data (one-time per account).
   static Future<AccountStorageUsage> _seedUsage(
     Session session,
-    int accountId,
+    String accountUuid,
   ) async {
     final result = await session.db.unsafeQuery(
       '''
       SELECT COALESCE(SUM(LENGTH("encryptedData")), 0)::bigint as bytes_used,
              COUNT(*)::integer as row_count
       FROM (
-          SELECT "encryptedData" FROM encrypted_entries WHERE "accountId" = \$1
+          SELECT "encryptedData" FROM encrypted_entries WHERE "accountUuid" = \$1
           UNION ALL
-          SELECT "encryptedData" FROM encrypted_templates WHERE "accountId" = \$1
+          SELECT "encryptedData" FROM encrypted_templates WHERE "accountUuid" = \$1
           UNION ALL
-          SELECT "encryptedData" FROM encrypted_schedules WHERE "accountId" = \$1
+          SELECT "encryptedData" FROM encrypted_schedules WHERE "accountUuid" = \$1
           UNION ALL
-          SELECT "encryptedData" FROM encrypted_analysis_scripts WHERE "accountId" = \$1
+          SELECT "encryptedData" FROM encrypted_analysis_scripts WHERE "accountUuid" = \$1
       ) combined
       ''',
-      parameters: QueryParameters.positional([accountId]),
+      parameters: QueryParameters.positional([accountUuid]),
     );
 
     final row = result.first;
     final usage = AccountStorageUsage(
-      accountId: accountId,
+      accountUuid: accountUuid,
       bytesUsed: (row[0] as num).toInt(),
       rowCount: (row[1] as num).toInt(),
       updatedAt: DateTime.now(),
@@ -130,15 +130,15 @@ class StorageQuotaService {
   /// Recalculate from scratch (corrects any drift).
   static Future<AccountStorageUsage> recalculate(
     Session session,
-    int accountId,
+    String accountUuid,
   ) async {
     final existing = await AccountStorageUsage.db.findFirstRow(
       session,
-      where: (t) => t.accountId.equals(accountId),
+      where: (t) => t.accountUuid.equals(accountUuid),
     );
     if (existing != null) {
       await AccountStorageUsage.db.deleteRow(session, existing);
     }
-    return await _seedUsage(session, accountId);
+    return await _seedUsage(session, accountUuid);
   }
 }

@@ -32,14 +32,14 @@ class SnapshotBackupService {
 
   /// Create the JSON data structure for a user snapshot.
   static Map<String, dynamic> createUserSnapshotData({
-    required int accountId,
+    required String accountUuid,
     required DateTime snapshotDate,
     required List<Map<String, dynamic>> entries,
   }) {
     return {
       'version': '2.0',
       'type': 'full_snapshot',
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'snapshotDate': snapshotDate.toIso8601String(),
       'entryCount': entries.length,
       'entries': entries,
@@ -48,50 +48,50 @@ class SnapshotBackupService {
   }
 
   /// Generate R2 key for a user snapshot.
-  static String generateSnapshotKey(int accountId, DateTime snapshotDate) {
+  static String generateSnapshotKey(String accountUuid, DateTime snapshotDate) {
     final year = snapshotDate.year;
     final month = snapshotDate.month.toString().padLeft(2, '0');
-    return 'snapshots/user-entries/$accountId/$year-$month.json.gz';
+    return 'snapshots/user-entries/$accountUuid/$year-$month.json.gz';
   }
 
   /// Backup a single user's entries and delete old ones.
   ///
   /// Returns the number of entries in the snapshot, or -1 if backup failed.
-  Future<int> backupUser(int accountId, DateTime snapshotDate) async {
+  Future<int> backupUser(String accountUuid, DateTime snapshotDate) async {
     try {
       // 1. Query all entries for this user
-      final entries = await _getAllUserEntries(accountId);
+      final entries = await _getAllUserEntries(accountUuid);
       if (entries.isEmpty) {
-        _session.log('No entries for user $accountId, skipping snapshot');
+        _session.log('No entries for user $accountUuid, skipping snapshot');
         return 0;
       }
 
       // 2. Create snapshot data
       final snapshotData = createUserSnapshotData(
-        accountId: accountId,
+        accountUuid: accountUuid,
         snapshotDate: snapshotDate,
         entries: entries,
       );
-      final key = generateSnapshotKey(accountId, snapshotDate);
+      final key = generateSnapshotKey(accountUuid, snapshotDate);
 
       // 3. Compress, upload, and verify via pipeline
       final verified = await _pipeline.uploadAndVerify(key, snapshotData);
       if (!verified) {
         _session.log(
-          'Snapshot verification failed for user $accountId — skipping deletion',
+          'Snapshot verification failed for user $accountUuid — skipping deletion',
           level: LogLevel.error,
         );
         return -1;
       }
 
       // 5. Delete old entries (gated on verified backup)
-      final deleted = await _deleteOldEntries(accountId, snapshotDate);
+      final deleted = await _deleteOldEntries(accountUuid, snapshotDate);
       _session.log(
-          'User $accountId: snapshot=${entries.length} entries, deleted=$deleted old entries');
+          'User $accountUuid: snapshot=${entries.length} entries, deleted=$deleted old entries');
 
       return entries.length;
     } catch (e) {
-      _session.log('Backup failed for user $accountId: $e',
+      _session.log('Backup failed for user $accountUuid: $e',
           level: LogLevel.error);
       return -1;
     }
@@ -152,16 +152,16 @@ class SnapshotBackupService {
   }
 
   /// Query all encrypted entries for a user.
-  Future<List<Map<String, dynamic>>> _getAllUserEntries(int accountId) async {
+  Future<List<Map<String, dynamic>>> _getAllUserEntries(String accountUuid) async {
     final entries = await EncryptedEntry.db.find(
       _session,
-      where: (t) => t.accountId.equals(accountId),
+      where: (t) => t.accountUuid.equals(accountUuid),
     );
     return entries.map((e) => e.toJson()).toList();
   }
 
   /// Delete entries older than the retention threshold.
-  Future<int> _deleteOldEntries(int accountId, DateTime snapshotDate) async {
+  Future<int> _deleteOldEntries(String accountUuid, DateTime snapshotDate) async {
     final cutoff = DateTime.utc(
       snapshotDate.year,
       snapshotDate.month - _bufferMonths,
@@ -170,17 +170,17 @@ class SnapshotBackupService {
     final deleted = await EncryptedEntry.db.deleteWhere(
       _session,
       where: (t) =>
-          t.accountId.equals(accountId) & (t.updatedAt < cutoff),
+          t.accountUuid.equals(accountUuid) & (t.updatedAt < cutoff),
     );
     return deleted.length;
   }
 
   /// Get all unique account IDs that have entries.
-  Future<List<int>> _getAllUserIds() async {
+  Future<List<String>> _getAllUserIds() async {
     final result = await _session.db.unsafeQuery(
-      'SELECT DISTINCT "accountId" FROM "encrypted_entries" ORDER BY "accountId"',
+      'SELECT DISTINCT "accountUuid" FROM "encrypted_entries" ORDER BY "accountUuid"',
     );
-    return result.map((row) => row[0] as int).toList();
+    return result.map((row) => row[0] as String).toList();
   }
 
   /// Create snapshot backup service from environment.

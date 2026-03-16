@@ -26,14 +26,14 @@ class ArchiveEndpoint extends Endpoint {
     int year,
     int month,
   ) async {
-    final userId = int.parse(session.authenticated!.userIdentifier);
+    final accountUuid = session.authenticated!.userIdentifier;
     final r2Storage = R2StorageService.fromEnvironment();
-    
+
     if (month < 1 || month > 12) {
       throw Exception('Invalid month: $month. Must be between 1 and 12.');
     }
-    
-    final key = 'archives/$userId/$year/${month.toString().padLeft(2, '0')}.json.gz';
+
+    final key = 'archives/$accountUuid/$year/${month.toString().padLeft(2, '0')}.json.gz';
     
     try {
       // Download compressed archive from R2
@@ -101,12 +101,12 @@ class ArchiveEndpoint extends Endpoint {
   /// 
   /// Returns [ArchiveMetadata] with list of available months and statistics
   Future<ArchiveMetadata> getArchiveMetadata(Session session) async {
-    final userId = int.parse(session.authenticated!.userIdentifier);
+    final accountUuid = session.authenticated!.userIdentifier;
     final r2Storage = R2StorageService.fromEnvironment();
-    
+
     try {
       // List all archives for this user
-      final archiveKeys = await r2Storage.listUserArchives(userId);
+      final archiveKeys = await r2Storage.listArchives('archives/$accountUuid/');
       
       final availableMonths = <ArchiveMonthInfo>[];
       
@@ -134,7 +134,7 @@ class ArchiveEndpoint extends Endpoint {
       });
       
       return ArchiveMetadata(
-        userId: userId,
+        userId: accountUuid,
         availableMonths: availableMonths,
         totalArchives: availableMonths.length,
         oldestArchive: availableMonths.isNotEmpty 
@@ -146,7 +146,7 @@ class ArchiveEndpoint extends Endpoint {
       );
       
     } catch (e) {
-      session.log('Failed to get archive metadata for user $userId: $e');
+      session.log('Failed to get archive metadata for user $accountUuid: $e');
       throw Exception('Failed to retrieve archive metadata: $e');
     }
   }
@@ -162,17 +162,17 @@ class ArchiveEndpoint extends Endpoint {
     DateTime startDate,
     DateTime endDate,
   ) async {
-    final userId = int.parse(session.authenticated!.userIdentifier);
+    final accountUuid = session.authenticated!.userIdentifier;
     final r2Storage = R2StorageService.fromEnvironment();
     final results = <ArchiveSearchResult>[];
-    
+
     // Get archives that might contain data in the date range
     final startMonth = DateTime(startDate.year, startDate.month, 1);
     final endMonth = DateTime(endDate.year, endDate.month, 1);
-    
+
     var currentMonth = startMonth;
     while (currentMonth.isBefore(endMonth) || currentMonth.isAtSameMomentAs(endMonth)) {
-      final key = 'archives/$userId/${currentMonth.year}/${currentMonth.month.toString().padLeft(2, '0')}.json.gz';
+      final key = 'archives/$accountUuid/${currentMonth.year}/${currentMonth.month.toString().padLeft(2, '0')}.json.gz';
       
       try {
         // Check if archive exists
@@ -236,7 +236,7 @@ class ArchiveEndpoint extends Endpoint {
     final entries = (data['entries'] as List? ?? []).map((entryData) => 
       EncryptedEntry(
         id: entryData['id'],
-        accountId: data['userId'],
+        accountUuid: data['userId'],
         encryptedData: entryData['encryptedData'],
         updatedAt: DateTime.parse(entryData['updatedAt']),
       )

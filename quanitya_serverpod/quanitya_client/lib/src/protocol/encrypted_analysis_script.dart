@@ -15,7 +15,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class EncryptedAnalysisScript implements _i1.SerializableModel {
   EncryptedAnalysisScript._({
     _i1.UuidValue? id,
-    required this.accountId,
+    required this.accountUuid,
     required this.encryptedData,
     DateTime? updatedAt,
   }) : id = id ?? const _i1.Uuid().v4obj(),
@@ -23,7 +23,7 @@ abstract class EncryptedAnalysisScript implements _i1.SerializableModel {
 
   factory EncryptedAnalysisScript({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String encryptedData,
     DateTime? updatedAt,
   }) = _EncryptedAnalysisScriptImpl;
@@ -35,7 +35,7 @@ abstract class EncryptedAnalysisScript implements _i1.SerializableModel {
       id: jsonSerialization['id'] == null
           ? null
           : _i1.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
-      accountId: jsonSerialization['accountId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       encryptedData: jsonSerialization['encryptedData'] as String,
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
@@ -46,7 +46,7 @@ abstract class EncryptedAnalysisScript implements _i1.SerializableModel {
   /// The id of the object.
   _i1.UuidValue id;
 
-  int accountId;
+  String accountUuid;
 
   String encryptedData;
 
@@ -57,7 +57,7 @@ abstract class EncryptedAnalysisScript implements _i1.SerializableModel {
   @_i1.useResult
   EncryptedAnalysisScript copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? encryptedData,
     DateTime? updatedAt,
   });
@@ -66,7 +66,7 @@ abstract class EncryptedAnalysisScript implements _i1.SerializableModel {
     return {
       '__className__': 'quanitya.EncryptedAnalysisScript',
       'id': id.toJson(),
-      'accountId': accountId,
+      'accountUuid': accountUuid,
       'encryptedData': encryptedData,
       'updatedAt': updatedAt.toJson(),
     };
@@ -81,12 +81,12 @@ abstract class EncryptedAnalysisScript implements _i1.SerializableModel {
 class _EncryptedAnalysisScriptImpl extends EncryptedAnalysisScript {
   _EncryptedAnalysisScriptImpl({
     _i1.UuidValue? id,
-    required int accountId,
+    required String accountUuid,
     required String encryptedData,
     DateTime? updatedAt,
   }) : super._(
          id: id,
-         accountId: accountId,
+         accountUuid: accountUuid,
          encryptedData: encryptedData,
          updatedAt: updatedAt,
        );
@@ -97,13 +97,13 @@ class _EncryptedAnalysisScriptImpl extends EncryptedAnalysisScript {
   @override
   EncryptedAnalysisScript copyWith({
     _i1.UuidValue? id,
-    int? accountId,
+    String? accountUuid,
     String? encryptedData,
     DateTime? updatedAt,
   }) {
     return EncryptedAnalysisScript(
       id: id ?? this.id,
-      accountId: accountId ?? this.accountId,
+      accountUuid: accountUuid ?? this.accountUuid,
       encryptedData: encryptedData ?? this.encryptedData,
       updatedAt: updatedAt ?? this.updatedAt,
     );
