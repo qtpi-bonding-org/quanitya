@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:powersync_sqlcipher/powersync.dart' show SyncStatus;
 
 import '../../../data/sync/powersync_service.dart';
+import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../app_syncing_mode/models/app_syncing_mode.dart';
 import 'sync_status_state.dart';
 
 @injectable
-class SyncStatusCubit extends Cubit<SyncStatusState> {
+class SyncStatusCubit extends QuanityaCubit<SyncStatusState> {
   final IPowerSyncService _powerSyncService;
   StreamSubscription<SyncStatus>? _statusSubscription;
 
@@ -49,19 +49,23 @@ class SyncStatusCubit extends Cubit<SyncStatusState> {
     }
   }
 
-  Future<void> retrySync() async {
+  Future<void> retrySync() => tryOperation(() async {
     emit(state.copyWith(isRetrying: true));
     try {
       await _powerSyncService.retrySync();
-    } catch (_) {
+      return state.copyWith(
+        isRetrying: false,
+        lastOperation: SyncStatusOperation.retrySync,
+      );
+    } catch (e) {
       emit(state.copyWith(
+        isRetrying: false,
         connectionState: SyncConnectionState.error,
         errorMessage: 'Retry failed',
       ));
-    } finally {
-      emit(state.copyWith(isRetrying: false));
+      rethrow;
     }
-  }
+  });
 
   SyncStatusState _mapStatus(SyncStatus status) {
     final SyncConnectionState connectionState;
