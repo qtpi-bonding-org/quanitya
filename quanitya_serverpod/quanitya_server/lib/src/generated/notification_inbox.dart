@@ -17,7 +17,7 @@ abstract class NotificationInbox
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
   NotificationInbox._({
     this.id,
-    required this.userId,
+    required this.accountUuid,
     required this.title,
     required this.type,
     required this.createdAt,
@@ -26,7 +26,7 @@ abstract class NotificationInbox
 
   factory NotificationInbox({
     int? id,
-    required int userId,
+    required String accountUuid,
     required String title,
     required String type,
     required DateTime createdAt,
@@ -36,7 +36,7 @@ abstract class NotificationInbox
   factory NotificationInbox.fromJson(Map<String, dynamic> jsonSerialization) {
     return NotificationInbox(
       id: jsonSerialization['id'] as int?,
-      userId: jsonSerialization['userId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       title: jsonSerialization['title'] as String,
       type: jsonSerialization['type'] as String,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
@@ -53,8 +53,8 @@ abstract class NotificationInbox
   @override
   int? id;
 
-  /// The ID of the user who should receive this notification
-  int userId;
+  /// The account UUID of the user who should receive this notification
+  String accountUuid;
 
   /// The title/message content of the notification
   String title;
@@ -76,7 +76,7 @@ abstract class NotificationInbox
   @_i1.useResult
   NotificationInbox copyWith({
     int? id,
-    int? userId,
+    String? accountUuid,
     String? title,
     String? type,
     DateTime? createdAt,
@@ -87,7 +87,7 @@ abstract class NotificationInbox
     return {
       '__className__': 'quanitya.NotificationInbox',
       if (id != null) 'id': id,
-      'userId': userId,
+      'accountUuid': accountUuid,
       'title': title,
       'type': type,
       'createdAt': createdAt.toJson(),
@@ -100,7 +100,7 @@ abstract class NotificationInbox
     return {
       '__className__': 'quanitya.NotificationInbox',
       if (id != null) 'id': id,
-      'userId': userId,
+      'accountUuid': accountUuid,
       'title': title,
       'type': type,
       'createdAt': createdAt.toJson(),
@@ -143,14 +143,14 @@ class _Undefined {}
 class _NotificationInboxImpl extends NotificationInbox {
   _NotificationInboxImpl({
     int? id,
-    required int userId,
+    required String accountUuid,
     required String title,
     required String type,
     required DateTime createdAt,
     String? actionPayload,
   }) : super._(
          id: id,
-         userId: userId,
+         accountUuid: accountUuid,
          title: title,
          type: type,
          createdAt: createdAt,
@@ -163,7 +163,7 @@ class _NotificationInboxImpl extends NotificationInbox {
   @override
   NotificationInbox copyWith({
     Object? id = _Undefined,
-    int? userId,
+    String? accountUuid,
     String? title,
     String? type,
     DateTime? createdAt,
@@ -171,7 +171,7 @@ class _NotificationInboxImpl extends NotificationInbox {
   }) {
     return NotificationInbox(
       id: id is int? ? id : this.id,
-      userId: userId ?? this.userId,
+      accountUuid: accountUuid ?? this.accountUuid,
       title: title ?? this.title,
       type: type ?? this.type,
       createdAt: createdAt ?? this.createdAt,
@@ -186,8 +186,8 @@ class NotificationInboxUpdateTable
     extends _i1.UpdateTable<NotificationInboxTable> {
   NotificationInboxUpdateTable(super.table);
 
-  _i1.ColumnValue<int, int> userId(int value) => _i1.ColumnValue(
-    table.userId,
+  _i1.ColumnValue<String, String> accountUuid(String value) => _i1.ColumnValue(
+    table.accountUuid,
     value,
   );
 
@@ -218,8 +218,8 @@ class NotificationInboxTable extends _i1.Table<int?> {
   NotificationInboxTable({super.tableRelation})
     : super(tableName: 'notification_inbox') {
     updateTable = NotificationInboxUpdateTable(this);
-    userId = _i1.ColumnInt(
-      'userId',
+    accountUuid = _i1.ColumnString(
+      'accountUuid',
       this,
     );
     title = _i1.ColumnString(
@@ -242,8 +242,8 @@ class NotificationInboxTable extends _i1.Table<int?> {
 
   late final NotificationInboxUpdateTable updateTable;
 
-  /// The ID of the user who should receive this notification
-  late final _i1.ColumnInt userId;
+  /// The account UUID of the user who should receive this notification
+  late final _i1.ColumnString accountUuid;
 
   /// The title/message content of the notification
   late final _i1.ColumnString title;
@@ -260,7 +260,7 @@ class NotificationInboxTable extends _i1.Table<int?> {
   @override
   List<_i1.Column> get columns => [
     id,
-    userId,
+    accountUuid,
     title,
     type,
     createdAt,

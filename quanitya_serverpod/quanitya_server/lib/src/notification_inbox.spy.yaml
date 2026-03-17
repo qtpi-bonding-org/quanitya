@@ -10,8 +10,8 @@ table: notification_inbox
 
 # The fields (and columns) of the notification class
 fields:
-  ### The ID of the user who should receive this notification
-  userId: int
+  ### The account UUID of the user who should receive this notification
+  accountUuid: String
   ### The title/message content of the notification
   title: String
   ### The type of notification (system, report, alert)

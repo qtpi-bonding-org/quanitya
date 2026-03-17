@@ -506,10 +506,10 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: 'nextval(\'notification_inbox_id_seq\'::regclass)',
         ),
         _i2.ColumnDefinition(
-          name: 'userId',
-          columnType: _i2.ColumnType.bigint,
+          name: 'accountUuid',
+          columnType: _i2.ColumnType.text,
           isNullable: false,
-          dartType: 'int',
+          dartType: 'String',
         ),
         _i2.ColumnDefinition(
           name: 'title',

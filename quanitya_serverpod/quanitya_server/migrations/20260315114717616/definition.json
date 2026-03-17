@@ -19,10 +19,10 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
+          "name": "accountUuid",
+          "columnType": 0,
           "isNullable": false,
-          "dartType": "int"
+          "dartType": "String"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -70,7 +70,7 @@
             {
               "__className__": "serverpod.IndexElementDefinition",
               "type": 0,
-              "definition": "accountId"
+              "definition": "accountUuid"
             }
           ],
           "type": "btree",
@@ -146,10 +146,10 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
+          "name": "accountUuid",
+          "columnType": 0,
           "isNullable": false,
-          "dartType": "int"
+          "dartType": "String"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -190,7 +190,7 @@
             {
               "__className__": "serverpod.IndexElementDefinition",
               "type": 0,
-              "definition": "accountId"
+              "definition": "accountUuid"
             }
           ],
           "type": "btree",
@@ -217,10 +217,10 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
+          "name": "accountUuid",
+          "columnType": 0,
           "isNullable": false,
-          "dartType": "int"
+          "dartType": "String"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -261,7 +261,7 @@
             {
               "__className__": "serverpod.IndexElementDefinition",
               "type": 0,
-              "definition": "accountId"
+              "definition": "accountUuid"
             }
           ],
           "type": "btree",
@@ -288,10 +288,10 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
+          "name": "accountUuid",
+          "columnType": 0,
           "isNullable": false,
-          "dartType": "int"
+          "dartType": "String"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -332,7 +332,7 @@
             {
               "__className__": "serverpod.IndexElementDefinition",
               "type": 0,
-              "definition": "accountId"
+              "definition": "accountUuid"
             }
           ],
           "type": "btree",
@@ -359,10 +359,10 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
+          "name": "accountUuid",
+          "columnType": 0,
           "isNullable": false,
-          "dartType": "int"
+          "dartType": "String"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -403,7 +403,7 @@
             {
               "__className__": "serverpod.IndexElementDefinition",
               "type": 0,
-              "definition": "accountId"
+              "definition": "accountUuid"
             }
           ],
           "type": "btree",
@@ -430,10 +430,10 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
+          "name": "accountUuid",
+          "columnType": 0,
           "isNullable": false,
-          "dartType": "int"
+          "dartType": "String"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -474,7 +474,7 @@
             {
               "__className__": "serverpod.IndexElementDefinition",
               "type": 0,
-              "definition": "accountId"
+              "definition": "accountUuid"
             }
           ],
           "type": "btree",
@@ -501,10 +501,10 @@
         },
         {
           "__className__": "serverpod.ColumnDefinition",
-          "name": "userId",
-          "columnType": 6,
+          "name": "accountUuid",
+          "columnType": 0,
           "isNullable": false,
-          "dartType": "int"
+          "dartType": "String"
         },
         {
           "__className__": "serverpod.ColumnDefinition",
@@ -550,133 +550,6 @@
           "type": "btree",
           "isUnique": true,
           "isPrimary": true
-        }
-      ],
-      "managed": true
-    },
-    {
-      "__className__": "serverpod.TableDefinition",
-      "name": "template_aesthetics",
-      "dartName": "TemplateAesthetics",
-      "module": "quanitya",
-      "schema": "public",
-      "columns": [
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "id",
-          "columnType": 7,
-          "isNullable": false,
-          "columnDefault": "gen_random_uuid()",
-          "dartType": "UuidValue"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "accountId",
-          "columnType": 6,
-          "isNullable": false,
-          "dartType": "int"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "templateId",
-          "columnType": 0,
-          "isNullable": false,
-          "dartType": "String"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "themeName",
-          "columnType": 0,
-          "isNullable": true,
-          "dartType": "String?"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "icon",
-          "columnType": 0,
-          "isNullable": true,
-          "dartType": "String?"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "emoji",
-          "columnType": 0,
-          "isNullable": true,
-          "dartType": "String?"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "paletteJson",
-          "columnType": 0,
-          "isNullable": true,
-          "dartType": "String?"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "fontConfigJson",
-          "columnType": 0,
-          "isNullable": true,
-          "dartType": "String?"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "colorMappingsJson",
-          "columnType": 0,
-          "isNullable": true,
-          "dartType": "String?"
-        },
-        {
-          "__className__": "serverpod.ColumnDefinition",
-          "name": "updatedAt",
-          "columnType": 4,
-          "isNullable": false,
-          "columnDefault": "CURRENT_TIMESTAMP",
-          "dartType": "DateTime"
-        }
-      ],
-      "foreignKeys": [],
-      "indexes": [
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "template_aesthetics_pkey",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "id"
-            }
-          ],
-          "type": "btree",
-          "isUnique": true,
-          "isPrimary": true
-        },
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "template_aesthetics_account_idx",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "accountId"
-            }
-          ],
-          "type": "btree",
-          "isUnique": false,
-          "isPrimary": false
-        },
-        {
-          "__className__": "serverpod.IndexDefinition",
-          "indexName": "template_aesthetics_template_idx",
-          "elements": [
-            {
-              "__className__": "serverpod.IndexElementDefinition",
-              "type": 0,
-              "definition": "templateId"
-            }
-          ],
-          "type": "btree",
-          "isUnique": false,
-          "isPrimary": false
         }
       ],
       "managed": true

@@ -34,14 +34,14 @@ volatile;
 --
 CREATE TABLE "account_storage_usage" (
     "id" bigserial PRIMARY KEY,
-    "accountId" bigint NOT NULL,
+    "accountUuid" text NOT NULL,
     "bytesUsed" bigint NOT NULL,
     "rowCount" bigint NOT NULL,
     "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes
-CREATE UNIQUE INDEX "account_storage_usage_account_idx" ON "account_storage_usage" USING btree ("accountId");
+CREATE UNIQUE INDEX "account_storage_usage_account_idx" ON "account_storage_usage" USING btree ("accountUuid");
 
 --
 -- Class ArchivalScheduleData as table archival_schedule_data
@@ -57,97 +57,77 @@ CREATE TABLE "archival_schedule_data" (
 --
 CREATE TABLE "encrypted_analysis_scripts" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    "accountId" bigint NOT NULL,
+    "accountUuid" text NOT NULL,
     "encryptedData" text NOT NULL,
     "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes
-CREATE INDEX "encrypted_analysis_script_account_idx" ON "encrypted_analysis_scripts" USING btree ("accountId");
+CREATE INDEX "encrypted_analysis_script_account_idx" ON "encrypted_analysis_scripts" USING btree ("accountUuid");
 
 --
 -- Class EncryptedEntry as table encrypted_entries
 --
 CREATE TABLE "encrypted_entries" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    "accountId" bigint NOT NULL,
+    "accountUuid" text NOT NULL,
     "encryptedData" text NOT NULL,
     "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes
-CREATE INDEX "encrypted_entry_account_idx" ON "encrypted_entries" USING btree ("accountId");
+CREATE INDEX "encrypted_entry_account_idx" ON "encrypted_entries" USING btree ("accountUuid");
 
 --
 -- Class EncryptedSchedule as table encrypted_schedules
 --
 CREATE TABLE "encrypted_schedules" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    "accountId" bigint NOT NULL,
+    "accountUuid" text NOT NULL,
     "encryptedData" text NOT NULL,
     "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes
-CREATE INDEX "encrypted_schedule_account_idx" ON "encrypted_schedules" USING btree ("accountId");
+CREATE INDEX "encrypted_schedule_account_idx" ON "encrypted_schedules" USING btree ("accountUuid");
 
 --
 -- Class EncryptedTemplateAesthetics as table encrypted_template_aesthetics
 --
 CREATE TABLE "encrypted_template_aesthetics" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    "accountId" bigint NOT NULL,
+    "accountUuid" text NOT NULL,
     "encryptedData" text NOT NULL,
     "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes
-CREATE INDEX "encrypted_template_aesthetics_account_idx" ON "encrypted_template_aesthetics" USING btree ("accountId");
+CREATE INDEX "encrypted_template_aesthetics_account_idx" ON "encrypted_template_aesthetics" USING btree ("accountUuid");
 
 --
 -- Class EncryptedTemplate as table encrypted_templates
 --
 CREATE TABLE "encrypted_templates" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    "accountId" bigint NOT NULL,
+    "accountUuid" text NOT NULL,
     "encryptedData" text NOT NULL,
     "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes
-CREATE INDEX "encrypted_template_account_idx" ON "encrypted_templates" USING btree ("accountId");
+CREATE INDEX "encrypted_template_account_idx" ON "encrypted_templates" USING btree ("accountUuid");
 
 --
 -- Class NotificationInbox as table notification_inbox
 --
 CREATE TABLE "notification_inbox" (
     "id" bigserial PRIMARY KEY,
-    "userId" bigint NOT NULL,
+    "accountUuid" text NOT NULL,
     "title" text NOT NULL,
     "type" text NOT NULL,
     "createdAt" timestamp without time zone NOT NULL,
     "actionPayload" text
 );
-
---
--- Class TemplateAesthetics as table template_aesthetics
---
-CREATE TABLE "template_aesthetics" (
-    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    "accountId" bigint NOT NULL,
-    "templateId" text NOT NULL,
-    "themeName" text,
-    "icon" text,
-    "emoji" text,
-    "paletteJson" text,
-    "fontConfigJson" text,
-    "colorMappingsJson" text,
-    "updatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- Indexes
-CREATE INDEX "template_aesthetics_account_idx" ON "template_aesthetics" USING btree ("accountId");
-CREATE INDEX "template_aesthetics_template_idx" ON "template_aesthetics" USING btree ("templateId");
 
 --
 -- Class CloudStorageEntry as table serverpod_cloud_storage

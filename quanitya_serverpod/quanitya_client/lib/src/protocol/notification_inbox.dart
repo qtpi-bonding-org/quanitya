@@ -16,7 +16,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 abstract class NotificationInbox implements _i1.SerializableModel {
   NotificationInbox._({
     this.id,
-    required this.userId,
+    required this.accountUuid,
     required this.title,
     required this.type,
     required this.createdAt,
@@ -25,7 +25,7 @@ abstract class NotificationInbox implements _i1.SerializableModel {
 
   factory NotificationInbox({
     int? id,
-    required int userId,
+    required String accountUuid,
     required String title,
     required String type,
     required DateTime createdAt,
@@ -35,7 +35,7 @@ abstract class NotificationInbox implements _i1.SerializableModel {
   factory NotificationInbox.fromJson(Map<String, dynamic> jsonSerialization) {
     return NotificationInbox(
       id: jsonSerialization['id'] as int?,
-      userId: jsonSerialization['userId'] as int,
+      accountUuid: jsonSerialization['accountUuid'] as String,
       title: jsonSerialization['title'] as String,
       type: jsonSerialization['type'] as String,
       createdAt: _i1.DateTimeJsonExtension.fromJson(
@@ -50,8 +50,8 @@ abstract class NotificationInbox implements _i1.SerializableModel {
   /// the id will be null.
   int? id;
 
-  /// The ID of the user who should receive this notification
-  int userId;
+  /// The account UUID of the user who should receive this notification
+  String accountUuid;
 
   /// The title/message content of the notification
   String title;
@@ -70,7 +70,7 @@ abstract class NotificationInbox implements _i1.SerializableModel {
   @_i1.useResult
   NotificationInbox copyWith({
     int? id,
-    int? userId,
+    String? accountUuid,
     String? title,
     String? type,
     DateTime? createdAt,
@@ -81,7 +81,7 @@ abstract class NotificationInbox implements _i1.SerializableModel {
     return {
       '__className__': 'quanitya.NotificationInbox',
       if (id != null) 'id': id,
-      'userId': userId,
+      'accountUuid': accountUuid,
       'title': title,
       'type': type,
       'createdAt': createdAt.toJson(),
@@ -100,14 +100,14 @@ class _Undefined {}
 class _NotificationInboxImpl extends NotificationInbox {
   _NotificationInboxImpl({
     int? id,
-    required int userId,
+    required String accountUuid,
     required String title,
     required String type,
     required DateTime createdAt,
     String? actionPayload,
   }) : super._(
          id: id,
-         userId: userId,
+         accountUuid: accountUuid,
          title: title,
          type: type,
          createdAt: createdAt,
@@ -120,7 +120,7 @@ class _NotificationInboxImpl extends NotificationInbox {
   @override
   NotificationInbox copyWith({
     Object? id = _Undefined,
-    int? userId,
+    String? accountUuid,
     String? title,
     String? type,
     DateTime? createdAt,
@@ -128,7 +128,7 @@ class _NotificationInboxImpl extends NotificationInbox {
   }) {
     return NotificationInbox(
       id: id is int? ? id : this.id,
-      userId: userId ?? this.userId,
+      accountUuid: accountUuid ?? this.accountUuid,
       title: title ?? this.title,
       type: type ?? this.type,
       createdAt: createdAt ?? this.createdAt,

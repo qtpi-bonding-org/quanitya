@@ -31,7 +31,7 @@ sync_rules:
       # Replaces individual buckets to improve replication reliability
       user_encrypted_data_v4:
         parameters:
-          - SELECT id AS user_id FROM anon_account WHERE "ultimateSigningPublicKeyHex" = request.user_id()
+          - SELECT request.user_id() AS user_id
         data:
           # Templates
           - SELECT id, "encryptedData" as encrypted_data, "updatedAt" as updated_at 
@@ -57,7 +57,7 @@ sync_rules:
       # Greetings (Demo data)
       user_greetings:
         parameters:
-          - SELECT id AS user_id FROM anon_account WHERE "ultimateSigningPublicKeyHex" = request.user_id()
+          - SELECT request.user_id() AS user_id
         data:
           - SELECT * FROM greeting WHERE owner = bucket.user_id
 
@@ -74,7 +74,7 @@ sync_rules:
       # User-specific bucket for individual notifications
       user_notifications:
         parameters:
-          - SELECT id AS user_id FROM anon_account WHERE "ultimateSigningPublicKeyHex" = request.user_id()
+          - SELECT request.user_id() AS user_id
         data:
           - SELECT id, title, message, type,
                    "createdAt" as created_at, "expiresAt" as expires_at,
