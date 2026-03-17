@@ -56,16 +56,10 @@ import 'package:quanitya_cloud_client/src/protocol/notification_details.dart'
     as _i26;
 import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
     as _i27;
-import 'package:quanitya_cloud_client/src/protocol/sync_access_status.dart'
-    as _i28;
-import 'package:quanitya_cloud_client/src/protocol/sync_access_info.dart'
-    as _i29;
-import 'package:quanitya_cloud_client/src/protocol/sync_usage_stats.dart'
-    as _i30;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i31;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i32;
-import 'protocol.dart' as _i33;
+    as _i28;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i29;
+import 'protocol.dart' as _i30;
 
 /// A simple cloud-specific endpoint to verify the cloud server is working.
 /// {@category Endpoint}
@@ -933,11 +927,12 @@ class EndpointCloudLlm extends _i3.EndpointJwt {
   );
 }
 
-/// Overrides the community module's PowerSync endpoint on the cloud server.
+/// Cloud override of the community PowerSync endpoint.
 ///
-/// Cloud sync rules key on the 128-char public key hex, not the integer
-/// account ID that the community endpoint puts in the JWT. Cloud clients
-/// must use `syncAccess.generatePowerSyncToken()` instead.
+/// Adds entitlement gating: the user must have sync_days > 0 to receive
+/// a PowerSync JWT. JWT generation is delegated to the community base class.
+///
+/// Route: `cloudPowerSync.getToken()`
 /// {@category Endpoint}
 class EndpointCloudPowerSync extends _i13.EndpointPowerSync {
   EndpointCloudPowerSync(_i1.EndpointCaller caller) : super(caller);
@@ -2221,101 +2216,16 @@ class EndpointProductCatalog extends _i3.EndpointSignedPow {
   );
 }
 
-/// Sync access endpoint for PowerSync integration
-///
-/// Provides API access for PowerSync JWT generation and sync access management
-/// based on consumable balances. All operations require AnonAccred authentication.
-/// {@category Endpoint}
-class EndpointSyncAccess extends _i3.EndpointJwt {
-  EndpointSyncAccess(_i1.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'syncAccess';
-
-  /// Generate PowerSync JWT token for authenticated user
-  ///
-  /// Checks if user has active sync access (sync_days > 0) and generates
-  /// a JWT token for PowerSync authentication.
-  ///
-  /// Returns PowerSyncToken with JWT, expiry, and endpoint URL
-  ///
-  /// Throws ServerException if no sync days remaining
-  _i2.Future<_i13.PowerSyncToken> generatePowerSyncToken() =>
-      caller.callServerEndpoint<_i13.PowerSyncToken>(
-        'syncAccess',
-        'generatePowerSyncToken',
-        {},
-      );
-
-  /// Check sync access status for authenticated user
-  ///
-  /// Returns detailed information about user's sync access including:
-  /// - hasAccess: boolean sync access status
-  /// - syncDaysRemaining: days of sync remaining
-  /// - accessExpiry: estimated expiry date
-  /// - needsTopUp: whether user needs to purchase more sync days
-  _i2.Future<_i28.SyncAccessStatus> checkSyncAccess() =>
-      caller.callServerEndpoint<_i28.SyncAccessStatus>(
-        'syncAccess',
-        'checkSyncAccess',
-        {},
-      );
-
-  /// Validate ongoing sync access for authenticated user
-  ///
-  /// This endpoint can be called periodically by PowerSync clients
-  /// to ensure the user still has active sync access.
-  ///
-  /// Returns true if user has active sync access
-  _i2.Future<bool> validateSyncAccess() => caller.callServerEndpoint<bool>(
-    'syncAccess',
-    'validateSyncAccess',
-    {},
-  );
-
-  /// Get sync access status and balance across all tiers.
-  ///
-  /// Returns typed model with current balances per sync tier and overall access status.
-  /// Pricing is sourced from the app stores — not served from the backend.
-  _i2.Future<_i29.SyncAccessInfo> getSyncAccessInfo() =>
-      caller.callServerEndpoint<_i29.SyncAccessInfo>(
-        'syncAccess',
-        'getSyncAccessInfo',
-        {},
-      );
-
-  /// Refresh PowerSync token (extend expiry)
-  ///
-  /// Generates a new PowerSync JWT token with extended expiry,
-  /// provided the user still has active sync access.
-  _i2.Future<_i13.PowerSyncToken> refreshPowerSyncToken() =>
-      caller.callServerEndpoint<_i13.PowerSyncToken>(
-        'syncAccess',
-        'refreshPowerSyncToken',
-        {},
-      );
-
-  /// Get sync usage statistics for authenticated user
-  ///
-  /// Returns usage information and consumption history
-  _i2.Future<_i30.SyncUsageStats> getSyncUsageStats() =>
-      caller.callServerEndpoint<_i30.SyncUsageStats>(
-        'syncAccess',
-        'getSyncUsageStats',
-        {},
-      );
-}
-
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i31.Caller(client);
+    serverpod_auth_idp = _i28.Caller(client);
     serverpod_auth_core = _i21.Caller(client);
     community = _i13.Caller(client);
     anonaccount = _i3.Caller(client);
-    anonaccred = _i32.Caller(client);
+    anonaccred = _i29.Caller(client);
   }
 
-  late final _i31.Caller serverpod_auth_idp;
+  late final _i28.Caller serverpod_auth_idp;
 
   late final _i21.Caller serverpod_auth_core;
 
@@ -2323,7 +2233,7 @@ class Modules {
 
   late final _i3.Caller anonaccount;
 
-  late final _i32.Caller anonaccred;
+  late final _i29.Caller anonaccred;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -2346,7 +2256,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i33.Protocol(),
+         _i30.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -2372,7 +2282,6 @@ class Client extends _i1.ServerpodClientShared {
     jwtRefresh = EndpointJwtRefresh(this);
     notificationAdmin = EndpointNotificationAdmin(this);
     productCatalog = EndpointProductCatalog(this);
-    syncAccess = EndpointSyncAccess(this);
     modules = Modules(this);
   }
 
@@ -2410,8 +2319,6 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointProductCatalog productCatalog;
 
-  late final EndpointSyncAccess syncAccess;
-
   late final Modules modules;
 
   @override
@@ -2433,7 +2340,6 @@ class Client extends _i1.ServerpodClientShared {
     'jwtRefresh': jwtRefresh,
     'notificationAdmin': notificationAdmin,
     'productCatalog': productCatalog,
-    'syncAccess': syncAccess,
   };
 
   @override

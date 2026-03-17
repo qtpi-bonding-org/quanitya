@@ -44,19 +44,15 @@ import 'rail_catalog_entry.dart' as _i31;
 import 'rail_status.dart' as _i32;
 import 'server_error_code.dart' as _i33;
 import 'server_exception.dart' as _i34;
-import 'sync_access_info.dart' as _i35;
-import 'sync_access_status.dart' as _i36;
-import 'sync_tier_balance.dart' as _i37;
-import 'sync_usage_stats.dart' as _i38;
 import 'package:quanitya_cloud_client/src/protocol/admin_signing_key.dart'
-    as _i39;
+    as _i35;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i40;
+    as _i36;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i41;
-import 'package:quanitya_client/quanitya_client.dart' as _i42;
-import 'package:anonaccount_client/anonaccount_client.dart' as _i43;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i44;
+    as _i37;
+import 'package:quanitya_client/quanitya_client.dart' as _i38;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i39;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i40;
 export 'admin_action_result.dart';
 export 'admin_pagination_info.dart';
 export 'admin_role.dart';
@@ -90,10 +86,6 @@ export 'rail_catalog_entry.dart';
 export 'rail_status.dart';
 export 'server_error_code.dart';
 export 'server_exception.dart';
-export 'sync_access_info.dart';
-export 'sync_access_status.dart';
-export 'sync_tier_balance.dart';
-export 'sync_usage_stats.dart';
 export 'client.dart';
 
 class Protocol extends _i1.SerializationManager {
@@ -229,18 +221,6 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i34.ServerException) {
       return _i34.ServerException.fromJson(data) as T;
     }
-    if (t == _i35.SyncAccessInfo) {
-      return _i35.SyncAccessInfo.fromJson(data) as T;
-    }
-    if (t == _i36.SyncAccessStatus) {
-      return _i36.SyncAccessStatus.fromJson(data) as T;
-    }
-    if (t == _i37.SyncTierBalance) {
-      return _i37.SyncTierBalance.fromJson(data) as T;
-    }
-    if (t == _i38.SyncUsageStats) {
-      return _i38.SyncUsageStats.fromJson(data) as T;
-    }
     if (t == _i1.getType<_i2.AdminActionResult?>()) {
       return (data != null ? _i2.AdminActionResult.fromJson(data) : null) as T;
     }
@@ -366,18 +346,6 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i34.ServerException?>()) {
       return (data != null ? _i34.ServerException.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i35.SyncAccessInfo?>()) {
-      return (data != null ? _i35.SyncAccessInfo.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i36.SyncAccessStatus?>()) {
-      return (data != null ? _i36.SyncAccessStatus.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i37.SyncTierBalance?>()) {
-      return (data != null ? _i37.SyncTierBalance.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i38.SyncUsageStats?>()) {
-      return (data != null ? _i38.SyncUsageStats.fromJson(data) : null) as T;
-    }
     if (t == Map<String, int>) {
       return (data as Map).map(
             (k, v) => MapEntry(deserialize<String>(k), deserialize<int>(v)),
@@ -429,15 +397,9 @@ class Protocol extends _i1.SerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_i37.SyncTierBalance>) {
+    if (t == List<_i35.AdminSigningKey>) {
       return (data as List)
-              .map((e) => deserialize<_i37.SyncTierBalance>(e))
-              .toList()
-          as T;
-    }
-    if (t == List<_i39.AdminSigningKey>) {
-      return (data as List)
-              .map((e) => deserialize<_i39.AdminSigningKey>(e))
+              .map((e) => deserialize<_i35.AdminSigningKey>(e))
               .toList()
           as T;
     }
@@ -451,19 +413,19 @@ class Protocol extends _i1.SerializationManager {
           as T;
     }
     try {
+      return _i36.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i37.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i38.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
+      return _i39.Protocol().deserialize<T>(data, t);
+    } on _i1.DeserializationTypeNotFoundException catch (_) {}
+    try {
       return _i40.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
-    try {
-      return _i41.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
-    try {
-      return _i42.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
-    try {
-      return _i43.Protocol().deserialize<T>(data, t);
-    } on _i1.DeserializationTypeNotFoundException catch (_) {}
-    try {
-      return _i44.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -503,10 +465,6 @@ class Protocol extends _i1.SerializationManager {
       _i32.RailStatus => 'RailStatus',
       _i33.ServerErrorCode => 'ServerErrorCode',
       _i34.ServerException => 'ServerException',
-      _i35.SyncAccessInfo => 'SyncAccessInfo',
-      _i36.SyncAccessStatus => 'SyncAccessStatus',
-      _i37.SyncTierBalance => 'SyncTierBalance',
-      _i38.SyncUsageStats => 'SyncUsageStats',
       _ => null,
     };
   }
@@ -590,32 +548,24 @@ class Protocol extends _i1.SerializationManager {
         return 'ServerErrorCode';
       case _i34.ServerException():
         return 'ServerException';
-      case _i35.SyncAccessInfo():
-        return 'SyncAccessInfo';
-      case _i36.SyncAccessStatus():
-        return 'SyncAccessStatus';
-      case _i37.SyncTierBalance():
-        return 'SyncTierBalance';
-      case _i38.SyncUsageStats():
-        return 'SyncUsageStats';
     }
-    className = _i40.Protocol().getClassNameForObject(data);
+    className = _i36.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i41.Protocol().getClassNameForObject(data);
+    className = _i37.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
-    className = _i42.Protocol().getClassNameForObject(data);
+    className = _i38.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'quanitya.$className';
     }
-    className = _i43.Protocol().getClassNameForObject(data);
+    className = _i39.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'anonaccount.$className';
     }
-    className = _i44.Protocol().getClassNameForObject(data);
+    className = _i40.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'anonaccred.$className';
     }
@@ -727,37 +677,25 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'ServerException') {
       return deserialize<_i34.ServerException>(data['data']);
     }
-    if (dataClassName == 'SyncAccessInfo') {
-      return deserialize<_i35.SyncAccessInfo>(data['data']);
-    }
-    if (dataClassName == 'SyncAccessStatus') {
-      return deserialize<_i36.SyncAccessStatus>(data['data']);
-    }
-    if (dataClassName == 'SyncTierBalance') {
-      return deserialize<_i37.SyncTierBalance>(data['data']);
-    }
-    if (dataClassName == 'SyncUsageStats') {
-      return deserialize<_i38.SyncUsageStats>(data['data']);
-    }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i40.Protocol().deserializeByClassName(data);
+      return _i36.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i41.Protocol().deserializeByClassName(data);
+      return _i37.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('quanitya.')) {
       data['className'] = dataClassName.substring(9);
-      return _i42.Protocol().deserializeByClassName(data);
+      return _i38.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('anonaccount.')) {
       data['className'] = dataClassName.substring(12);
-      return _i43.Protocol().deserializeByClassName(data);
+      return _i39.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('anonaccred.')) {
       data['className'] = dataClassName.substring(11);
-      return _i44.Protocol().deserializeByClassName(data);
+      return _i40.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -772,19 +710,19 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
+      return _i36.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _i37.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _i38.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
+      return _i39.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
       return _i40.Protocol().mapRecordToJson(record);
-    } catch (_) {}
-    try {
-      return _i41.Protocol().mapRecordToJson(record);
-    } catch (_) {}
-    try {
-      return _i42.Protocol().mapRecordToJson(record);
-    } catch (_) {}
-    try {
-      return _i43.Protocol().mapRecordToJson(record);
-    } catch (_) {}
-    try {
-      return _i44.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }
