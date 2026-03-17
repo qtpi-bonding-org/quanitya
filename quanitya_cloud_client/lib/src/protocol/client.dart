@@ -13,53 +13,22 @@
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
 import 'package:anonaccount_client/anonaccount_client.dart' as _i3;
-import 'package:quanitya_cloud_client/src/protocol/admin_signing_key.dart'
-    as _i4;
-import 'package:quanitya_cloud_client/src/protocol/admin_role.dart' as _i5;
-import 'package:quanitya_cloud_client/src/protocol/paginated_analytics_events.dart'
-    as _i6;
-import 'package:quanitya_cloud_client/src/protocol/analytics_event.dart' as _i7;
-import 'package:quanitya_cloud_client/src/protocol/analytics_statistics.dart'
-    as _i8;
-import 'package:quanitya_cloud_client/src/protocol/admin_action_result.dart'
-    as _i9;
 import 'package:quanitya_cloud_client/src/protocol/batch_submission_result.dart'
-    as _i10;
+    as _i4;
 import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_response.dart'
-    as _i11;
+    as _i5;
 import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_request.dart'
-    as _i12;
-import 'package:quanitya_client/quanitya_client.dart' as _i13;
-import 'package:quanitya_cloud_client/src/protocol/paginated_error_reports.dart'
-    as _i14;
-import 'package:quanitya_cloud_client/src/protocol/error_report.dart' as _i15;
-import 'package:quanitya_cloud_client/src/protocol/error_statistics.dart'
-    as _i16;
-import 'package:quanitya_cloud_client/src/protocol/paginated_feedback_reports.dart'
-    as _i17;
-import 'package:quanitya_cloud_client/src/protocol/feedback_type.dart' as _i18;
-import 'package:quanitya_cloud_client/src/protocol/feedback_report.dart'
-    as _i19;
-import 'package:quanitya_cloud_client/src/protocol/feedback_statistics.dart'
-    as _i20;
+    as _i6;
+import 'package:quanitya_client/quanitya_client.dart' as _i7;
+import 'package:quanitya_cloud_client/src/protocol/feedback_type.dart' as _i8;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i21;
-import 'package:quanitya_cloud_client/src/protocol/notification_create_result.dart'
-    as _i22;
-import 'package:quanitya_cloud_client/src/protocol/notification_type.dart'
-    as _i23;
-import 'package:quanitya_cloud_client/src/protocol/notification_statistics.dart'
-    as _i24;
-import 'package:quanitya_cloud_client/src/protocol/paginated_notifications.dart'
-    as _i25;
-import 'package:quanitya_cloud_client/src/protocol/notification_details.dart'
-    as _i26;
+    as _i9;
 import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
-    as _i27;
+    as _i10;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i28;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i29;
-import 'protocol.dart' as _i30;
+    as _i11;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i12;
+import 'protocol.dart' as _i13;
 
 /// A simple cloud-specific endpoint to verify the cloud server is working.
 /// {@category Endpoint}
@@ -201,462 +170,6 @@ class EndpointAccountRegistration extends _i3.EndpointSignedPow {
   );
 }
 
-/// Endpoint for managing admin signing keys
-///
-/// Provides CRUD operations for admin and support ECDSA signing keys.
-/// All operations require an existing admin key for authentication.
-/// {@category Endpoint}
-class EndpointAdminKeyManagement extends EndpointAdminManagement {
-  EndpointAdminKeyManagement(_i1.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'adminKeyManagement';
-
-  /// Register a new admin or support public key
-  ///
-  /// Requires admin role. Registers a public key that was generated externally.
-  ///
-  /// [adminPublicKeyHex] - Admin ECDSA P-256 public key for authentication (128 hex chars)
-  /// [adminSignature] - ECDSA signature of request body (128 hex chars)
-  /// [newPublicKeyHex] - New public key to register (128 hex chars)
-  /// [role] - Role for the new key ('admin' or 'support')
-  /// [description] - Human-readable description of the key
-  _i2.Future<void> registerKey(
-    String adminPublicKeyHex,
-    String adminSignature,
-    String newPublicKeyHex,
-    String role,
-    String description,
-  ) => caller.callServerEndpoint<void>(
-    'adminKeyManagement',
-    'registerKey',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'newPublicKeyHex': newPublicKeyHex,
-      'role': role,
-      'description': description,
-    },
-  );
-
-  /// Revoke a signing key (soft delete)
-  ///
-  /// Requires admin role. Sets isActive to false, preventing further use.
-  ///
-  /// [adminPublicKeyHex] - Admin ECDSA P-256 public key for authentication (128 hex chars)
-  /// [adminSignature] - ECDSA signature of request body (128 hex chars)
-  /// [keyId] - ID of the key to revoke
-  _i2.Future<void> revokeKey(
-    String adminPublicKeyHex,
-    String adminSignature,
-    int keyId,
-  ) => caller.callServerEndpoint<void>(
-    'adminKeyManagement',
-    'revokeKey',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'keyId': keyId,
-    },
-  );
-
-  /// List all signing keys
-  ///
-  /// Requires admin role. Returns all keys (active and inactive).
-  ///
-  /// [adminPublicKeyHex] - Admin ECDSA P-256 public key for authentication (128 hex chars)
-  /// [adminSignature] - ECDSA signature of request body (128 hex chars)
-  _i2.Future<List<_i4.AdminSigningKey>> listKeys(
-    String adminPublicKeyHex,
-    String adminSignature,
-  ) => caller.callServerEndpoint<List<_i4.AdminSigningKey>>(
-    'adminKeyManagement',
-    'listKeys',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-    },
-  );
-
-  /// Get information about a specific signing key
-  ///
-  /// Requires admin role. Returns key metadata.
-  ///
-  /// [adminPublicKeyHex] - Admin ECDSA P-256 public key for authentication (128 hex chars)
-  /// [adminSignature] - ECDSA signature of request body (128 hex chars)
-  /// [keyId] - ID of the key to retrieve
-  _i2.Future<_i4.AdminSigningKey> getKeyInfo(
-    String adminPublicKeyHex,
-    String adminSignature,
-    int keyId,
-  ) => caller.callServerEndpoint<_i4.AdminSigningKey>(
-    'adminKeyManagement',
-    'getKeyInfo',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'keyId': keyId,
-    },
-  );
-
-  /// Reactivate a previously revoked key
-  ///
-  /// Requires admin role. Sets isActive to true.
-  ///
-  /// [adminPublicKeyHex] - Admin ECDSA P-256 public key for authentication (128 hex chars)
-  /// [adminSignature] - ECDSA signature of request body (128 hex chars)
-  /// [keyId] - ID of the key to reactivate
-  _i2.Future<void> reactivateKey(
-    String adminPublicKeyHex,
-    String adminSignature,
-    int keyId,
-  ) => caller.callServerEndpoint<void>(
-    'adminKeyManagement',
-    'reactivateKey',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'keyId': keyId,
-    },
-  );
-
-  /// Validate admin signature and check permission.
-  ///
-  /// This method performs ECDSA signature verification and returns
-  /// the associated admin role if valid.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [requestBody]: JSON string of request body (excluding signature fields)
-  ///
-  /// Returns:
-  /// - AdminRole if signature is valid and key is active
-  /// - null if signature is invalid or key is inactive
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await validateAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  ///
-  /// if (role == null) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: 'Invalid signature or inactive key',
-  ///   );
-  /// }
-  ///
-  /// if (!role.canSendNotifications()) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.insufficientPermissions,
-  ///     message: 'Insufficient permissions',
-  ///   );
-  /// }
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole?> validateAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole?>(
-    'adminKeyManagement',
-    'validateAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
-  );
-
-  /// Require admin authentication or throw exception.
-  ///
-  /// Convenience method that validates the signature and throws
-  /// an exception if authentication fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key
-  /// - [signature]: ECDSA signature
-  /// - [requestBody]: JSON string of request body
-  ///
-  /// Returns:
-  /// - AdminRole if authentication successful
-  ///
-  /// Throws:
-  /// - Exception if authentication fails
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await requireAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  /// // If we get here, authentication succeeded
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole> requireAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole>(
-    'adminKeyManagement',
-    'requireAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
-  );
-}
-
-/// Admin endpoint for managing analytics events
-///
-/// Provides admin and support staff with tools to:
-/// - List analytics events with filtering and pagination
-/// - View detailed event information
-/// - Get analytics statistics (by event name, platform)
-/// - Delete analytics events
-///
-/// Authentication: ECDSA P-256 signature (same as other admin endpoints)
-///
-/// Access Levels:
-/// - Support: Can view events and statistics
-/// - Admin: Can view, get statistics, and delete events
-/// {@category Endpoint}
-class EndpointAnalyticsAdmin extends EndpointAdminManagement {
-  EndpointAnalyticsAdmin(_i1.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'analyticsAdmin';
-
-  /// List analytics events with filtering and pagination
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [limit]: Max results per page (default: 50)
-  /// - [offset]: Number of results to skip (default: 0)
-  /// - [eventNameFilter]: Filter by event name (optional)
-  /// - [platformFilter]: Filter by platform (optional)
-  /// - [startDate]: Filter by date range start (optional)
-  /// - [endDate]: Filter by date range end (optional)
-  ///
-  /// Returns:
-  /// - items: List of analytics events
-  /// - total: Total count matching filters
-  /// - limit: Page size used
-  /// - offset: Offset used
-  _i2.Future<_i6.PaginatedAnalyticsEvents> listEvents(
-    String adminPublicKeyHex,
-    String adminSignature, {
-    required int limit,
-    required int offset,
-    String? eventNameFilter,
-    String? platformFilter,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) => caller.callServerEndpoint<_i6.PaginatedAnalyticsEvents>(
-    'analyticsAdmin',
-    'listEvents',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'limit': limit,
-      'offset': offset,
-      'eventNameFilter': eventNameFilter,
-      'platformFilter': platformFilter,
-      'startDate': startDate,
-      'endDate': endDate,
-    },
-  );
-
-  /// Get specific analytics event details
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [eventId]: ID of analytics event to retrieve
-  ///
-  /// Returns:
-  /// - data: Full analytics event details
-  _i2.Future<_i7.AnalyticsEvent> getEventDetails(
-    String adminPublicKeyHex,
-    String adminSignature,
-    int eventId,
-  ) => caller.callServerEndpoint<_i7.AnalyticsEvent>(
-    'analyticsAdmin',
-    'getEventDetails',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'eventId': eventId,
-    },
-  );
-
-  /// Get analytics statistics
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [startDate]: Start of date range (optional)
-  /// - [endDate]: End of date range (optional)
-  ///
-  /// Returns:
-  /// - totalEvents: Total event count
-  /// - byEventName: Count by event name
-  /// - byPlatform: Count by platform
-  /// - recentEvents: Recent events (last 7 days, limit 10)
-  _i2.Future<_i8.AnalyticsStatistics> getStatistics(
-    String adminPublicKeyHex,
-    String adminSignature, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) => caller.callServerEndpoint<_i8.AnalyticsStatistics>(
-    'analyticsAdmin',
-    'getStatistics',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'startDate': startDate,
-      'endDate': endDate,
-    },
-  );
-
-  /// Delete analytics event
-  ///
-  /// Access: Admin only
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [eventId]: ID of analytics event to delete
-  ///
-  /// Returns:
-  /// - success: true if deleted
-  /// - message: Success message
-  _i2.Future<_i9.AdminActionResult> deleteEvent(
-    String adminPublicKeyHex,
-    String adminSignature,
-    int eventId,
-  ) => caller.callServerEndpoint<_i9.AdminActionResult>(
-    'analyticsAdmin',
-    'deleteEvent',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'eventId': eventId,
-    },
-  );
-
-  /// Validate admin signature and check permission.
-  ///
-  /// This method performs ECDSA signature verification and returns
-  /// the associated admin role if valid.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [requestBody]: JSON string of request body (excluding signature fields)
-  ///
-  /// Returns:
-  /// - AdminRole if signature is valid and key is active
-  /// - null if signature is invalid or key is inactive
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await validateAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  ///
-  /// if (role == null) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: 'Invalid signature or inactive key',
-  ///   );
-  /// }
-  ///
-  /// if (!role.canSendNotifications()) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.insufficientPermissions,
-  ///     message: 'Insufficient permissions',
-  ///   );
-  /// }
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole?> validateAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole?>(
-    'analyticsAdmin',
-    'validateAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
-  );
-
-  /// Require admin authentication or throw exception.
-  ///
-  /// Convenience method that validates the signature and throws
-  /// an exception if authentication fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key
-  /// - [signature]: ECDSA signature
-  /// - [requestBody]: JSON string of request body
-  ///
-  /// Returns:
-  /// - AdminRole if authentication successful
-  ///
-  /// Throws:
-  /// - Exception if authentication fails
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await requireAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  /// // If we get here, authentication succeeded
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole> requireAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole>(
-    'analyticsAdmin',
-    'requireAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
-  );
-}
-
 /// Analytics Event Endpoint for privacy-first usage analytics.
 ///
 /// Accepts lightweight, PII-free event names (e.g. "template_created")
@@ -685,13 +198,13 @@ class EndpointAnalyticsEvent extends _i3.EndpointSignedPow {
   ///   - props: JSON-encoded properties (optional)
   ///
   /// Throws [ServerException] on validation, rate limit, or internal errors.
-  _i2.Future<_i10.BatchSubmissionResult> submitEvents({
+  _i2.Future<_i4.BatchSubmissionResult> submitEvents({
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
     required String eventsJson,
-  }) => caller.callServerEndpoint<_i10.BatchSubmissionResult>(
+  }) => caller.callServerEndpoint<_i4.BatchSubmissionResult>(
     'analyticsEvent',
     'submitEvents',
     {
@@ -762,122 +275,6 @@ class EndpointAnalyticsEvent extends _i3.EndpointSignedPow {
   );
 }
 
-/// Base class for all admin management endpoints.
-///
-/// Provides standardized ECDSA signature authentication for:
-/// - Notification management
-/// - Error report management
-/// - Admin key management
-/// - Other admin operations
-///
-/// All admin endpoints inherit:
-/// - validateAdmin() method for signature verification
-/// - Consistent authentication patterns
-/// - Role-based access control helpers
-///
-/// Usage:
-/// ```dart
-/// class NotificationAdminEndpoint extends AdminManagementEndpoint {
-///   Future<String> createNotification(
-///     Session session,
-///     String publicKeyHex,
-///     String signature, {
-///     required String title,
-///   }) async {
-///     final role = await requireAdmin(session, publicKeyHex, signature, body);
-///
-///     // Process the admin operation...
-///     return jsonEncode({'notificationId': id});
-///   }
-/// }
-/// ```
-///
-/// **IMPORTANT**: Never return `Map<String, dynamic>` from Serverpod endpoints.
-/// Serverpod cannot deserialize `dynamic`. Use typed protocol models or
-/// `String` (JSON-encoded) for complex responses. For errors, throw
-/// `ServerException` with an appropriate `ServerErrorCode`.
-/// {@category Endpoint}
-abstract class EndpointAdminManagement extends _i1.EndpointRef {
-  EndpointAdminManagement(_i1.EndpointCaller caller) : super(caller);
-
-  /// Validate admin signature and check permission.
-  ///
-  /// This method performs ECDSA signature verification and returns
-  /// the associated admin role if valid.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [requestBody]: JSON string of request body (excluding signature fields)
-  ///
-  /// Returns:
-  /// - AdminRole if signature is valid and key is active
-  /// - null if signature is invalid or key is inactive
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await validateAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  ///
-  /// if (role == null) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: 'Invalid signature or inactive key',
-  ///   );
-  /// }
-  ///
-  /// if (!role.canSendNotifications()) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.insufficientPermissions,
-  ///     message: 'Insufficient permissions',
-  ///   );
-  /// }
-  /// ```
-  _i2.Future<_i5.AdminRole?> validateAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  );
-
-  /// Require admin authentication or throw exception.
-  ///
-  /// Convenience method that validates the signature and throws
-  /// an exception if authentication fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key
-  /// - [signature]: ECDSA signature
-  /// - [requestBody]: JSON string of request body
-  ///
-  /// Returns:
-  /// - AdminRole if authentication successful
-  ///
-  /// Throws:
-  /// - Exception if authentication fails
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await requireAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  /// // If we get here, authentication succeeded
-  /// ```
-  _i2.Future<_i5.AdminRole> requireAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  );
-}
-
 /// Cloud Analysis Endpoint - MVP Disabled
 ///
 /// This endpoint provides pay-per-use statistical analysis features.
@@ -918,9 +315,9 @@ class EndpointCloudLlm extends _i3.EndpointJwt {
   ///
   /// Returns JSON string containing the LLM's
   /// structured JSON output (shape defined by caller's schema).
-  _i2.Future<_i11.CloudLlmStructuredResponse> generateStructured(
-    _i12.CloudLlmStructuredRequest request,
-  ) => caller.callServerEndpoint<_i11.CloudLlmStructuredResponse>(
+  _i2.Future<_i5.CloudLlmStructuredResponse> generateStructured(
+    _i6.CloudLlmStructuredRequest request,
+  ) => caller.callServerEndpoint<_i5.CloudLlmStructuredResponse>(
     'cloudLlm',
     'generateStructured',
     {'request': request},
@@ -934,413 +331,19 @@ class EndpointCloudLlm extends _i3.EndpointJwt {
 ///
 /// Route: `cloudPowerSync.getToken()`
 /// {@category Endpoint}
-class EndpointCloudPowerSync extends _i13.EndpointPowerSync {
+class EndpointCloudPowerSync extends _i7.EndpointPowerSync {
   EndpointCloudPowerSync(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'cloudPowerSync';
 
   @override
-  _i2.Future<_i13.PowerSyncToken> getToken() =>
-      caller.callServerEndpoint<_i13.PowerSyncToken>(
+  _i2.Future<_i7.PowerSyncToken> getToken() =>
+      caller.callServerEndpoint<_i7.PowerSyncToken>(
         'cloudPowerSync',
         'getToken',
         {},
       );
-}
-
-/// Admin endpoint for managing account entitlements (credits, sync days, etc.)
-///
-/// Requires ECDSA P-256 admin signature for all operations.
-/// {@category Endpoint}
-class EndpointEntitlementAdmin extends EndpointAdminManagement {
-  EndpointEntitlementAdmin(_i1.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'entitlementAdmin';
-
-  /// Add credits to an account's entitlement balance.
-  ///
-  /// [adminPublicKeyHex] - Admin ECDSA P-256 public key (128 hex chars)
-  /// [adminSignature] - ECDSA signature of request body (128 hex chars)
-  /// [accountUuidStr] - Target account UUID
-  /// [consumableType] - Entitlement ID to add to
-  /// [amount] - Amount to add (must be positive)
-  _i2.Future<String> addCredits(
-    String adminPublicKeyHex,
-    String adminSignature,
-    String accountUuidStr,
-    int consumableType,
-    double amount,
-  ) => caller.callServerEndpoint<String>(
-    'entitlementAdmin',
-    'addCredits',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'accountUuidStr': accountUuidStr,
-      'consumableType': consumableType,
-      'amount': amount,
-    },
-  );
-
-  /// Consume credits from an account's entitlement balance.
-  ///
-  /// [adminPublicKeyHex] - Admin ECDSA P-256 public key (128 hex chars)
-  /// [adminSignature] - ECDSA signature of request body (128 hex chars)
-  /// [accountUuidStr] - Target account UUID
-  /// [consumableType] - Entitlement ID to consume from
-  /// [amount] - Amount to consume (must be positive)
-  _i2.Future<String> consumeCredits(
-    String adminPublicKeyHex,
-    String adminSignature,
-    String accountUuidStr,
-    int consumableType,
-    double amount,
-  ) => caller.callServerEndpoint<String>(
-    'entitlementAdmin',
-    'consumeCredits',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'accountUuidStr': accountUuidStr,
-      'consumableType': consumableType,
-      'amount': amount,
-    },
-  );
-
-  /// Validate admin signature and check permission.
-  ///
-  /// This method performs ECDSA signature verification and returns
-  /// the associated admin role if valid.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [requestBody]: JSON string of request body (excluding signature fields)
-  ///
-  /// Returns:
-  /// - AdminRole if signature is valid and key is active
-  /// - null if signature is invalid or key is inactive
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await validateAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  ///
-  /// if (role == null) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: 'Invalid signature or inactive key',
-  ///   );
-  /// }
-  ///
-  /// if (!role.canSendNotifications()) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.insufficientPermissions,
-  ///     message: 'Insufficient permissions',
-  ///   );
-  /// }
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole?> validateAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole?>(
-    'entitlementAdmin',
-    'validateAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
-  );
-
-  /// Require admin authentication or throw exception.
-  ///
-  /// Convenience method that validates the signature and throws
-  /// an exception if authentication fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key
-  /// - [signature]: ECDSA signature
-  /// - [requestBody]: JSON string of request body
-  ///
-  /// Returns:
-  /// - AdminRole if authentication successful
-  ///
-  /// Throws:
-  /// - Exception if authentication fails
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await requireAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  /// // If we get here, authentication succeeded
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole> requireAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole>(
-    'entitlementAdmin',
-    'requireAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
-  );
-}
-
-/// Admin endpoint for managing error reports
-///
-/// Provides admin and support staff with tools to:
-/// - List error reports with filtering and pagination
-/// - View detailed error report information
-/// - Get error statistics for analytics
-/// - Delete error reports
-///
-/// Authentication: ECDSA P-256 signature (same as other admin endpoints)
-///
-/// Access Levels:
-/// - Support: Can view reports and statistics
-/// - Admin: Can view, get statistics, and delete reports
-/// {@category Endpoint}
-class EndpointErrorReportAdmin extends EndpointAdminManagement {
-  EndpointErrorReportAdmin(_i1.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'errorReportAdmin';
-
-  /// List error reports with filtering and pagination
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [limit]: Max results per page (default: 50)
-  /// - [offset]: Number of results to skip (default: 0)
-  /// - [errorTypeFilter]: Filter by error type (optional)
-  /// - [errorCodeFilter]: Filter by error code (optional)
-  /// - [startDate]: Filter by date range start (optional)
-  /// - [endDate]: Filter by date range end (optional)
-  ///
-  /// Returns:
-  /// - items: List of error reports
-  /// - total: Total count matching filters
-  /// - limit: Page size used
-  /// - offset: Offset used
-  _i2.Future<_i14.PaginatedErrorReports> listErrorReports(
-    String adminPublicKeyHex,
-    String adminSignature, {
-    required int limit,
-    required int offset,
-    String? errorTypeFilter,
-    String? errorCodeFilter,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) => caller.callServerEndpoint<_i14.PaginatedErrorReports>(
-    'errorReportAdmin',
-    'listErrorReports',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'limit': limit,
-      'offset': offset,
-      'errorTypeFilter': errorTypeFilter,
-      'errorCodeFilter': errorCodeFilter,
-      'startDate': startDate,
-      'endDate': endDate,
-    },
-  );
-
-  /// Get specific error report details
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [errorReportId]: ID of error report to retrieve
-  ///
-  /// Returns:
-  /// - data: Full error report details
-  _i2.Future<_i15.ErrorReport> getErrorReportDetails(
-    String adminPublicKeyHex,
-    String adminSignature,
-    int errorReportId,
-  ) => caller.callServerEndpoint<_i15.ErrorReport>(
-    'errorReportAdmin',
-    'getErrorReportDetails',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'errorReportId': errorReportId,
-    },
-  );
-
-  /// Get error statistics
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [startDate]: Start of date range (optional)
-  /// - [endDate]: End of date range (optional)
-  ///
-  /// Returns:
-  /// - data: Statistics including totalErrors, errorsByType, errorsByCode, errorsByPlatform, recentErrors
-  _i2.Future<_i16.ErrorStatistics> getErrorStatistics(
-    String adminPublicKeyHex,
-    String adminSignature, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) => caller.callServerEndpoint<_i16.ErrorStatistics>(
-    'errorReportAdmin',
-    'getErrorStatistics',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'startDate': startDate,
-      'endDate': endDate,
-    },
-  );
-
-  /// Delete error report
-  ///
-  /// Access: Admin only
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [errorReportId]: ID of error report to delete
-  ///
-  /// Returns:
-  /// - success: true if deleted
-  /// - message: Success message
-  _i2.Future<_i9.AdminActionResult> deleteErrorReport(
-    String adminPublicKeyHex,
-    String adminSignature,
-    int errorReportId,
-  ) => caller.callServerEndpoint<_i9.AdminActionResult>(
-    'errorReportAdmin',
-    'deleteErrorReport',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'errorReportId': errorReportId,
-    },
-  );
-
-  /// Validate admin signature and check permission.
-  ///
-  /// This method performs ECDSA signature verification and returns
-  /// the associated admin role if valid.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [requestBody]: JSON string of request body (excluding signature fields)
-  ///
-  /// Returns:
-  /// - AdminRole if signature is valid and key is active
-  /// - null if signature is invalid or key is inactive
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await validateAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  ///
-  /// if (role == null) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: 'Invalid signature or inactive key',
-  ///   );
-  /// }
-  ///
-  /// if (!role.canSendNotifications()) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.insufficientPermissions,
-  ///     message: 'Insufficient permissions',
-  ///   );
-  /// }
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole?> validateAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole?>(
-    'errorReportAdmin',
-    'validateAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
-  );
-
-  /// Require admin authentication or throw exception.
-  ///
-  /// Convenience method that validates the signature and throws
-  /// an exception if authentication fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key
-  /// - [signature]: ECDSA signature
-  /// - [requestBody]: JSON string of request body
-  ///
-  /// Returns:
-  /// - AdminRole if authentication successful
-  ///
-  /// Throws:
-  /// - Exception if authentication fails
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await requireAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  /// // If we get here, authentication succeeded
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole> requireAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole>(
-    'errorReportAdmin',
-    'requireAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
-  );
 }
 
 /// Error Report Endpoint for privacy-preserving error reporting
@@ -1378,13 +381,13 @@ class EndpointErrorReport extends _i3.EndpointSignedPow {
   /// - [reportsJson]: JSON-encoded list of error report objects
   ///
   /// Throws [ServerException] on validation, rate limit, or internal errors.
-  _i2.Future<_i10.BatchSubmissionResult> submitErrorReports({
+  _i2.Future<_i4.BatchSubmissionResult> submitErrorReports({
     required String challenge,
     required String proofOfWork,
     required String publicKeyHex,
     required String signature,
     required String reportsJson,
-  }) => caller.callServerEndpoint<_i10.BatchSubmissionResult>(
+  }) => caller.callServerEndpoint<_i4.BatchSubmissionResult>(
     'errorReport',
     'submitErrorReports',
     {
@@ -1455,239 +458,6 @@ class EndpointErrorReport extends _i3.EndpointSignedPow {
   );
 }
 
-/// Admin endpoint for managing feedback reports
-///
-/// Provides admin and support staff with tools to:
-/// - List feedback reports with filtering and pagination
-/// - View detailed feedback information
-/// - Get feedback statistics for analytics
-/// - Delete feedback reports
-///
-/// Authentication: ECDSA P-256 signature (same as other admin endpoints)
-///
-/// Access Levels:
-/// - Support: Can view feedback and statistics
-/// - Admin: Can view, get statistics, and delete feedback
-/// {@category Endpoint}
-class EndpointFeedbackAdmin extends EndpointAdminManagement {
-  EndpointFeedbackAdmin(_i1.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'feedbackAdmin';
-
-  /// List feedback with filtering and pagination
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [limit]: Max results per page (default: 50)
-  /// - [offset]: Number of results to skip (default: 0)
-  /// - [feedbackTypeFilter]: Filter by feedback type (optional)
-  /// - [startDate]: Filter by date range start (optional)
-  /// - [endDate]: Filter by date range end (optional)
-  ///
-  /// Returns:
-  /// - Paginated response with feedback reports
-  _i2.Future<_i17.PaginatedFeedbackReports> listFeedback(
-    String adminPublicKeyHex,
-    String adminSignature, {
-    required int limit,
-    required int offset,
-    _i18.FeedbackType? feedbackTypeFilter,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) => caller.callServerEndpoint<_i17.PaginatedFeedbackReports>(
-    'feedbackAdmin',
-    'listFeedback',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'limit': limit,
-      'offset': offset,
-      'feedbackTypeFilter': feedbackTypeFilter,
-      'startDate': startDate,
-      'endDate': endDate,
-    },
-  );
-
-  /// Get specific feedback details
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [feedbackId]: ID of feedback to retrieve
-  ///
-  /// Returns:
-  /// - Feedback report details
-  _i2.Future<_i19.FeedbackReport> getFeedbackDetails(
-    String adminPublicKeyHex,
-    String adminSignature,
-    int feedbackId,
-  ) => caller.callServerEndpoint<_i19.FeedbackReport>(
-    'feedbackAdmin',
-    'getFeedbackDetails',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'feedbackId': feedbackId,
-    },
-  );
-
-  /// Get feedback statistics
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [startDate]: Start of date range (optional)
-  /// - [endDate]: End of date range (optional)
-  ///
-  /// Returns:
-  /// - totalFeedback: Total feedback count
-  /// - byType: Count by feedback type
-  /// - recentFeedback: Recent feedback (last 7 days, limit 10)
-  _i2.Future<_i20.FeedbackStatistics> getFeedbackStatistics(
-    String adminPublicKeyHex,
-    String adminSignature, {
-    DateTime? startDate,
-    DateTime? endDate,
-  }) => caller.callServerEndpoint<_i20.FeedbackStatistics>(
-    'feedbackAdmin',
-    'getFeedbackStatistics',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'startDate': startDate,
-      'endDate': endDate,
-    },
-  );
-
-  /// Delete feedback (admin only)
-  ///
-  /// Access: Admin only
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [feedbackId]: ID of feedback to delete
-  ///
-  /// Returns:
-  /// - Success message
-  _i2.Future<_i9.AdminActionResult> deleteFeedback(
-    String adminPublicKeyHex,
-    String adminSignature,
-    int feedbackId,
-  ) => caller.callServerEndpoint<_i9.AdminActionResult>(
-    'feedbackAdmin',
-    'deleteFeedback',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'feedbackId': feedbackId,
-    },
-  );
-
-  /// Validate admin signature and check permission.
-  ///
-  /// This method performs ECDSA signature verification and returns
-  /// the associated admin role if valid.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [requestBody]: JSON string of request body (excluding signature fields)
-  ///
-  /// Returns:
-  /// - AdminRole if signature is valid and key is active
-  /// - null if signature is invalid or key is inactive
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await validateAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  ///
-  /// if (role == null) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: 'Invalid signature or inactive key',
-  ///   );
-  /// }
-  ///
-  /// if (!role.canSendNotifications()) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.insufficientPermissions,
-  ///     message: 'Insufficient permissions',
-  ///   );
-  /// }
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole?> validateAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole?>(
-    'feedbackAdmin',
-    'validateAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
-  );
-
-  /// Require admin authentication or throw exception.
-  ///
-  /// Convenience method that validates the signature and throws
-  /// an exception if authentication fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key
-  /// - [signature]: ECDSA signature
-  /// - [requestBody]: JSON string of request body
-  ///
-  /// Returns:
-  /// - AdminRole if authentication successful
-  ///
-  /// Throws:
-  /// - Exception if authentication fails
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await requireAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  /// // If we get here, authentication succeeded
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole> requireAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole>(
-    'feedbackAdmin',
-    'requireAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
-  );
-}
-
 /// Feedback Endpoint for privacy-preserving user feedback
 ///
 /// Receives anonymous feedback (feature requests, bug reports, general feedback)
@@ -1729,7 +499,7 @@ class EndpointFeedback extends _i3.EndpointSignedPow {
     required String publicKeyHex,
     required String signature,
     required String feedbackText,
-    required _i18.FeedbackType feedbackType,
+    required _i8.FeedbackType feedbackType,
     String? metadata,
   }) => caller.callServerEndpoint<void>(
     'feedback',
@@ -1807,7 +577,7 @@ class EndpointFeedback extends _i3.EndpointSignedPow {
 /// By extending [RefreshJwtTokensEndpoint], the JWT token refresh endpoint
 /// is made available on the server and enables automatic token refresh on the client.
 /// {@category Endpoint}
-class EndpointJwtRefresh extends _i21.EndpointRefreshJwtTokens {
+class EndpointJwtRefresh extends _i9.EndpointRefreshJwtTokens {
   EndpointJwtRefresh(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -1832,283 +602,13 @@ class EndpointJwtRefresh extends _i21.EndpointRefreshJwtTokens {
   /// This endpoint is unauthenticated, meaning the client won't include any
   /// authentication information with the call.
   @override
-  _i2.Future<_i21.AuthSuccess> refreshAccessToken({
+  _i2.Future<_i9.AuthSuccess> refreshAccessToken({
     required String refreshToken,
-  }) => caller.callServerEndpoint<_i21.AuthSuccess>(
+  }) => caller.callServerEndpoint<_i9.AuthSuccess>(
     'jwtRefresh',
     'refreshAccessToken',
     {'refreshToken': refreshToken},
     authenticated: false,
-  );
-}
-
-/// Admin endpoint for creating and managing notifications
-///
-/// Supports broadcast (global bucket) and individual (user bucket) notifications.
-/// Uses ECDSA P-256 signature authentication (separate from user AnonAccred system).
-///
-/// Access Levels:
-/// - Support: Can view notifications and statistics
-/// - Admin: Can create, view, get statistics, and delete notifications
-/// {@category Endpoint}
-class EndpointNotificationAdmin extends EndpointAdminManagement {
-  EndpointNotificationAdmin(_i1.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'notificationAdmin';
-
-  /// Create notifications for specific users or broadcast to all
-  ///
-  /// Access: Admin only
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin ECDSA P-256 public key (128 hex chars)
-  /// - [adminSignature]: ECDSA signature of request body (128 hex chars)
-  /// - [accountUuids]: List of account UUIDs (as strings), or null for broadcast (global bucket)
-  /// - [title]: Notification title
-  /// - [message]: Notification message (plain text)
-  /// - [type]: 'inform', 'warning', 'failure', 'success', 'announcement'
-  /// - [expiresInDays]: Days until expiration (default: 30)
-  /// - [actionUrl]: Optional deep link or web URL
-  /// - [actionLabel]: Optional button text
-  ///
-  /// Returns:
-  /// - List of created notification IDs
-  _i2.Future<_i22.NotificationCreateResult> createNotifications(
-    String adminPublicKeyHex,
-    String adminSignature, {
-    List<String>? accountUuids,
-    required String title,
-    required String message,
-    required _i23.NotificationType type,
-    required int expiresInDays,
-    String? actionUrl,
-    String? actionLabel,
-  }) => caller.callServerEndpoint<_i22.NotificationCreateResult>(
-    'notificationAdmin',
-    'createNotifications',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'accountUuids': accountUuids,
-      'title': title,
-      'message': message,
-      'type': type,
-      'expiresInDays': expiresInDays,
-      'actionUrl': actionUrl,
-      'actionLabel': actionLabel,
-    },
-  );
-
-  /// Get notification statistics
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin ECDSA P-256 public key (128 hex chars)
-  /// - [adminSignature]: ECDSA signature of request body (128 hex chars)
-  ///
-  /// Returns:
-  /// - total: Total notification count
-  /// - marked: Count of marked notifications
-  /// - unmarked: Count of unmarked notifications
-  _i2.Future<_i24.NotificationStatistics> getStatistics(
-    String adminPublicKeyHex,
-    String adminSignature,
-  ) => caller.callServerEndpoint<_i24.NotificationStatistics>(
-    'notificationAdmin',
-    'getStatistics',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-    },
-  );
-
-  /// List notifications with filtering
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [limit]: Max results per page (default: 50)
-  /// - [offset]: Number of results to skip (default: 0)
-  /// - [isBroadcast]: Filter by broadcast status (null = all, true = broadcast, false = targeted)
-  /// - [isExpired]: Filter by expiration status (null = all, true = expired, false = active)
-  /// - [startDate]: Filter by date range start (optional)
-  /// - [endDate]: Filter by date range end (optional)
-  ///
-  /// Returns:
-  /// - Paginated response with notifications
-  _i2.Future<_i25.PaginatedNotifications> listNotifications(
-    String adminPublicKeyHex,
-    String adminSignature, {
-    required int limit,
-    required int offset,
-    bool? isBroadcast,
-    bool? isExpired,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) => caller.callServerEndpoint<_i25.PaginatedNotifications>(
-    'notificationAdmin',
-    'listNotifications',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'limit': limit,
-      'offset': offset,
-      'isBroadcast': isBroadcast,
-      'isExpired': isExpired,
-      'startDate': startDate,
-      'endDate': endDate,
-    },
-  );
-
-  /// Get notification details including receipt analytics
-  ///
-  /// Access: Support or Admin
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [notificationId]: ID of notification to retrieve
-  ///
-  /// Returns:
-  /// - notification: Notification details
-  /// - receiptCount: Number of receipts
-  /// - receipts: List of receipts (who acknowledged)
-  _i2.Future<_i26.NotificationDetails> getNotificationDetails(
-    String adminPublicKeyHex,
-    String adminSignature,
-    String notificationId,
-  ) => caller.callServerEndpoint<_i26.NotificationDetails>(
-    'notificationAdmin',
-    'getNotificationDetails',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'notificationId': notificationId,
-    },
-  );
-
-  /// Delete notification (admin only)
-  ///
-  /// Access: Admin only
-  ///
-  /// Parameters:
-  /// - [adminPublicKeyHex]: Admin's ECDSA public key
-  /// - [adminSignature]: Signature of request
-  /// - [notificationId]: ID of notification to delete
-  ///
-  /// Returns:
-  /// - Success message
-  _i2.Future<_i9.AdminActionResult> deleteNotification(
-    String adminPublicKeyHex,
-    String adminSignature,
-    String notificationId,
-  ) => caller.callServerEndpoint<_i9.AdminActionResult>(
-    'notificationAdmin',
-    'deleteNotification',
-    {
-      'adminPublicKeyHex': adminPublicKeyHex,
-      'adminSignature': adminSignature,
-      'notificationId': notificationId,
-    },
-  );
-
-  /// Validate admin signature and check permission.
-  ///
-  /// This method performs ECDSA signature verification and returns
-  /// the associated admin role if valid.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key (128 hex chars)
-  /// - [signature]: ECDSA signature (128 hex chars)
-  /// - [requestBody]: JSON string of request body (excluding signature fields)
-  ///
-  /// Returns:
-  /// - AdminRole if signature is valid and key is active
-  /// - null if signature is invalid or key is inactive
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await validateAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  ///
-  /// if (role == null) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.authenticationFailed,
-  ///     message: 'Invalid signature or inactive key',
-  ///   );
-  /// }
-  ///
-  /// if (!role.canSendNotifications()) {
-  ///   throw ServerException(
-  ///     code: ServerErrorCode.insufficientPermissions,
-  ///     message: 'Insufficient permissions',
-  ///   );
-  /// }
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole?> validateAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole?>(
-    'notificationAdmin',
-    'validateAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
-  );
-
-  /// Require admin authentication or throw exception.
-  ///
-  /// Convenience method that validates the signature and throws
-  /// an exception if authentication fails.
-  ///
-  /// Parameters:
-  /// - [session]: Serverpod session
-  /// - [publicKeyHex]: ECDSA P-256 public key
-  /// - [signature]: ECDSA signature
-  /// - [requestBody]: JSON string of request body
-  ///
-  /// Returns:
-  /// - AdminRole if authentication successful
-  ///
-  /// Throws:
-  /// - Exception if authentication fails
-  ///
-  /// Example:
-  /// ```dart
-  /// final role = await requireAdmin(
-  ///   session,
-  ///   publicKeyHex,
-  ///   signature,
-  ///   requestBody,
-  /// );
-  /// // If we get here, authentication succeeded
-  /// ```
-  @override
-  _i2.Future<_i5.AdminRole> requireAdmin(
-    String publicKeyHex,
-    String signature,
-    String requestBody,
-  ) => caller.callServerEndpoint<_i5.AdminRole>(
-    'notificationAdmin',
-    'requireAdmin',
-    {
-      'publicKeyHex': publicKeyHex,
-      'signature': signature,
-      'requestBody': requestBody,
-    },
   );
 }
 
@@ -2139,13 +639,13 @@ class EndpointProductCatalog extends _i3.EndpointSignedPow {
   /// - [platformName]: Platform identifier (e.g. 'ios', 'android', 'web')
   ///
   /// Returns: PlatformCatalogResponse with rails and their product IDs.
-  _i2.Future<_i27.PlatformCatalogResponse> getCatalog(
+  _i2.Future<_i10.PlatformCatalogResponse> getCatalog(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
     String platformName,
-  ) => caller.callServerEndpoint<_i27.PlatformCatalogResponse>(
+  ) => caller.callServerEndpoint<_i10.PlatformCatalogResponse>(
     'productCatalog',
     'getCatalog',
     {
@@ -2218,22 +718,22 @@ class EndpointProductCatalog extends _i3.EndpointSignedPow {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i28.Caller(client);
-    serverpod_auth_core = _i21.Caller(client);
-    community = _i13.Caller(client);
+    serverpod_auth_idp = _i11.Caller(client);
+    serverpod_auth_core = _i9.Caller(client);
+    community = _i7.Caller(client);
     anonaccount = _i3.Caller(client);
-    anonaccred = _i29.Caller(client);
+    anonaccred = _i12.Caller(client);
   }
 
-  late final _i28.Caller serverpod_auth_idp;
+  late final _i11.Caller serverpod_auth_idp;
 
-  late final _i21.Caller serverpod_auth_core;
+  late final _i9.Caller serverpod_auth_core;
 
-  late final _i13.Caller community;
+  late final _i7.Caller community;
 
   late final _i3.Caller anonaccount;
 
-  late final _i29.Caller anonaccred;
+  late final _i12.Caller anonaccred;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -2256,7 +756,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i30.Protocol(),
+         _i13.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -2268,19 +768,13 @@ class Client extends _i1.ServerpodClientShared {
     cloudHealth = EndpointCloudHealth(this);
     accountDeletion = EndpointAccountDeletion(this);
     accountRegistration = EndpointAccountRegistration(this);
-    adminKeyManagement = EndpointAdminKeyManagement(this);
-    analyticsAdmin = EndpointAnalyticsAdmin(this);
     analyticsEvent = EndpointAnalyticsEvent(this);
     cloudAnalysis = EndpointCloudAnalysis(this);
     cloudLlm = EndpointCloudLlm(this);
     cloudPowerSync = EndpointCloudPowerSync(this);
-    entitlementAdmin = EndpointEntitlementAdmin(this);
-    errorReportAdmin = EndpointErrorReportAdmin(this);
     errorReport = EndpointErrorReport(this);
-    feedbackAdmin = EndpointFeedbackAdmin(this);
     feedback = EndpointFeedback(this);
     jwtRefresh = EndpointJwtRefresh(this);
-    notificationAdmin = EndpointNotificationAdmin(this);
     productCatalog = EndpointProductCatalog(this);
     modules = Modules(this);
   }
@@ -2291,10 +785,6 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointAccountRegistration accountRegistration;
 
-  late final EndpointAdminKeyManagement adminKeyManagement;
-
-  late final EndpointAnalyticsAdmin analyticsAdmin;
-
   late final EndpointAnalyticsEvent analyticsEvent;
 
   late final EndpointCloudAnalysis cloudAnalysis;
@@ -2303,19 +793,11 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointCloudPowerSync cloudPowerSync;
 
-  late final EndpointEntitlementAdmin entitlementAdmin;
-
-  late final EndpointErrorReportAdmin errorReportAdmin;
-
   late final EndpointErrorReport errorReport;
-
-  late final EndpointFeedbackAdmin feedbackAdmin;
 
   late final EndpointFeedback feedback;
 
   late final EndpointJwtRefresh jwtRefresh;
-
-  late final EndpointNotificationAdmin notificationAdmin;
 
   late final EndpointProductCatalog productCatalog;
 
@@ -2326,19 +808,13 @@ class Client extends _i1.ServerpodClientShared {
     'cloudHealth': cloudHealth,
     'accountDeletion': accountDeletion,
     'accountRegistration': accountRegistration,
-    'adminKeyManagement': adminKeyManagement,
-    'analyticsAdmin': analyticsAdmin,
     'analyticsEvent': analyticsEvent,
     'cloudAnalysis': cloudAnalysis,
     'cloudLlm': cloudLlm,
     'cloudPowerSync': cloudPowerSync,
-    'entitlementAdmin': entitlementAdmin,
-    'errorReportAdmin': errorReportAdmin,
     'errorReport': errorReport,
-    'feedbackAdmin': feedbackAdmin,
     'feedback': feedback,
     'jwtRefresh': jwtRefresh,
-    'notificationAdmin': notificationAdmin,
     'productCatalog': productCatalog,
   };
 
