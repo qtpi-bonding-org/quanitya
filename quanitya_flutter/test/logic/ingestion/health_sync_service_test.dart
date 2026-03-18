@@ -5,6 +5,8 @@ import 'package:mockito/mockito.dart';
 
 import 'package:quanitya_flutter/data/dao/template_query_dao.dart';
 import 'package:quanitya_flutter/data/repositories/template_with_aesthetics_repository.dart';
+import 'package:quanitya_flutter/infrastructure/crypto/interfaces/i_secure_storage.dart';
+import 'package:quanitya_flutter/infrastructure/platform/app_lifecycle_service.dart';
 import 'package:quanitya_flutter/integrations/flutter/health/health_adapter_factory.dart';
 import 'package:quanitya_flutter/integrations/flutter/health/health_sync_service.dart';
 import 'package:quanitya_flutter/logic/ingestion/services/data_ingestion_service.dart';
@@ -18,6 +20,8 @@ import 'package:quanitya_flutter/logic/templates/models/shared/tracker_template.
   DataIngestionService,
   TemplateQueryDao,
   TemplateWithAestheticsRepository,
+  ISecureStorage,
+  AppLifecycleService,
 ])
 import 'health_sync_service_test.mocks.dart';
 
@@ -47,6 +51,8 @@ void main() {
   late MockDataIngestionService mockIngestionService;
   late MockTemplateQueryDao mockTemplateQueryDao;
   late MockTemplateWithAestheticsRepository mockTemplateRepo;
+  late MockISecureStorage mockStorage;
+  late MockAppLifecycleService mockLifecycleService;
 
   setUp(() {
     mockHealth = MockHealth();
@@ -54,12 +60,16 @@ void main() {
     mockIngestionService = MockDataIngestionService();
     mockTemplateQueryDao = MockTemplateQueryDao();
     mockTemplateRepo = MockTemplateWithAestheticsRepository();
+    mockStorage = MockISecureStorage();
+    mockLifecycleService = MockAppLifecycleService();
 
     service = HealthSyncService.forTesting(
       mockAdapterFactory,
       mockIngestionService,
       mockTemplateQueryDao,
       mockTemplateRepo,
+      mockStorage,
+      mockLifecycleService,
       mockHealth,
     );
   });

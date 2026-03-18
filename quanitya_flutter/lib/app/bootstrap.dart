@@ -28,6 +28,7 @@ import '../logic/schedules/services/schedule_generator_service.dart';
 import '../features/settings/services/tested_models_service.dart';
 import '../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../features/app_syncing_mode/models/app_syncing_mode.dart';
+import '../integrations/flutter/health/health_sync_service.dart';
 import 'bootstrap.config.dart';
 
 /// Global service locator instance
@@ -199,7 +200,12 @@ Future<void> bootstrap() async {
       debugPrint('Bootstrap: Tested LLM models synced');
     }
 
-    // 10. Initialize router with correct initial location based on key status
+    // 10. Register health sync resume hook if previously enabled
+    if (getIt.isRegistered<HealthSyncService>()) {
+      await getIt<HealthSyncService>().registerIfEnabled();
+    }
+
+    // 11. Initialize router with correct initial location based on key status
     debugPrint('Bootstrap: Initializing router...');
     await AppRouter.initialize();
     debugPrint('Bootstrap: Router initialized');

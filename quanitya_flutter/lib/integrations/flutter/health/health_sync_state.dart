@@ -4,7 +4,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 part 'health_sync_state.freezed.dart';
 
 /// Operations tracked by [HealthSyncCubit].
-enum HealthSyncOperation { requestPermissions, sync, import_ }
+enum HealthSyncOperation { toggle }
 
 @freezed
 class HealthSyncState with _$HealthSyncState, UiFlowStateMixin implements IUiFlowState {
@@ -14,7 +14,7 @@ class HealthSyncState with _$HealthSyncState, UiFlowStateMixin implements IUiFlo
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,
     HealthSyncOperation? lastOperation,
-    @Default(false) bool permissionsGranted,
+    @Default(false) bool enabled,
     @Default(0) int lastImportCount,
   }) = _HealthSyncState;
 }

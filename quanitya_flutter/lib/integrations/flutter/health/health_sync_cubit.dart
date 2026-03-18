@@ -14,45 +14,38 @@ class HealthSyncCubit extends QuanityaCubit<HealthSyncState> {
 
   HealthSyncCubit(this._syncService, this._permissionService) : super(const HealthSyncState());
 
-  Future<void> requestPermissions(List<HealthDataType> types) async {
-    await tryOperation(() async {
-      final granted = await _permissionService.ensureHealth(types);
-      return state.copyWith(
-        status: UiFlowStatus.success,
-        lastOperation: HealthSyncOperation.requestPermissions,
-        permissionsGranted: granted,
-      );
-    }, emitLoading: true);
+  /// Hydrate the toggle state from persisted preference.
+  Future<void> loadEnabled() async {
+    final enabled = await _syncService.isEnabled();
+    if (enabled != state.enabled) {
+      emit(state.copyWith(enabled: enabled));
+    }
   }
 
-  Future<void> sync(List<HealthDataType> types, {DateTime? since}) async {
-    await tryOperation(() async {
-      final count = await _syncService.sync(types, since: since);
-      analytics?.trackHealthSynced();
-      return state.copyWith(
+  /// Toggle health sync on/off.
+  ///
+  /// On: request permissions → initial sync → persist enabled.
+  /// Off: persist disabled.
+  Future<void> toggle(bool enabled, List<HealthDataType> types) async {
+    if (!enabled) {
+      await _syncService.setEnabled(false);
+      emit(state.copyWith(
+        enabled: false,
         status: UiFlowStatus.success,
-        lastOperation: HealthSyncOperation.sync,
-        lastImportCount: count,
-      );
-    }, emitLoading: true);
-  }
+        lastOperation: HealthSyncOperation.toggle,
+      ));
+      return;
+    }
 
-  /// Single action: request permissions then sync.
-  Future<void> importHealthData(List<HealthDataType> types) async {
     await tryOperation(() async {
-      final granted = await _permissionService.ensureHealth(types);
-      if (!granted) {
-        return state.copyWith(
-          status: UiFlowStatus.success,
-          lastOperation: HealthSyncOperation.import_,
-        );
-      }
+      await _permissionService.ensureHealth(types);
       final count = await _syncService.sync(types);
+      await _syncService.setEnabled(true);
       analytics?.trackHealthSynced();
       return state.copyWith(
+        enabled: true,
         status: UiFlowStatus.success,
-        lastOperation: HealthSyncOperation.import_,
-        permissionsGranted: true,
+        lastOperation: HealthSyncOperation.toggle,
         lastImportCount: count,
       );
     }, emitLoading: true);

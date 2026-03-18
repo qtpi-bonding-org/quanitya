@@ -23,151 +23,113 @@ void main() {
   });
 
   group('HealthSyncCubit', () {
-    test('initial state is idle', () {
+    test('initial state is idle and disabled', () {
       final cubit = HealthSyncCubit(mockService, mockPermissionService);
       addTearDown(cubit.close);
 
       expect(cubit.state.status, UiFlowStatus.idle);
-      expect(cubit.state.permissionsGranted, isFalse);
+      expect(cubit.state.enabled, isFalse);
       expect(cubit.state.lastImportCount, equals(0));
       expect(cubit.state.lastOperation, isNull);
       expect(cubit.state.error, isNull);
     });
 
-    group('requestPermissions', () {
-      final types = [HealthDataType.STEPS, HealthDataType.HEART_RATE];
-
+    group('loadEnabled', () {
       blocTest<HealthSyncCubit, HealthSyncState>(
-        'emits loading then success with permissionsGranted=true',
+        'emits enabled=true when previously enabled',
         build: () {
-          when(mockPermissionService.ensureHealth(types))
-              .thenAnswer((_) async => true);
+          when(mockService.isEnabled()).thenAnswer((_) async => true);
           return HealthSyncCubit(mockService, mockPermissionService);
         },
-        act: (cubit) => cubit.requestPermissions(types),
+        act: (cubit) => cubit.loadEnabled(),
         expect: () => [
-          const HealthSyncState(status: UiFlowStatus.loading),
-          const HealthSyncState(
-            status: UiFlowStatus.success,
-            lastOperation: HealthSyncOperation.requestPermissions,
-            permissionsGranted: true,
-          ),
-        ],
-        verify: (_) {
-          verify(mockPermissionService.ensureHealth(types)).called(1);
-        },
-      );
-
-      blocTest<HealthSyncCubit, HealthSyncState>(
-        'emits loading then success with permissionsGranted=false when denied',
-        build: () {
-          when(mockPermissionService.ensureHealth(types))
-              .thenAnswer((_) async => false);
-          return HealthSyncCubit(mockService, mockPermissionService);
-        },
-        act: (cubit) => cubit.requestPermissions(types),
-        expect: () => [
-          const HealthSyncState(status: UiFlowStatus.loading),
-          const HealthSyncState(
-            status: UiFlowStatus.success,
-            lastOperation: HealthSyncOperation.requestPermissions,
-            permissionsGranted: false,
-          ),
+          const HealthSyncState(enabled: true),
         ],
       );
 
       blocTest<HealthSyncCubit, HealthSyncState>(
-        'emits loading then failure on error',
+        'emits nothing when disabled (already default)',
         build: () {
-          when(mockPermissionService.ensureHealth(types))
-              .thenThrow(Exception('platform error'));
+          when(mockService.isEnabled()).thenAnswer((_) async => false);
           return HealthSyncCubit(mockService, mockPermissionService);
         },
-        act: (cubit) => cubit.requestPermissions(types),
-        expect: () => [
-          const HealthSyncState(status: UiFlowStatus.loading),
-          predicate<HealthSyncState>(
-            (s) => s.status == UiFlowStatus.failure && s.error != null,
-          ),
-        ],
+        act: (cubit) => cubit.loadEnabled(),
+        expect: () => <HealthSyncState>[],
       );
     });
 
-    group('sync', () {
-      final types = [HealthDataType.STEPS];
+    group('toggle on', () {
+      final types = [HealthDataType.STEPS, HealthDataType.HEART_RATE];
 
       blocTest<HealthSyncCubit, HealthSyncState>(
-        'emits loading then success with import count',
+        'requests permissions, syncs, persists enabled',
         build: () {
-          when(mockService.sync(types, since: null))
-              .thenAnswer((_) async => 42);
+          when(mockPermissionService.ensureHealth(types))
+              .thenAnswer((_) async => true);
+          when(mockService.sync(types)).thenAnswer((_) async => 42);
+          when(mockService.setEnabled(true)).thenAnswer((_) async {});
           return HealthSyncCubit(mockService, mockPermissionService);
         },
-        act: (cubit) => cubit.sync(types),
+        act: (cubit) => cubit.toggle(true, types),
         expect: () => [
           const HealthSyncState(status: UiFlowStatus.loading),
           const HealthSyncState(
             status: UiFlowStatus.success,
-            lastOperation: HealthSyncOperation.sync,
+            enabled: true,
+            lastOperation: HealthSyncOperation.toggle,
             lastImportCount: 42,
           ),
         ],
         verify: (_) {
-          verify(mockService.sync(types, since: null)).called(1);
+          verify(mockPermissionService.ensureHealth(types)).called(1);
+          verify(mockService.sync(types)).called(1);
+          verify(mockService.setEnabled(true)).called(1);
         },
       );
 
       blocTest<HealthSyncCubit, HealthSyncState>(
-        'emits loading then success with 0 when nothing new',
+        'emits failure on sync error',
         build: () {
-          when(mockService.sync(types, since: null))
-              .thenAnswer((_) async => 0);
+          when(mockPermissionService.ensureHealth(types))
+              .thenAnswer((_) async => true);
+          when(mockService.sync(types)).thenThrow(Exception('sync failed'));
           return HealthSyncCubit(mockService, mockPermissionService);
         },
-        act: (cubit) => cubit.sync(types),
-        expect: () => [
-          const HealthSyncState(status: UiFlowStatus.loading),
-          const HealthSyncState(
-            status: UiFlowStatus.success,
-            lastOperation: HealthSyncOperation.sync,
-            lastImportCount: 0,
-          ),
-        ],
-      );
-
-      blocTest<HealthSyncCubit, HealthSyncState>(
-        'passes since parameter through to service',
-        build: () {
-          final since = DateTime(2026, 1, 1);
-          when(mockService.sync(types, since: since))
-              .thenAnswer((_) async => 10);
-          return HealthSyncCubit(mockService, mockPermissionService);
-        },
-        act: (cubit) => cubit.sync(types, since: DateTime(2026, 1, 1)),
-        expect: () => [
-          const HealthSyncState(status: UiFlowStatus.loading),
-          const HealthSyncState(
-            status: UiFlowStatus.success,
-            lastOperation: HealthSyncOperation.sync,
-            lastImportCount: 10,
-          ),
-        ],
-      );
-
-      blocTest<HealthSyncCubit, HealthSyncState>(
-        'emits loading then failure on error',
-        build: () {
-          when(mockService.sync(types, since: null))
-              .thenThrow(Exception('sync failed'));
-          return HealthSyncCubit(mockService, mockPermissionService);
-        },
-        act: (cubit) => cubit.sync(types),
+        act: (cubit) => cubit.toggle(true, types),
         expect: () => [
           const HealthSyncState(status: UiFlowStatus.loading),
           predicate<HealthSyncState>(
             (s) => s.status == UiFlowStatus.failure && s.error != null,
           ),
         ],
+        verify: (_) {
+          verifyNever(mockService.setEnabled(any));
+        },
+      );
+    });
+
+    group('toggle off', () {
+      final types = [HealthDataType.STEPS];
+
+      blocTest<HealthSyncCubit, HealthSyncState>(
+        'persists disabled and emits enabled=false',
+        build: () {
+          when(mockService.setEnabled(false)).thenAnswer((_) async {});
+          return HealthSyncCubit(mockService, mockPermissionService);
+        },
+        act: (cubit) => cubit.toggle(false, types),
+        expect: () => [
+          const HealthSyncState(
+            enabled: false,
+            status: UiFlowStatus.success,
+            lastOperation: HealthSyncOperation.toggle,
+          ),
+        ],
+        verify: (_) {
+          verify(mockService.setEnabled(false)).called(1);
+          verifyNever(mockPermissionService.ensureHealth(any));
+          verifyNever(mockService.sync(any));
+        },
       );
     });
   });

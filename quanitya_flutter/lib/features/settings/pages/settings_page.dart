@@ -34,9 +34,10 @@ import '../widgets/webhook_sheet.dart';
 import '../widgets/llm_provider_section.dart';
 import '../widgets/api_key_sheet.dart';
 import '../widgets/table_selection_sheet.dart';
-import 'package:health/health.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import '../../../integrations/flutter/health/health_sync_cubit.dart';
+import '../../../integrations/flutter/health/health_sync_service.dart'
+    show defaultHealthTypes;
 import '../../../integrations/flutter/health/health_sync_state.dart';
 
 bool get _supportsHealthData => !kIsWeb && (Platform.isIOS || Platform.isAndroid);
@@ -133,22 +134,17 @@ class SettingsContent extends StatelessWidget {
   }
 }
 
-/// Default health data types to sync.
-const _defaultHealthTypes = [
-  HealthDataType.STEPS,
-  HealthDataType.HEART_RATE,
-  HealthDataType.BLOOD_OXYGEN,
-  HealthDataType.BODY_TEMPERATURE,
-  HealthDataType.WEIGHT,
-];
-
 class _HealthConnectSection extends StatelessWidget {
   const _HealthConnectSection();
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => GetIt.instance<HealthSyncCubit>(),
+      create: (_) {
+        final cubit = GetIt.instance<HealthSyncCubit>();
+        cubit.loadEnabled();
+        return cubit;
+      },
       child: BlocBuilder<HealthSyncCubit, HealthSyncState>(
         builder: (context, state) {
           final cubit = context.read<HealthSyncCubit>();
@@ -157,11 +153,26 @@ class _HealthConnectSection extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              QuanityaTextButton(
-                text: context.l10n.healthImportData,
-                onPressed: isLoading
-                    ? null
-                    : () => cubit.importHealthData(_defaultHealthTypes),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      context.l10n.healthImportData,
+                      style: context.text.bodyMedium,
+                    ),
+                  ),
+                  if (isLoading)
+                    SizedBox(
+                      width: AppSizes.iconSmall,
+                      height: AppSizes.iconSmall,
+                      child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
+                    )
+                  else
+                    QuanityaToggle(
+                      value: state.enabled,
+                      onChanged: (enabled) => cubit.toggle(enabled, defaultHealthTypes),
+                    ),
+                ],
               ),
               if (state.lastImportCount > 0) ...[
                 VSpace.x2,
@@ -171,10 +182,6 @@ class _HealthConnectSection extends StatelessWidget {
                     color: context.colors.textSecondary,
                   ),
                 ),
-              ],
-              if (isLoading) ...[
-                VSpace.x2,
-                const Center(child: CircularProgressIndicator()),
               ],
               if (state.status == UiFlowStatus.failure && state.error != null) ...[
                 VSpace.x2,

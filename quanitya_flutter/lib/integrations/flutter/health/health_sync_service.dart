@@ -1,17 +1,28 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
 import 'package:health/health.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../data/dao/template_query_dao.dart';
 import '../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../infrastructure/core/try_operation.dart';
+import '../../../infrastructure/crypto/interfaces/i_secure_storage.dart';
+import '../../../infrastructure/platform/app_lifecycle_service.dart';
 import '../../../logic/ingestion/exceptions/ingestion_exception.dart';
 import '../../../logic/ingestion/services/data_ingestion_service.dart';
 import '../../../logic/ingestion/adapters/flutter_data_source_adapter.dart';
 import '../../../logic/templates/models/shared/template_aesthetics.dart';
 import 'health_adapter_factory.dart';
+
+/// Default health data types to sync.
+const defaultHealthTypes = [
+  HealthDataType.STEPS,
+  HealthDataType.HEART_RATE,
+  HealthDataType.BLOOD_OXYGEN,
+  HealthDataType.BODY_TEMPERATURE,
+  HealthDataType.WEIGHT,
+];
 
 /// Orchestrates health data sync from HealthKit/Health Connect through
 /// the adapter pipeline into Quanitya's local storage.
@@ -21,10 +32,15 @@ import 'health_adapter_factory.dart';
 /// for deduplication and persistence.
 @lazySingleton
 class HealthSyncService {
+  static const _enabledKey = 'health_sync_enabled';
+  static const _lifecycleKey = 'health_sync';
+
   final HealthAdapterFactory _adapterFactory;
   final DataIngestionService _ingestionService;
   final TemplateQueryDao _templateQueryDao;
   final TemplateWithAestheticsRepository _templateRepo;
+  final ISecureStorage _storage;
+  final AppLifecycleService _lifecycleService;
 
   final Health _health;
 
@@ -33,6 +49,8 @@ class HealthSyncService {
     this._ingestionService,
     this._templateQueryDao,
     this._templateRepo,
+    this._storage,
+    this._lifecycleService,
   ) : _health = Health();
 
   @visibleForTesting
@@ -41,8 +59,52 @@ class HealthSyncService {
     this._ingestionService,
     this._templateQueryDao,
     this._templateRepo,
+    this._storage,
+    this._lifecycleService,
     this._health,
   );
+
+  /// Whether the user has enabled automatic health sync on resume.
+  Future<bool> isEnabled() async {
+    final value = await _storage.getSecureData(_enabledKey);
+    return value == 'true';
+  }
+
+  /// Persist the enabled flag and register/unregister the resume hook.
+  Future<void> setEnabled(bool enabled) async {
+    await _storage.storeSecureData(_enabledKey, enabled.toString());
+    if (enabled) {
+      _lifecycleService.registerOnResume(
+        _lifecycleKey,
+        () => syncIfEnabled(defaultHealthTypes),
+      );
+    } else {
+      _lifecycleService.unregisterOnResume(_lifecycleKey);
+    }
+  }
+
+  /// Register the resume hook if the user previously enabled health sync.
+  ///
+  /// Call once during bootstrap.
+  Future<void> registerIfEnabled() async {
+    if (await isEnabled()) {
+      _lifecycleService.registerOnResume(
+        _lifecycleKey,
+        () => syncIfEnabled(defaultHealthTypes),
+      );
+    }
+  }
+
+  /// Sync only if enabled and permissions are granted. Silent no-op otherwise.
+  Future<void> syncIfEnabled(List<HealthDataType> types) async {
+    try {
+      if (!await isEnabled()) return;
+      if (!await hasPermissions(types)) return;
+      await sync(types);
+    } catch (e) {
+      debugPrint('HealthSyncService: syncIfEnabled failed: $e');
+    }
+  }
 
   /// Check if health data is available on this platform.
   ///

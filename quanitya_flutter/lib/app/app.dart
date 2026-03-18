@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import '../design_system/primitives/app_sizes.dart';
 import '../app_router.dart';
 import '../infrastructure/feedback/localization_service.dart';
+import '../infrastructure/platform/app_lifecycle_service.dart';
 import '../design_system/theme/app_theme.dart';
 import '../design_system/theme/theme_service.dart';
 import '../design_system/primitives/ui_scaler.dart';
@@ -20,6 +21,12 @@ class QuanityaApp extends StatefulWidget {
 }
 
 class _QuanityaAppState extends State<QuanityaApp> {
+  @override
+  void initState() {
+    super.initState();
+    getIt<AppLifecycleService>().init();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(

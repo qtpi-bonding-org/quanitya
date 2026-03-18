@@ -11,15 +11,15 @@ class HealthSyncMessageMapper
   MessageKey? map(HealthSyncState state) {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
-        HealthSyncOperation.requestPermissions => null, // silent
-        HealthSyncOperation.sync => null, // silent
-        HealthSyncOperation.import_ => () {
-            final (key, args) =
-                L10nKeys.healthEntriesImported(state.lastImportCount);
-            return MessageKey.success(key, args);
-          }(),
+        HealthSyncOperation.toggle => state.enabled && state.lastImportCount > 0
+            ? () {
+                final (key, args) =
+                    L10nKeys.healthEntriesImported(state.lastImportCount);
+                return MessageKey.success(key, args);
+              }()
+            : null,
       };
     }
-    return null; // Use global exception mapping for errors
+    return null;
   }
 }
