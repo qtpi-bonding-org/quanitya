@@ -68,6 +68,7 @@ class AnalysisBuilderState
     @Default('') String reasoning,
     @Default(AnalysisOutputMode.scalar) AnalysisOutputMode outputMode,
     @Default(AnalysisSnippetLanguage.js) AnalysisSnippetLanguage snippetLanguage,
+    int? maxEntries,
 
     // Progressive disclosure state
     @Default(false)

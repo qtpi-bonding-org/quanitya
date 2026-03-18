@@ -36,7 +36,10 @@ class WasmAnalysisService implements IWasmAnalysisService {
   Future<AnalysisOutput> execute(AnalysisScriptModel script) async {
     try {
       // 1. Parallel: Fetch data + ensure assets loaded
-      final dataFuture = _repo.fetchFieldTimeSeries(script.fieldId);
+      final dataFuture = _repo.fetchFieldTimeSeries(
+        script.fieldId,
+        maxEntries: script.maxEntries,
+      );
       await _ensureAssetsLoaded();
 
       final data = await dataFuture;

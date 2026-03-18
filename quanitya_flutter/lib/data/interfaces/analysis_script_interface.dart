@@ -83,6 +83,6 @@ abstract class IAnalysisScriptRepository {
   ///
   /// Resolves the fieldId format ("templateId:fieldName") to the actual
   /// field UUID used in entry data, then extracts numeric values from
-  /// log entries in the last [days] days.
-  Future<FieldTimeSeries> fetchFieldTimeSeries(String fieldId, {int days = 90});
+  /// log entries. When [maxEntries] is null, returns all entries.
+  Future<FieldTimeSeries> fetchFieldTimeSeries(String fieldId, {int? maxEntries});
 }

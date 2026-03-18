@@ -19,6 +19,8 @@ import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya/generatable/quanitya_stepper.dart';
+import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
 import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../../logic/analytics/cubits/analysis_builder_cubit.dart';
@@ -146,6 +148,16 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
                     isSelected: state.outputMode == mode,
                     onTap: () => cubit.setOutputMode(mode),
                   )).toList(),
+            ),
+          ),
+          VSpace.x1,
+
+          // Max entries control
+          Padding(
+            padding: AppPadding.pageHorizontal,
+            child: _MaxEntriesControl(
+              maxEntries: state.maxEntries,
+              onChanged: (value) => cubit.setMaxEntries(value),
             ),
           ),
           VSpace.x2,
@@ -447,6 +459,60 @@ class _SaveScriptFormState extends State<_SaveScriptForm> {
         QuanityaTextButton(
           text: context.l10n.actionSave,
           onPressed: _submit,
+        ),
+      ],
+    );
+  }
+}
+
+/// Controls max entries limit for analysis data fetching.
+///
+/// Toggle off = all entries (null). Toggle on = user-adjustable limit via stepper.
+class _MaxEntriesControl extends StatelessWidget {
+  static const _defaultLimit = 100;
+  static const _stepSize = 50;
+  static const _minLimit = 50;
+  static const _maxLimit = 10000;
+
+  final int? maxEntries;
+  final ValueChanged<int?> onChanged;
+
+  const _MaxEntriesControl({
+    required this.maxEntries,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    final isLimited = maxEntries != null;
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            isLimited ? 'Limit: $maxEntries entries' : 'All entries',
+            style: context.text.bodyMedium?.copyWith(
+              color: palette.textSecondary,
+            ),
+          ),
+        ),
+        if (isLimited) ...[
+          QuanityaStepper(
+            buttonColor: palette.interactableColor,
+            iconColor: palette.interactableColor,
+            valueColor: palette.textPrimary,
+            value: maxEntries!,
+            min: _minLimit,
+            max: _maxLimit,
+            step: _stepSize,
+            onChanged: (v) => onChanged(v.toInt()),
+          ),
+          HSpace.x1,
+        ],
+        QuanityaToggle(
+          value: isLimited,
+          onChanged: (on) => onChanged(on ? _defaultLimit : null),
         ),
       ],
     );

@@ -17,6 +17,7 @@ class AnalysisScriptModel with _$AnalysisScriptModel {
     required String snippet,
     String? reasoning,
     String? metadataJson,
+    int? maxEntries,
     required DateTime updatedAt,
   }) = _AnalysisScriptModel;
 

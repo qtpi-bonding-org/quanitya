@@ -295,6 +295,9 @@ class AnalysisScripts extends Table {
   TextColumn get metadataJson =>
       text().named('metadata_json').nullable()();
 
+  /// Maximum number of entries to fetch for analysis (null = all)
+  IntColumn get maxEntries => integer().named('max_entries').nullable()();
+
   /// Timestamp of last modification
   DateTimeColumn get updatedAt => dateTime().named('updated_at')();
 

@@ -84,6 +84,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         reasoning: script?.reasoning ?? '',
         outputMode: script?.outputMode ?? AnalysisOutputMode.scalar,
         snippetLanguage: script?.snippetLanguage ?? AnalysisSnippetLanguage.js,
+        maxEntries: script?.maxEntries,
         previewResult: null,
         liveResults: null,
         status: UiFlowStatus.success,
@@ -113,6 +114,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       reasoning: script.reasoning ?? '',
       outputMode: script.outputMode,
       snippetLanguage: script.snippetLanguage,
+      maxEntries: script.maxEntries,
     ));
 
     if (state.livePreviewEnabled) {
@@ -128,6 +130,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       reasoning: '',
       outputMode: AnalysisOutputMode.scalar,
       snippetLanguage: AnalysisSnippetLanguage.js,
+      maxEntries: null,
       previewResult: null,
     ));
   }
@@ -156,6 +159,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         outputMode: state.outputMode,
         snippetLanguage: state.snippetLanguage,
         snippet: state.snippet,
+        maxEntries: state.maxEntries,
         updatedAt: DateTime.now(),
       );
 
@@ -172,6 +176,11 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
   /// Update the output mode
   void setOutputMode(AnalysisOutputMode mode) {
     emit(state.copyWith(outputMode: mode));
+  }
+
+  /// Update the max entries limit (null = all)
+  void setMaxEntries(int? maxEntries) {
+    emit(state.copyWith(maxEntries: maxEntries));
   }
 
   /// Update the current snippet
@@ -265,6 +274,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         snippetLanguage: state.snippetLanguage,
         snippet: state.snippet,
         reasoning: state.reasoning,
+        maxEntries: state.maxEntries,
         updatedAt: DateTime.now(),
       );
 
