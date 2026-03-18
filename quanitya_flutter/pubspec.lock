@@ -1891,9 +1891,9 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/powersync_sqlcipher"
-      ref: fix-ios-sqlcipher-extension-loading
-      resolved-ref: "919806e1b7cbbb81359e55baa4b19875939d6ccf"
-      url: "git@github.com:qtpi-bonding/powersync.dart.git"
+      ref: f6d1610a070add302f4b849049a7b301cce61196
+      resolved-ref: f6d1610a070add302f4b849049a7b301cce61196
+      url: "https://github.com/powersync-ja/powersync.dart.git"
     source: git
     version: "0.1.16"
   proj4dart:
