@@ -92,6 +92,8 @@ class DevSeederService {
     final workoutTemplateId = await _seedWorkoutTemplate();
     final sleepTemplateId = await _seedSleepTemplate();
     
+    final periodTemplateId = await _seedPeriodTemplate();
+
     // Create hidden templates (for testing hidden feature)
     final journalTemplateId = await _seedJournalTemplate(isHidden: true);
     final medicationTemplateId = await _seedMedicationTemplate(isHidden: true);
@@ -101,6 +103,7 @@ class DevSeederService {
     await _seedWeightEntries(weightTemplateId.id, weightTemplateId.fields);
     await _seedWorkoutEntries(workoutTemplateId.id, workoutTemplateId.fields);
     await _seedSleepEntries(sleepTemplateId.id, sleepTemplateId.fields);
+    await _seedPeriodEntries(periodTemplateId.id, periodTemplateId.fields);
     await _seedJournalEntries(journalTemplateId.id, journalTemplateId.fields);
     await _seedMedicationEntries(medicationTemplateId.id, medicationTemplateId.fields);
 
@@ -110,6 +113,12 @@ class DevSeederService {
 
     // Seed analysis scripts for templates with numeric fields
     await seedAnalysisScripts();
+
+    // Seed period predictor analysis script (uses timestamps, not generic numeric)
+    await _seedPeriodPredictorScript(
+      periodTemplateId.id,
+      periodTemplateId.fields,
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -250,6 +259,35 @@ class DevSeederService {
     ));
 
     await _seedAesthetics(id, '😴', 'bedtime');
+    return _SeededTemplate(id, fields);
+  }
+
+  Future<_SeededTemplate> _seedPeriodTemplate() async {
+    final id = _uuid.v4();
+    final fields = [
+      TemplateField.create(
+        label: 'Flow Intensity',
+        type: FieldEnum.integer,
+        uiElement: UiElementEnum.slider,
+        defaultValue: 3,
+      ),
+      TemplateField.create(
+        label: 'Notes',
+        type: FieldEnum.text,
+        uiElement: UiElementEnum.textArea,
+      ),
+    ];
+
+    await _templateDao.upsert(TrackerTemplate(
+      id: id,
+      name: 'Period Tracker',
+      fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
+      updatedAt: DateTime.now(),
+      isArchived: false,
+      isHidden: false,
+    ));
+
+    await _seedAesthetics(id, '🩸', 'water_drop', color: '#E91E63');
     return _SeededTemplate(id, fields);
   }
 
@@ -433,6 +471,56 @@ class DevSeederService {
           f['Woke Up Refreshed']: quality >= 7,
         },
       );
+    }
+  }
+
+  /// Seed period entries with lognormal-distributed intervals (~28 day mean).
+  Future<void> _seedPeriodEntries(String templateId, List<TemplateField> fields) async {
+    final f = _FieldIds(fields);
+    final now = DateTime.now();
+
+    // Generate ~8 cycle start dates going backwards from ~10 days ago
+    // using lognormal intervals (mean ~28 days, some natural variance)
+    final logMean = 3.33; // ln(28) ≈ 3.33
+    final logStd = 0.12;  // ~12% CV → intervals range ~24–33 days
+    var cursor = now.subtract(const Duration(days: 10));
+
+    final cycleDates = <DateTime>[];
+    for (var i = 0; i < 8; i++) {
+      cycleDates.add(cursor);
+      // Box-Muller transform for normal sample → exponentiate for lognormal
+      final u1 = _random.nextDouble();
+      final u2 = _random.nextDouble();
+      final normalSample = sqrt(-2.0 * log(u1)) * cos(2.0 * pi * u2);
+      final intervalDays = exp(logMean + logStd * normalSample);
+      cursor = cursor.subtract(Duration(days: intervalDays.round()));
+    }
+
+    // Reverse so they're chronological
+    cycleDates.sort();
+
+    // For each cycle start, seed 3-5 days of entries (period duration)
+    for (final cycleStart in cycleDates) {
+      final durationDays = 3 + _random.nextInt(3); // 3-5 days
+      for (var d = 0; d < durationDays; d++) {
+        final date = cycleStart.add(Duration(days: d));
+        if (date.isAfter(now)) break;
+
+        // Intensity peaks on day 2, tapers off
+        final intensity = d == 0 ? 2 + _random.nextInt(2)
+            : d == 1 ? 3 + _random.nextInt(3)
+            : d == 2 ? 2 + _random.nextInt(3)
+            : 1 + _random.nextInt(2);
+
+        await _insertEntry(
+          templateId: templateId,
+          occurredAt: date,
+          data: {
+            f['Flow Intensity']: intensity,
+            f['Notes']: '',
+          },
+        );
+      }
     }
   }
 
@@ -659,6 +747,129 @@ return [
       updatedAt: now,
     ));
   }
+
+  /// Seed the Bayesian lognormal period predictor script.
+  ///
+  /// Uses inter-event timestamps to fit a Normal-Inverse-Gamma conjugate
+  /// posterior on log-intervals, then produces a Student-t predictive
+  /// distribution for the next cycle length and predicted date.
+  Future<void> _seedPeriodPredictorScript(
+    String templateId,
+    List<TemplateField> fields,
+  ) async {
+    // Use "Flow Intensity" as the numeric field binding
+    final fieldLabel = 'Flow Intensity';
+    final fieldId = '$templateId:$fieldLabel';
+    final now = DateTime.now();
+
+    await _pipelineRepo.saveScript(AnalysisScriptModel(
+      id: _uuid.v4(),
+      name: 'Period Predictor (Bayesian)',
+      fieldId: fieldId,
+      outputMode: AnalysisOutputMode.scalar,
+      snippetLanguage: AnalysisSnippetLanguage.js,
+      snippet: _periodPredictorSnippet,
+      reasoning:
+          'Bayesian lognormal model: treats log(interval) as normally distributed, '
+          'uses Normal-Inverse-Gamma conjugate prior for online learning. '
+          'The predictive distribution is Student-t, exponentiated back to days. '
+          'Returns predicted next date with 90% credible interval.',
+      updatedAt: now,
+    ));
+  }
+
+  static const _periodPredictorSnippet = r"""
+// Bayesian Lognormal Period Predictor
+// ------------------------------------
+// Model: inter-cycle intervals ~ LogNormal(mu, sigma^2)
+//   equivalently: log(interval) ~ Normal(mu, sigma^2)
+// Prior: Normal-Inverse-Gamma conjugate
+//   mu | sigma^2 ~ N(mu0, sigma^2 / kappa0)
+//   sigma^2 ~ IG(nu0/2, nu0*sigma0^2/2)
+// Posterior update is closed-form; predictive is Student-t.
+
+const MS_PER_DAY = 86400000;
+
+// ── 1. Extract cycle start dates ──────────────────────────────
+// Group entries by cycle: a new cycle starts when there's a gap > 10 days
+const sortedTs = data.timestamps.slice().sort((a, b) => a - b);
+const cycleStarts = [sortedTs[0]];
+
+for (let i = 1; i < sortedTs.length; i++) {
+  const gapDays = (sortedTs[i] - sortedTs[i - 1]) / MS_PER_DAY;
+  if (gapDays > 10) {
+    cycleStarts.push(sortedTs[i]);
+  }
+}
+
+if (cycleStarts.length < 3) {
+  return [
+    { label: 'Status', value: 0, unit: 'Need 3+ cycles for prediction' }
+  ];
+}
+
+// ── 2. Compute inter-cycle intervals (days) ───────────────────
+const intervals = [];
+for (let i = 1; i < cycleStarts.length; i++) {
+  intervals.push((cycleStarts[i] - cycleStarts[i - 1]) / MS_PER_DAY);
+}
+const logIntervals = intervals.map(d => Math.log(d));
+
+// ── 3. Weakly informative prior (centered on ~28 days) ────────
+const mu0    = Math.log(28);  // prior mean for log-interval
+const kappa0 = 1;             // prior strength (1 pseudo-observation)
+const nu0    = 2;             // prior df
+const sigma0_sq = 0.04;       // prior variance for log-interval (~20% CV)
+
+// ── 4. Normal-Inverse-Gamma posterior update ──────────────────
+const n       = logIntervals.length;
+const xbar    = ss.mean(logIntervals);
+const S       = ss.sumNthPowerDeviations(logIntervals, 2);
+
+const kappa_n = kappa0 + n;
+const mu_n    = (kappa0 * mu0 + n * xbar) / kappa_n;
+const nu_n    = nu0 + n;
+const nu_sigma_n = nu0 * sigma0_sq + S + (kappa0 * n * (xbar - mu0) ** 2) / kappa_n;
+const sigma_n_sq = nu_sigma_n / nu_n;
+
+// ── 5. Predictive distribution: Student-t in log-space ────────
+// log(next_interval) ~ t_{nu_n}(mu_n, sigma_n^2 * (1 + 1/kappa_n))
+const predScale = Math.sqrt(sigma_n_sq * (1 + 1 / kappa_n));
+const predDf    = nu_n;
+
+// Point estimate: exp(mu_n) (median of lognormal predictive)
+const predictedDays = Math.exp(mu_n);
+
+// 90% credible interval via Student-t quantiles
+// For df >= 3, approximate t-quantile at 0.95 (one-sided)
+const tCrit = predDf > 30 ? 1.645
+            : predDf > 10 ? 1.7 + 3 / predDf
+            : predDf > 5  ? 1.8 + 5 / predDf
+            : 2.0 + 8 / predDf;
+
+const logLower = mu_n - tCrit * predScale;
+const logUpper = mu_n + tCrit * predScale;
+const lowerDays = Math.exp(logLower);
+const upperDays = Math.exp(logUpper);
+
+// ── 6. Predicted next date ────────────────────────────────────
+const lastCycleStart = cycleStarts[cycleStarts.length - 1];
+const predictedDate = new Date(lastCycleStart + predictedDays * MS_PER_DAY);
+const lowerDate = new Date(lastCycleStart + lowerDays * MS_PER_DAY);
+const upperDate = new Date(lastCycleStart + upperDays * MS_PER_DAY);
+
+const fmt = (d) => d.toISOString().slice(5, 10);
+
+return [
+  { label: 'Predicted Cycle', value: Math.round(predictedDays * 10) / 10, unit: 'days' },
+  { label: '90% CI Lower', value: Math.round(lowerDays * 10) / 10, unit: 'days' },
+  { label: '90% CI Upper', value: Math.round(upperDays * 10) / 10, unit: 'days' },
+  { label: 'Next Period', value: 0, unit: fmt(predictedDate) },
+  { label: 'Window', value: 0, unit: fmt(lowerDate) + ' – ' + fmt(upperDate) },
+  { label: 'Cycles Used', value: intervals.length, unit: 'intervals' },
+  { label: 'Observed Mean', value: Math.round(ss.mean(intervals) * 10) / 10, unit: 'days' }
+];
+""";
 
   String _randomMoodNote() {
     final notes = [
