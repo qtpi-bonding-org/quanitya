@@ -82,7 +82,12 @@ abstract class IAnalysisScriptRepository {
   /// Fetches numeric time-series data for a field.
   ///
   /// Resolves the fieldId format ("templateId:fieldName") to the actual
-  /// field UUID used in entry data, then extracts numeric values from
-  /// log entries. When [maxEntries] is null, returns all entries.
-  Future<FieldTimeSeries> fetchFieldTimeSeries(String fieldId, {int? maxEntries});
+  /// field UUID used in entry data, then extracts numeric values.
+  /// [entryRangeStart] and [entryRangeEnd] slice the result set (0-based,
+  /// ordered by date descending). Both null = all entries.
+  Future<FieldTimeSeries> fetchFieldTimeSeries(
+    String fieldId, {
+    int? entryRangeStart,
+    int? entryRangeEnd,
+  });
 }

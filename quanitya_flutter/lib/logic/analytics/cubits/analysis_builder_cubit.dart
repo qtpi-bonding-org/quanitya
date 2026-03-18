@@ -84,7 +84,8 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         reasoning: script?.reasoning ?? '',
         outputMode: script?.outputMode ?? AnalysisOutputMode.scalar,
         snippetLanguage: script?.snippetLanguage ?? AnalysisSnippetLanguage.js,
-        maxEntries: script?.maxEntries,
+        entryRangeStart: script?.entryRangeStart,
+        entryRangeEnd: script?.entryRangeEnd,
         previewResult: null,
         liveResults: null,
         status: UiFlowStatus.success,
@@ -114,7 +115,8 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       reasoning: script.reasoning ?? '',
       outputMode: script.outputMode,
       snippetLanguage: script.snippetLanguage,
-      maxEntries: script.maxEntries,
+      entryRangeStart: script.entryRangeStart,
+      entryRangeEnd: script.entryRangeEnd,
     ));
 
     if (state.livePreviewEnabled) {
@@ -130,7 +132,8 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       reasoning: '',
       outputMode: AnalysisOutputMode.scalar,
       snippetLanguage: AnalysisSnippetLanguage.js,
-      maxEntries: null,
+      entryRangeStart: null,
+      entryRangeEnd: null,
       previewResult: null,
     ));
   }
@@ -159,7 +162,8 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         outputMode: state.outputMode,
         snippetLanguage: state.snippetLanguage,
         snippet: state.snippet,
-        maxEntries: state.maxEntries,
+        entryRangeStart: state.entryRangeStart,
+        entryRangeEnd: state.entryRangeEnd,
         updatedAt: DateTime.now(),
       );
 
@@ -178,9 +182,9 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     emit(state.copyWith(outputMode: mode));
   }
 
-  /// Update the max entries limit (null = all)
-  void setMaxEntries(int? maxEntries) {
-    emit(state.copyWith(maxEntries: maxEntries));
+  /// Update the entry range slice (both null = all entries)
+  void setEntryRange({int? start, int? end}) {
+    emit(state.copyWith(entryRangeStart: start, entryRangeEnd: end));
   }
 
   /// Update the current snippet
@@ -274,7 +278,8 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         snippetLanguage: state.snippetLanguage,
         snippet: state.snippet,
         reasoning: state.reasoning,
-        maxEntries: state.maxEntries,
+        entryRangeStart: state.entryRangeStart,
+        entryRangeEnd: state.entryRangeEnd,
         updatedAt: DateTime.now(),
       );
 

@@ -122,7 +122,8 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
   @override
   Future<FieldTimeSeries> fetchFieldTimeSeries(
     String fieldId, {
-    int? maxEntries,
+    int? entryRangeStart,
+    int? entryRangeEnd,
   }) {
     return tryMethod(
       () async {
@@ -146,16 +147,20 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
           );
         }
 
-        // Query all entries (ordered desc by date)
-        final allEntries = maxEntries != null
-            ? await _logEntryDao.findRecentEntries(templateId, maxEntries)
-            : await _logEntryDao.findByTemplateId(templateId);
+        // Query all entries (ordered desc by date), then slice
+        final allEntries = await _logEntryDao.findByTemplateId(templateId);
+        final start = entryRangeStart ?? 0;
+        final end = entryRangeEnd ?? allEntries.length;
+        final sliced = allEntries.sublist(
+          start.clamp(0, allEntries.length),
+          end.clamp(start, allEntries.length),
+        );
 
         // Extract numeric values keyed by field UUID
         final values = <double>[];
         final timestamps = <DateTime>[];
 
-        for (final entry in allEntries) {
+        for (final entry in sliced) {
           final ts = entry.occurredAt ?? entry.scheduledFor;
           if (ts == null) continue;
 

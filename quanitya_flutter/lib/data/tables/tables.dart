@@ -295,8 +295,11 @@ class AnalysisScripts extends Table {
   TextColumn get metadataJson =>
       text().named('metadata_json').nullable()();
 
-  /// Maximum number of entries to fetch for analysis (null = all)
-  IntColumn get maxEntries => integer().named('max_entries').nullable()();
+  /// Start index for entry range slice (null = from beginning)
+  IntColumn get entryRangeStart => integer().named('entry_range_start').nullable()();
+
+  /// End index for entry range slice (null = to end)
+  IntColumn get entryRangeEnd => integer().named('entry_range_end').nullable()();
 
   /// Timestamp of last modification
   DateTimeColumn get updatedAt => dateTime().named('updated_at')();

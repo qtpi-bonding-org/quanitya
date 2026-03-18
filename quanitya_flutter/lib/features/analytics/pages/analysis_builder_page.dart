@@ -152,12 +152,14 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
           ),
           VSpace.x1,
 
-          // Max entries control
+          // Entry range control
           Padding(
             padding: AppPadding.pageHorizontal,
-            child: _MaxEntriesControl(
-              maxEntries: state.maxEntries,
-              onChanged: (value) => cubit.setMaxEntries(value),
+            child: _EntryRangeControl(
+              start: state.entryRangeStart,
+              end: state.entryRangeEnd,
+              onChanged: (start, end) =>
+                  cubit.setEntryRange(start: start, end: end),
             ),
           ),
           VSpace.x2,
@@ -465,55 +467,90 @@ class _SaveScriptFormState extends State<_SaveScriptForm> {
   }
 }
 
-/// Controls max entries limit for analysis data fetching.
+/// Controls entry range [start:end] for analysis data fetching.
 ///
-/// Toggle off = all entries (null). Toggle on = user-adjustable limit via stepper.
-class _MaxEntriesControl extends StatelessWidget {
-  static const _defaultLimit = 100;
-  static const _stepSize = 50;
-  static const _minLimit = 50;
-  static const _maxLimit = 10000;
+/// Toggle off = all entries (both null). Toggle on = adjustable start/end.
+/// Entries are 0-indexed, ordered by date descending (0 = most recent).
+class _EntryRangeControl extends StatelessWidget {
+  static const _step = 50;
+  static const _max = 10000;
+  static const _defaultEnd = 100;
 
-  final int? maxEntries;
-  final ValueChanged<int?> onChanged;
+  final int? start;
+  final int? end;
+  final void Function(int? start, int? end) onChanged;
 
-  const _MaxEntriesControl({
-    required this.maxEntries,
+  const _EntryRangeControl({
+    required this.start,
+    required this.end,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
-    final isLimited = maxEntries != null;
+    final isSliced = start != null || end != null;
+    final effectiveStart = start ?? 0;
+    final effectiveEnd = end ?? _defaultEnd;
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Text(
-            isLimited ? 'Limit: $maxEntries entries' : 'All entries',
-            style: context.text.bodyMedium?.copyWith(
-              color: palette.textSecondary,
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                isSliced ? 'Entries [$effectiveStart:$effectiveEnd]' : 'All entries',
+                style: context.text.bodyMedium?.copyWith(
+                  color: palette.textSecondary,
+                ),
+              ),
             ),
-          ),
+            QuanityaToggle(
+              value: isSliced,
+              onChanged: (on) => onChanged(
+                on ? 0 : null,
+                on ? _defaultEnd : null,
+              ),
+            ),
+          ],
         ),
-        if (isLimited) ...[
-          QuanityaStepper(
-            buttonColor: palette.interactableColor,
-            iconColor: palette.interactableColor,
-            valueColor: palette.textPrimary,
-            value: maxEntries!,
-            min: _minLimit,
-            max: _maxLimit,
-            step: _stepSize,
-            onChanged: (v) => onChanged(v.toInt()),
+        if (isSliced) ...[
+          VSpace.x1,
+          Row(
+            children: [
+              Text('from', style: context.text.bodySmall?.copyWith(
+                color: palette.textSecondary,
+              )),
+              HSpace.x1,
+              QuanityaStepper(
+                buttonColor: palette.interactableColor,
+                iconColor: palette.interactableColor,
+                valueColor: palette.textPrimary,
+                value: effectiveStart,
+                min: 0,
+                max: (effectiveEnd - _step).clamp(0, _max),
+                step: _step,
+                onChanged: (v) => onChanged(v.toInt(), end),
+              ),
+              HSpace.x2,
+              Text('to', style: context.text.bodySmall?.copyWith(
+                color: palette.textSecondary,
+              )),
+              HSpace.x1,
+              QuanityaStepper(
+                buttonColor: palette.interactableColor,
+                iconColor: palette.interactableColor,
+                valueColor: palette.textPrimary,
+                value: effectiveEnd,
+                min: effectiveStart + _step,
+                max: _max,
+                step: _step,
+                onChanged: (v) => onChanged(start, v.toInt()),
+              ),
+            ],
           ),
-          HSpace.x1,
         ],
-        QuanityaToggle(
-          value: isLimited,
-          onChanged: (on) => onChanged(on ? _defaultLimit : null),
-        ),
       ],
     );
   }

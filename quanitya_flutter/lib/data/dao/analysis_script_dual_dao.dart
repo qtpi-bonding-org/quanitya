@@ -38,7 +38,8 @@ class AnalysisScriptDualDao
       snippet: entity.snippet,
       reasoning: Value(entity.reasoning),
       metadataJson: Value(entity.metadataJson),
-      maxEntries: Value(entity.maxEntries),
+      entryRangeStart: Value(entity.entryRangeStart),
+      entryRangeEnd: Value(entity.entryRangeEnd),
       updatedAt: entity.updatedAt,
     );
   }
@@ -71,7 +72,8 @@ class AnalysisScriptDualDao
       snippet: model.snippet,
       reasoning: model.reasoning,
       metadataJson: model.metadataJson,
-      maxEntries: model.maxEntries,
+      entryRangeStart: model.entryRangeStart,
+      entryRangeEnd: model.entryRangeEnd,
       updatedAt: model.updatedAt,
     );
   }
@@ -87,7 +89,8 @@ class AnalysisScriptDualDao
       snippet: entity.snippet,
       reasoning: entity.reasoning,
       metadataJson: entity.metadataJson,
-      maxEntries: entity.maxEntries,
+      entryRangeStart: entity.entryRangeStart,
+      entryRangeEnd: entity.entryRangeEnd,
       updatedAt: entity.updatedAt,
     );
   }
