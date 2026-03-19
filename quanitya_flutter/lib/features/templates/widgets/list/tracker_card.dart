@@ -81,7 +81,7 @@ class TrackerCard extends StatelessWidget {
             // Edit - Using QuanityaIconButton with interactableColor
             QuanityaIconButton(
               icon: Icons.edit_outlined,
-              iconSize: AppSizes.size20,
+              iconSize: AppSizes.iconMedium,
               tooltip: context.l10n.tooltipCustomLog,
               onPressed: onEdit,
               // Uses interactableColor by default
@@ -95,7 +95,7 @@ class TrackerCard extends StatelessWidget {
               opacity: _canInstantLog() ? 1.0 : 0.3,
               child: QuanityaIconButton(
                 icon: Icons.bolt,
-                iconSize: AppSizes.size20,
+                iconSize: AppSizes.iconMedium,
                 tooltip: _canInstantLog()
                     ? context.l10n.tooltipQuickEntry
                     : context.l10n.tooltipQuickEntryUnavailable,

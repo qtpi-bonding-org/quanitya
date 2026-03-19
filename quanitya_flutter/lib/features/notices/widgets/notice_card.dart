@@ -53,7 +53,7 @@ class NoticeCard extends StatelessWidget {
                 QuanityaIconButton(
                   icon: Icons.close,
                   onPressed: onDismiss,
-                  iconSize: AppSizes.iconSmall,
+                  iconSize: AppSizes.iconMedium,
                 ),
               ],
             ),

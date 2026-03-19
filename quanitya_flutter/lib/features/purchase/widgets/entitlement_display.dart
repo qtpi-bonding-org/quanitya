@@ -118,7 +118,7 @@ class EntitlementDisplay extends StatelessWidget {
                 QuanityaIconButton(
                   icon: Icons.refresh,
                   onPressed: onRetry,
-                  iconSize: AppSizes.iconSmall,
+                  iconSize: AppSizes.iconMedium,
                   color: palette.cautionColor,
                   tooltip: context.l10n.entitlementRefreshFailed,
                 ),

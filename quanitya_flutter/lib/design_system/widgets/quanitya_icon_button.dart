@@ -88,7 +88,7 @@ class QuanityaIconButton extends StatelessWidget {
 
 /// Convenience constructors for common sizes
 extension QuanityaIconButtonSizes on QuanityaIconButton {
-  /// Small icon (16px visual, 48px touch)
+  /// Small icon (18px visual, 48px touch)
   static QuanityaIconButton small({
     required IconData icon,
     required VoidCallback? onPressed,
@@ -106,7 +106,7 @@ extension QuanityaIconButtonSizes on QuanityaIconButton {
     );
   }
 
-  /// Medium icon (20px visual, 48px touch)
+  /// Medium icon (22px visual, 48px touch)
   static QuanityaIconButton medium({
     required IconData icon,
     required VoidCallback? onPressed,

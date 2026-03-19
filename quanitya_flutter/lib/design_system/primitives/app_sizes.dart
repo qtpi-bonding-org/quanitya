@@ -33,7 +33,7 @@ class AppSizes {
 
   // --- Icon Sizes ---
   static double get iconTiny => UiScaler.instance.sp(8.0);
-  static double get iconSmall => UiScaler.instance.sp(16.0);
+  static double get iconSmall => UiScaler.instance.sp(18.0);
   static double get iconMedium => UiScaler.instance.sp(24.0);
   static double get iconLarge => UiScaler.instance.sp(32.0);
   static double get iconXLarge => UiScaler.instance.sp(48.0);
