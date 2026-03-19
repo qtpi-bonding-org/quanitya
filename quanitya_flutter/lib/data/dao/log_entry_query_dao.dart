@@ -369,6 +369,32 @@ class LogEntryQueryDao {
   // Context-Enriched Queries (with template + aesthetics + schedule)
   // ─────────────────────────────────────────────────────────────────────────
 
+  /// Get entries with full context by IDs, preserving input order.
+  ///
+  /// Useful for search results where the caller controls ranking.
+  /// Entries whose template is missing or hidden are silently skipped.
+  Future<List<LogEntryWithContext>> findByIdsWithContext(
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return [];
+
+    final query = _db.select(_db.logEntries)
+      ..where((t) => t.id.isIn(ids));
+    final entities = await query.get();
+    final entries = entities.map(_entityToModel).toList();
+
+    final contextList = await _loadContextForList(entries);
+
+    // Restore caller's ordering (e.g. BM25 rank)
+    final contextById = {
+      for (final c in contextList) c.entry.id: c,
+    };
+    return [
+      for (final id in ids)
+        if (contextById.containsKey(id)) contextById[id]!,
+    ];
+  }
+
   /// Get entries with full context for a template
   Future<List<LogEntryWithContext>> findByTemplateIdWithContext(
     String templateId,

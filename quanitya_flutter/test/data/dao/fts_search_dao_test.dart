@@ -5,14 +5,20 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:quanitya_flutter/data/db/app_database.dart';
 import 'package:quanitya_flutter/data/dao/fts_search_dao.dart';
+import 'package:quanitya_flutter/data/dao/log_entry_query_dao.dart';
+import 'package:quanitya_flutter/data/repositories/fts_search_repository.dart';
 
 void main() {
   late AppDatabase database;
   late FtsSearchDao ftsDao;
+  late LogEntryQueryDao queryDao;
+  late FtsSearchRepository searchRepo;
 
   setUp(() async {
     database = AppDatabase.forTesting(NativeDatabase.memory());
     ftsDao = FtsSearchDao(database);
+    queryDao = LogEntryQueryDao(database);
+    searchRepo = FtsSearchRepository(ftsDao, queryDao);
     await ftsDao.ensureTable();
   });
 
@@ -247,6 +253,91 @@ void main() {
 
       expect(await ftsDao.search('coffee'), ['entry-1']);
       expect(await ftsDao.search('walk'), ['entry-2']);
+    });
+  });
+
+  group('findByIdsWithContext', () {
+    test('returns entries with context preserving input order', () async {
+      await insertTemplate();
+      await insertEntry(
+        id: 'entry-1',
+        data: {'field-notes': 'First entry'},
+      );
+      await insertEntry(
+        id: 'entry-2',
+        data: {'field-notes': 'Second entry'},
+      );
+
+      // Request in reverse order
+      final results = await queryDao.findByIdsWithContext(
+        ['entry-2', 'entry-1'],
+      );
+
+      expect(results, hasLength(2));
+      expect(results[0].entry.id, 'entry-2');
+      expect(results[1].entry.id, 'entry-1');
+      expect(results[0].template.name, 'Test Template');
+    });
+
+    test('returns empty list for empty IDs', () async {
+      final results = await queryDao.findByIdsWithContext([]);
+      expect(results, isEmpty);
+    });
+
+    test('skips entries with missing templates', () async {
+      // Insert entry without a template
+      await database.into(database.logEntries).insert(
+        LogEntriesCompanion.insert(
+          id: 'orphan',
+          templateId: 'nonexistent-template',
+          dataJson: jsonEncode({'field': 'value'}),
+          updatedAt: DateTime.now(),
+          occurredAt: Value(DateTime.now()),
+        ),
+      );
+
+      final results = await queryDao.findByIdsWithContext(['orphan']);
+      expect(results, isEmpty);
+    });
+  });
+
+  group('FtsSearchRepository', () {
+    test('search returns LogEntryWithContext ordered by relevance', () async {
+      await insertTemplate();
+      await insertEntry(
+        id: 'entry-1',
+        data: {'field-notes': 'coffee'},
+      );
+      await insertEntry(
+        id: 'entry-2',
+        data: {'field-notes': 'coffee coffee coffee is great'},
+      );
+      await insertEntry(
+        id: 'entry-3',
+        data: {'field-notes': 'no match here'},
+      );
+
+      final results = await searchRepo.search('coffee');
+
+      expect(results, hasLength(2));
+      // entry-2 ranks higher (more occurrences)
+      expect(results[0].entry.id, 'entry-2');
+      expect(results[1].entry.id, 'entry-1');
+      // Context is loaded
+      expect(results[0].template.name, 'Test Template');
+    });
+
+    test('search returns empty for no match', () async {
+      await insertTemplate();
+      await insertEntry(data: {'field-notes': 'Had tea'});
+
+      final results = await searchRepo.search('coffee');
+      expect(results, isEmpty);
+    });
+
+    test('search returns empty for empty query', () async {
+      final results = await searchRepo.search('');
+      expect(results, isEmpty);
     });
   });
 }

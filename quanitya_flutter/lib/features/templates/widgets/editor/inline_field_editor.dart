@@ -6,6 +6,7 @@ import '../../../../logic/templates/enums/field_enum_extensions.dart';
 import '../../../../logic/templates/enums/measurement_dimension.dart';
 import '../../../../logic/templates/enums/measurement_unit.dart';
 import '../../../../logic/templates/enums/ui_element_enum.dart';
+import '../../../../logic/templates/models/shared/field_validator.dart';
 import '../../../../logic/templates/models/shared/template_field.dart';
 import '../../../../logic/templates/services/engine/symbolic_combination_generator.dart';
 import '../../../../logic/templates/services/shared/default_value_handler.dart';
@@ -56,6 +57,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   late final TextEditingController _labelController;
   late final TextEditingController _optionController;
   late final TextEditingController _defaultValueController;
+  late final TextEditingController _minController;
+  late final TextEditingController _maxController;
   late final DefaultValueHandler _defaultHandler;
   late final List<UiElementEnum> _validWidgets;
   late UiElementEnum _selectedWidget;
@@ -86,6 +89,26 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       _defaultValueController = TextEditingController(
         text: _defaultValueToString(field.defaultValue),
       );
+
+      // Initialize min/max from existing numeric/dimension validator
+      final numericValidator = field.validators
+          .where((v) =>
+              v.validatorType == ValidatorType.numeric ||
+              v.validatorType == ValidatorType.dimension)
+          .firstOrNull;
+      final data = numericValidator?.validatorData;
+      final minKey = numericValidator?.validatorType == ValidatorType.dimension
+          ? 'minValue'
+          : 'min';
+      final maxKey = numericValidator?.validatorType == ValidatorType.dimension
+          ? 'maxValue'
+          : 'max';
+      _minController = TextEditingController(
+        text: data?[minKey]?.toString() ?? '',
+      );
+      _maxController = TextEditingController(
+        text: data?[maxKey]?.toString() ?? '',
+      );
     } else {
       _labelController = TextEditingController();
       _selectedWidget = _validWidgets.first;
@@ -94,6 +117,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       _selectedUnit = null;
       _defaultValue = null;
       _defaultValueController = TextEditingController();
+      _minController = TextEditingController();
+      _maxController = TextEditingController();
     }
     
     _optionController = TextEditingController();
@@ -104,6 +129,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     _labelController.dispose();
     _optionController.dispose();
     _defaultValueController.dispose();
+    _minController.dispose();
+    _maxController.dispose();
     super.dispose();
   }
 
@@ -150,6 +177,12 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             _buildUnitSelector(context, draftColor),
           ],
 
+          // Range editor for numeric fields
+          if (_isNumericField) ...[
+            VSpace.x1,
+            _buildRangeEditor(context, draftColor),
+          ],
+
           // Default value editor (for supported types, not for lists)
           if (supportsDefault && !_isList) ...[
             VSpace.x1,
@@ -167,6 +200,53 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
           _buildActions(context),
         ],
       ),
+    );
+  }
+
+  bool get _isNumericField =>
+      widget.fieldType == FieldEnum.integer ||
+      widget.fieldType == FieldEnum.float ||
+      widget.fieldType == FieldEnum.dimension;
+
+  bool get _rangeRequired => _isNumericField;
+
+  Widget _buildRangeEditor(BuildContext context, Color draftColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.fieldRangeLabel,
+          style: context.text.labelMedium?.copyWith(
+            color: draftColor,
+          ),
+        ),
+        VSpace.x05,
+        QuanityaRow(
+          spacing: HSpace.x1,
+          start: Expanded(
+            child: QuanityaTextField(
+              controller: _minController,
+              hintText: '${context.l10n.fieldRangeMinHint} (0)',
+              keyboardType: widget.fieldType == FieldEnum.integer
+                  ? const TextInputType.numberWithOptions(signed: true)
+                  : const TextInputType.numberWithOptions(
+                      decimal: true, signed: true),
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
+          end: Expanded(
+            child: QuanityaTextField(
+              controller: _maxController,
+              hintText: '${context.l10n.fieldRangeMaxHint} (10)',
+              keyboardType: widget.fieldType == FieldEnum.integer
+                  ? const TextInputType.numberWithOptions(signed: true)
+                  : const TextInputType.numberWithOptions(
+                      decimal: true, signed: true),
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -611,17 +691,72 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       return false;
     }
 
+    // Range validation for numeric fields
+    if (_isNumericField) {
+      final minText = _minController.text.trim();
+      final maxText = _maxController.text.trim();
+
+      // Non-empty values must be valid numbers
+      if (minText.isNotEmpty && num.tryParse(minText) == null) return false;
+      if (maxText.isNotEmpty && num.tryParse(maxText) == null) return false;
+
+      // If both provided, min must be less than max
+      if (minText.isNotEmpty && maxText.isNotEmpty) {
+        final min = num.parse(minText);
+        final max = num.parse(maxText);
+        if (min >= max) return false;
+      }
+    }
+
     return true;
+  }
+
+  List<FieldValidator> _buildValidators() {
+    if (!_isNumericField) return [];
+
+    final minText = _minController.text.trim();
+    final maxText = _maxController.text.trim();
+
+    // Resolve values: use defaults for slider/stepper if empty
+    num? minVal = minText.isNotEmpty ? num.parse(minText) : null;
+    num? maxVal = maxText.isNotEmpty ? num.parse(maxText) : null;
+
+    if (_rangeRequired) {
+      minVal ??= 0;
+      maxVal ??= 10;
+    }
+
+    // No values = no validator needed
+    if (minVal == null && maxVal == null) return [];
+
+    final isDimension = widget.fieldType == FieldEnum.dimension;
+    return [
+      FieldValidator.create(
+        validatorType:
+            isDimension ? ValidatorType.dimension : ValidatorType.numeric,
+        validatorData: isDimension
+            ? {
+                if (minVal != null) 'minValue': minVal,
+                if (maxVal != null) 'maxValue': maxVal,
+              }
+            : {
+                if (minVal != null) 'min': minVal,
+                if (maxVal != null) 'max': maxVal,
+              },
+      ),
+    ];
   }
 
   void _save() {
     if (!_canSave) return;
-    
+
     final label = _labelController.text.trim();
-    
+
     // Clear default value if switching to list mode
     final effectiveDefault = _isList ? null : _defaultValue;
-    
+
+    final validators = _buildValidators();
+
     final field = widget.isEditing
         ? widget.existingField!.copyWith(
             label: label,
@@ -630,6 +765,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             unit: widget.fieldType == FieldEnum.dimension ? _selectedUnit : null,
             options: widget.fieldType == FieldEnum.enumerated ? _options : null,
             defaultValue: effectiveDefault,
+            validators: validators,
           )
         : TemplateField.create(
             type: widget.fieldType,
@@ -639,8 +775,9 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             unit: widget.fieldType == FieldEnum.dimension ? _selectedUnit : null,
             options: widget.fieldType == FieldEnum.enumerated ? _options : null,
             defaultValue: effectiveDefault,
+            validators: validators,
           );
-    
+
     widget.onSave(field);
   }
 
