@@ -84,6 +84,7 @@ class ResultsListCubit extends QuanityaCubit<ResultsListState> {
             lastLoggedAt: s.lastLoggedAt,
             hasGraphableFields: t.template.fields
                 .any((f) => graphableTypes.contains(f.type)),
+            isHidden: t.template.isHidden,
           );
         })
         .toList()

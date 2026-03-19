@@ -15,6 +15,7 @@ import '../../../logic/analytics/models/matrix_vector_scalar/time_series_matrix.
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
 import '../../visualization/cubits/visualization_cubit.dart';
+import '../../hidden_visibility/cubits/hidden_visibility_cubit.dart';
 import '../cubits/results_list_cubit.dart';
 import '../widgets/results_template_fold.dart';
 
@@ -33,8 +34,12 @@ class ResultsAnalysisPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
+        final showHidden =
+            context.watch<HiddenVisibilityCubit>().state.showingHidden;
         final analyzable = state.templates
-            .where((item) => item.hasGraphableFields)
+            .where((item) =>
+                item.hasGraphableFields &&
+                (showHidden || !item.isHidden))
             .toList();
 
         if (analyzable.isEmpty) {

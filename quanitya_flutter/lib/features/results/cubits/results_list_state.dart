@@ -10,6 +10,7 @@ class ResultsTemplateItem {
   final int entryCount;
   final DateTime? lastLoggedAt;
   final bool hasGraphableFields;
+  final bool isHidden;
 
   const ResultsTemplateItem({
     required this.templateId,
@@ -17,6 +18,7 @@ class ResultsTemplateItem {
     required this.entryCount,
     this.lastLoggedAt,
     this.hasGraphableFields = true,
+    this.isHidden = false,
   });
 }
 

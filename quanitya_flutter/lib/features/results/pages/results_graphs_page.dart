@@ -15,6 +15,7 @@ import '../../../design_system/widgets/charts/location_scatter_map.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
 import '../../visualization/cubits/visualization_cubit.dart';
+import '../../hidden_visibility/cubits/hidden_visibility_cubit.dart';
 import '../cubits/results_list_cubit.dart';
 import '../widgets/results_template_fold.dart';
 
@@ -33,7 +34,13 @@ class ResultsGraphsPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (state.templates.isEmpty) {
+        final showHidden =
+            context.watch<HiddenVisibilityCubit>().state.showingHidden;
+        final visible = showHidden
+            ? state.templates
+            : state.templates.where((t) => !t.isHidden).toList();
+
+        if (visible.isEmpty) {
           return const QuanityaEmptyState();
         }
 
@@ -41,7 +48,7 @@ class ResultsGraphsPage extends StatelessWidget {
           padding: AppPadding.page,
           child: Column(
             children: [
-              for (final item in state.templates)
+              for (final item in visible)
                 ResultsTemplateFold(
                   item: item,
                   bodyBuilder: () => const _GraphsFoldBody(),
