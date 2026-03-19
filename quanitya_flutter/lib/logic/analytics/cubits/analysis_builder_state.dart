@@ -70,6 +70,7 @@ class AnalysisBuilderState
     @Default(AnalysisSnippetLanguage.js) AnalysisSnippetLanguage snippetLanguage,
     int? entryRangeStart,
     int? entryRangeEnd,
+    @Default(0) int entryCount,
 
     // Progressive disclosure state
     @Default(false)

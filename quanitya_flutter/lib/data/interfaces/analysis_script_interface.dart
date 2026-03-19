@@ -79,6 +79,9 @@ abstract class IAnalysisScriptRepository {
   /// Gets the count of all analysis scripts.
   Future<int> countScripts();
 
+  /// Gets the entry count for a template by ID.
+  Future<int> countEntriesForTemplate(String templateId);
+
   /// Fetches numeric time-series data for a field.
   ///
   /// Resolves the fieldId format ("templateId:fieldName") to the actual

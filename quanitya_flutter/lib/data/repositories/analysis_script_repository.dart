@@ -120,6 +120,15 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
   }
 
   @override
+  Future<int> countEntriesForTemplate(String templateId) {
+    return tryMethod(
+      () => _logEntryDao.countByTemplateId(templateId),
+      AnalysisException.new,
+      'countEntriesForTemplate',
+    );
+  }
+
+  @override
   Future<FieldTimeSeries> fetchFieldTimeSeries(
     String fieldId, {
     int? entryRangeStart,
@@ -147,14 +156,11 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
           );
         }
 
-        // Query all entries (ordered desc by date), then slice
-        final allEntries = await _logEntryDao.findByTemplateId(templateId);
-        final start = entryRangeStart ?? 0;
-        final end = entryRangeEnd ?? allEntries.length;
-        final sliced = allEntries.sublist(
-          start.clamp(0, allEntries.length),
-          end.clamp(start, allEntries.length),
-        );
+        // Query all entries chronologically (oldest first) for analysis
+        final allEntries = (await _logEntryDao.findByTemplateId(templateId)).reversed.toList();
+        final clampedStart = (entryRangeStart ?? 0).clamp(0, allEntries.length);
+        final clampedEnd = (entryRangeEnd ?? allEntries.length).clamp(clampedStart, allEntries.length);
+        final sliced = allEntries.sublist(clampedStart, clampedEnd);
 
         // Extract numeric values keyed by field UUID
         final values = <double>[];

@@ -74,9 +74,15 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       }
       final script = existing.isNotEmpty ? existing.first : null;
 
+      // Get entry count for hint text
+      final entryCount = templateId != null
+          ? await _repository.countEntriesForTemplate(templateId)
+          : 0;
+
       return state.copyWith(
         fieldId: fieldId,
         templateId: templateId,
+        entryCount: entryCount,
         availableFieldNames: availableFields,
         availableScripts: existing,
         selectedScriptId: script?.id,
@@ -182,9 +188,45 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     emit(state.copyWith(outputMode: mode));
   }
 
-  /// Update the entry range slice (both null = all entries)
+  /// Update the entry range slice (both null = all entries).
+  ///
+  /// Freezed's copyWith treats null as "keep current value" for nullable
+  /// fields, so clearing requires reconstructing the state explicitly.
   void setEntryRange({int? start, int? end}) {
-    emit(state.copyWith(entryRangeStart: start, entryRangeEnd: end));
+    if (start == null && end == null) {
+      // Reconstruct state without entry range fields to force them to null
+      emit(AnalysisBuilderState(
+        status: state.status,
+        error: state.error,
+        lastOperation: state.lastOperation,
+        fieldId: state.fieldId,
+        templateId: state.templateId,
+        timeResolution: state.timeResolution,
+        slots: state.slots,
+        branches: state.branches,
+        nextStepId: state.nextStepId,
+        snippet: state.snippet,
+        reasoning: state.reasoning,
+        outputMode: state.outputMode,
+        snippetLanguage: state.snippetLanguage,
+        // entryRangeStart: null,  (default)
+        // entryRangeEnd: null,    (default)
+        entryCount: state.entryCount,
+        branchesFinished: state.branchesFinished,
+        livePreviewEnabled: state.livePreviewEnabled,
+        liveResults: state.liveResults,
+        previewResult: state.previewResult,
+        availableFieldNames: state.availableFieldNames,
+        availableContextKeys: state.availableContextKeys,
+        previewResults: state.previewResults,
+        stepValidations: state.stepValidations,
+        selectedFieldForAi: state.selectedFieldForAi,
+        availableScripts: state.availableScripts,
+        selectedScriptId: state.selectedScriptId,
+      ));
+    } else {
+      emit(state.copyWith(entryRangeStart: start, entryRangeEnd: end));
+    }
   }
 
   /// Update the current snippet

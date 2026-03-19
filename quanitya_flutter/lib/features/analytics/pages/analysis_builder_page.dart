@@ -19,8 +19,6 @@ import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
-import '../../../design_system/widgets/quanitya/generatable/quanitya_stepper.dart';
-import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
 import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../../logic/analytics/cubits/analysis_builder_cubit.dart';
@@ -158,6 +156,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
             child: _EntryRangeControl(
               start: state.entryRangeStart,
               end: state.entryRangeEnd,
+              entryCount: state.entryCount,
               onChanged: (start, end) =>
                   cubit.setEntryRange(start: start, end: end),
             ),
@@ -469,88 +468,103 @@ class _SaveScriptFormState extends State<_SaveScriptForm> {
 
 /// Controls entry range [start:end] for analysis data fetching.
 ///
-/// Toggle off = all entries (both null). Toggle on = adjustable start/end.
+/// Empty fields = all entries. Filled = slice to [start:end].
 /// Entries are 0-indexed, ordered by date descending (0 = most recent).
-class _EntryRangeControl extends StatelessWidget {
-  static const _step = 50;
+class _EntryRangeControl extends StatefulWidget {
   static const _max = 10000;
-  static const _defaultEnd = 100;
 
   final int? start;
   final int? end;
+  final int entryCount;
   final void Function(int? start, int? end) onChanged;
 
   const _EntryRangeControl({
     required this.start,
     required this.end,
+    required this.entryCount,
     required this.onChanged,
   });
 
   @override
+  State<_EntryRangeControl> createState() => _EntryRangeControlState();
+}
+
+class _EntryRangeControlState extends State<_EntryRangeControl> {
+  late TextEditingController _startController;
+  late TextEditingController _endController;
+
+  @override
+  void initState() {
+    super.initState();
+    _startController = TextEditingController(
+      text: widget.start?.toString() ?? '',
+    );
+    _endController = TextEditingController(
+      text: widget.end?.toString() ?? '',
+    );
+  }
+
+  @override
+  void didUpdateWidget(_EntryRangeControl old) {
+    super.didUpdateWidget(old);
+    final newStart = widget.start?.toString() ?? '';
+    final newEnd = widget.end?.toString() ?? '';
+    if (_startController.text != newStart) _startController.text = newStart;
+    if (_endController.text != newEnd) _endController.text = newEnd;
+  }
+
+  @override
+  void dispose() {
+    _startController.dispose();
+    _endController.dispose();
+    super.dispose();
+  }
+
+  void _commitValues() {
+    final s = int.tryParse(_startController.text);
+    final e = int.tryParse(_endController.text);
+    widget.onChanged(
+      s != null ? s.clamp(0, _EntryRangeControl._max) : null,
+      e != null ? e.clamp(0, _EntryRangeControl._max) : null,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
-    final isSliced = start != null || end != null;
-    final effectiveStart = start ?? 0;
-    final effectiveEnd = end ?? _defaultEnd;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text('Entries (${widget.entryCount})', style: context.text.bodySmall?.copyWith(
+          color: palette.textSecondary,
+        )),
+        VSpace.x1,
         Row(
           children: [
             Expanded(
-              child: Text(
-                isSliced ? 'Entries [$effectiveStart:$effectiveEnd]' : 'All entries',
-                style: context.text.bodyMedium?.copyWith(
-                  color: palette.textSecondary,
-                ),
-              ),
-            ),
-            QuanityaToggle(
-              value: isSliced,
-              onChanged: (on) => onChanged(
-                on ? 0 : null,
-                on ? _defaultEnd : null,
-              ),
-            ),
+          child: QuanityaTextField(
+            controller: _startController,
+            keyboardType: TextInputType.number,
+            hintText: '0',
+            onChanged: (_) => _commitValues(),
+          ),
+        ),
+        HSpace.x1,
+        Text(':', style: context.text.bodySmall?.copyWith(
+          color: palette.textSecondary,
+        )),
+        HSpace.x1,
+        Expanded(
+          child: QuanityaTextField(
+            controller: _endController,
+            keyboardType: TextInputType.number,
+            hintText: '${widget.entryCount}',
+            onChanged: (_) => _commitValues(),
+          ),
+        ),
           ],
         ),
-        if (isSliced) ...[
-          VSpace.x1,
-          Row(
-            children: [
-              Text('from', style: context.text.bodySmall?.copyWith(
-                color: palette.textSecondary,
-              )),
-              HSpace.x1,
-              QuanityaStepper(
-                buttonColor: palette.interactableColor,
-                iconColor: palette.interactableColor,
-                valueColor: palette.textPrimary,
-                value: effectiveStart,
-                min: 0,
-                max: (effectiveEnd - _step).clamp(0, _max),
-                step: _step,
-                onChanged: (v) => onChanged(v.toInt(), end),
-              ),
-              HSpace.x2,
-              Text('to', style: context.text.bodySmall?.copyWith(
-                color: palette.textSecondary,
-              )),
-              HSpace.x1,
-              QuanityaStepper(
-                buttonColor: palette.interactableColor,
-                iconColor: palette.interactableColor,
-                valueColor: palette.textPrimary,
-                value: effectiveEnd,
-                min: effectiveStart + _step,
-                max: _max,
-                step: _step,
-                onChanged: (v) => onChanged(start, v.toInt()),
-              ),
-            ],
-          ),
-        ],
       ],
     );
   }
