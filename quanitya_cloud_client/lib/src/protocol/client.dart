@@ -54,14 +54,16 @@ class EndpointCloudHealth extends _i1.EndpointRef {
 /// Immediately and permanently deletes all account data when requested
 /// by the authenticated user. This satisfies Apple App Store requirement
 /// for account deletion functionality.
+///
+/// Protected by Hashcash proof-of-work + ECDSA signature via [SignedPowEndpoint].
 /// {@category Endpoint}
-class EndpointAccountDeletion extends _i3.EndpointJwt {
+class EndpointAccountDeletion extends _i3.EndpointSignedPow {
   EndpointAccountDeletion(_i1.EndpointCaller caller) : super(caller);
 
   @override
   String get name => 'accountDeletion';
 
-  /// Delete the authenticated user's account and all associated data.
+  /// Delete the caller's account and all associated data.
   ///
   /// Permanently removes:
   /// - All encrypted data (entries, templates, schedules, pipelines)
@@ -70,44 +72,19 @@ class EndpointAccountDeletion extends _i3.EndpointJwt {
   /// - The account itself (CASCADE handles devices, entitlements, credentials)
   ///
   /// Returns true on success.
-  _i2.Future<bool> deleteAccount() => caller.callServerEndpoint<bool>(
-    'accountDeletion',
-    'deleteAccount',
-    {},
-  );
-}
-
-/// Account registration and recovery with proof-of-work spam prevention.
-///
-/// Extends [SignedPowEndpoint] from anonaccount for hashcash PoW +
-/// ECDSA signature verification + rate limiting.
-/// {@category Endpoint}
-class EndpointAccountRegistration extends _i3.EndpointSignedPow {
-  EndpointAccountRegistration(_i1.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'accountRegistration';
-
-  /// Create a new anonymous account with proof-of-work verification.
-  _i2.Future<_i3.AnonAccount> createAccount({
+  _i2.Future<bool> deleteAccount({
     required String challenge,
     required String proofOfWork,
-    required String signature,
     required String publicKeyHex,
-    required String ultimateSigningPublicKeyHex,
-    required String encryptedDataKey,
-    required String ultimatePublicKey,
-  }) => caller.callServerEndpoint<_i3.AnonAccount>(
-    'accountRegistration',
-    'createAccount',
+    required String signature,
+  }) => caller.callServerEndpoint<bool>(
+    'accountDeletion',
+    'deleteAccount',
     {
       'challenge': challenge,
       'proofOfWork': proofOfWork,
-      'signature': signature,
       'publicKeyHex': publicKeyHex,
-      'ultimateSigningPublicKeyHex': ultimateSigningPublicKeyHex,
-      'encryptedDataKey': encryptedDataKey,
-      'ultimatePublicKey': ultimatePublicKey,
+      'signature': signature,
     },
   );
 
@@ -118,7 +95,7 @@ class EndpointAccountRegistration extends _i3.EndpointSignedPow {
   @override
   _i2.Future<_i3.PublicChallengeResponse> getChallenge() =>
       caller.callServerEndpoint<_i3.PublicChallengeResponse>(
-        'accountRegistration',
+        'accountDeletion',
         'getChallenge',
         {},
       );
@@ -141,7 +118,7 @@ class EndpointAccountRegistration extends _i3.EndpointSignedPow {
     String signature,
     String payload,
   ) => caller.callServerEndpoint<void>(
-    'accountRegistration',
+    'accountDeletion',
     'verifySignedPow',
     {
       'challenge': challenge,
@@ -161,7 +138,7 @@ class EndpointAccountRegistration extends _i3.EndpointSignedPow {
     String challenge,
     String proofOfWork,
   ) => caller.callServerEndpoint<void>(
-    'accountRegistration',
+    'accountDeletion',
     'verifyHashcash',
     {
       'challenge': challenge,
@@ -767,7 +744,6 @@ class Client extends _i1.ServerpodClientShared {
        ) {
     cloudHealth = EndpointCloudHealth(this);
     accountDeletion = EndpointAccountDeletion(this);
-    accountRegistration = EndpointAccountRegistration(this);
     analyticsEvent = EndpointAnalyticsEvent(this);
     cloudAnalysis = EndpointCloudAnalysis(this);
     cloudLlm = EndpointCloudLlm(this);
@@ -782,8 +758,6 @@ class Client extends _i1.ServerpodClientShared {
   late final EndpointCloudHealth cloudHealth;
 
   late final EndpointAccountDeletion accountDeletion;
-
-  late final EndpointAccountRegistration accountRegistration;
 
   late final EndpointAnalyticsEvent analyticsEvent;
 
@@ -807,7 +781,6 @@ class Client extends _i1.ServerpodClientShared {
   Map<String, _i1.EndpointRef> get endpointRefLookup => {
     'cloudHealth': cloudHealth,
     'accountDeletion': accountDeletion,
-    'accountRegistration': accountRegistration,
     'analyticsEvent': analyticsEvent,
     'cloudAnalysis': cloudAnalysis,
     'cloudLlm': cloudLlm,

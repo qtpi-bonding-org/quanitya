@@ -6,9 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
-import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' as cloud;
 
 import '../../../../app_router.dart';
+import '../../../../infrastructure/auth/auth_service.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
@@ -677,11 +677,10 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
         setState(() => _isLoading = true);
 
         try {
-          // Delete server-side data if client is available
-          if (GetIt.instance.isRegistered<cloud.Client>()) {
+          // Delete server-side data if auth service is available
+          if (GetIt.instance.isRegistered<AuthService>()) {
             try {
-              final client = GetIt.instance<cloud.Client>();
-              await client.accountDeletion.deleteAccount();
+              await GetIt.instance<AuthService>().deleteAccount();
             } catch (_) {
               // Server deletion may fail if offline or local-only mode.
               // Still proceed with local wipe so the user can reset.

@@ -99,7 +99,7 @@ void main() {
       void verifyPath(Client client) {
         // These lines verify the path exists - compile error if changed
         final _ = client.modules.anonaccount.device;
-        final __ = client.accountRegistration;
+        final __ = client.modules.anonaccount.account;
       }
 
       expect(verifyPath, isA<void Function(Client)>());
