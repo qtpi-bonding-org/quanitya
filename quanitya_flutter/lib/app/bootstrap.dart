@@ -10,6 +10,7 @@ import '../app_router.dart';
 import '../logic/analytics/analytics_service.dart';
 import '../data/repositories/error_box_repository.dart';
 import '../features/app_syncing_mode/repositories/app_syncing_repository.dart';
+import '../data/dao/fts_search_dao.dart';
 import '../data/dao/template_aesthetics_dual_dao.dart';
 import '../data/db/app_database.dart';
 import '../data/repositories/e2ee_puller.dart';
@@ -83,7 +84,15 @@ Future<void> bootstrap() async {
       await e2eePuller.initialize();
       debugPrint('Bootstrap: E2EE Puller initialized');
 
-      // 4.1. One-time migration: encrypt existing plaintext aesthetics
+      // 4.1. Initialize FTS search index (rebuild only if empty)
+      if (getIt.isRegistered<FtsSearchDao>()) {
+        final ftsDao = getIt<FtsSearchDao>();
+        await ftsDao.ensureTable();
+        await ftsDao.rebuildIfEmpty();
+        debugPrint('Bootstrap: FTS search index ready');
+      }
+
+      // 4.2. One-time migration: encrypt existing plaintext aesthetics
       await _migrateAestheticsToE2EE();
     }
 

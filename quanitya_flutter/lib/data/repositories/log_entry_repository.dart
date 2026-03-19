@@ -208,6 +208,7 @@ class LogEntryRepository implements ILogEntryRepository {
     }
 
     // 3. Save via dual DAO (handles E2EE)
+    // FTS index is updated automatically via SQLite triggers
     final entity = _writeDao.modelToEntity(entry);
     await _writeDao.upsert(entity);
   }
@@ -230,12 +231,14 @@ class LogEntryRepository implements ILogEntryRepository {
     }
 
     // 4. Update via dual DAO (upsert handles both insert and update)
+    // FTS index is updated automatically via SQLite triggers
     final entity = _writeDao.modelToEntity(entry);
     await _writeDao.upsert(entity);
   }
 
   @override
   Future<void> deleteLogEntry(String id) async {
+    // FTS index is updated automatically via SQLite triggers
     await _writeDao.delete(id);
   }
 

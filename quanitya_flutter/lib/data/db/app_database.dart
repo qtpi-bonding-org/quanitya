@@ -4,8 +4,8 @@ import 'package:powersync_sqlcipher/powersync.dart' hide Table;
 
 import '../tables/tables.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
-import '../../logic/analytics/enums/analysis_output_mode.dart';
-import '../../logic/analytics/models/analysis_enums.dart';
+import '../../logic/analysis/enums/analysis_output_mode.dart';
+import '../../logic/analysis/models/analysis_enums.dart';
 
 part 'app_database.g.dart';
 
@@ -54,6 +54,11 @@ class AppDatabase extends _$AppDatabase {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+        // FTS5 virtual table — local-only full-text search on log entry text fields
+        await customStatement('''
+          CREATE VIRTUAL TABLE IF NOT EXISTS log_entry_fts
+          USING fts5(entry_id UNINDEXED, content)
+        ''');
       },
     );
   }
