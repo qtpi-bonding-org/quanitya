@@ -6,10 +6,10 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../app_syncing_mode/widgets/mode_indicator.dart';
-import '../../error_reporting/cubits/error_box_cubit.dart';
-import '../../notifications/cubits/notification_inbox_cubit.dart';
-import '../../outbox/pages/outbox_page.dart';
-import '../../outbox/widgets/folder_tab_bar.dart';
+import '../../errors/cubits/errors_cubit.dart';
+import '../../notices/cubits/notices_cubit.dart';
+import '../../postage/pages/postage_page.dart';
+import '../../postage/widgets/folder_tab_bar.dart';
 import '../../results/pages/results_section.dart';
 import '../../office/pages/office_page.dart';
 import 'temporal_home_page.dart';
@@ -32,18 +32,18 @@ class _NotebookShellState extends State<NotebookShell> {
         BlocProvider.value(value: GetIt.instance<AppSyncingCubit>()),
         BlocProvider(
           create: (_) =>
-              GetIt.instance<NotificationInboxCubit>()..loadNotifications(),
+              GetIt.instance<NoticesCubit>()..loadNotifications(),
         ),
         BlocProvider(
-          create: (_) => GetIt.instance<ErrorBoxCubit>()..load(),
+          create: (_) => GetIt.instance<ErrorsCubit>()..load(),
         ),
       ],
       child: Builder(
         builder: (context) {
-          final hasNotifications = context.select<NotificationInboxCubit, bool>(
+          final hasNotifications = context.select<NoticesCubit, bool>(
             (c) => c.state.notifications.isNotEmpty,
           );
-          final hasErrors = context.select<ErrorBoxCubit, bool>(
+          final hasErrors = context.select<ErrorsCubit, bool>(
             (c) => c.state.unsentErrors.isNotEmpty,
           );
 

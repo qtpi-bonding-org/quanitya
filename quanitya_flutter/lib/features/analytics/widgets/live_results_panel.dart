@@ -10,8 +10,8 @@ import '../../../design_system/primitives/zen_grid_constants.dart';
 import '../../../design_system/widgets/zen_grid_positioned.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../../../logic/analytics/models/analysis_output.dart';
-import '../../../logic/analytics/models/matrix_vector_scalar/time_series_matrix.dart';
+import '../../../logic/analysis/models/analysis_output.dart';
+import '../../../logic/analysis/models/matrix_vector_scalar/time_series_matrix.dart';
 
 /// Live results panel showing results in real-time
 class LiveResultsPanel extends StatelessWidget {

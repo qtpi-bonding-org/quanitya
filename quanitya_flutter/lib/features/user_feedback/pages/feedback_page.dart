@@ -10,7 +10,7 @@ import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_field.dart';
-import '../../outbox/widgets/outbox_tab_content.dart';
+import '../../postage/widgets/postage_tab_content.dart';
 import '../cubits/feedback_cubit.dart';
 import '../cubits/feedback_state.dart';
 
@@ -37,7 +37,7 @@ class _FeedbackTabContentState extends State<FeedbackTabContent> {
     final l10n = AppLocalizations.of(context)!;
     return BlocBuilder<FeedbackCubit, FeedbackState>(
       builder: (context, state) {
-        return OutboxTabContent(
+        return PostageTabContent(
           content: Center(
             child: SingleChildScrollView(
               padding: AppPadding.page,

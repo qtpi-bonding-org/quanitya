@@ -4,7 +4,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../../data/interfaces/analysis_script_interface.dart';
 import '../../../data/repositories/data_retrieval_service.dart';
-import '../../../logic/analytics/services/analysis_engine.dart';
+import '../../../logic/analysis/services/analysis_engine.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import 'visualization_state.dart';
 

@@ -8,8 +8,8 @@ import '../db/app_database.dart';
 import '../dao/dual_dao.dart';
 import '../dao/table_pairs.dart';
 import '../../infrastructure/crypto/data_encryption_service.dart';
-import '../../logic/analytics/enums/analysis_output_mode.dart';
-import '../../logic/analytics/models/analysis_enums.dart';
+import '../../logic/analysis/enums/analysis_output_mode.dart';
+import '../../logic/analysis/models/analysis_enums.dart';
 import '../../logic/templates/models/shared/template_aesthetics.dart';
 
 /// Interface for background decryption and sync hydration

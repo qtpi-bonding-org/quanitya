@@ -5,8 +5,8 @@ import '../../logic/templates/enums/field_enum.dart';
 import '../../logic/templates/models/shared/template_field.dart';
 import '../../logic/templates/models/shared/tracker_template.dart';
 import '../../logic/calculations/services/calculation_service.dart';
-import '../../logic/analytics/models/matrix_vector_scalar/mvs_union.dart';
-import '../../logic/analytics/exceptions/analysis_exceptions.dart';
+import '../../logic/analysis/models/matrix_vector_scalar/mvs_union.dart';
+import '../../logic/analysis/exceptions/analysis_exceptions.dart';
 import '../dao/log_entry_query_dao.dart';
 import 'template_with_aesthetics_repository.dart';
 

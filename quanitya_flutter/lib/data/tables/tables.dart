@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
-import '../../logic/analytics/enums/analysis_output_mode.dart';
-import '../../logic/analytics/models/analysis_enums.dart';
+import '../../logic/analysis/enums/analysis_output_mode.dart';
+import '../../logic/analysis/models/analysis_enums.dart';
 
 export 'analytics_inbox_entries.dart';
 export 'error_box_entries.dart';

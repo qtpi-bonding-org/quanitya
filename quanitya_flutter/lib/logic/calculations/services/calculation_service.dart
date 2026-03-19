@@ -2,14 +2,14 @@ import 'package:injectable/injectable.dart';
 
 import '../../../data/repositories/calculation_repository.dart';
 import '../../../infrastructure/core/try_operation.dart';
-import '../../analytics/enums/calculation.dart';
-import '../../analytics/models/matrix_vector_scalar/mvs_union.dart';
-import '../../analytics/models/matrix_vector_scalar/time_series_matrix.dart';
-import '../../analytics/models/matrix_vector_scalar/value_vector.dart';
-import '../../analytics/models/matrix_vector_scalar/stat_scalar.dart';
-import '../../analytics/models/matrix_vector_scalar/category_vector.dart';
-import '../../analytics/models/matrix_vector_scalar/timestamp_vector.dart';
-import '../../analytics/exceptions/analysis_exceptions.dart';
+import '../../analysis/enums/calculation.dart';
+import '../../analysis/models/matrix_vector_scalar/mvs_union.dart';
+import '../../analysis/models/matrix_vector_scalar/time_series_matrix.dart';
+import '../../analysis/models/matrix_vector_scalar/value_vector.dart';
+import '../../analysis/models/matrix_vector_scalar/stat_scalar.dart';
+import '../../analysis/models/matrix_vector_scalar/category_vector.dart';
+import '../../analysis/models/matrix_vector_scalar/timestamp_vector.dart';
+import '../../analysis/exceptions/analysis_exceptions.dart';
 
 /// MVS-packaging service for calculation operations.
 ///

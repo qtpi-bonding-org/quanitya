@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../logic/analytics/models/analysis_output.dart';
+import '../../../logic/analysis/models/analysis_output.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../primitives/quanitya_palette.dart';
 import '../charts/indexed_multi_series_chart.dart';

@@ -56,11 +56,7 @@ class FieldWidgetCombinations {
       UiElementEnum.textField,
     ],
 
-    // Reference fields can use dropdowns or search fields
-    FieldEnum.reference: [
-      UiElementEnum.dropdown,
-      UiElementEnum.searchField,
-    ],
+    // Reference fields are not yet implemented — excluded from AI generation
 
     // Location fields use the location picker
     FieldEnum.location: [

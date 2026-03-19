@@ -7,6 +7,7 @@ import '../../../../logic/templates/models/shared/template_aesthetics.dart';
 import '../../../../logic/templates/enums/ai/template_preset.dart';
 import '../../../../logic/templates/enums/ui_element_enum.dart';
 import '../../../../logic/schedules/models/schedule.dart';
+import '../../../../logic/schedules/services/schedule_generator_service.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../data/repositories/schedule_repository.dart';
 import '../../../../infrastructure/permissions/permission_service.dart';
@@ -24,8 +25,9 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   final TemplateWithAestheticsRepository _repository;
   final ScheduleRepository _scheduleRepository;
   final PermissionService _permissionService;
+  final ScheduleGeneratorService _scheduleGenerator;
 
-  TemplateEditorCubit(this._repository, this._scheduleRepository, this._permissionService) : super(const TemplateEditorState());
+  TemplateEditorCubit(this._repository, this._scheduleRepository, this._permissionService, this._scheduleGenerator) : super(const TemplateEditorState());
 
   // ─────────────────────────────────────────────────────────────────────────
   // Entry Points
@@ -499,6 +501,9 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
       for (var i = 1; i < existing.length; i++) {
         await _scheduleRepository.delete(existing[i].id);
       }
+
+      // Generate todos + notifications immediately for updated schedule
+      await _scheduleGenerator.generateForSchedule(updated.id);
     } else {
       // Create new schedule
       final schedule = ScheduleModel.create(
@@ -508,6 +513,9 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
       );
       await _scheduleRepository.save(schedule);
       analytics?.trackScheduleCreated();
+
+      // Generate todos + notifications immediately for new schedule
+      await _scheduleGenerator.generateForSchedule(schedule.id);
     }
   }
 

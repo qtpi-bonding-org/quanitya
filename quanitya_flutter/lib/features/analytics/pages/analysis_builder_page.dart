@@ -21,12 +21,12 @@ import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
 import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
-import '../../../logic/analytics/cubits/analysis_builder_cubit.dart';
-import '../../../logic/analytics/cubits/analysis_builder_state.dart';
-import '../../../logic/analytics/cubits/analysis_builder_message_mapper.dart';
-import '../../../logic/analytics/enums/analysis_output_mode.dart';
-import '../../../logic/analytics/enums/time_resolution.dart';
-import '../../../logic/analytics/models/analysis_output.dart';
+import '../../../logic/analysis/cubits/analysis_builder_cubit.dart';
+import '../../../logic/analysis/cubits/analysis_builder_state.dart';
+import '../../../logic/analysis/cubits/analysis_builder_message_mapper.dart';
+import '../../../logic/analysis/enums/analysis_output_mode.dart';
+import '../../../logic/analysis/enums/time_resolution.dart';
+import '../../../logic/analysis/models/analysis_output.dart';
 import '../../../support/extensions/context_extensions.dart';
 
 /// Analysis script builder — write or AI-generate JavaScript analysis code.

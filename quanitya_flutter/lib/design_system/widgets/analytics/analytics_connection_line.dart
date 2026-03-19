@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../primitives/quanitya_palette.dart';
 import '../zen_grid_positioned.dart';
 import '../mvs_type_badge.dart';
-import '../../../logic/analytics/models/matrix_vector_scalar/analysis_data_type.dart';
+import '../../../logic/analysis/models/matrix_vector_scalar/analysis_data_type.dart';
 
 /// Standardized analytics connection line with MVS type label
 /// 

@@ -1,13 +1,13 @@
 import 'package:injectable/injectable.dart';
 
-import '../../logic/analytics/models/analysis_script.dart';
+import '../../logic/analysis/models/analysis_script.dart';
 import '../dao/analysis_script_dual_dao.dart';
 import '../dao/analysis_script_query_dao.dart';
 import '../dao/log_entry_query_dao.dart';
 import '../dao/template_query_dao.dart';
 import '../interfaces/analysis_script_interface.dart';
 import '../../infrastructure/core/try_operation.dart';
-import '../../logic/analytics/exceptions/analysis_exceptions.dart';
+import '../../logic/analysis/exceptions/analysis_exceptions.dart';
 
 /// Repository for AnalysisScriptModel operations with encryption handling.
 ///

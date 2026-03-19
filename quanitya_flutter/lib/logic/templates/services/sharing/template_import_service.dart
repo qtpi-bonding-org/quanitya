@@ -5,7 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../models/shared/shareable_template.dart';
 import '../../models/shared/template_aesthetics.dart';
-import '../../../analytics/models/analysis_script.dart';
+import '../../../analysis/models/analysis_script.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../data/interfaces/analysis_script_interface.dart';
 

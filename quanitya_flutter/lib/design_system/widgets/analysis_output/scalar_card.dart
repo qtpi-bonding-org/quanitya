@@ -4,7 +4,7 @@ import '../../primitives/app_spacings.dart';
 import '../../primitives/app_sizes.dart';
 import '../../primitives/quanitya_palette.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../../../logic/analytics/enums/scalar_unit.dart';
+import '../../../logic/analysis/enums/scalar_unit.dart';
 
 /// Scalar result card showing label, value, and optional unit.
 ///

@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:injectable/injectable.dart';
 
 import '../db/app_database.dart';
-import '../../logic/analytics/models/analysis_script.dart';
+import '../../logic/analysis/models/analysis_script.dart';
 import '../../infrastructure/crypto/data_encryption_service.dart';
 import 'dual_dao.dart';
 import 'table_pairs.dart';

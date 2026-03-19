@@ -297,7 +297,10 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   }
 
   Widget _buildAddFieldList(BuildContext context) {
-    final types = FieldEnum.values;
+    // Reference fields are not yet implemented — hide from picker
+    final types = FieldEnum.values
+        .where((t) => t != FieldEnum.reference)
+        .toList();
     return QuanityaGroup(
       child: Column(
         children: [

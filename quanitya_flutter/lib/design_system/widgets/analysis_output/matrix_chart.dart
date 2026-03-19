@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../logic/analytics/models/matrix_vector_scalar/time_series_matrix.dart';
+import '../../../logic/analysis/models/matrix_vector_scalar/time_series_matrix.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../primitives/quanitya_palette.dart';
 import '../charts/multi_series_chart.dart';

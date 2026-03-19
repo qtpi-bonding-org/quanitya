@@ -3,7 +3,7 @@ import '../primitives/quanitya_palette.dart';
 import '../primitives/quanitya_fonts.dart';
 import '../primitives/app_spacings.dart';
 import '../../support/extensions/context_extensions.dart';
-import '../../logic/analytics/models/matrix_vector_scalar/analysis_data_type.dart';
+import '../../logic/analysis/models/matrix_vector_scalar/analysis_data_type.dart';
 
 /// Minimal MVS type notation badge - no container, just typography.
 /// 

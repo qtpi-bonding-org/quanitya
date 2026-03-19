@@ -1,4 +1,4 @@
-import '../../logic/analytics/models/analysis_script.dart';
+import '../../logic/analysis/models/analysis_script.dart';
 
 /// Time-series numeric data extracted from log entries for a specific field.
 typedef FieldTimeSeries = ({List<double> values, List<DateTime> timestamps});

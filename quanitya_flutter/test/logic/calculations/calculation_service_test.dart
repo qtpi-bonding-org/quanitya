@@ -3,7 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:quanitya_flutter/logic/calculations/services/calculation_service.dart';
 import 'package:quanitya_flutter/data/repositories/calculation_repository.dart';
-import 'package:quanitya_flutter/logic/analytics/models/matrix_vector_scalar/mvs_union.dart';
+import 'package:quanitya_flutter/logic/analysis/models/matrix_vector_scalar/mvs_union.dart';
 
 import 'calculation_service_test.mocks.dart';
 

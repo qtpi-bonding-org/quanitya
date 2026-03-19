@@ -23,6 +23,7 @@ import '../../data/dao/template_query_dao.dart';
 import '../../data/interfaces/log_entry_interface.dart';
 import '../../infrastructure/notifications/notification_service.dart';
 import '../../logic/log_entries/models/log_entry.dart';
+import '../../logic/schedules/services/schedule_generator_service.dart';
 import '../services/dev_seeder_service.dart';
 
 /// Shows a bottom sheet with dev tools
@@ -244,6 +245,39 @@ class DevToolsSheet extends StatelessWidget {
                   },
                   successMessage: 'Reminder in 5s with Quick Log action',
                 ),
+              ),
+              VSpace.x2,
+
+              // Run schedule generation manually
+              _DevToolRow(
+                label: 'Run Schedule Generation',
+                child: _DevActionButton(
+                  text: 'Generate',
+                  onPressed: () async {
+                    final generator = GetIt.instance<ScheduleGeneratorService>();
+                    final result = await generator.generatePendingTodos();
+                    if (result.todosCreated == 0 && result.schedulesProcessed == 0) {
+                      throw Exception('No active schedules found');
+                    }
+                    // Show result as success message
+                    GetIt.instance<cubit_ui_flow.IFeedbackService>().show(
+                      cubit_ui_flow.FeedbackMessage(
+                        message: 'Created ${result.todosCreated} todos from '
+                            '${result.schedulesProcessed} schedules '
+                            '(${result.skippedDuplicates} dupes)',
+                        type: cubit_ui_flow.MessageType.info,
+                      ),
+                    );
+                  },
+                  successMessage: null, // Custom message above
+                ),
+              ),
+              VSpace.x2,
+
+              // Show pending notifications
+              _DevToolRow(
+                label: 'Pending Notifications',
+                child: _PendingNotificationsButton(),
               ),
               VSpace.x2,
 
@@ -577,7 +611,7 @@ class _MeasureEntrySizesButtonState extends State<_MeasureEntrySizesButton> {
           final count = result.read<int>('cnt');
           if (count == 0) {
             if (mounted) {
-              _showReport(context, 'No encrypted entries found.');
+              _showDevDialog(context, title: 'Encrypted Entry Sizes', body: 'No encrypted entries found.');
             }
             return;
           }
@@ -600,11 +634,11 @@ class _MeasureEntrySizesButtonState extends State<_MeasureEntrySizesButton> {
           ].join('\n');
 
           if (mounted) {
-            _showReport(context, report);
+            _showDevDialog(context, title: 'Encrypted Entry Sizes', body: report);
           }
         } catch (e) {
           if (mounted) {
-            _showReport(context, 'Error: $e');
+            _showDevDialog(context, title: 'Encrypted Entry Sizes', body: 'Error: $e');
           }
         } finally {
           if (mounted) setState(() => _isLoading = false);
@@ -623,31 +657,100 @@ class _MeasureEntrySizesButtonState extends State<_MeasureEntrySizesButton> {
     return '$count';
   }
 
-  void _showReport(BuildContext context, String report) {
-    final palette = QuanityaPalette.primary;
+}
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: palette.backgroundPrimary,
-        title: Text(
-          'Encrypted Entry Sizes',
-          style: ctx.text.titleMedium,
-        ),
-        content: Text(
-          report,
+/// Shows pending OS-level notifications scheduled via flutter_local_notifications.
+class _PendingNotificationsButton extends StatefulWidget {
+  @override
+  State<_PendingNotificationsButton> createState() =>
+      _PendingNotificationsButtonState();
+}
+
+class _PendingNotificationsButtonState
+    extends State<_PendingNotificationsButton> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return SizedBox(
+        width: AppSizes.iconMedium,
+        height: AppSizes.iconMedium,
+        child:
+            CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
+      );
+    }
+
+    return QuanityaTextButton(
+      text: 'Show',
+      onPressed: () async {
+        setState(() => _isLoading = true);
+        try {
+          final notificationService = GetIt.instance<NotificationService>();
+          final pending = await notificationService.getPending();
+
+          if (pending.isEmpty) {
+            if (mounted) {
+              _showDevDialog(context,
+                  title: 'Pending Notifications',
+                  body: 'No pending notifications.\n\n'
+                      'Create a schedule with a reminder,\n'
+                      'then tap "Generate" above.');
+            }
+            return;
+          }
+
+          final lines = pending.map((n) {
+            return 'ID: ${n.id}\n'
+                '  ${n.title ?? "(no title)"}\n'
+                '  ${n.body ?? "(no body)"}\n'
+                '  payload: ${n.payload ?? "(none)"}';
+          }).join('\n\n');
+
+          final report = '${pending.length} pending notification(s):\n\n$lines';
+
+          if (mounted) {
+            _showDevDialog(context,
+                title: 'Pending Notifications', body: report);
+          }
+        } catch (e) {
+          if (mounted) {
+            _showDevDialog(context,
+                title: 'Pending Notifications', body: 'Error: $e');
+          }
+        } finally {
+          if (mounted) setState(() => _isLoading = false);
+        }
+      },
+    );
+  }
+}
+
+/// Shared dialog for dev tools reports.
+void _showDevDialog(BuildContext context,
+    {required String title, required String body}) {
+  final palette = QuanityaPalette.primary;
+
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: palette.backgroundPrimary,
+      title: Text(title, style: ctx.text.titleMedium),
+      content: SingleChildScrollView(
+        child: Text(
+          body,
           style: ctx.text.bodyMedium?.copyWith(
             fontFamily: 'monospace',
             height: 1.6,
           ),
         ),
-        actions: [
-          QuanityaTextButton(
-            text: 'OK',
-            onPressed: () => Navigator.pop(ctx),
-          ),
-        ],
       ),
-    );
-  }
+      actions: [
+        QuanityaTextButton(
+          text: 'OK',
+          onPressed: () => Navigator.pop(ctx),
+        ),
+      ],
+    ),
+  );
 }

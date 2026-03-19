@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'tracker_template.dart';
 import 'template_aesthetics.dart';
-import '../../../analytics/models/analysis_script.dart';
+import '../../../analysis/models/analysis_script.dart';
 
 part 'shareable_template.freezed.dart';
 part 'shareable_template.g.dart';
