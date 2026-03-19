@@ -7,7 +7,7 @@ import '../../../../logic/templates/models/shared/template_aesthetics.dart';
 import '../../../../logic/templates/enums/ai/template_preset.dart';
 import '../../../../logic/templates/enums/ui_element_enum.dart';
 import '../../../../logic/schedules/models/schedule.dart';
-import '../../../../logic/schedules/services/schedule_generator_service.dart';
+import '../../../../logic/schedules/services/schedule_service.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../data/repositories/schedule_repository.dart';
 import '../../../../infrastructure/permissions/permission_service.dart';
@@ -25,9 +25,9 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   final TemplateWithAestheticsRepository _repository;
   final ScheduleRepository _scheduleRepository;
   final PermissionService _permissionService;
-  final ScheduleGeneratorService _scheduleGenerator;
+  final ScheduleService _scheduleService;
 
-  TemplateEditorCubit(this._repository, this._scheduleRepository, this._permissionService, this._scheduleGenerator) : super(const TemplateEditorState());
+  TemplateEditorCubit(this._repository, this._scheduleRepository, this._permissionService, this._scheduleService) : super(const TemplateEditorState());
 
   // ─────────────────────────────────────────────────────────────────────────
   // Entry Points
@@ -465,10 +465,10 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   Future<void> _saveOrDeleteSchedule(String templateId) async {
     final existing = await _scheduleRepository.getSchedulesForTemplate(templateId);
 
-    // If schedule is off, delete any existing schedules
+    // If schedule is off, delete schedules (facade handles cleanup)
     if (state.scheduleFrequency == ScheduleFrequency.off) {
       for (final schedule in existing) {
-        await _scheduleRepository.delete(schedule.id);
+        await _scheduleService.delete(schedule.id);
       }
       return;
     }
@@ -491,31 +491,25 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
     }
 
     if (existing.isNotEmpty) {
-      // Update existing schedule
+      // Update existing schedule (facade handles save + generation)
       final updated = existing.first
           .updateRule(recurrenceRule)
           .updateReminder(0);
-      await _scheduleRepository.save(updated);
+      await _scheduleService.save(updated);
 
       // Delete any extra duplicates from the append bug
       for (var i = 1; i < existing.length; i++) {
-        await _scheduleRepository.delete(existing[i].id);
+        await _scheduleService.delete(existing[i].id);
       }
-
-      // Generate todos + notifications immediately for updated schedule
-      await _scheduleGenerator.generateForSchedule(updated.id);
     } else {
-      // Create new schedule
+      // Create new schedule (facade handles save + generation)
       final schedule = ScheduleModel.create(
         templateId: templateId,
         recurrenceRule: recurrenceRule,
         reminderOffsetMinutes: 0,
       );
-      await _scheduleRepository.save(schedule);
+      await _scheduleService.save(schedule);
       analytics?.trackScheduleCreated();
-
-      // Generate todos + notifications immediately for new schedule
-      await _scheduleGenerator.generateForSchedule(schedule.id);
     }
   }
 

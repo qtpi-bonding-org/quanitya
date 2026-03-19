@@ -6,6 +6,7 @@ import 'package:injectable/injectable.dart';
 import '../../../logic/schedules/models/schedule.dart';
 import '../../../data/repositories/schedule_repository.dart';
 import '../../../data/repositories/template_with_aesthetics_repository.dart';
+import '../../../logic/schedules/services/schedule_service.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import 'schedule_list_state.dart';
 
@@ -18,11 +19,13 @@ import 'schedule_list_state.dart';
 class ScheduleListCubit extends QuanityaCubit<ScheduleListState> {
   final ScheduleRepository _scheduleRepository;
   final TemplateWithAestheticsRepository _templateRepository;
+  final ScheduleService _scheduleService;
   StreamSubscription? _subscription;
 
   ScheduleListCubit(
     this._scheduleRepository,
     this._templateRepository,
+    this._scheduleService,
   ) : super(const ScheduleListState());
 
   /// Start watching schedules
@@ -79,10 +82,10 @@ class ScheduleListCubit extends QuanityaCubit<ScheduleListState> {
     }, emitLoading: false);
   }
 
-  /// Delete a schedule
+  /// Delete a schedule and clean up its notifications + todos
   Future<void> delete(String scheduleId) async {
     await tryOperation(() async {
-      await _scheduleRepository.delete(scheduleId);
+      await _scheduleService.delete(scheduleId);
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: ScheduleListOperation.delete,

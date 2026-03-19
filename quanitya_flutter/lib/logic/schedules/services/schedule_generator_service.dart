@@ -301,6 +301,24 @@ class ScheduleGeneratorService {
     );
   }
 
+  /// Cancel all pending notifications for a schedule's upcoming todos
+  /// and optionally delete those todos.
+  ///
+  /// Call before deleting a schedule to clean up generated artefacts.
+  Future<void> cancelForSchedule(String templateId, {bool deleteTodos = true}) async {
+    final todos = await _logEntryRepo.getUpcomingEntries(templateId: templateId);
+    for (final todo in todos) {
+      await _notificationService.cancel(todo.id.hashCode);
+    }
+    if (deleteTodos) {
+      for (final todo in todos) {
+        await _logEntryRepo.deleteLogEntry(todo.id);
+      }
+    }
+    debugPrint('ScheduleGeneratorService: Cancelled ${todos.length} notification(s) '
+        'for template $templateId (deletedTodos=$deleteTodos)');
+  }
+
   /// Check if two DateTimes are the same minute (ignoring seconds/millis).
   bool _isSameMinute(DateTime a, DateTime b) {
     return a.year == b.year &&
