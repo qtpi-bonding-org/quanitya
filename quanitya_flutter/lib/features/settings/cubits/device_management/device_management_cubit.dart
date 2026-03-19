@@ -71,6 +71,8 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
       // Reload devices to get updated list
       final devices = await _authService.listDevices();
 
+      analytics?.trackDeviceRevoked();
+
       return state.copyWith(
         status: UiFlowStatus.success,
         devices: devices,
@@ -90,6 +92,8 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
 
       // Reload devices to show new cross-device entry
       final devices = await _authService.listDevices();
+
+      analytics?.trackDevicePaired();
 
       return state.copyWith(
         status: UiFlowStatus.success,

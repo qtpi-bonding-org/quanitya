@@ -174,6 +174,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       );
 
       final result = await _wasmService.execute(script);
+      analytics?.trackAnalysisRun();
 
       return state.copyWith(
         previewResult: result,

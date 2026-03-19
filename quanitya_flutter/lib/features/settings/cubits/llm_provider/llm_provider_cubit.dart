@@ -74,6 +74,7 @@ class LlmProviderCubit extends QuanityaCubit<LlmProviderState> {
     await tryOperation(() async {
       await _configRepo.save(config);
       final configs = await _configRepo.getAll();
+      analytics?.trackLlmConfigured();
       return state.copyWith(
         configs: configs,
         activeConfig: configs.first,

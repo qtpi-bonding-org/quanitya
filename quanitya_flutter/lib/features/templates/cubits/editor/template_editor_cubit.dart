@@ -1,5 +1,4 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../support/extensions/cubit_ui_flow_extension.dart';
@@ -61,7 +60,8 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
 
     // Parse frequency from RRULE
     ScheduleFrequency frequency = ScheduleFrequency.off;
-    TimeOfDay? time;
+    int? hour;
+    int? minute;
     List<String> weeklyDays = [];
 
     if (rule.contains('FREQ=DAILY')) {
@@ -79,14 +79,14 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
     final hourMatch = RegExp(r'BYHOUR=(\d+)').firstMatch(rule);
     final minuteMatch = RegExp(r'BYMINUTE=(\d+)').firstMatch(rule);
     if (hourMatch != null) {
-      final hour = int.parse(hourMatch.group(1)!);
-      final minute = minuteMatch != null ? int.parse(minuteMatch.group(1)!) : 0;
-      time = TimeOfDay(hour: hour, minute: minute);
+      hour = int.parse(hourMatch.group(1)!);
+      minute = minuteMatch != null ? int.parse(minuteMatch.group(1)!) : 0;
     }
 
     emit(state.copyWith(
       scheduleFrequency: frequency,
-      scheduleTime: time,
+      scheduleHour: hour,
+      scheduleMinute: minute,
       scheduleWeeklyDays: weeklyDays,
     ));
   }
@@ -359,17 +359,21 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
     emit(state.copyWith(
       scheduleFrequency: frequency,
       // Set default time if enabling schedule
-      scheduleTime: frequency != ScheduleFrequency.off && state.scheduleTime == null
-          ? const TimeOfDay(hour: 9, minute: 0)
-          : state.scheduleTime,
+      scheduleHour: frequency != ScheduleFrequency.off && state.scheduleHour == null
+          ? 9
+          : state.scheduleHour,
+      scheduleMinute: frequency != ScheduleFrequency.off && state.scheduleMinute == null
+          ? 0
+          : state.scheduleMinute,
       lastOperation: TemplateEditorOperation.updateSchedule,
     ));
   }
 
   /// Update the schedule time
-  void updateScheduleTime(TimeOfDay time) {
+  void updateScheduleTime(int hour, int minute) {
     emit(state.copyWith(
-      scheduleTime: time,
+      scheduleHour: hour,
+      scheduleMinute: minute,
       lastOperation: TemplateEditorOperation.updateSchedule,
     ));
   }
@@ -467,17 +471,18 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
       return;
     }
 
-    final time = state.scheduleTime ?? const TimeOfDay(hour: 9, minute: 0);
+    final hour = state.scheduleHour ?? 9;
+    final minute = state.scheduleMinute ?? 0;
 
     final String recurrenceRule;
     switch (state.scheduleFrequency) {
       case ScheduleFrequency.daily:
-        recurrenceRule = 'FREQ=DAILY;BYHOUR=${time.hour};BYMINUTE=${time.minute}';
+        recurrenceRule = 'FREQ=DAILY;BYHOUR=$hour;BYMINUTE=$minute';
       case ScheduleFrequency.weekly:
         final days = state.scheduleWeeklyDays.isNotEmpty
             ? state.scheduleWeeklyDays.join(',')
             : 'MO,TU,WE,TH,FR';
-        recurrenceRule = 'FREQ=WEEKLY;BYDAY=$days;BYHOUR=${time.hour};BYMINUTE=${time.minute}';
+        recurrenceRule = 'FREQ=WEEKLY;BYDAY=$days;BYHOUR=$hour;BYMINUTE=$minute';
       case ScheduleFrequency.custom:
       case ScheduleFrequency.off:
         return;
@@ -502,6 +507,7 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
         reminderOffsetMinutes: 0,
       );
       await _scheduleRepository.save(schedule);
+      analytics?.trackScheduleCreated();
     }
   }
 

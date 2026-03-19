@@ -126,6 +126,7 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
       await tryOperation(() async {
         await _repository.updateMode(AppSyncingMode.local);
         await _handlePowerSyncModeChange(AppSyncingMode.local);
+        analytics?.trackSyncModeChanged();
         return state.copyWith(
           mode: AppSyncingMode.local,
           isConnected: false, // Local doesn't need connection
@@ -155,6 +156,8 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
         // Handle PowerSync mode change
         await _handlePowerSyncModeChange(AppSyncingMode.selfHosted);
 
+        analytics?.trackSyncModeChanged();
+
         return state.copyWith(
           mode: AppSyncingMode.selfHosted,
           selfHostedUrl: serverUrl,
@@ -182,6 +185,8 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
 
         // Handle PowerSync mode change
         await _handlePowerSyncModeChange(AppSyncingMode.cloud);
+
+        analytics?.trackSyncModeChanged();
 
         return state.copyWith(
           mode: AppSyncingMode.cloud,

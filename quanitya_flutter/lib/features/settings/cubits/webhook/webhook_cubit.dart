@@ -54,6 +54,7 @@ class WebhookCubit extends QuanityaCubit<WebhookState> {
         isEnabled: isEnabled,
       );
       final webhooks = await _webhookRepo.getAll();
+      analytics?.trackWebhookCreated();
       return state.copyWith(
         webhooks: webhooks,
         status: UiFlowStatus.success,
@@ -90,6 +91,7 @@ class WebhookCubit extends QuanityaCubit<WebhookState> {
     await tryOperation(() async {
       await _webhookRepo.delete(id);
       final webhooks = await _webhookRepo.getAll();
+      analytics?.trackWebhookDeleted();
       return state.copyWith(
         webhooks: webhooks,
         status: UiFlowStatus.success,

@@ -80,6 +80,7 @@ class TemplateListCubit extends QuanityaCubit<TemplateListState> {
         data: data,
       );
       await _logEntryService.saveLogEntry(entry);
+      analytics?.trackQuickLog();
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: TemplateListOperation.instantLog,

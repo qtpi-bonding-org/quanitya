@@ -77,6 +77,8 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
       // Reset router key check since we now have keys
       AppRouter.resetKeyCheck();
 
+      analytics?.trackAccountCreated();
+
       final newState = state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: OnboardingOperation.createAccount,

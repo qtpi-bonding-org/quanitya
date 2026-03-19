@@ -42,6 +42,7 @@ class RecoveryKeyCubit extends QuanityaCubit<RecoveryKeyState> {
         ultimatePrivateKey: jwk,
         deviceLabel: deviceLabel,
       );
+      analytics?.trackRecoveryKeyViewed();
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: RecoveryKeyOperation.recover,

@@ -30,6 +30,7 @@ class AnalyticsService {
 
   // ── Logging ──
   void trackEntryLogged() => _track('entry_logged');
+  void trackQuickLog() => _track('quick_log');
 
   // ── Sharing ──
   void trackTemplateExported() => _track('template_exported');
@@ -48,6 +49,26 @@ class AnalyticsService {
   void trackDataExported() => _track('data_exported');
   void trackDataImported() => _track('data_imported');
 
+  // ── Onboarding ──
+  void trackAccountCreated() => _track('account_created');
+
+  // ── Sync ──
+  void trackSyncModeChanged() => _track('sync_mode_changed');
+
+  // ── Devices ──
+  void trackDevicePaired() => _track('device_paired');
+  void trackDeviceRevoked() => _track('device_revoked');
+
+  // ── Security ──
+  void trackRecoveryKeyViewed() => _track('recovery_key_viewed');
+
+  // ── Webhooks ──
+  void trackWebhookCreated() => _track('webhook_created');
+  void trackWebhookDeleted() => _track('webhook_deleted');
+
+  // ── LLM ──
+  void trackLlmConfigured() => _track('llm_configured');
+
   // ── App lifecycle ──
   void trackAppOpened() => _track('app_opened');
 
@@ -58,16 +79,17 @@ class AnalyticsService {
 
   /// Save event to local inbox. Never throws.
   void _track(String event, {Map<String, dynamic>? props}) {
-    try {
-      _inbox.saveEvent(
-        eventName: event,
-        clientTimestamp: DateTime.now().toUtc(),
-        platform: _platformName,
-        props: props != null ? jsonEncode(props) : null,
-      );
-    } catch (_) {
-      // Silently swallow errors — analytics must never break the app.
-    }
+    debugPrint('📊 Analytics: tracking "$event"');
+    _inbox.saveEvent(
+      eventName: event,
+      clientTimestamp: DateTime.now().toUtc(),
+      platform: _platformName,
+      props: props != null ? jsonEncode(props) : null,
+    ).then((_) {
+      debugPrint('📊 Analytics: "$event" saved to inbox');
+    }).catchError((e) {
+      debugPrint('📊 Analytics: "$event" FAILED: $e');
+    });
   }
 
   /// Batch-send all unsent events to the server.
