@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../support/extensions/context_extensions.dart';
+import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../app_syncing_mode/widgets/mode_indicator.dart';
 import '../../error_reporting/cubits/error_box_cubit.dart';
 import '../../notifications/cubits/notification_inbox_cubit.dart';
@@ -28,6 +29,7 @@ class _NotebookShellState extends State<NotebookShell> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider.value(value: GetIt.instance<AppSyncingCubit>()),
         BlocProvider(
           create: (_) =>
               GetIt.instance<NotificationInboxCubit>()..loadNotifications(),

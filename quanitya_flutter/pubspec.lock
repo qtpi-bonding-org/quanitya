@@ -1890,12 +1890,11 @@ packages:
   powersync_sqlcipher:
     dependency: "direct main"
     description:
-      path: "packages/powersync_sqlcipher"
-      ref: f6d1610a070add302f4b849049a7b301cce61196
-      resolved-ref: f6d1610a070add302f4b849049a7b301cce61196
-      url: "https://github.com/powersync-ja/powersync.dart.git"
-    source: git
-    version: "0.1.16"
+      name: powersync_sqlcipher
+      sha256: bebbeeb6a00c1404f10c1f4892c424ef13d49561355afcdba628c9658b401828
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.17"
   proj4dart:
     dependency: transitive
     description:

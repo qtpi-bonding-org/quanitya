@@ -255,7 +255,7 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
       switch (_mode) {
         case AppSyncingMode.cloud:
           // Cloud: SyncAccessEndpoint — JWT user_id = 128-char hex public key
-          final response = await _client.syncAccess.generatePowerSyncToken();
+          final response = await _client.cloudPowerSync.getToken();
           token = response.token;
           endpoint = _resolveUrl(response.endpoint);
         case AppSyncingMode.selfHosted:

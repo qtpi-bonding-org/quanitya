@@ -114,12 +114,7 @@ dependencies:
   intl: ^0.20.2
   
   # PowerSync for offline-first sync (SQLCipher encrypted)
-  # Pinned to merge commit with iOS SQLCipher fix (PR #381)
-  powersync_sqlcipher:
-    git:
-      url: https://github.com/powersync-ja/powersync.dart.git
-      path: packages/powersync_sqlcipher
-      ref: f6d1610a070add302f4b849049a7b301cce61196
+  powersync_sqlcipher: ^0.1.17
   drift_sqlite_async: ^0.2.6
   
   # JSON Dynamic Widget
