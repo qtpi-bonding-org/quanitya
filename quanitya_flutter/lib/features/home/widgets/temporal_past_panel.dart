@@ -40,7 +40,7 @@ class TemporalPastPanel extends StatelessWidget {
             ),
             onItemTap: (item) {
               item.whenOrNull(
-                entry: (entryWithContext, _, _, _, _, _, _, _, _) {
+                entry: (entryWithContext, _, _, _, _, _, _, _, _, _) {
                   LogEntrySheet.showView(
                     context: context,
                     entryWithContext: entryWithContext,
