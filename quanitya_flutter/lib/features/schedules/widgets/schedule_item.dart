@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
-import '../../../design_system/structures/group.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../design_system/widgets/template_icon_bubble.dart';
 import '../../../support/extensions/context_extensions.dart';
@@ -11,7 +10,7 @@ import '../../templates/widgets/editor/schedule_section.dart';
 import '../cubits/schedule_list_state.dart';
 
 /// A single schedule item for the Future page.
-/// 
+///
 /// Shows inline editing controls:
 /// - Template icon/emoji and name
 /// - Frequency selector (Off/Daily/Weekly)
@@ -21,12 +20,16 @@ class ScheduleItem extends StatefulWidget {
   final ScheduleWithContext scheduleWithContext;
   final VoidCallback? onTap;
   final void Function(ScheduleFrequency frequency, TimeOfDay time, List<String> weeklyDays)? onScheduleChanged;
+  final bool isFirst;
+  final bool isLast;
 
   const ScheduleItem({
     super.key,
     required this.scheduleWithContext,
     this.onTap,
     this.onScheduleChanged,
+    this.isFirst = true,
+    this.isLast = true,
   });
 
   @override
@@ -115,53 +118,85 @@ class _ScheduleItemState extends State<ScheduleItem> {
     final template = widget.scheduleWithContext.template;
     final aesthetics = widget.scheduleWithContext.aesthetics;
 
-    return QuanityaGroup(
+    return Semantics(
+      button: widget.onTap != null,
+      label: 'Schedule for ${template.name}',
+      child: GestureDetector(
       onTap: widget.onTap,
-      showChevron: false,
-      padding: EdgeInsets.zero,
-      child: Padding(
-        padding: AppPadding.verticalDouble,
+      behavior: HitTestBehavior.opaque,
+      child: IntrinsicHeight(
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TemplateIconBubble(
-              iconString: aesthetics?.icon,
-              emoji: aesthetics?.emoji,
-              accentColorHex: aesthetics?.palette.accents.firstOrNull,
-              isHidden: template.isHidden,
-              fallbackIcon: Icons.calendar_today,
-            ),
-            HSpace.x2,
-            // Content Column
-            Expanded(
+            // Timeline Column (connector line + icon)
+            SizedBox(
+              width: AppSizes.size56,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header: Template Name
-                  Text(
-                    template.name,
-                    style: context.text.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: palette.textPrimary,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  // Top connector: fixed height to align icon with template name
+                  SizedBox(
+                    height: AppSizes.space,
+                    child: widget.isFirst
+                        ? const SizedBox.shrink()
+                        : Container(
+                            width: 2,
+                            color: palette.textPrimary,
+                          ),
                   ),
-                  VSpace.x2,
-
-                  // Inline schedule controls
-                  _InlineScheduleControls(
-                    frequency: _frequency,
-                    time: _time,
-                    weeklyDays: _weeklyDays,
-                    onFrequencyChanged: _onFrequencyChanged,
-                    onTimeChanged: _onTimeChanged,
-                    onWeeklyDaysChanged: _onWeeklyDaysChanged,
+                  TemplateIconBubble(
+                    iconString: aesthetics?.icon,
+                    emoji: aesthetics?.emoji,
+                    accentColorHex: aesthetics?.palette.accents.firstOrNull,
+                    isHidden: template.isHidden,
+                    fallbackIcon: Icons.calendar_today,
+                  ),
+                  // Bottom connector: fills remaining space
+                  Expanded(
+                    child: widget.isLast
+                        ? const SizedBox.shrink()
+                        : Container(
+                            width: 2,
+                            color: palette.textPrimary,
+                          ),
                   ),
                 ],
               ),
             ),
+            HSpace.x2,
+            // Content Column
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: AppSizes.space * 2),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header: Template Name
+                    Text(
+                      template.name,
+                      style: context.text.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: palette.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    VSpace.x2,
+
+                    // Inline schedule controls
+                    _InlineScheduleControls(
+                      frequency: _frequency,
+                      time: _time,
+                      weeklyDays: _weeklyDays,
+                      onFrequencyChanged: _onFrequencyChanged,
+                      onTimeChanged: _onTimeChanged,
+                      onWeeklyDaysChanged: _onWeeklyDaysChanged,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
+      ),
       ),
     );
   }
