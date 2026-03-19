@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/bootstrap.dart';
+import '../../../app_router.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
@@ -112,7 +113,7 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
               _buildTemporalLabel(context, '+t'),
             ],
             overlays: [
-              // Filter Buttons (Top Right) - Past page only
+              // Action Buttons (Top Right) - contextual per page
               Positioned(
                 top: 0,
                 right: 0,
@@ -155,6 +156,14 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                               ],
                             );
                           }
+                        ),
+                      if (_currentIndex == 1)
+                        QuanityaIconButton(
+                          icon: Icons.assignment_add,
+                          iconSize: AppSizes.iconMedium,
+                          color: palette.interactableColor,
+                          tooltip: context.l10n.createTemplateTitle,
+                          onPressed: () => AppNavigation.toTemplateDesigner(context),
                         ),
                     ],
                   ),
