@@ -62,6 +62,7 @@ class TemplateDesignerPage extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
+      centerTitle: true,
       title: BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
         builder: (context, state) {
           final title = state.template != null
@@ -71,29 +72,21 @@ class TemplateDesignerPage extends StatelessWidget {
         },
       ),
       actions: [
-        QuanityaIconButton(
-          icon: Icons.download,
-          onPressed: () => TemplateImportSheet.show(context),
-        ),
         BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
           builder: (context, state) {
-            if (state.template == null) return const SizedBox.shrink();
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                QuanityaIconButton(
-                  icon: Icons.share,
-                  onPressed: () => _shareTemplate(context, state),
-                ),
-                QuanityaIconButton(
-                  icon: state.template!.isHidden
-                      ? Icons.visibility
-                      : Icons.visibility_off,
-                  onPressed: () =>
-                      context.read<TemplateEditorCubit>().toggleHidden(),
-                ),
-              ],
-            );
+            if (state.template != null) {
+              // Edit mode: show share
+              return QuanityaIconButton(
+                icon: Icons.share,
+                onPressed: () => _shareTemplate(context, state),
+              );
+            } else {
+              // Create mode: show import
+              return QuanityaIconButton(
+                icon: Icons.download,
+                onPressed: () => TemplateImportSheet.show(context),
+              );
+            }
           },
         ),
       ],
