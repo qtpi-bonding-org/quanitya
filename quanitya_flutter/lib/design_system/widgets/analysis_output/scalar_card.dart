@@ -4,8 +4,12 @@ import '../../primitives/app_spacings.dart';
 import '../../primitives/app_sizes.dart';
 import '../../primitives/quanitya_palette.dart';
 import '../../../support/extensions/context_extensions.dart';
+import '../../../logic/analytics/enums/scalar_unit.dart';
 
 /// Scalar result card showing label, value, and optional unit.
+///
+/// Special units (see [ScalarUnit]) are auto-formatted by the card.
+/// Any other unit string is displayed as-is below the value.
 class ScalarCard extends StatelessWidget {
   final String label;
   final double value;
@@ -21,9 +25,17 @@ class ScalarCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
-    final semanticLabel = unit != null
-        ? '$label: ${value.toStringAsFixed(2)} $unit'
-        : '$label: ${value.toStringAsFixed(2)}';
+    final special = ScalarUnit.fromKey(unit);
+
+    final displayValue = special != null
+        ? special.format(value)
+        : value == value.roundToDouble()
+            ? value.toInt().toString()
+            : value.toStringAsFixed(2);
+
+    final semanticLabel = (special == null && unit != null)
+        ? '$label: $displayValue $unit'
+        : '$label: $displayValue';
 
     return Semantics(
       label: semanticLabel,
@@ -43,27 +55,20 @@ class ScalarCard extends StatelessWidget {
               ),
             ),
             VSpace.x05,
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  value.toStringAsFixed(2),
-                  style: context.text.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: palette.textPrimary,
-                  ),
-                ),
-                if (unit != null) ...[
-                  HSpace.x05,
-                  Text(
-                    unit!,
-                    style: context.text.bodyMedium?.copyWith(
-                      color: palette.textSecondary,
-                    ),
-                  ),
-                ],
-              ],
+            Text(
+              displayValue,
+              style: context.text.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: palette.textPrimary,
+              ),
             ),
+            if (special == null && unit != null)
+              Text(
+                unit!,
+                style: context.text.bodyMedium?.copyWith(
+                  color: palette.textSecondary,
+                ),
+              ),
           ],
         ),
       ),

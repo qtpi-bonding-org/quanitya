@@ -840,12 +840,8 @@ const predDf    = nu_n;
 // Point estimate: exp(mu_n) (median of lognormal predictive)
 const predictedDays = Math.exp(mu_n);
 
-// 90% credible interval via Student-t quantiles
-// For df >= 3, approximate t-quantile at 0.95 (one-sided)
-const tCrit = predDf > 30 ? 1.645
-            : predDf > 10 ? 1.7 + 3 / predDf
-            : predDf > 5  ? 1.8 + 5 / predDf
-            : 2.0 + 8 / predDf;
+// 90% credible interval via Student-t quantile (0.95 one-sided)
+const tCrit = jStat.studentt.inv(0.95, predDf);
 
 const logLower = mu_n - tCrit * predScale;
 const logUpper = mu_n + tCrit * predScale;
@@ -858,16 +854,17 @@ const predictedDate = new Date(lastCycleStart + predictedDays * MS_PER_DAY);
 const lowerDate = new Date(lastCycleStart + lowerDays * MS_PER_DAY);
 const upperDate = new Date(lastCycleStart + upperDays * MS_PER_DAY);
 
-const fmt = (d) => d.toISOString().slice(5, 10);
-
 return [
   { label: 'Predicted Cycle', value: Math.round(predictedDays * 10) / 10, unit: 'days' },
   { label: '90% CI Lower', value: Math.round(lowerDays * 10) / 10, unit: 'days' },
   { label: '90% CI Upper', value: Math.round(upperDays * 10) / 10, unit: 'days' },
-  { label: 'Next Period', value: 0, unit: fmt(predictedDate) },
-  { label: 'Window', value: 0, unit: fmt(lowerDate) + ' – ' + fmt(upperDate) },
+  { label: 'Next Period', value: predictedDate.getTime(), unit: 'timestamp' },
+  { label: 'As Early As', value: lowerDate.getTime(), unit: 'timestamp' },
+  { label: 'As Late As', value: upperDate.getTime(), unit: 'timestamp' },
   { label: 'Cycles Used', value: intervals.length, unit: 'intervals' },
-  { label: 'Observed Mean', value: Math.round(ss.mean(intervals) * 10) / 10, unit: 'days' }
+  { label: 'Observed Mean', value: Math.round(ss.mean(intervals) * 10) / 10, unit: 'days' },
+  { label: 'Data From', value: data.timestamps[0], unit: 'timestamp' },
+  { label: 'Data To', value: data.timestamps[data.timestamps.length - 1], unit: 'timestamp' }
 ];
 """;
 

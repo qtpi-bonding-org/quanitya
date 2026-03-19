@@ -29,6 +29,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
   // Performance: Cache heavy library strings in memory
   static String? _cachedShell;
   static String? _cachedStatsLib;
+  static String? _cachedJstat;
 
   WasmAnalysisService(this._repo);
 
@@ -57,6 +58,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
       final resultData = await _executeInIsolate(
         shellContent: _cachedShell!,
         simpleStats: _cachedStatsLib!,
+        jstat: _cachedJstat!,
         values: data.values,
         timestampsEpoch: data.timestamps.map((e) => e.millisecondsSinceEpoch).toList(),
         snippet: script.snippet,
@@ -75,21 +77,24 @@ class WasmAnalysisService implements IWasmAnalysisService {
 
   /// Ensures assets are loaded and cached in memory
   Future<void> _ensureAssetsLoaded() async {
-    if (_cachedShell != null && _cachedStatsLib != null) return;
+    if (_cachedShell != null && _cachedStatsLib != null && _cachedJstat != null) return;
 
     final results = await Future.wait([
       rootBundle.loadString('assets/scripts/mvs_shell.js.j2'),
       rootBundle.loadString('assets/scripts/simple_statistics.js'),
+      rootBundle.loadString('assets/scripts/jstat.min.js'),
     ]);
 
     _cachedShell = results[0];
     _cachedStatsLib = results[1];
+    _cachedJstat = results[2];
   }
 
   /// Executes user script in isolated JS runtime
   static Future<dynamic> _executeInIsolate({
     required String shellContent,
     required String simpleStats,
+    required String jstat,
     required List<double> values,
     required List<int> timestampsEpoch,
     required String snippet,
@@ -111,8 +116,9 @@ class WasmAnalysisService implements IWasmAnalysisService {
     final javascript = await JavaScript.createNew();
 
     try {
-      // Inject simple-statistics library
+      // Inject libraries
       await javascript.runJavaScriptReturningResult(simpleStats);
+      await javascript.runJavaScriptReturningResult(jstat);
 
       // Execute rendered script
       final jsResult = await javascript.runJavaScriptReturningResult(fullScript);
