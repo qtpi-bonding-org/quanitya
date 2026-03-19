@@ -231,6 +231,59 @@ class AuthService {
         }
         final signature = base64Encode(signatureBytes);
 
+        // 4b. Sign device public key with ultimate key (attestation for registerDevice)
+        final attestationBytes = await _keyRepository.signWithUltimateKey(
+          Uint8List.fromList(utf8.encode(devicePublicKeyHex)),
+        );
+        if (attestationBytes == null) {
+          throw const AccountCreationException(
+            'Failed to create device key attestation - ultimate key not available',
+          );
+        }
+        final deviceKeyAttestation = attestationBytes
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join();
+
+        // 4c. Generate cross-device key and attest it (before ultimate key wipe)
+        String? crossDeviceKeyAttestation;
+        if (_keyRepository.isCrossDeviceStorageAvailable) {
+          try {
+            final label = _keyRepository.crossDeviceLabel;
+            final crossDeviceKeyDuo =
+                await _keyRepository.generateCrossDeviceKey();
+
+            final crossDeviceBlob = await _encryption.createEncryptedBlob(
+              symmetricKeyJwk,
+              crossDeviceKeyDuo.encryption.publicKey,
+            );
+
+            final crossDeviceKeyHex =
+                await crossDeviceKeyDuo.signingKeyPair.exportPublicKeyHex();
+
+            // Attest cross-device key with ultimate key
+            final crossAttestBytes = await _keyRepository.signWithUltimateKey(
+              Uint8List.fromList(utf8.encode(crossDeviceKeyHex)),
+            );
+            if (crossAttestBytes != null) {
+              crossDeviceKeyAttestation = crossAttestBytes
+                  .map((b) => b.toRadixString(16).padLeft(2, '0'))
+                  .join();
+            }
+
+            await _secureStorage.storeSecureData(
+              _crossDeviceRegistrationBlobKey,
+              jsonEncode({
+                'keyHex': crossDeviceKeyHex,
+                'blob': crossDeviceBlob,
+                'label': label,
+                'attestation': crossDeviceKeyAttestation,
+              }),
+            );
+          } catch (e) {
+            // Cross-device key is non-critical — continue
+          }
+        }
+
         // 5. Create and store the registration payload
         final payload = RegistrationPayload(
           devicePublicKeyHex: devicePublicKeyHex,
@@ -238,6 +291,8 @@ class AuthService {
           recoveryBlob: recoveryBlob,
           deviceBlob: deviceBlob,
           signature: signature,
+          deviceKeyAttestation: deviceKeyAttestation,
+          crossDeviceKeyAttestation: crossDeviceKeyAttestation,
           createdAt: createdAt,
         );
         await _storeRegistrationPayload(payload);
@@ -248,36 +303,6 @@ class AuthService {
           throw const AccountCreationException(
             'Ultimate private key not available',
           );
-        }
-
-        // 7. Generate and register cross-device key (iOS iCloud / Android Block Store)
-        if (_keyRepository.isCrossDeviceStorageAvailable) {
-          try {
-            final label = _keyRepository.crossDeviceLabel;
-            final crossDeviceKeyDuo = await _keyRepository.generateCrossDeviceKey();
-
-            // Encrypt symmetric key with cross-device key's encryption public key
-            final crossDeviceBlob = await _encryption.createEncryptedBlob(
-              symmetricKeyJwk,
-              crossDeviceKeyDuo.encryption.publicKey,
-            );
-
-            // Get cross-device key's signing public key hex
-            final crossDeviceKeyHex = await crossDeviceKeyDuo.signingKeyPair.exportPublicKeyHex();
-
-            // Store payload for deferred server registration
-            // registerAccountWithServer will register both devices
-            await _secureStorage.storeSecureData(
-              _crossDeviceRegistrationBlobKey,
-              jsonEncode({
-                'keyHex': crossDeviceKeyHex,
-                'blob': crossDeviceBlob,
-                'label': label,
-              }),
-            );
-          } catch (e) {
-            // Cross-device key is non-critical — continue
-          }
         }
 
         // Return ultimate private key for user to save offline
@@ -348,7 +373,7 @@ class AuthService {
 
         // 3. Register account with server
         try {
-          // Account creation requires proof-of-work via accountRegistration endpoint
+          // Account creation requires proof-of-work via anonaccount module endpoint
           final challengeResponse = await _client.modules.anonaccount.entrypoint.getChallenge();
           final proofOfWork = await _computeProofOfWork(
             challengeResponse.challenge,
@@ -358,7 +383,7 @@ class AuthService {
               '${challengeResponse.challenge}:${AccountMethods.createAccount}:${payload.ultimatePublicKeyHex}';
           final powSignature = await _encryption.signWithDeviceKey(signPayload);
 
-          await _client.accountRegistration.createAccount(
+          await _client.modules.anonaccount.account.createAccount(
             challenge: challengeResponse.challenge,
             proofOfWork: proofOfWork,
             signature: powSignature,
@@ -384,6 +409,7 @@ class AuthService {
             challenge: deviceChallenge.challenge,
             proofOfWork: devicePow,
             signature: deviceSignature,
+            deviceKeyAttestation: payload.deviceKeyAttestation,
             ultimateSigningPublicKeyHex: payload.ultimatePublicKeyHex,
             deviceSigningPublicKeyHex: payload.devicePublicKeyHex,
             encryptedDataKey: payload.deviceBlob,
@@ -398,6 +424,9 @@ class AuthService {
               final keyHex = data['keyHex'] as String;
               final blob = data['blob'] as String;
               final label = data['label'] as String;
+              final attestation = data['attestation'] as String? ??
+                  payload.crossDeviceKeyAttestation ??
+                  '';
 
               final crossChallenge =
                   await _client.modules.anonaccount.entrypoint.getChallenge();
@@ -420,6 +449,7 @@ class AuthService {
                 challenge: crossChallenge.challenge,
                 proofOfWork: crossPow,
                 signature: crossSignature,
+                deviceKeyAttestation: attestation,
                 ultimateSigningPublicKeyHex: payload.ultimatePublicKeyHex,
                 deviceSigningPublicKeyHex: keyHex,
                 encryptedDataKey: blob,
@@ -470,6 +500,34 @@ class AuthService {
   /// re-attempt registration on the next call.
   Future<void> clearRegistrationFlag() async {
     await _secureStorage.deleteSecureData(_registeredWithServerKey);
+  }
+
+  /// Delete account on server using proof-of-work + ECDSA signature.
+  ///
+  /// Caller is responsible for local cleanup (clearing keys, navigating away).
+  Future<void> deleteAccount() async {
+    final devicePublicKeyHex =
+        await _keyRepository.getDeviceSigningPublicKeyHex();
+    if (devicePublicKeyHex == null) {
+      throw const AccountCreationException('Device public key not found');
+    }
+
+    final challengeResponse =
+        await _client.modules.anonaccount.entrypoint.getChallenge();
+    final proofOfWork = await _computeProofOfWork(
+      challengeResponse.challenge,
+      challengeResponse.difficulty,
+    );
+    final signPayload =
+        '${challengeResponse.challenge}:deleteAccount:$devicePublicKeyHex';
+    final signature = await _encryption.signWithDeviceKey(signPayload);
+
+    await _client.accountDeletion.deleteAccount(
+      challenge: challengeResponse.challenge,
+      proofOfWork: proofOfWork,
+      publicKeyHex: devicePublicKeyHex,
+      signature: signature,
+    );
   }
 
   /// Compute hashcash proof-of-work for spam prevention.
@@ -561,6 +619,12 @@ class AuthService {
         );
 
         // 7. Register new device with account (uses ultimate key, not int id)
+        // Generate attestation: ultimate key signs device public key
+        final recoveryAttestation = await _encryption.signWithKeyDuo(
+          devicePublicKeyHex,
+          ultimateKeyDuo,
+        );
+
         final regChallenge =
             await _client.modules.anonaccount.entrypoint.getChallenge();
         final regPow = await _computeProofOfWork(
@@ -576,6 +640,7 @@ class AuthService {
           challenge: regChallenge.challenge,
           proofOfWork: regPow,
           signature: regSignature,
+          deviceKeyAttestation: recoveryAttestation,
           ultimateSigningPublicKeyHex: ultimatePublicKeyHex,
           deviceSigningPublicKeyHex: devicePublicKeyHex,
           encryptedDataKey: deviceBlob,

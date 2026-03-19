@@ -33,10 +33,18 @@ class RegistrationPayload with _$RegistrationPayload {
     /// Signature of the payload data by the ultimate signing key
     /// Proves all keys were created together and haven't been tampered with
     required String signature,
-    
+
+    /// Attestation: ultimate key's ECDSA signature over devicePublicKeyHex.
+    /// Proves the account owner authorized this device key.
+    required String deviceKeyAttestation,
+
+    /// Attestation for the cross-device key (iCloud/BlockStore), if generated.
+    /// Same format: ultimate key's ECDSA signature over cross-device public key hex.
+    String? crossDeviceKeyAttestation,
+
     /// Timestamp when the payload was created
     required DateTime createdAt,
-    
+
     /// Version for future compatibility
     @Default(1) int version,
   }) = _RegistrationPayload;
