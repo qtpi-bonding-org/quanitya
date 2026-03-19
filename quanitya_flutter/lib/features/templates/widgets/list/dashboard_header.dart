@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_fonts.dart';
 
@@ -40,9 +40,8 @@ class _DashboardHeaderState extends State<DashboardHeader> {
     final theme = Theme.of(context);
 
     // Format: 2023 10 24
-    final dateStr = DateFormat('yyyy MM dd').format(_now);
-    // Format: 09:41:30
-    final timeStr = DateFormat('hh:mm:ss').format(_now);
+    final dateStr = QuanityaDateFormat.full(_now);
+    final timeStr = QuanityaDateFormat.timePrecise(_now);
 
     return Column(
       children: [

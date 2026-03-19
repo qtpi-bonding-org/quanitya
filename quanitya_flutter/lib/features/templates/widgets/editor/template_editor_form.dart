@@ -146,14 +146,16 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                       ),
                       child: ScheduleSection(
                         frequency: state.scheduleFrequency,
-                        reminderTime: state.scheduleTime,
+                        reminderTime: state.scheduleHour != null
+                            ? TimeOfDay(hour: state.scheduleHour!, minute: state.scheduleMinute ?? 0)
+                            : null,
                         weeklyDays: state.scheduleWeeklyDays,
                         onFrequencyChanged: (freq) => context
                             .read<TemplateEditorCubit>()
                             .updateScheduleFrequency(freq),
                         onTimeChanged: (time) => context
                             .read<TemplateEditorCubit>()
-                            .updateScheduleTime(time),
+                            .updateScheduleTime(time.hour, time.minute),
                         onWeeklyDaysChanged: (days) => context
                             .read<TemplateEditorCubit>()
                             .updateScheduleWeeklyDays(days),

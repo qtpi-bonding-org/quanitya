@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
@@ -55,7 +54,8 @@ class TemplateEditorState
     
     // Schedule/Reminder settings
     @Default(ScheduleFrequency.off) ScheduleFrequency scheduleFrequency,
-    @Default(null) TimeOfDay? scheduleTime,
+    @Default(null) int? scheduleHour,
+    @Default(null) int? scheduleMinute,
     @Default([]) List<String> scheduleWeeklyDays,
   }) = _TemplateEditorState;
 }
