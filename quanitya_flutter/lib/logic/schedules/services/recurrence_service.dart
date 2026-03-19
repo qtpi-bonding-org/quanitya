@@ -52,11 +52,14 @@ class RecurrenceService {
     if (rule == null) return [];
 
     try {
-      return rule.getInstances(
-        start: start,
-        after: after,
-        before: before,
+      // rrule package requires all datetimes to be UTC
+      final results = rule.getInstances(
+        start: start.toUtc(),
+        after: after?.toUtc(),
+        before: before?.toUtc(),
       ).toList();
+      // Convert back to local time for the rest of the app
+      return results.map((d) => d.toLocal()).toList();
     } catch (e) {
       debugPrint('RecurrenceService: Error getting occurrences: $e');
       return [];
@@ -74,10 +77,12 @@ class RecurrenceService {
     if (rule == null) return [];
 
     try {
-      return rule.getInstances(
-        start: start,
-        after: after,
+      // rrule package requires all datetimes to be UTC
+      final results = rule.getInstances(
+        start: start.toUtc(),
+        after: after?.toUtc(),
       ).take(count).toList();
+      return results.map((d) => d.toLocal()).toList();
     } catch (e) {
       debugPrint('RecurrenceService: Error getting next occurrences: $e');
       return [];
