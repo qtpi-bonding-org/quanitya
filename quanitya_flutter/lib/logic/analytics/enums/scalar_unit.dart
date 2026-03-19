@@ -1,4 +1,4 @@
-import 'package:intl/intl.dart';
+import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
 /// Special scalar units that the UI auto-formats.
 ///
@@ -37,10 +37,10 @@ enum ScalarUnit {
   /// Format a raw double value according to this unit's rules.
   String format(double value) {
     return switch (this) {
-      ScalarUnit.timestamp => DateFormat('MMM d').format(
+      ScalarUnit.timestamp => QuanityaDateFormat.monthDay(
           DateTime.fromMillisecondsSinceEpoch(value.toInt()),
         ),
-      ScalarUnit.timestampFull => DateFormat('MMM d, HH:mm').format(
+      ScalarUnit.timestampFull => QuanityaDateFormat.timestamp(
           DateTime.fromMillisecondsSinceEpoch(value.toInt()),
         ),
       ScalarUnit.percentage => '${(value * 100).toStringAsFixed(1)}%',
