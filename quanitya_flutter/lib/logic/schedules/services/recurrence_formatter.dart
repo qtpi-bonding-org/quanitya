@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
 /// Utility class for formatting RRULE strings into human-readable text.
 /// 
@@ -125,7 +125,7 @@ class RecurrenceFormatter {
   static String _formatTime(TimeOfDay time) {
     final now = DateTime.now();
     final dt = DateTime(now.year, now.month, now.day, time.hour, time.minute);
-    return DateFormat.jm().format(dt);
+    return QuanityaDateFormat.time(dt);
   }
 
   /// Format BYDAY value to readable string

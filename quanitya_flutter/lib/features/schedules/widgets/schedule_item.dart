@@ -5,9 +5,8 @@ import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/group.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
-import '../../../support/extensions/color_extensions.dart';
+import '../../../design_system/widgets/template_icon_bubble.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../../../support/utils/icon_resolver.dart';
 import '../../templates/widgets/editor/schedule_section.dart';
 import '../cubits/schedule_list_state.dart';
 
@@ -20,16 +19,12 @@ import '../cubits/schedule_list_state.dart';
 /// - Day selector (for weekly)
 class ScheduleItem extends StatefulWidget {
   final ScheduleWithContext scheduleWithContext;
-  final bool isFirst;
-  final bool isLast;
   final VoidCallback? onTap;
   final void Function(ScheduleFrequency frequency, TimeOfDay time, List<String> weeklyDays)? onScheduleChanged;
 
   const ScheduleItem({
     super.key,
     required this.scheduleWithContext,
-    this.isFirst = false,
-    this.isLast = false,
     this.onTap,
     this.onScheduleChanged,
   });
@@ -120,98 +115,49 @@ class _ScheduleItemState extends State<ScheduleItem> {
     final template = widget.scheduleWithContext.template;
     final aesthetics = widget.scheduleWithContext.aesthetics;
 
-    // Get icon - priority: icon > emoji > default
-    final iconString = aesthetics?.icon;
-    final iconEmoji = aesthetics?.emoji;
-
-    // Use aesthetic accent color if available, fallback to textSecondary
-    final accentHex = aesthetics?.palette.accents.firstOrNull;
-    final iconColor = accentHex != null
-        ? accentHex.toColor()
-        : palette.textSecondary;
-
     return QuanityaGroup(
       onTap: widget.onTap,
       showChevron: false,
       padding: EdgeInsets.zero,
-      child: IntrinsicHeight(
+      child: Padding(
+        padding: AppPadding.verticalDouble,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Timeline Column
-            SizedBox(
-              width: AppSizes.size56,
-              child: Column(
-                children: [
-                  // Top Connector
-                  SizedBox(
-                    height: AppSizes.space * 2,
-                    child: widget.isFirst
-                        ? const SizedBox.shrink()
-                        : Container(
-                            width: AppSizes.borderWidth,
-                            color: palette.textSecondary.withValues(alpha: 0.3),
-                          ),
-                  ),
-                  // Icon Bubble
-                  Container(
-                    width: AppSizes.size36,
-                    height: AppSizes.size36,
-                    decoration: BoxDecoration(
-                      color: template.isHidden
-                          ? palette.textPrimary.withValues(alpha: 0.25)
-                          : Colors.transparent,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: palette.interactableColor,
-                        width: AppSizes.borderWidthThick,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: _buildIcon(iconString, iconEmoji, iconColor),
-                  ),
-                  // Bottom Connector
-                  Expanded(
-                    child: widget.isLast
-                        ? const SizedBox.shrink()
-                        : Container(
-                            width: AppSizes.borderWidth,
-                            color: palette.textSecondary.withValues(alpha: 0.3),
-                          ),
-                  ),
-                ],
-              ),
+            TemplateIconBubble(
+              iconString: aesthetics?.icon,
+              emoji: aesthetics?.emoji,
+              accentColorHex: aesthetics?.palette.accents.firstOrNull,
+              isHidden: template.isHidden,
+              fallbackIcon: Icons.calendar_today,
             ),
             HSpace.x2,
             // Content Column
             Expanded(
-              child: Padding(
-                padding: AppPadding.verticalDouble,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header: Template Name
-                    Text(
-                      template.name,
-                      style: context.text.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: palette.textPrimary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header: Template Name
+                  Text(
+                    template.name,
+                    style: context.text.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: palette.textPrimary,
                     ),
-                    VSpace.x2,
-                    
-                    // Inline schedule controls
-                    _InlineScheduleControls(
-                      frequency: _frequency,
-                      time: _time,
-                      weeklyDays: _weeklyDays,
-                      onFrequencyChanged: _onFrequencyChanged,
-                      onTimeChanged: _onTimeChanged,
-                      onWeeklyDaysChanged: _onWeeklyDaysChanged,
-                    ),
-                  ],
-                ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  VSpace.x2,
+
+                  // Inline schedule controls
+                  _InlineScheduleControls(
+                    frequency: _frequency,
+                    time: _time,
+                    weeklyDays: _weeklyDays,
+                    onFrequencyChanged: _onFrequencyChanged,
+                    onTimeChanged: _onTimeChanged,
+                    onWeeklyDaysChanged: _onWeeklyDaysChanged,
+                  ),
+                ],
               ),
             ),
           ],
@@ -220,40 +166,6 @@ class _ScheduleItemState extends State<ScheduleItem> {
     );
   }
 
-  /// Build icon widget - priority: icon > emoji > default icon
-  Widget _buildIcon(String? iconString, String? emoji, Color color) {
-    // Try to resolve icon from "packname:iconname" format
-    if (iconString != null && iconString.contains(':')) {
-      final iconData = _parseIconFromString(iconString);
-      if (iconData != null) {
-        return Icon(
-          iconData,
-          size: AppSizes.iconMedium,
-          color: color,
-        );
-      }
-    }
-
-    // Fallback to emoji if provided
-    if (emoji != null && emoji.isNotEmpty) {
-      return Text(
-        emoji,
-        style: TextStyle(fontSize: AppSizes.iconMedium),
-      );
-    }
-
-    // Final fallback to calendar icon
-    return Icon(
-      Icons.calendar_today,
-      size: AppSizes.iconMedium,
-      color: color,
-    );
-  }
-
-  /// Parse icon from "packname:iconname" format
-  IconData? _parseIconFromString(String? iconString) {
-    return IconResolver.resolve(iconString);
-  }
 }
 
 /// Compact inline schedule controls for the schedule item.

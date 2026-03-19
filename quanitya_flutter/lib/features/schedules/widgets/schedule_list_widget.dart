@@ -45,8 +45,6 @@ class ScheduleListWidget extends StatelessWidget {
               final schedule = schedules[index];
               return ScheduleItem(
                 scheduleWithContext: schedule,
-                isFirst: index == 0,
-                isLast: index == schedules.length - 1,
                 onTap: onItemTap != null ? () => onItemTap!(schedule) : null,
                 onScheduleChanged: (frequency, time, weeklyDays) {
                   _handleScheduleChange(context, schedule, frequency, time, weeklyDays);
