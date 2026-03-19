@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
@@ -116,6 +118,13 @@ class DevToolsSheet extends StatelessWidget {
               _DevToolRow(
                 label: l10n.devWipeCryptoKeys,
                 child: _DevWipeKeysButton(),
+              ),
+              VSpace.x2,
+
+              // Factory reset — simulate fresh install
+              _DevToolRow(
+                label: 'Factory Reset',
+                child: _DevFactoryResetButton(),
               ),
               VSpace.x2,
 
@@ -433,6 +442,89 @@ class _DevWipeKeysButtonState extends State<_DevWipeKeysButton> {
         try {
           final keyRepo = GetIt.instance<ICryptoKeyRepository>();
           await keyRepo.clearKeys();
+          AppRouter.resetKeyCheck();
+          if (mounted) {
+            navigator.pop();
+            goRouter.goNamed(RouteNames.onboarding);
+          }
+        } finally {
+          if (mounted) setState(() => _isLoading = false);
+        }
+      },
+    );
+  }
+}
+
+/// Factory reset — clears all data, keys (including iCloud), and navigates to onboarding.
+/// Simulates a completely fresh app install.
+class _DevFactoryResetButton extends StatefulWidget {
+  @override
+  State<_DevFactoryResetButton> createState() => _DevFactoryResetButtonState();
+}
+
+class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return SizedBox(
+        width: AppSizes.iconMedium,
+        height: AppSizes.iconMedium,
+        child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
+      );
+    }
+
+    return QuanityaTextButton(
+      text: 'Reset',
+      isDestructive: true,
+      onPressed: () async {
+        final navigator = Navigator.of(context);
+        final goRouter = GoRouter.of(context);
+
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (c) => QuanityaConfirmationDialog(
+            title: 'Factory Reset',
+            message:
+                'This will clear ALL data, crypto keys (including iCloud), '
+                'and return to onboarding. This simulates a fresh install.',
+            onConfirm: () {},
+            isDestructive: true,
+            confirmText: 'Reset Everything',
+          ),
+        );
+
+        if (confirmed != true || !mounted) return;
+
+        setState(() => _isLoading = true);
+        try {
+          // 1. Disconnect PowerSync and delete its local database file
+          //    (prevents stale encrypted records from being re-synced)
+          if (GetIt.instance.isRegistered<IPowerSyncService>()) {
+            final ps = GetIt.instance<IPowerSyncService>();
+            await ps.disconnect();
+            final dbPath = ps.dbPath;
+            if (dbPath != null) {
+              final dbFile = File(dbPath);
+              if (await dbFile.exists()) await dbFile.delete();
+              // WAL and SHM journal files
+              final wal = File('$dbPath-wal');
+              final shm = File('$dbPath-shm');
+              if (await wal.exists()) await wal.delete();
+              if (await shm.exists()) await shm.delete();
+            }
+          }
+
+          // 2. Clear all Drift database tables
+          final seeder = GetIt.instance<DevSeederService>();
+          await seeder.clearAll();
+
+          // 3. Sign out (clears all crypto keys including iCloud Keychain)
+          final authService = GetIt.instance<AuthService>();
+          await authService.signOut();
+
+          // 4. Reset router key check and navigate to onboarding
           AppRouter.resetKeyCheck();
           if (mounted) {
             navigator.pop();
