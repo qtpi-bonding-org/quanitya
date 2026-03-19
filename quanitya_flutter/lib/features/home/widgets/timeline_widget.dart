@@ -3,6 +3,7 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_empty_or.dart';
+import '../../../design_system/widgets/template_icon_bubble.dart';
 import '../../../data/dao/log_entry_query_dao.dart';
 import '../cubits/timeline_data_state.dart';
 
@@ -35,16 +36,16 @@ class TimelineWidget extends StatelessWidget {
           final item = items[index];
           
           return item.when(
-            entry: (entryWithContext, isFirst, isLast, showTimeOnly, timeString, dateString, dataPreview, iconWidget, accentColor) {
+            entry: (entryWithContext, isFirst, isLast, showTimeOnly, timeString, dateString, dataPreview, iconString, emoji, accentColorHex) {
               return _buildTimelineEntry(
                 entryWithContext,
                 isFirst,
                 isLast,
                 timeString,
-                dateString,
                 dataPreview,
-                iconWidget,
-                accentColor,
+                iconString,
+                emoji,
+                accentColorHex,
                 item,
               );
             },
@@ -63,14 +64,14 @@ class TimelineWidget extends StatelessWidget {
     bool isFirst,
     bool isLast,
     String timeString,
-    String dateString,
     String dataPreview,
-    Widget iconWidget,
-    Color accentColor,
+    String? iconString,
+    String? emoji,
+    String? accentColorHex,
     TimelineItem item,
   ) {
     final template = entryWithContext.template;
-    
+
     return Semantics(
       button: true,
       label: 'View log entry',
@@ -80,12 +81,11 @@ class TimelineWidget extends StatelessWidget {
           child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Timeline Column - matches original structure
+            // Timeline Column
             SizedBox(
               width: AppSizes.size56,
               child: Column(
                 children: [
-                  // Top Connector - Expanded to fill space
                   Expanded(
                     child: isFirst
                         ? const SizedBox.shrink()
@@ -94,25 +94,12 @@ class TimelineWidget extends StatelessWidget {
                             color: QuanityaPalette.primary.textPrimary,
                           ),
                   ),
-                  // Icon Bubble - accent-colored icon, interactable border
-                  Container(
-                    width: AppSizes.size36,
-                    height: AppSizes.size36,
-                    decoration: BoxDecoration(
-                      color: entryWithContext.template.isHidden
-                          ? QuanityaPalette.primary.textPrimary
-                              .withValues(alpha: 0.25)
-                          : Colors.transparent,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: QuanityaPalette.primary.interactableColor,
-                        width: AppSizes.borderWidthThick,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: iconWidget, // Pre-computed widget
+                  TemplateIconBubble(
+                    iconString: iconString,
+                    emoji: emoji,
+                    accentColorHex: accentColorHex,
+                    isHidden: template.isHidden,
                   ),
-                  // Bottom Connector - Expanded to fill space
                   Expanded(
                     child: isLast
                         ? const SizedBox.shrink()

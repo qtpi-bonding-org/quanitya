@@ -52,21 +52,15 @@ abstract class ILogEntryRepository {
   Stream<List<LogEntryModel>> watchMissedEntries({String? templateId});
 
   /// Watches logged/completed entries with full context (template + aesthetics).
-  /// 
-  /// [includeHidden] If false (default), excludes entries from hidden templates.
   Stream<List<LogEntryWithContext>> watchPastEntriesWithContext({
     String? templateId,
     bool sortAscending = false,
-    bool includeHidden = false,
   });
 
   /// Watches upcoming/todo entries with full context (template + aesthetics).
-  /// 
-  /// [includeHidden] If false (default), excludes entries from hidden templates.
   Stream<List<LogEntryWithContext>> watchUpcomingEntriesWithContext({
     String? templateId,
     bool sortAscending = true,
-    bool includeHidden = false,
   });
 
   /// Gets logged/completed entries (past) - most recent first.

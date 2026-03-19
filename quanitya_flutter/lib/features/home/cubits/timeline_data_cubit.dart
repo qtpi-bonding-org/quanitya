@@ -2,14 +2,12 @@ import 'dart:async';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/material.dart';
+import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import '../../../data/interfaces/log_entry_interface.dart';
 import '../../../data/dao/log_entry_query_dao.dart';
 import '../../../data/dao/template_query_dao.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
-import '../../../support/utils/icon_resolver.dart';
-import '../../../design_system/primitives/app_sizes.dart';
-import '../../../design_system/primitives/quanitya_palette.dart';
 import 'timeline_data_state.dart';
 
 @injectable
@@ -51,7 +49,7 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
 
     // Watch past entries
     _pastSubscription = _logEntryRepo
-        .watchPastEntriesWithContext(includeHidden: true)
+        .watchPastEntriesWithContext()
         .listen(
           (entries) {
             debugPrint(
@@ -69,7 +67,7 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
 
     // Watch future entries
     _futureSubscription = _logEntryRepo
-        .watchUpcomingEntriesWithContext(includeHidden: true)
+        .watchUpcomingEntriesWithContext()
         .listen(
           (entries) {
             debugPrint(
@@ -344,7 +342,7 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
       // Add date divider with pre-computed formatted date
       final date = DateTime.parse(dateKey);
       final formattedDate =
-          '${date.month.toString().padLeft(2, '0')} / ${date.day.toString().padLeft(2, '0')}';
+          QuanityaDateFormat.monthDay(date);
 
       items.add(
         TimelineItem.dateDivider(
@@ -365,11 +363,9 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
             entry.entry.occurredAt ??
             entry.entry.scheduledFor ??
             DateTime.now();
-        final timeString = DateFormat('h:mm a').format(timestamp);
-        final dateString = DateFormat('MMM d').format(timestamp);
+        final timeString = QuanityaDateFormat.time(timestamp);
+        final dateString = QuanityaDateFormat.monthDay(timestamp);
         final dataPreview = _computeDataPreview(entry.entry.data);
-        final iconWidget = _buildIconWidget(entry.aesthetics);
-        final accentColor = _resolveAccentColor(entry.aesthetics);
 
         items.add(
           TimelineItem.entry(
@@ -380,8 +376,9 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
             timeString: timeString,
             dateString: dateString,
             dataPreview: dataPreview,
-            iconWidget: iconWidget,
-            accentColor: accentColor,
+            iconString: entry.aesthetics?.icon,
+            emoji: entry.aesthetics?.emoji,
+            accentColorHex: entry.aesthetics?.palette.accents.firstOrNull,
           ),
         );
 
@@ -399,44 +396,6 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
     return firstValue.toString();
   }
 
-  /// Pre-compute icon widget (keep icon parsing as requested)
-  Widget _buildIconWidget(dynamic aesthetics) {
-    final iconString = aesthetics?.icon;
-    final iconEmoji = aesthetics?.emoji ?? '📝';
-    final color = _resolveAccentColor(aesthetics);
-
-    // Try to parse icon from "packname:iconname" format
-    if (iconString != null && iconString.contains(':')) {
-      final iconData = IconResolver.resolve(iconString);
-      if (iconData != null) {
-        return Icon(iconData, size: AppSizes.fontBig, color: color);
-      }
-    }
-
-    // Fallback to emoji if provided
-    if (iconEmoji.isNotEmpty) {
-      return Text(iconEmoji, style: TextStyle(fontSize: AppSizes.fontBig));
-    }
-
-    // Final fallback to document icon
-    return Icon(Icons.description, size: AppSizes.fontBig, color: color);
-  }
-
-  /// Resolve accent color from template aesthetics hex value.
-  Color _resolveAccentColor(dynamic aesthetics) {
-    if (aesthetics == null) return QuanityaPalette.primary.textSecondary;
-
-    final accents = aesthetics.palette.accents as List<String>?;
-    if (accents == null || accents.isEmpty) {
-      return QuanityaPalette.primary.textSecondary;
-    }
-
-    final hex = accents.first.replaceFirst('#', '');
-    if (hex.length != 6) return QuanityaPalette.primary.textSecondary;
-    final parsed = int.tryParse(hex, radix: 16);
-    if (parsed == null) return QuanityaPalette.primary.textSecondary;
-    return Color(parsed + 0xFF000000);
-  }
 
   @override
   Future<void> close() {

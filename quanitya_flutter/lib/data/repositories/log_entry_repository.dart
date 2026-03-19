@@ -105,12 +105,10 @@ class LogEntryRepository implements ILogEntryRepository {
   Stream<List<LogEntryWithContext>> watchPastEntriesWithContext({
     String? templateId,
     bool sortAscending = false,
-    bool includeHidden = false,
   }) {
     return _queryDao.watchLoggedWithContext(
       templateId: templateId,
       sortOrder: sortAscending ? OrderingMode.asc : OrderingMode.desc,
-      includeHidden: includeHidden,
     );
   }
 
@@ -118,12 +116,10 @@ class LogEntryRepository implements ILogEntryRepository {
   Stream<List<LogEntryWithContext>> watchUpcomingEntriesWithContext({
     String? templateId,
     bool sortAscending = true,
-    bool includeHidden = false,
   }) {
     return _queryDao.watchTodosWithContext(
       templateId: templateId,
       sortOrder: sortAscending ? OrderingMode.asc : OrderingMode.desc,
-      includeHidden: includeHidden,
     );
   }
 

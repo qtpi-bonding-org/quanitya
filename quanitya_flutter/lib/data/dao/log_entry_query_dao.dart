@@ -406,22 +406,18 @@ class LogEntryQueryDao {
   Stream<List<LogEntryWithContext>> watchTodosWithContext({
     String? templateId,
     OrderingMode sortOrder = OrderingMode.asc,
-    bool includeHidden = false,
   }) {
-    return watchTodos(templateId: templateId, sortOrder: sortOrder).asyncMap(
-      (entries) => _loadContextForList(entries, includeHidden: includeHidden),
-    );
+    return watchTodos(templateId: templateId, sortOrder: sortOrder)
+        .asyncMap(_loadContextForList);
   }
 
   /// Watch logged entries with full context
   Stream<List<LogEntryWithContext>> watchLoggedWithContext({
     String? templateId,
     OrderingMode sortOrder = OrderingMode.desc,
-    bool includeHidden = false,
   }) {
-    return watchLogged(templateId: templateId, sortOrder: sortOrder).asyncMap(
-      (entries) => _loadContextForList(entries, includeHidden: includeHidden),
-    );
+    return watchLogged(templateId: templateId, sortOrder: sortOrder)
+        .asyncMap(_loadContextForList);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -620,20 +616,16 @@ class LogEntryQueryDao {
   }
 
   Future<List<LogEntryWithContext>> _loadContextForList(
-    List<LogEntryModel> entries, {
-    bool includeHidden = false,
-  }) async {
+    List<LogEntryModel> entries,
+  ) async {
     if (entries.isEmpty) return [];
 
     // Batch load all templates, aesthetics, and schedules
     final templateIds = entries.map((e) => e.templateId).toSet();
 
-    // Load templates (filter by isHidden if needed)
-    var templatesQuery = _db.select(_db.trackerTemplates)
+    // Always load all templates — hidden filtering is a UI concern
+    final templatesQuery = _db.select(_db.trackerTemplates)
       ..where((t) => t.id.isIn(templateIds));
-    if (!includeHidden) {
-      templatesQuery = templatesQuery..where((t) => t.isHidden.equals(false));
-    }
     final templates = await templatesQuery.get();
     final templateMap = {
       for (final t in templates) t.id: _templateEntityToModel(t),

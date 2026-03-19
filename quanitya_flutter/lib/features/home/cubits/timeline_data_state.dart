@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import '../../../data/dao/log_entry_query_dao.dart';
@@ -22,8 +21,10 @@ class TimelineItem with _$TimelineItem {
     required String timeString,
     required String dateString,
     required String dataPreview,
-    required Widget iconWidget,
-    required Color accentColor,
+    // Icon data for TemplateIconBubble
+    String? iconString,
+    String? emoji,
+    String? accentColorHex,
   }) = TimelineEntryItem;
   
   const factory TimelineItem.dateDivider({
