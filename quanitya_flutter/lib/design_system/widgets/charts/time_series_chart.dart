@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:graphic/graphic.dart';
-import 'package:intl/intl.dart';
+import '../../primitives/quanitya_date_format.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../primitives/quanitya_palette.dart';
 
@@ -116,9 +116,8 @@ class TimeSeriesChart extends StatelessWidget {
     );
   }
   
-  /// Format date concisely (e.g., "Jan 5" or "1/5")
   static String _formatDate(DateTime date) {
-    return DateFormat('M/d').format(date);
+    return QuanityaDateFormat.monthDayCompact(date);
   }
   
   /// Format number with 3 significant figures, using scientific notation if needed

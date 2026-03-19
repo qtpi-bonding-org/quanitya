@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../../primitives/quanitya_date_format.dart';
 import '../../primitives/app_sizes.dart';
 import '../../primitives/quanitya_palette.dart';
 
@@ -84,8 +84,8 @@ class ContributionHeatmap extends StatelessWidget {
                 padding: const EdgeInsets.all(cellPadding),
                 child: Tooltip(
                   message: isFuture
-                      ? DateFormat('MMM d').format(date)
-                      : '${DateFormat('MMM d').format(date)}: $count ${count == 1 ? 'entry' : 'entries'}',
+                      ? QuanityaDateFormat.monthDay(date)
+                      : '${QuanityaDateFormat.monthDay(date)}: $count ${count == 1 ? 'entry' : 'entries'}',
                   child: Container(
                     width: cellSize,
                     height: cellSize,

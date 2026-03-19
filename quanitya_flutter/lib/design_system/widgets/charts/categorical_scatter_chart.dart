@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../../primitives/quanitya_date_format.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../primitives/quanitya_palette.dart';
 import 'dart:ui' as ui;
@@ -164,13 +164,12 @@ class _CategoricalScatterPainter extends CustomPainter {
     }
 
     // Draw date labels (first and last)
-    final dateFormat = DateFormat('MMM d');
-    final startLabel = TextSpan(text: dateFormat.format(minDate), style: textStyle);
+    final startLabel = TextSpan(text: QuanityaDateFormat.monthDayCompact(minDate), style: textStyle);
     final startPainter = TextPainter(text: startLabel, textDirection: ui.TextDirection.ltr)..layout();
     startPainter.paint(canvas, Offset(chartLeft, chartTop + chartHeight + 8));
 
     final endDate = minDate.add(Duration(days: daySpan - 1));
-    final endLabel = TextSpan(text: dateFormat.format(endDate), style: textStyle);
+    final endLabel = TextSpan(text: QuanityaDateFormat.monthDayCompact(endDate), style: textStyle);
     final endPainter = TextPainter(text: endLabel, textDirection: ui.TextDirection.ltr)..layout();
     endPainter.paint(canvas, Offset(chartLeft + chartWidth - endPainter.width, chartTop + chartHeight + 8));
   }

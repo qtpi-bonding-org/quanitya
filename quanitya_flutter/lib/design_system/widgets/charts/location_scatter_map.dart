@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:intl/intl.dart';
+import '../../primitives/quanitya_date_format.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../primitives/app_sizes.dart';
@@ -52,7 +52,6 @@ class LocationScatterMap extends StatelessWidget {
     final newest = sorted.last.date.millisecondsSinceEpoch;
     final timeSpan = newest - oldest;
 
-    final dateFormat = DateFormat.yMMMd();
 
     // Build markers with recency-based opacity
     final markers = sorted.map((point) {
@@ -66,7 +65,7 @@ class LocationScatterMap extends StatelessWidget {
         width: 14,
         height: 14,
         child: Tooltip(
-          message: dateFormat.format(point.date),
+          message: QuanityaDateFormat.full(point.date),
           child: Container(
             decoration: BoxDecoration(
               color: color.withValues(alpha: alpha),

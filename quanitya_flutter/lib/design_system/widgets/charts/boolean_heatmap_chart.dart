@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../../primitives/quanitya_date_format.dart';
 import '../../primitives/app_sizes.dart';
 import '../../primitives/quanitya_palette.dart';
 
@@ -132,7 +132,7 @@ class BooleanHeatmapChart extends StatelessWidget {
                           return Padding(
                             padding: EdgeInsets.all(cellPadding),
                             child: Tooltip(
-                              message: '${DateFormat('MMM d').format(date)}: $tooltipSuffix',
+                              message: '${QuanityaDateFormat.monthDay(date)}: $tooltipSuffix',
                               child: Container(
                                 width: actualCellSize,
                                 height: actualCellSize,
