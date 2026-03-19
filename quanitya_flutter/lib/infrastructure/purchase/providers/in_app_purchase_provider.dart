@@ -7,7 +7,6 @@ import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
-import 'package:anonaccount_client/anonaccount_client.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
@@ -251,35 +250,12 @@ class InAppPurchaseProvider implements IPurchaseProvider {
             'transactionId=${purchase.transactionId}, '
             'status=${purchase.status}');
 
-        // Ensure server registration before validating the purchase.
-        // Keys always exist (onboarding), but server registration is async
-        // and may not have completed yet.
+        // Ensure server registration and JWT session before validating.
         final deviceLabel = await _deviceInfoService.getDeviceName();
         await _authService.ensureRegistered(deviceLabel: deviceLabel);
+        await _authService.ensureAuthenticated();
 
-        final publicKeyHex =
-            await _keyRepository.getDeviceSigningPublicKeyHex();
-        if (publicKeyHex == null) {
-          throw const PurchaseException('Device key not found');
-        }
-
-        debugPrint('validateWithServer: device key found, '
-            'requesting auth challenge...');
-
-        // Authenticate with server, retrying once if the registration
-        // flag is stale (e.g. after factory reset where iCloud Keychain
-        // preserved the flag but device keys changed).
-        final authResult = await _authenticateWithRetry(
-          publicKeyHex: publicKeyHex,
-          deviceLabel: deviceLabel,
-        );
-
-        debugPrint('validateWithServer: auth result='
-            'success=${authResult.success}');
-
-        if (!authResult.success) {
-          throw const PurchaseException('Authentication failed');
-        }
+        debugPrint('validateWithServer: authenticated, validating...');
         final result;
 
         if (purchase.rail == PurchaseRail.appleIap) {
@@ -351,45 +327,6 @@ class InAppPurchaseProvider implements IPurchaseProvider {
     _pendingCompleters.clear();
     _rawPurchaseDetails.clear();
     _cachedProductIds = null;
-  }
-
-  /// Attempt PoW sign-in; if the server says AUTH_DEVICE_NOT_FOUND,
-  /// clear the stale registration flag, re-register, and retry once.
-  Future<AuthenticationResult> _authenticateWithRetry({
-    required String publicKeyHex,
-    required String deviceLabel,
-  }) async {
-    try {
-      return await _performSignIn(publicKeyHex);
-    } on AuthenticationException catch (e) {
-      if (e.code != 'AUTH_DEVICE_NOT_FOUND') rethrow;
-
-      debugPrint('validateWithServer: device not found on server, '
-          'clearing stale registration flag and re-registering...');
-      await _authService.clearRegistrationFlag();
-      await _authService.ensureRegistered(deviceLabel: deviceLabel);
-      return _performSignIn(publicKeyHex);
-    }
-  }
-
-  /// Perform a single PoW-authenticated sign-in attempt.
-  Future<AuthenticationResult> _performSignIn(String publicKeyHex) async {
-    final challenge =
-        await _client.modules.anonaccount.entrypoint.getChallenge();
-    final powProof = await Hashcash.mint(
-      challenge.challenge,
-      difficulty: challenge.difficulty,
-    );
-    final signPayload =
-        '${challenge.challenge}:${DeviceMethods.signIn}:$publicKeyHex';
-    final signature = await _encryption.signWithDeviceKey(signPayload);
-
-    return _client.modules.anonaccount.device.signIn(
-      challenge: challenge.challenge,
-      proofOfWork: powProof,
-      signature: signature,
-      devicePublicKeyHex: publicKeyHex,
-    );
   }
 
   /// Detect product type from platform-specific store metadata.

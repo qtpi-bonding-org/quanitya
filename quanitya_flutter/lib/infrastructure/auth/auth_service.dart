@@ -8,7 +8,7 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
     show AuthSuccess, FlutterAuthSessionManagerExtension;
 import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
 import 'package:anonaccount_client/anonaccount_client.dart'
-    show AccountDevice, AccountMethods, AuthenticationResult, DataKeyMethods, DeviceMethods;
+    show AccountDevice, AccountMethods, AuthenticationException, AuthenticationResult, DataKeyMethods, DeviceMethods;
 
 import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
@@ -373,7 +373,7 @@ class AuthService {
 
         // 3. Register account with server
         try {
-          // Account creation requires proof-of-work via anonaccount module endpoint
+          // Account creation + first device registration (atomic, single PoW)
           final challengeResponse = await _client.modules.anonaccount.entrypoint.getChallenge();
           final proofOfWork = await _computeProofOfWork(
             challengeResponse.challenge,
@@ -391,32 +391,13 @@ class AuthService {
             ultimateSigningPublicKeyHex: payload.ultimatePublicKeyHex,
             encryptedDataKey: payload.recoveryBlob,
             ultimatePublicKey: payload.ultimatePublicKeyHex,
-          );
-
-          // 4. Register device — uses ultimate key to look up account
-          final deviceChallenge =
-              await _client.modules.anonaccount.entrypoint.getChallenge();
-          final devicePow = await _computeProofOfWork(
-            deviceChallenge.challenge,
-            deviceChallenge.difficulty,
-          );
-          final deviceSignPayload =
-              '${deviceChallenge.challenge}:${DeviceMethods.registerDevice}:${payload.devicePublicKeyHex}';
-          final deviceSignature =
-              await _encryption.signWithDeviceKey(deviceSignPayload);
-
-          await _client.modules.anonaccount.device.registerDevice(
-            challenge: deviceChallenge.challenge,
-            proofOfWork: devicePow,
-            signature: deviceSignature,
             deviceKeyAttestation: payload.deviceKeyAttestation,
-            ultimateSigningPublicKeyHex: payload.ultimatePublicKeyHex,
             deviceSigningPublicKeyHex: payload.devicePublicKeyHex,
-            encryptedDataKey: payload.deviceBlob,
-            label: deviceLabel,
+            deviceEncryptedDataKey: payload.deviceBlob,
+            deviceLabel: deviceLabel,
           );
 
-          // 4.5. Register cross-device key if prepared during createAccount
+          // Register cross-device key if prepared during createAccount
           try {
             final crossDeviceJson = await _secureStorage.getSecureData(_crossDeviceRegistrationBlobKey);
             if (crossDeviceJson != null) {
@@ -914,6 +895,34 @@ class AuthService {
       (message, [cause]) => DeviceAuthenticationException(message, cause: cause),
       'authenticateDevice',
     );
+  }
+
+  /// Ensure the device has a valid JWT session.
+  ///
+  /// Checks if a JWT is already stored in Serverpod's session manager.
+  /// If not, performs device authentication (PoW + sign-in) and stores
+  /// the resulting JWT.
+  ///
+  /// If sign-in fails with AUTH_DEVICE_NOT_FOUND (e.g. server restored
+  /// from backup), clears the registration flag, re-registers, and
+  /// retries once.
+  ///
+  /// Safe to call from anywhere that needs JWT-protected endpoints.
+  /// No-op if already authenticated.
+  Future<void> ensureAuthenticated({String deviceLabel = 'auto'}) async {
+    if (_client.auth.isAuthenticated) return;
+    try {
+      await authenticateDevice();
+    } on DeviceAuthenticationException catch (e) {
+      if (e.cause is! AuthenticationException ||
+          (e.cause as AuthenticationException).code != 'AUTH_DEVICE_NOT_FOUND') {
+        rethrow;
+      }
+      // Server doesn't know this device — re-register and retry once.
+      await clearRegistrationFlag();
+      await ensureRegistered(deviceLabel: deviceLabel);
+      await authenticateDevice();
+    }
   }
 
   /// Store authentication result as a Serverpod auth session.

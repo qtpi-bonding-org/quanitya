@@ -7,7 +7,6 @@ import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../core/try_operation.dart';
 import '../platform/platform_capability_service.dart';
 import '../public_submission/public_submission_service.dart';
-import 'i_entitlement_service.dart';
 import 'i_purchase_provider.dart';
 import 'i_purchase_service.dart';
 import 'purchase_exception.dart';
@@ -15,14 +14,12 @@ import 'purchase_models.dart';
 
 @LazySingleton(as: IPurchaseService)
 class PurchaseService implements IPurchaseService {
-  final IEntitlementService _entitlementService;
   final PublicSubmissionService _submissionService;
   final Client _client;
   final PlatformCapabilityService _platformCaps;
   final Map<PurchaseRail, IPurchaseProvider> _providers = {};
 
   PurchaseService(
-    this._entitlementService,
     this._submissionService,
     this._client,
     this._platformCaps,
@@ -88,16 +85,7 @@ class PurchaseService implements IPurchaseService {
           );
         }
 
-        final validation = await provider.validateWithServer(result);
-        if (validation.success) {
-          // Refresh entitlements after successful purchase
-          try {
-            await _entitlementService.getEntitlements(mode);
-          } catch (e) {
-            debugPrint('PurchaseService: Failed to refresh entitlements: $e');
-          }
-        }
-        return validation;
+        return await provider.validateWithServer(result);
       },
       PurchaseException.new,
       'purchase',

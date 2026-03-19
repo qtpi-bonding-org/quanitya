@@ -4,16 +4,11 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' show Client;
 
 import 'package:quanitya_flutter/infrastructure/platform/platform_capability_service.dart';
 import 'package:quanitya_flutter/infrastructure/public_submission/public_submission_service.dart';
-import 'package:quanitya_flutter/infrastructure/purchase/i_entitlement_service.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_purchase_provider.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_exception.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_models.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_service.dart';
 import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
-import 'package:anonaccred_client/anonaccred_client.dart'
-    show AccountEntitlement;
-
-class MockEntitlementService extends Mock implements IEntitlementService {}
 
 class MockPurchaseProvider extends Mock implements IPurchaseProvider {}
 
@@ -25,11 +20,8 @@ class MockClient extends Mock implements Client {}
 class MockPlatformCapabilityService extends Mock
     implements PlatformCapabilityService {}
 
-class FakeAccountEntitlement extends Fake implements AccountEntitlement {}
-
 void main() {
   late PurchaseService purchaseService;
-  late MockEntitlementService mockEntitlementService;
   late MockPurchaseProvider mockProvider;
   late MockPublicSubmissionService mockSubmissionService;
   late MockClient mockClient;
@@ -53,13 +45,11 @@ void main() {
   });
 
   setUp(() {
-    mockEntitlementService = MockEntitlementService();
     mockProvider = MockPurchaseProvider();
     mockSubmissionService = MockPublicSubmissionService();
     mockClient = MockClient();
     mockPlatformCaps = MockPlatformCapabilityService();
     purchaseService = PurchaseService(
-      mockEntitlementService,
       mockSubmissionService,
       mockClient,
       mockPlatformCaps,
@@ -117,8 +107,7 @@ void main() {
       expect(google, isEmpty);
     });
 
-    test('purchase happy path: initiate → validate → refresh entitlements',
-        () async {
+    test('purchase happy path: initiate → validate', () async {
       when(() => mockProvider.rail).thenReturn(PurchaseRail.appleIap);
       when(() => mockProvider.initiatePurchase(any())).thenAnswer(
         (_) async => const PurchaseResult(
@@ -135,8 +124,6 @@ void main() {
           amount: 30,
         ),
       );
-      when(() => mockEntitlementService.getEntitlements(any()))
-          .thenAnswer((_) async => <AccountEntitlement>[]);
 
       purchaseService.registerProvider(mockProvider);
 
@@ -151,9 +138,6 @@ void main() {
       expect(result.success, isTrue);
       expect(result.tag, 'sync_days');
       expect(result.amount, 30);
-
-      // Verify entitlements were refreshed
-      verify(() => mockEntitlementService.getEntitlements(any())).called(1);
     });
 
     test('purchase throws PurchaseException when store purchase is cancelled', () async {

@@ -107,6 +107,17 @@ Future<void> bootstrap() async {
       final authService = getIt<AuthService>();
       await authService.initialize();
       debugPrint('Bootstrap: AuthService initialized');
+
+      // Auto sign-in for registered users (restores JWT session).
+      // Free users (never registered) skip this entirely.
+      if (await authService.isRegisteredWithServer) {
+        try {
+          await authService.ensureAuthenticated();
+          debugPrint('Bootstrap: JWT session restored');
+        } catch (e) {
+          debugPrint('Bootstrap: Auto sign-in failed (will retry on purchase): $e');
+        }
+      }
     }
 
     // 5.5. Initialize PurchaseService — register providers for supported rails
