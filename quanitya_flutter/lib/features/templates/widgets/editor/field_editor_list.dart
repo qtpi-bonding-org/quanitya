@@ -181,11 +181,14 @@ class _FieldEditorListState extends State<FieldEditorList> {
               icon: Icons.edit,
               color: context.colors.interactableColor,
             ),
-            QuanityaIconButton(
-              onPressed: () => _showDeleteConfirmation(context, field),
-              icon: Icons.delete_outline,
-              color: context.colors.destructiveColor,
-            ),
+            // Hide delete when editing an existing template to prevent
+            // orphaning log entry data that references this field.
+            if (context.read<TemplateEditorCubit>().state.template == null)
+              QuanityaIconButton(
+                onPressed: () => _showDeleteConfirmation(context, field),
+                icon: Icons.delete_outline,
+                color: context.colors.destructiveColor,
+              ),
           ],
         ),
       ),

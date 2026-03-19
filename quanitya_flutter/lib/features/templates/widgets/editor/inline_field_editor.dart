@@ -226,7 +226,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
           start: Expanded(
             child: QuanityaTextField(
               controller: _minController,
-              hintText: '${context.l10n.fieldRangeMinHint} (0)',
+              hintText: context.l10n.fieldRangeMinHint,
               keyboardType: widget.fieldType == FieldEnum.integer
                   ? const TextInputType.numberWithOptions(signed: true)
                   : const TextInputType.numberWithOptions(
@@ -237,7 +237,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
           end: Expanded(
             child: QuanityaTextField(
               controller: _maxController,
-              hintText: '${context.l10n.fieldRangeMaxHint} (10)',
+              hintText: context.l10n.fieldRangeMaxHint,
               keyboardType: widget.fieldType == FieldEnum.integer
                   ? const TextInputType.numberWithOptions(signed: true)
                   : const TextInputType.numberWithOptions(
