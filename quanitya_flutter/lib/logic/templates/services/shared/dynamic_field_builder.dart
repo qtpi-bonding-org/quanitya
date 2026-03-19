@@ -299,6 +299,7 @@ class DynamicFieldBuilder {
       value: numValue,
       min: constraints.min,
       max: constraints.max,
+      semanticLabel: field.label,
       onChanged: (v) => onChanged(isInteger ? v.toInt() : v),
       activeColor:
           colors?['activeColor'] ?? QuanityaPalette.primary.interactableColor,
@@ -344,6 +345,7 @@ class DynamicFieldBuilder {
       builder: (context) => QuanityaTextField(
         controller: controller,
         hintText: context.l10n.fieldBuilderEnterHint(field.label.toLowerCase()),
+        semanticLabel: field.label,
         onChanged: onChanged,
         style: textStyle,
         textColor: textStyle?.color,
@@ -372,6 +374,7 @@ class DynamicFieldBuilder {
       builder: (context) => QuanityaTextField(
         controller: controller,
         hintText: context.l10n.fieldBuilderEnterHint(field.label.toLowerCase()),
+        semanticLabel: field.label,
         onChanged: onChanged,
         maxLines: 4,
         style: textStyle,
@@ -400,6 +403,7 @@ class DynamicFieldBuilder {
     return QuanityaToggle(
       value: boolValue,
       onChanged: onChanged,
+      semanticLabel: field.label,
       activeThumbColor: colors?['activeThumbColor'] ?? QuanityaPalette.primary.backgroundPrimary,
       activeTrackColor:
           colors?['activeTrackColor'] ?? QuanityaPalette.primary.interactableColor,

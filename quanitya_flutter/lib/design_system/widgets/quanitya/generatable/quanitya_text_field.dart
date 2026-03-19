@@ -30,6 +30,7 @@ class QuanityaTextField extends StatelessWidget {
   final Color? hintColor;
   final TextStyle? style; // Custom text style (for aesthetic fonts)
   final TextStyle? hintStyle; // Custom hint style
+  final String? semanticLabel;
 
   const QuanityaTextField({
     super.key,
@@ -47,6 +48,7 @@ class QuanityaTextField extends StatelessWidget {
     this.hintColor,
     this.style,
     this.hintStyle,
+    this.semanticLabel,
   });
 
   @override
@@ -63,7 +65,10 @@ class QuanityaTextField extends StatelessWidget {
       color: hintColor ?? borderColor.withValues(alpha: 0.6),
     );
 
-    return TextField(
+    return Semantics(
+      label: semanticLabel ?? hintText,
+      textField: true,
+      child: TextField(
       controller: controller,
       cursorColor: cursorColor,
       maxLines: maxLines,
@@ -103,6 +108,7 @@ class QuanityaTextField extends StatelessWidget {
             width: 2,
           ),
         ),
+      ),
       ),
     );
   }

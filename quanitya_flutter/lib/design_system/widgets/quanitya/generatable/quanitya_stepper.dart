@@ -43,10 +43,19 @@ class QuanityaStepper extends StatelessWidget {
     final canDecrement = value > min && onChanged != null;
     final canIncrement = value < max && onChanged != null;
 
+    final rangeStyle = TextStyle(
+      fontFamily: QuanityaFonts.bodyFamily,
+      fontSize: AppSizes.fontSmall,
+      color: buttonColor.withValues(alpha: 0.5),
+    );
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Decrement button - zen style: just icon, no background
+        // Min label
+        Text(_formatValue(min), style: rangeStyle),
+        HSpace.x05,
+        // Decrement button
         Semantics(
           button: true,
           label: 'Decrease',
@@ -57,12 +66,10 @@ class QuanityaStepper extends StatelessWidget {
             onTap: canDecrement ? () => onChanged?.call(value - step) : null,
           ),
         ),
-        HSpace.x3, // Generous spacing
-        // Value display - prominent
-        Semantics(
-          value: _formatValue(value),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minWidth: AppSizes.buttonHeight * 1.5),
+        // Value display
+        Flexible(
+          child: Semantics(
+            value: _formatValue(value),
             child: Text(
               _formatValue(value),
               style: TextStyle(
@@ -72,10 +79,11 @@ class QuanityaStepper extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
         ),
-        HSpace.x3,
         // Increment button
         Semantics(
           button: true,
@@ -87,6 +95,9 @@ class QuanityaStepper extends StatelessWidget {
             onTap: canIncrement ? () => onChanged?.call(value + step) : null,
           ),
         ),
+        HSpace.x05,
+        // Max label
+        Text(_formatValue(max), style: rangeStyle),
       ],
     );
   }
