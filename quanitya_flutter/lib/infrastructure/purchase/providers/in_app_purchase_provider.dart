@@ -266,24 +266,12 @@ class InAppPurchaseProvider implements IPurchaseProvider {
         debugPrint('validateWithServer: device key found, '
             'requesting auth challenge...');
 
-        // PoW flow for signIn
-        final powChallengeResponse =
-            await _client.modules.anonaccount.entrypoint.getChallenge();
-        final powProof = await Hashcash.mint(
-          powChallengeResponse.challenge,
-          difficulty: powChallengeResponse.difficulty,
-        );
-        final powSignPayload =
-            '${powChallengeResponse.challenge}:${DeviceMethods.signIn}:$publicKeyHex';
-        final powSignature =
-            await _encryption.signWithDeviceKey(powSignPayload);
-
-        final authResult = await _client.modules.anonaccount.device
-            .signIn(
-          challenge: powChallengeResponse.challenge,
-          proofOfWork: powProof,
-          signature: powSignature,
-          devicePublicKeyHex: publicKeyHex,
+        // Authenticate with server, retrying once if the registration
+        // flag is stale (e.g. after factory reset where iCloud Keychain
+        // preserved the flag but device keys changed).
+        final authResult = await _authenticateWithRetry(
+          publicKeyHex: publicKeyHex,
+          deviceLabel: deviceLabel,
         );
 
         debugPrint('validateWithServer: auth result='
@@ -363,6 +351,45 @@ class InAppPurchaseProvider implements IPurchaseProvider {
     _pendingCompleters.clear();
     _rawPurchaseDetails.clear();
     _cachedProductIds = null;
+  }
+
+  /// Attempt PoW sign-in; if the server says AUTH_DEVICE_NOT_FOUND,
+  /// clear the stale registration flag, re-register, and retry once.
+  Future<AuthenticationResult> _authenticateWithRetry({
+    required String publicKeyHex,
+    required String deviceLabel,
+  }) async {
+    try {
+      return await _performSignIn(publicKeyHex);
+    } on AuthenticationException catch (e) {
+      if (e.code != 'AUTH_DEVICE_NOT_FOUND') rethrow;
+
+      debugPrint('validateWithServer: device not found on server, '
+          'clearing stale registration flag and re-registering...');
+      await _authService.clearRegistrationFlag();
+      await _authService.ensureRegistered(deviceLabel: deviceLabel);
+      return _performSignIn(publicKeyHex);
+    }
+  }
+
+  /// Perform a single PoW-authenticated sign-in attempt.
+  Future<AuthenticationResult> _performSignIn(String publicKeyHex) async {
+    final challenge =
+        await _client.modules.anonaccount.entrypoint.getChallenge();
+    final powProof = await Hashcash.mint(
+      challenge.challenge,
+      difficulty: challenge.difficulty,
+    );
+    final signPayload =
+        '${challenge.challenge}:${DeviceMethods.signIn}:$publicKeyHex';
+    final signature = await _encryption.signWithDeviceKey(signPayload);
+
+    return _client.modules.anonaccount.device.signIn(
+      challenge: challenge.challenge,
+      proofOfWork: powProof,
+      signature: signature,
+      devicePublicKeyHex: publicKeyHex,
+    );
   }
 
   /// Detect product type from platform-specific store metadata.

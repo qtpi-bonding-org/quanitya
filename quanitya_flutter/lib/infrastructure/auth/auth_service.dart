@@ -463,6 +463,15 @@ class AuthService {
     await registerAccountWithServer(deviceLabel: deviceLabel);
   }
 
+  /// Clear the local "registered with server" flag.
+  ///
+  /// Use when the server reports the device is unknown (e.g.
+  /// AUTH_DEVICE_NOT_FOUND) so that [ensureRegistered] will
+  /// re-attempt registration on the next call.
+  Future<void> clearRegistrationFlag() async {
+    await _secureStorage.deleteSecureData(_registeredWithServerKey);
+  }
+
   /// Compute hashcash proof-of-work for spam prevention.
   Future<String> _computeProofOfWork(String challenge, int difficulty) async {
     return Hashcash.mint(challenge, difficulty: difficulty);
