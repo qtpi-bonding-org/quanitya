@@ -85,6 +85,9 @@ class ResultsListCubit extends QuanityaCubit<ResultsListState> {
             hasGraphableFields: t.template.fields
                 .any((f) => graphableTypes.contains(f.type)),
             isHidden: t.template.isHidden,
+            icon: t.aesthetics.icon,
+            emoji: t.aesthetics.emoji,
+            accentColorHex: t.aesthetics.palette.accents.firstOrNull,
           );
         })
         .toList()

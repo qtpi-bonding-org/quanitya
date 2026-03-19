@@ -11,6 +11,9 @@ class ResultsTemplateItem {
   final DateTime? lastLoggedAt;
   final bool hasGraphableFields;
   final bool isHidden;
+  final String? icon;
+  final String? emoji;
+  final String? accentColorHex;
 
   const ResultsTemplateItem({
     required this.templateId,
@@ -19,6 +22,9 @@ class ResultsTemplateItem {
     this.lastLoggedAt,
     this.hasGraphableFields = true,
     this.isHidden = false,
+    this.icon,
+    this.emoji,
+    this.accentColorHex,
   });
 }
 

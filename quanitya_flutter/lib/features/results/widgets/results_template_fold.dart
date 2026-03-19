@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:intl/intl.dart';
+import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
+import '../../../design_system/widgets/template_icon_bubble.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../visualization/cubits/visualization_cubit.dart';
 import '../cubits/results_list_cubit.dart';
@@ -46,13 +47,19 @@ class _ResultsTemplateFoldState extends State<ResultsTemplateFold> {
   @override
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
-    final dateFormat = DateFormat.yMMMd();
 
     return NotebookFold(
       onExpansionChanged: _onExpansionChanged,
       semanticLabel: widget.item.templateName,
       header: Row(
         children: [
+          TemplateIconBubble(
+            iconString: widget.item.icon,
+            emoji: widget.item.emoji,
+            accentColorHex: widget.item.accentColorHex,
+            isHidden: widget.item.isHidden,
+          ),
+          HSpace.x2,
           Expanded(
             child: Text(
               widget.item.templateName,
@@ -63,19 +70,19 @@ class _ResultsTemplateFoldState extends State<ResultsTemplateFold> {
             ),
           ),
           HSpace.x2,
-          Text(
-            '${widget.item.entryCount}',
-            style:
-                context.text.bodyMedium?.copyWith(color: palette.textSecondary),
-          ),
           if (widget.item.lastLoggedAt != null) ...[
-            HSpace.x1,
             Text(
-              dateFormat.format(widget.item.lastLoggedAt!),
+              QuanityaDateFormat.monthDayCompact(widget.item.lastLoggedAt!),
               style: context.text.bodyMedium
                   ?.copyWith(color: palette.textSecondary),
             ),
+            HSpace.x1,
           ],
+          Text(
+            '(${widget.item.entryCount})',
+            style:
+                context.text.bodyMedium?.copyWith(color: palette.textSecondary),
+          ),
         ],
       ),
       child: _cubit == null
