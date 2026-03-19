@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
-import 'package:intl/intl.dart';
+import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/primitives/app_sizes.dart';
@@ -33,7 +33,7 @@ class ErrorEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formattedTime = DateFormat.yMd().add_jm().format(error.timestamp);
+    final formattedTime = QuanityaDateFormat.timestamp(error.timestamp);
     final occurrenceText = occurrenceCount > 1
         ? context.l10n.errorOccurrenceTimes(occurrenceCount)
         : context.l10n.errorOccurrenceOnce;

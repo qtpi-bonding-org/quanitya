@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:anonaccount_client/anonaccount_client.dart' show AccountDevice;
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
-import 'package:intl/intl.dart';
+import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
 import '../../../app_router.dart';
 import '../../../design_system/primitives/app_spacings.dart';
@@ -218,8 +218,7 @@ class _DeviceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat.yMMMd().add_jm();
-    final lastActive = dateFormat.format(device.lastActive);
+    final lastActive = QuanityaDateFormat.timestamp(device.lastActive);
     
     // All devices use secondary color (blue-gray), dimmed if revoked
     final iconColor = isRevoked

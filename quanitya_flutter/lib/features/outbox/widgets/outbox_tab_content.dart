@@ -46,10 +46,16 @@ class OutboxTabContent extends StatelessWidget {
       return emptyState!;
     }
 
-    return Column(
+    return Stack(
       children: [
-        Expanded(child: content),
-        if (bottomAction != null) bottomAction!,
+        content,
+        if (bottomAction != null)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: bottomAction!,
+          ),
       ],
     );
   }

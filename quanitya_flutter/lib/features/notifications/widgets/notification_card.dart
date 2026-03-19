@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/db/app_database.dart';
@@ -111,7 +111,7 @@ class NotificationCard extends StatelessWidget {
     if (diff.inDays < 1) return context.l10n.notificationHoursAgo(diff.inHours);
     if (diff.inDays < 7) return context.l10n.notificationDaysAgo(diff.inDays);
 
-    return DateFormat.yMd().add_jm().format(timestamp);
+    return QuanityaDateFormat.timestamp(timestamp);
   }
 }
 

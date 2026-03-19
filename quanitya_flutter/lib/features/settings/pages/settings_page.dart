@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' as cloud;
 
 import '../../../../app_router.dart';
@@ -551,7 +551,7 @@ class _WebhookRow extends StatelessWidget {
         : webhook.url;
     
     final lastTriggered = webhook.lastTriggeredAt != null
-        ? DateFormat.yMd().add_jm().format(webhook.lastTriggeredAt!)
+        ? QuanityaDateFormat.timestamp(webhook.lastTriggeredAt!)
         : context.l10n.webhookNeverTriggered;
 
     return Semantics(

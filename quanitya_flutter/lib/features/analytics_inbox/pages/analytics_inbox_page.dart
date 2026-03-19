@@ -1,9 +1,10 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
 import '../../../support/extensions/context_extensions.dart';
+import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
@@ -91,7 +92,7 @@ class _EventList extends StatelessWidget {
         final totalCount = headerWidgets.length + state.groupedEvents.length;
 
         return ListView.separated(
-          padding: AppPadding.page,
+          padding: AppPadding.page.copyWith(bottom: AppSizes.space * 12.5),
           itemCount: totalCount,
           separatorBuilder: (_, _) => VSpace.x2,
           itemBuilder: (context, index) {
@@ -114,7 +115,6 @@ class _EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat.yMd().add_jm();
 
     return Padding(
       padding: AppPadding.allDouble,
@@ -140,9 +140,9 @@ class _EventCard extends StatelessWidget {
                 VSpace.x05,
                 Text(
                   event.count == 1
-                      ? dateFormat.format(event.latestTimestamp.toLocal())
-                      : '${dateFormat.format(event.earliestTimestamp.toLocal())} — '
-                        '${dateFormat.format(event.latestTimestamp.toLocal())}',
+                      ? QuanityaDateFormat.timestamp(event.latestTimestamp.toLocal())
+                      : '${QuanityaDateFormat.timestamp(event.earliestTimestamp.toLocal())} — '
+                        '${QuanityaDateFormat.timestamp(event.latestTimestamp.toLocal())}',
                   style: context.text.bodySmall?.copyWith(
                     color: context.colors.textSecondary,
                   ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../support/extensions/context_extensions.dart';
+import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
@@ -35,7 +36,7 @@ class ErrorsTabContent extends StatelessWidget {
             description: context.l10n.errorBoxNoReportsDescription,
           ),
           content: ListView.separated(
-            padding: AppPadding.page,
+            padding: AppPadding.page.copyWith(bottom: AppSizes.space * 12.5),
             itemCount: totalCount,
             separatorBuilder: (context, index) => VSpace.x3,
             itemBuilder: (context, index) {
