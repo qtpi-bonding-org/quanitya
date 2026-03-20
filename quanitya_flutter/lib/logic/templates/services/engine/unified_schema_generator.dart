@@ -84,13 +84,16 @@ class UnifiedSchemaGenerator {
         .map(_convertEnumTupleToSchemaOption)
         .toList();
 
-    // Add group field as a separate schema option
-    final groupOption = _generateGroupFieldSchema(scalarOptions);
+    // Group fields are excluded from AI schema generation — the recursive
+    // subFields anyOf roughly doubles schema size and exceeds structured
+    // output limits on smaller models (e.g., gpt-4o-mini). Group fields
+    // can still be created manually or via the template editor.
+    // _generateGroupFieldSchema is retained for future use.
 
     return {
       'type': 'array',
       'items': {
-        'anyOf': [...scalarOptions, groupOption],
+        'anyOf': scalarOptions,
       },
       'minItems': 1,
       'maxItems': 10,
