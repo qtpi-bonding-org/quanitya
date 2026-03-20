@@ -20,6 +20,7 @@ import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../../../support/extensions/context_extensions.dart';
 
 /// Inline field editor for adding or editing template fields.
@@ -65,6 +66,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   late bool _isList;
   late List<String> _options;
   MeasurementUnit? _selectedUnit;
+  late bool _isOptional;
 
   // Default value state (type varies by field)
   Object? _defaultValue;
@@ -86,6 +88,9 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       _options = List.from(field.options ?? []);
       _selectedUnit = field.unit;
       _defaultValue = field.defaultValue;
+      _isOptional = field.validators.any(
+        (v) => v.validatorType == ValidatorType.optional,
+      );
       _defaultValueController = TextEditingController(
         text: _defaultValueToString(field.defaultValue),
       );
@@ -113,6 +118,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       _labelController = TextEditingController();
       _selectedWidget = _validWidgets.first;
       _isList = false;
+      _isOptional = false;
       _options = [];
       _selectedUnit = null;
       _defaultValue = null;
@@ -193,9 +199,15 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
           
           // isList toggle
           _buildListToggle(context, draftColor),
-          
+
+          // Optional toggle (text fields only)
+          if (widget.fieldType == FieldEnum.text) ...[
+            VSpace.x1,
+            _buildOptionalToggle(context, draftColor),
+          ],
+
           VSpace.x2,
-          
+
           // Action buttons
           _buildActions(context),
         ],
@@ -425,6 +437,27 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         ),
       ),
     ),
+    );
+  }
+
+  Widget _buildOptionalToggle(BuildContext context, Color draftColor) {
+    return QuanityaRow(
+      alignment: CrossAxisAlignment.center,
+      start: Text(
+        context.l10n.fieldOptionalLabel,
+        style: context.text.bodyMedium?.copyWith(
+          color: draftColor,
+        ),
+      ),
+      end: QuanityaToggle(
+        value: _isOptional,
+        onChanged: (val) => setState(() => _isOptional = val),
+        semanticLabel: context.l10n.fieldOptionalLabel,
+        activeTrackColor: context.colors.interactableColor,
+        activeThumbColor: context.colors.backgroundPrimary,
+        inactiveTrackColor: draftColor,
+        inactiveThumbColor: context.colors.backgroundPrimary,
+      ),
     );
   }
 
@@ -722,7 +755,17 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   }
 
   List<FieldValidator> _buildValidators() {
-    if (!_isNumericField) return [];
+    final validators = <FieldValidator>[];
+
+    // Add optional validator for text fields
+    if (_isOptional) {
+      validators.add(FieldValidator.create(
+        validatorType: ValidatorType.optional,
+        validatorData: {},
+      ));
+    }
+
+    if (!_isNumericField) return validators;
 
     final minText = _minController.text.trim();
     final maxText = _maxController.text.trim();
@@ -736,12 +779,11 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       maxVal ??= 10;
     }
 
-    // No values = no validator needed
-    if (minVal == null && maxVal == null) return [];
+    // No values = no numeric validator needed
+    if (minVal == null && maxVal == null) return validators;
 
     final isDimension = widget.fieldType == FieldEnum.dimension;
-    return [
-      FieldValidator.create(
+    validators.add(FieldValidator.create(
         validatorType:
             isDimension ? ValidatorType.dimension : ValidatorType.numeric,
         validatorData: isDimension
@@ -753,8 +795,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
                 if (minVal != null) 'min': minVal,
                 if (maxVal != null) 'max': maxVal,
               },
-      ),
-    ];
+      ));
+    return validators;
   }
 
   void _save() {
