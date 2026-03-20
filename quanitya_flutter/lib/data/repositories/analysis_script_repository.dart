@@ -8,6 +8,7 @@ import '../dao/template_query_dao.dart';
 import '../interfaces/analysis_script_interface.dart';
 import '../../infrastructure/core/try_operation.dart';
 import '../../logic/analysis/exceptions/analysis_exceptions.dart';
+import '../../logic/templates/enums/field_enum.dart';
 
 /// Repository for AnalysisScriptModel operations with encryption handling.
 ///
@@ -162,9 +163,17 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
         final clampedEnd = (entryRangeEnd ?? allEntries.length).clamp(clampedStart, allEntries.length);
         final sliced = allEntries.sublist(clampedStart, clampedEnd);
 
-        // Extract field values keyed by field UUID
+        // Extract field values
         final values = <dynamic>[];
         final timestamps = <DateTime>[];
+
+        // Build UUID → label map for group sub-fields
+        final subFieldLabelMap = <String, String>{};
+        if (field.type == FieldEnum.group && field.subFields != null) {
+          for (final sf in field.subFields!) {
+            subFieldLabelMap[sf.id] = sf.label;
+          }
+        }
 
         for (final entry in sliced) {
           final ts = entry.occurredAt ?? entry.scheduledFor;
@@ -172,7 +181,10 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
 
           final val = entry.data[field.id];
           if (val != null) {
-            values.add(val);
+            // Remap group sub-field UUIDs to labels for JS readability
+            values.add(subFieldLabelMap.isEmpty
+                ? val
+                : _remapGroupKeys(val, subFieldLabelMap));
             timestamps.add(ts);
           }
         }
@@ -184,4 +196,23 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
     );
   }
 
+  /// Remaps UUID keys to labels in group field values.
+  ///
+  /// Handles both single group objects and isList arrays of objects.
+  /// Non-group values pass through unchanged.
+  static dynamic _remapGroupKeys(
+    dynamic val,
+    Map<String, String> uuidToLabel,
+  ) {
+    if (val is List) {
+      return val.map((item) => _remapGroupKeys(item, uuidToLabel)).toList();
+    }
+    if (val is Map<String, dynamic>) {
+      return {
+        for (final entry in val.entries)
+          (uuidToLabel[entry.key] ?? entry.key): entry.value,
+      };
+    }
+    return val;
+  }
 }
