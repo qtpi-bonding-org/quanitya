@@ -58,6 +58,17 @@ class DynamicFieldBuilder {
       );
     }
 
+    // Handle group fields
+    if (field.type == FieldEnum.group) {
+      return _buildGroupField(
+        field: field,
+        value: (value as Map<String, dynamic>?) ?? {},
+        onChanged: onChanged,
+        widgetColors: widgetColors,
+        textStyle: textStyle,
+      );
+    }
+
     // Single value field
     return _buildSingleField(
       field: field,
@@ -148,17 +159,29 @@ class DynamicFieldBuilder {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  child: _buildSingleField(
-                    field: field,
-                    value: values[i],
-                    onChanged: (newValue) {
-                      final updated = List<dynamic>.from(values);
-                      updated[i] = newValue;
-                      onChanged(updated);
-                    },
-                    widgetColors: widgetColors,
-                    textStyle: textStyle,
-                  ),
+                  child: field.type == FieldEnum.group
+                      ? _buildGroupField(
+                          field: field,
+                          value: (values[i] as Map<String, dynamic>?) ?? {},
+                          onChanged: (newValue) {
+                            final updated = List<dynamic>.from(values);
+                            updated[i] = newValue;
+                            onChanged(updated);
+                          },
+                          widgetColors: widgetColors,
+                          textStyle: textStyle,
+                        )
+                      : _buildSingleField(
+                          field: field,
+                          value: values[i],
+                          onChanged: (newValue) {
+                            final updated = List<dynamic>.from(values);
+                            updated[i] = newValue;
+                            onChanged(updated);
+                          },
+                          widgetColors: widgetColors,
+                          textStyle: textStyle,
+                        ),
                 ),
                 HSpace.x1,
                 // Remove button - disabled if at minItems
@@ -233,10 +256,114 @@ class DynamicFieldBuilder {
       FieldEnum.dimension => 0.0,
       FieldEnum.reference => null,
       FieldEnum.location => null,
-      FieldEnum.group => null,
+      FieldEnum.group => _getGroupDefault(field),
     };
   }
 
+  /// Builds a default value map for a group field from its sub-fields.
+  static Map<String, dynamic> _getGroupDefault(TemplateField field) {
+    final subFields = field.subFields;
+    if (subFields == null || subFields.isEmpty) return {};
+    final map = <String, dynamic>{};
+    for (final subField in subFields) {
+      if (subField.isDeleted) continue;
+      map[subField.id] = subField.isList
+          ? <dynamic>[]
+          : _getDefaultValue(subField);
+    }
+    return map;
+  }
+
+
+  /// Builds a group field — renders sub-fields vertically in a squircle border.
+  static Widget _buildGroupField({
+    required TemplateField field,
+    required Map<String, dynamic> value,
+    required ValueChanged<dynamic> onChanged,
+    Map<String, Color>? widgetColors,
+    TextStyle? textStyle,
+  }) {
+    final subFields = field.subFields;
+    if (subFields == null || subFields.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final borderColor = widgetColors?['borderColor']
+        ?? QuanityaPalette.primary.textSecondary;
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: borderColor.withValues(alpha: 0.3),
+          width: AppSizes.borderWidth,
+        ),
+        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+      ),
+      padding: AppPadding.allSingle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: _buildSubFieldWidgets(
+          subFields: subFields,
+          value: value,
+          onChanged: onChanged,
+          widgetColors: widgetColors,
+          textStyle: textStyle,
+          labelColor: borderColor,
+        ),
+      ),
+    );
+  }
+
+  /// Builds the list of sub-field widgets for a group, filtering deleted fields.
+  static List<Widget> _buildSubFieldWidgets({
+    required List<TemplateField> subFields,
+    required Map<String, dynamic> value,
+    required ValueChanged<dynamic> onChanged,
+    Map<String, Color>? widgetColors,
+    TextStyle? textStyle,
+    required Color labelColor,
+  }) {
+    final activeSubFields = subFields.where((f) => !f.isDeleted).toList();
+    final widgets = <Widget>[];
+
+    for (int i = 0; i < activeSubFields.length; i++) {
+      final subField = activeSubFields[i];
+      widgets.add(
+        Builder(
+          builder: (context) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                subField.label,
+                style: context.text.bodySmall?.copyWith(
+                  color: labelColor,
+                ),
+              ),
+              VSpace.x05,
+              buildField(
+                field: subField,
+                value: value[subField.id],
+                onChanged: (newSubValue) {
+                  final updated = Map<String, dynamic>.from(value);
+                  updated[subField.id] = newSubValue;
+                  onChanged(updated);
+                },
+                widgetColors: widgetColors,
+                textStyle: textStyle,
+              ),
+            ],
+          ),
+        ),
+      );
+      if (i < activeSubFields.length - 1) {
+        widgets.add(VSpace.x1);
+      }
+    }
+
+    return widgets;
+  }
 
   /// Builds a single-value field widget based on uiElement
   static Widget _buildSingleField({
