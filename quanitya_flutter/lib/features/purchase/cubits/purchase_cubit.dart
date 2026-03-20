@@ -5,6 +5,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../infrastructure/auth/auth_service.dart';
+import '../../../infrastructure/device/device_info_service.dart';
 import '../../../infrastructure/purchase/i_purchase_service.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
 import '../../../features/app_syncing_mode/models/app_syncing_mode.dart';
@@ -14,9 +15,10 @@ import 'purchase_state.dart';
 class PurchaseCubit extends QuanityaCubit<PurchaseState> {
   final IPurchaseService _purchaseService;
   final AuthService _authService;
+  final DeviceInfoService _deviceInfoService;
   Completer<void>? _registrationLock;
 
-  PurchaseCubit(this._purchaseService, this._authService) : super(const PurchaseState());
+  PurchaseCubit(this._purchaseService, this._authService, this._deviceInfoService) : super(const PurchaseState());
 
   Future<void> _ensureRegistered() async {
     if (await _authService.isRegisteredWithServer) return;
@@ -26,7 +28,8 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
     }
     _registrationLock = Completer<void>();
     try {
-      await _authService.registerAccountWithServer(deviceLabel: 'auto');
+      final deviceLabel = await _deviceInfoService.getDeviceName();
+      await _authService.registerAccountWithServer(deviceLabel: deviceLabel);
       _registrationLock!.complete();
     } catch (e) {
       _registrationLock!.completeError(e);

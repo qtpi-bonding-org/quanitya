@@ -98,15 +98,9 @@ abstract class EncryptedTableProcessor<
   Future<void> _processEncryptedRecord(TEncrypted encrypted) async {
     // Decrypt the data - decode base64 first, then decrypt
     final encryptedDataString = (encrypted as dynamic).encryptedData as String;
-    debugPrint(
-      'E2EEPuller: Decrypting record ${(encrypted as dynamic).id} (length: ${encryptedDataString.length})',
-    );
     final encryptedBytes = base64.decode(encryptedDataString);
     final decryptedJson = await encryption.decryptData(encryptedBytes);
     final entityData = jsonDecode(decryptedJson) as Map<String, dynamic>;
-    debugPrint(
-      'E2EEPuller: Successfully decrypted record ${(encrypted as dynamic).id}',
-    );
 
     // Convert to local entity
     final localEntity = jsonToEntity(entityData);
@@ -124,9 +118,6 @@ abstract class EncryptedTableProcessor<
     }
 
     // Upsert to local table (insert or update)
-    debugPrint(
-      'E2EEPuller: Upserting decrypted ${tables.localTable.aliasedName} record $entityId',
-    );
     await db
         .into(tables.localTable)
         .insertOnConflictUpdate(entityToInsertable(localEntity));
@@ -464,9 +455,9 @@ class E2EEPuller implements IE2EEPuller {
     _templateSubscription = _db.select(_db.encryptedTemplates).watch().listen((
       templates,
     ) async {
-      debugPrint(
-        'E2EEPuller: Received ${templates.length} encrypted templates',
-      );
+      if (templates.isNotEmpty) {
+        debugPrint('E2EEPuller: Processing ${templates.length} templates');
+      }
       await _templateProcessor.processEncryptedRecords(templates);
       _lastSyncTime = DateTime.now();
     });
@@ -474,13 +465,8 @@ class E2EEPuller implements IE2EEPuller {
     _entrySubscription = _db.select(_db.encryptedEntries).watch().listen((
       entries,
     ) async {
-      debugPrint(
-        'E2EEPuller: Received ${entries.length} encrypted entries in shadow table',
-      );
       if (entries.isNotEmpty) {
-        debugPrint(
-          'E2EEPuller: Entry IDs: ${entries.map((e) => (e as dynamic).id).join(", ")}',
-        );
+        debugPrint('E2EEPuller: Processing ${entries.length} entries');
       }
       await _entryProcessor.processEncryptedRecords(entries);
       _lastSyncTime = DateTime.now();
@@ -489,9 +475,9 @@ class E2EEPuller implements IE2EEPuller {
     _scheduleSubscription = _db.select(_db.encryptedSchedules).watch().listen((
       schedules,
     ) async {
-      debugPrint(
-        'E2EEPuller: Received ${schedules.length} encrypted schedules',
-      );
+      if (schedules.isNotEmpty) {
+        debugPrint('E2EEPuller: Processing ${schedules.length} schedules');
+      }
       await _scheduleProcessor.processEncryptedRecords(schedules);
       _lastSyncTime = DateTime.now();
     });
@@ -500,9 +486,9 @@ class E2EEPuller implements IE2EEPuller {
         .select(_db.encryptedAnalysisScripts)
         .watch()
         .listen((pipelines) async {
-          debugPrint(
-            'E2EEPuller: Received ${pipelines.length} encrypted scripts',
-          );
+          if (pipelines.isNotEmpty) {
+            debugPrint('E2EEPuller: Processing ${pipelines.length} scripts');
+          }
           await _pipelineProcessor.processEncryptedRecords(pipelines);
           _lastSyncTime = DateTime.now();
         });
@@ -511,9 +497,9 @@ class E2EEPuller implements IE2EEPuller {
         .select(_db.encryptedTemplateAesthetics)
         .watch()
         .listen((aesthetics) async {
-          debugPrint(
-            'E2EEPuller: Received ${aesthetics.length} encrypted aesthetics',
-          );
+          if (aesthetics.isNotEmpty) {
+            debugPrint('E2EEPuller: Processing ${aesthetics.length} aesthetics');
+          }
           await _aestheticsProcessor.processEncryptedRecords(aesthetics);
           _lastSyncTime = DateTime.now();
         });

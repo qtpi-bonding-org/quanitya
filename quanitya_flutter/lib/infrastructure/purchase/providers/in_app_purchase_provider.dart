@@ -50,8 +50,8 @@ class InAppPurchaseProvider implements IPurchaseProvider {
 
   @override
   PurchaseRail get rail {
-    if (Platform.isIOS || Platform.isMacOS) return PurchaseRail.appleIap;
-    if (Platform.isAndroid) return PurchaseRail.googleIap;
+    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) return PurchaseRail.appleIap;
+    if (!kIsWeb && Platform.isAndroid) return PurchaseRail.googleIap;
     return PurchaseRail.appleIap;
   }
 
@@ -148,6 +148,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
 
   /// Get platform name for the catalog endpoint.
   String _getPlatformName() {
+    if (kIsWeb) return 'web';
     if (Platform.isIOS) return 'ios';
     if (Platform.isAndroid) return 'android';
     if (Platform.isMacOS) return 'macos';
@@ -274,11 +275,20 @@ class InAppPurchaseProvider implements IPurchaseProvider {
               'packageName=${purchase.packageName}, '
               'productId=${purchase.productId}, '
               'purchaseToken=${purchase.purchaseToken != null ? '${purchase.purchaseToken?.substring(0, 20)}...' : 'null'}');
+          final packageName = purchase.packageName;
+          final purchaseToken = purchase.purchaseToken;
+          if (packageName == null || purchaseToken == null) {
+            throw PurchaseException(
+              'Missing required Google purchase data: '
+              'packageName=${packageName != null ? "present" : "null"}, '
+              'purchaseToken=${purchaseToken != null ? "present" : "null"}',
+            );
+          }
           result =
               await _client.modules.anonaccred.iAP.validateGooglePurchase(
-            purchase.packageName ?? '',
+            packageName,
             purchase.productId,
-            purchase.purchaseToken ?? '',
+            purchaseToken,
             internalTransactionId: purchase.transactionId,
           );
         }
@@ -337,7 +347,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
   /// and `AppStoreProductDetails` (StoreKit 1, no type field).
   StoreProductType _detectProductType(iap.ProductDetails detail) {
     try {
-      if (Platform.isIOS || Platform.isMacOS) {
+      if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
         if (detail is AppStoreProduct2Details) {
           return switch (detail.sk2Product.type) {
             SK2ProductType.autoRenewable ||
@@ -350,7 +360,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
         }
         // SK1 (AppStoreProductDetails) doesn't expose product type
         return StoreProductType.unknown;
-      } else if (Platform.isAndroid) {
+      } else if (!kIsWeb && Platform.isAndroid) {
         if (detail is GooglePlayProductDetails) {
           return switch (detail.productDetails.productType) {
             ProductType.subs => StoreProductType.subscription,
@@ -367,7 +377,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
   /// Detect subscription billing period from platform-specific metadata.
   SubscriptionPeriod? _detectSubscriptionPeriod(iap.ProductDetails detail) {
     try {
-      if (Platform.isIOS || Platform.isMacOS) {
+      if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
         if (detail is AppStoreProduct2Details) {
           final period = detail.sk2Product.subscription?.subscriptionPeriod;
           if (period == null) return null;
@@ -377,7 +387,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
             _ => null,
           };
         }
-      } else if (Platform.isAndroid) {
+      } else if (!kIsWeb && Platform.isAndroid) {
         if (detail is GooglePlayProductDetails) {
           final offers = detail.productDetails.subscriptionOfferDetails;
           if (offers != null && offers.isNotEmpty) {

@@ -441,7 +441,8 @@ class AuthService {
               await _secureStorage.deleteSecureData(_crossDeviceRegistrationBlobKey);
             }
           } catch (e) {
-            // Cross-device registration is non-critical
+            // Cross-device registration is non-critical — log and continue
+            debugPrint('⚠️ Cross-device key registration failed (non-critical): $e');
           }
 
           // 5. Mark device as registered with server

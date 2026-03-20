@@ -139,10 +139,8 @@ void main() {
       // Assert
       expect(result, true);
       expect(capturedPayload, isNotNull);
-      expect(capturedPayload, contains('IntegrationCubit'));
-      expect(capturedPayload, contains('IntegrationException'));
-      expect(capturedPayload, contains('INT_001'));
-      expect(capturedPayload, contains(timestamp.toIso8601String()));
+      // Payload is the signing payload: 'errorReports:N' (report data sent separately as reportsJson)
+      expect(capturedPayload, equals('errorReports:1'));
 
       verify(mockSubmissionService.submitWithVerification(
         endpoint: 'errorReport',
@@ -177,9 +175,8 @@ void main() {
       // Assert
       expect(capturedPayload, isNotNull);
 
-      // Verify format: "source:errorType:errorCode:timestamp"
-      final expectedPayload = 'PayloadCubit:PayloadException:PAY_001:${timestamp.toIso8601String()}';
-      expect(capturedPayload, expectedPayload);
+      // Payload is the signing payload: 'errorReports:N' (report data sent separately as reportsJson)
+      expect(capturedPayload, equals('errorReports:1'));
     });
 
     test('handles error entry with null userMessage', () async {

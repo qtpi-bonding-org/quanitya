@@ -67,7 +67,7 @@ void main() {
             clientTimestamp: any(named: 'clientTimestamp'),
             platform: any(named: 'platform'),
             props: any(named: 'props'),
-          )).thenThrow(Exception('DB error'));
+          )).thenAnswer((_) async => throw Exception('DB error'));
 
       // Should not throw
       service.trackAppOpened();

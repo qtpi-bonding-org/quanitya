@@ -21,7 +21,7 @@ void main() {
       test('has required fields for account creation', () {
         // This test fails at COMPILE TIME if fields are removed/renamed
         final account = AnonAccount(
-          id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+          id: UuidValue.fromString('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'),
           ultimateSigningPublicKeyHex: 'device_public_key_hex_128_chars',
           encryptedDataKey: 'encrypted_recovery_blob_base64',
           ultimatePublicKey: 'ultimate_public_key_hex_128_chars',
@@ -51,7 +51,7 @@ void main() {
       test('has required fields for device registration', () {
         final device = AccountDevice(
           id: 1,
-          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
+          anonAccountId: UuidValue.fromString('b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e'),
           deviceSigningPublicKeyHex: 'ecdsa_p256_public_key_hex_128_chars',
           encryptedDataKey: 'encrypted_sdk_blob_base64',
           label: 'iPhone 15 Pro',
@@ -67,7 +67,7 @@ void main() {
       test('has optional fields for device management', () {
         final device = AccountDevice(
           id: 1,
-          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+          anonAccountId: UuidValue.fromString('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'),
           deviceSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
           label: 'Test Device',
@@ -83,7 +83,7 @@ void main() {
       test('isRevoked defaults correctly', () {
         final device = AccountDevice(
           id: 1,
-          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+          anonAccountId: UuidValue.fromString('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'),
           deviceSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
           label: 'Device',
@@ -120,7 +120,7 @@ void main() {
   group('Model Contracts - JSON Serialization', () {
     test('AnonAccount roundtrips through JSON', () {
       final original = AnonAccount(
-        id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+        id: UuidValue.fromString('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'),
         ultimateSigningPublicKeyHex: 'key',
         encryptedDataKey: 'blob',
         ultimatePublicKey: 'ultimate',
@@ -136,7 +136,7 @@ void main() {
     test('AccountDevice roundtrips through JSON', () {
       final original = AccountDevice(
         id: 1,
-        anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
+        anonAccountId: UuidValue.fromString('b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e'),
         deviceSigningPublicKeyHex: 'key',
         encryptedDataKey: 'blob',
         label: 'Device',
