@@ -95,7 +95,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
     required String shellContent,
     required String simpleStats,
     required String jstat,
-    required List<double> values,
+    required List<dynamic> values,
     required List<int> timestampsEpoch,
     required String snippet,
     required AnalysisOutputMode outputMode,

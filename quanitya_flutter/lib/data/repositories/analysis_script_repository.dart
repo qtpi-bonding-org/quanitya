@@ -162,15 +162,15 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
         final clampedEnd = (entryRangeEnd ?? allEntries.length).clamp(clampedStart, allEntries.length);
         final sliced = allEntries.sublist(clampedStart, clampedEnd);
 
-        // Extract numeric values keyed by field UUID
-        final values = <double>[];
+        // Extract field values keyed by field UUID
+        final values = <dynamic>[];
         final timestamps = <DateTime>[];
 
         for (final entry in sliced) {
           final ts = entry.occurredAt ?? entry.scheduledFor;
           if (ts == null) continue;
 
-          final val = _extractNumericValue(entry.data, field.id);
+          final val = entry.data[field.id];
           if (val != null) {
             values.add(val);
             timestamps.add(ts);
@@ -184,18 +184,4 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
     );
   }
 
-  static double? _extractNumericValue(
-    Map<String, dynamic> data,
-    String fieldUuid,
-  ) {
-    final value = data[fieldUuid];
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value);
-    if (value is Map) {
-      final v = value['value'] ?? value['Value'];
-      if (v is num) return v.toDouble();
-      if (v is String) return double.tryParse(v);
-    }
-    return null;
-  }
 }

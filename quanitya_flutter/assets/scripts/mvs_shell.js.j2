@@ -8,7 +8,7 @@
  * - Aggregation support (output timestamps)
  * 
  * Template Variables (injected by WasmAnalysisService):
- * - {{ values }}           : List<double> - Numeric field values
+ * - {{ values }}           : List<dynamic> - Field values (number, string, bool, object, array)
  * - {{ timestamps_epoch }} : List<int> - Milliseconds since epoch
  * - {{ logic_fragment }}   : String - User's JavaScript code
  * - {{ output_mode }}      : String - 'scalar' | 'vector' | 'matrix'
@@ -54,7 +54,7 @@ const rawValues = {{ values | to_json }};
 const rawTimestamps = {{ timestamps_epoch | to_json }};
 
 const data = {
-    // Raw numeric values from database field
+    // Field values from database (number, string, bool, object, or array)
     values: rawValues,
     
     // Epoch timestamps (integers) for fast date math

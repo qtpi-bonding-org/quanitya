@@ -1,7 +1,8 @@
 import '../../logic/analysis/models/analysis_script.dart';
 
-/// Time-series numeric data extracted from log entries for a specific field.
-typedef FieldTimeSeries = ({List<double> values, List<DateTime> timestamps});
+/// Time-series data extracted from log entries for a specific field.
+/// Values can be any type: double, String, bool, List, Map (for group fields).
+typedef FieldTimeSeries = ({List<dynamic> values, List<DateTime> timestamps});
 
 /// Repository interface for AnalysisScriptModel operations with encryption handling.
 ///
