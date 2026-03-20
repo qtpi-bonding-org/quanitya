@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:injectable/injectable.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../logic/templates/enums/field_enum.dart';
 import '../dao/log_entry_dual_dao.dart';
@@ -330,16 +331,71 @@ class LogEntryRepository implements ILogEntryRepository {
 
   /// Validates that a value matches the expected field type.
   /// For isList fields, validates the value is a List and checks each item.
+  /// For group fields, validates the value is a Map and checks each sub-field.
   String? _validateFieldType(TemplateField field, dynamic value) {
     if (field.isList) {
       if (value is! List) return '${field.label} must be a list';
       for (int i = 0; i < value.length; i++) {
-        final itemError = _validateScalarType(field, value[i]);
-        if (itemError != null) return '$itemError (item ${i + 1})';
+        if (field.type == FieldEnum.group) {
+          final itemError = _validateGroupValue(field, value[i]);
+          if (itemError != null) return '$itemError (item ${i + 1})';
+        } else {
+          final itemError = _validateScalarType(field, value[i]);
+          if (itemError != null) return '$itemError (item ${i + 1})';
+        }
       }
       return null;
     }
+    if (field.type == FieldEnum.group) {
+      return _validateGroupValue(field, value);
+    }
     return _validateScalarType(field, value);
+  }
+
+  /// Validates a group field value as a Map with sub-field validation.
+  String? _validateGroupValue(TemplateField field, dynamic value) {
+    if (value is! Map<String, dynamic>) {
+      return '${field.label} must be an object';
+    }
+    final subFields = field.subFields;
+    if (subFields == null || subFields.isEmpty) {
+      return '${field.label} has no sub-fields defined';
+    }
+
+    for (final subField in subFields) {
+      if (subField.isDeleted) continue;
+      final subValue = value[subField.id];
+
+      final isOptional = subField.validators.any(
+        (v) => v.validatorType == ValidatorType.optional,
+      );
+      if (!isOptional &&
+          (subValue == null || (subValue is String && subValue.isEmpty))) {
+        return '${subField.label} is required';
+      }
+      if (subValue == null) continue;
+
+      // Recurse — handles sub-field isList, scalar types, etc.
+      final typeError = _validateFieldType(subField, subValue);
+      if (typeError != null) return typeError;
+
+      for (final validator in subField.validators) {
+        final validatorError =
+            _runValidator(validator, subValue, subField.label);
+        if (validatorError != null) return validatorError;
+      }
+    }
+
+    // Reject unknown keys inside group object
+    final subFieldIds =
+        subFields.where((f) => !f.isDeleted).map((f) => f.id).toSet();
+    for (final key in value.keys) {
+      if (!subFieldIds.contains(key)) {
+        return '${field.label}: unknown sub-field key "$key"';
+      }
+    }
+
+    return null;
   }
 
   /// Validates a single scalar value against the field's expected type.
@@ -493,5 +549,11 @@ class LogEntryRepository implements ILogEntryRepository {
     // Sort by date ascending for analytics processing
     timeSeriesPoints.sort((a, b) => a.date.compareTo(b.date));
     return timeSeriesPoints;
+  }
+
+  /// Exposed for unit testing of field type validation.
+  @visibleForTesting
+  String? validateFieldTypeForTest(TemplateField field, dynamic value) {
+    return _validateFieldType(field, value);
   }
 }
