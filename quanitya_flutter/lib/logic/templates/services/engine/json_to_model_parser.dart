@@ -224,6 +224,28 @@ class JsonToModelParser {
       unit = null;
     }
 
+    // Parse sub-fields for group type
+    List<TemplateField>? parsedSubFields;
+    if (fieldType == FieldEnum.group) {
+      final subFieldsJson = fieldJson['subFields'] as List<dynamic>?;
+      if (subFieldsJson == null || subFieldsJson.isEmpty) {
+        throw TemplateParsingException(
+          'Group field "$label" requires subFields',
+          jsonPath: 'subFields',
+        );
+      }
+      parsedSubFields = _parseFields(subFieldsJson);
+      // Enforce one-level nesting
+      for (final sf in parsedSubFields) {
+        if (sf.type == FieldEnum.group) {
+          throw TemplateParsingException(
+            'Nested groups not allowed: "${sf.label}" inside "$label"',
+            jsonPath: 'subFields',
+          );
+        }
+      }
+    }
+
     // Parse and validate defaultValue (AI only sends for int/float/text)
     final rawDefault = fieldJson['defaultValue'];
     final defaultValue = _defaultHandler.parseDefault(rawDefault, fieldType);
@@ -238,6 +260,7 @@ class JsonToModelParser {
       validators: validators,
       options: options,
       defaultValue: defaultValue,
+      subFields: parsedSubFields,
     );
     
     // Validate default if present
