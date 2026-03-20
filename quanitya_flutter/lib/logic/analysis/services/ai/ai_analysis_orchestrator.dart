@@ -12,6 +12,7 @@ import '../../models/field_analysis_context.dart';
 import '../../enums/analysis_output_mode.dart';
 import '../../models/matrix_vector_scalar/analysis_data_type.dart';
 import '../../exceptions/analysis_exceptions.dart';
+import '../../../templates/enums/field_enum.dart';
 
 /// Simple suggestion model for AI-generated analysis scripts
 class ScriptSuggestion {
@@ -69,6 +70,38 @@ class AiAnalysisOrchestrator
     );
   }
 
+  /// Describes the shape of data.values for the prompt based on field type.
+  String _describeValueShape(FieldAnalysisContext context) {
+    final type = context.fieldType;
+    return switch (type) {
+      FieldEnum.integer => 'number[] (integers)',
+      FieldEnum.float => 'number[] (decimals)',
+      FieldEnum.dimension => 'number[] (measurements)',
+      FieldEnum.boolean => 'boolean[]',
+      FieldEnum.text => 'string[]',
+      FieldEnum.enumerated => 'string[] (one of predefined options)',
+      FieldEnum.datetime => 'string[] (ISO date strings)',
+      FieldEnum.group => _describeGroupShape(context),
+      FieldEnum.reference => 'string[] (reference IDs)',
+      FieldEnum.location => '{latitude: number, longitude: number}[]',
+    };
+  }
+
+  /// Describes the shape of a group field's values from sample data.
+  String _describeGroupShape(FieldAnalysisContext context) {
+    // If metadata contains sub-field info, use it for a precise description
+    final meta = context.metadata;
+    if (meta != null && meta.containsKey('subFieldShapes')) {
+      final shapes = meta['subFieldShapes'] as String;
+      return shapes;
+    }
+    // Fallback — use sample values to hint at shape
+    if (context.sampleValues.isNotEmpty) {
+      return 'object[] or object[][] (see sample: ${context.sampleValues.first})';
+    }
+    return 'object[] or object[][] (group field — shape depends on sub-fields)';
+  }
+
   Future<ScriptSuggestion> generateSuggestion({
     required String intent,
     required FieldAnalysisContext fieldContext,
@@ -82,7 +115,10 @@ class AiAnalysisOrchestrator
       // 2. Build the system prompt using jinja
       final env = jinja.Environment();
       final systemTemplate = env.fromString(promptConfig['system_prompt']);
-      final systemPrompt = systemTemplate.render({'user_intent': intent});
+      final systemPrompt = systemTemplate.render({
+        'user_intent': intent,
+        'value_shape': _describeValueShape(fieldContext),
+      });
 
       // 3. Execute LLM request with Structured Output
       final response = await _llmService.execute(
