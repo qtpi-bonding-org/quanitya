@@ -356,6 +356,7 @@ class LogEntryRepository implements ILogEntryRepository {
       FieldEnum.reference =>
         value is String ? null : '$label must be a reference ID',
       FieldEnum.location => _validateLocation(value, label),
+      FieldEnum.group => throw StateError('Group fields should not reach scalar validation'),
     };
   }
 

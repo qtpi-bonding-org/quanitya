@@ -143,6 +143,10 @@ class SymbolicCombinationGenerator {
       case FieldEnum.location:
         // Location fields only work with the location picker
         return uiElement == UiElementEnum.locationPicker;
+
+      case FieldEnum.group:
+        // Group fields have no direct UI element — rendered via sub-fields
+        return false;
     }
   }
 

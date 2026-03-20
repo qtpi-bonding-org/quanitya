@@ -229,6 +229,7 @@ class _FieldEditorListState extends State<FieldEditorList> {
       FieldEnum.dimension => Icons.straighten,
       FieldEnum.reference => Icons.link,
       FieldEnum.location => Icons.location_on,
+      FieldEnum.group => Icons.dashboard,
     };
   }
 

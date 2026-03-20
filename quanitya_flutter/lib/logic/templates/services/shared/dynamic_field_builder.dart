@@ -94,6 +94,7 @@ class DynamicFieldBuilder {
       FieldEnum.location => UiElementEnum.locationPicker,
       FieldEnum.dimension => UiElementEnum.stepper,
       FieldEnum.reference => null,
+      FieldEnum.group => null,
     };
   }
 
@@ -232,6 +233,7 @@ class DynamicFieldBuilder {
       FieldEnum.dimension => 0.0,
       FieldEnum.reference => null,
       FieldEnum.location => null,
+      FieldEnum.group => null,
     };
   }
 

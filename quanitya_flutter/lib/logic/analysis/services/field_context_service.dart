@@ -168,6 +168,12 @@ class FieldContextService {
         'insights': ['places visited', 'movement patterns', 'distances'],
         'examples': ['check-ins', 'workout locations', 'travel logs'],
       },
+      FieldEnum.group => {
+        'dataType': 'structured',
+        'operations': <String>[],
+        'chartTypes': <String>[],
+        'description': 'Structured group of sub-fields',
+      },
     };
   }
 }

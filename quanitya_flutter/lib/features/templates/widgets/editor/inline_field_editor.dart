@@ -438,6 +438,14 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             color: draftColor,
           ),
         ),
+        VSpace.x025,
+        Text(
+          context.l10n.fieldDefaultValueQuickLogHint,
+          style: context.text.bodySmall?.copyWith(
+            color: draftColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         VSpace.x05,
         _buildDefaultValueInput(context, draftColor),
         if (_defaultValueError != null) ...[
@@ -469,6 +477,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         const SizedBox.shrink(), // No default for references
       FieldEnum.location =>
         const SizedBox.shrink(), // No default for locations
+      FieldEnum.group =>
+        const SizedBox.shrink(), // No default for groups
     };
   }
 
@@ -792,6 +802,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       FieldEnum.dimension => Icons.straighten,
       FieldEnum.reference => Icons.link,
       FieldEnum.location => Icons.location_on,
+      FieldEnum.group => Icons.dashboard,
     };
   }
 

@@ -16,6 +16,7 @@ extension FieldEnumDisplayName on FieldEnum {
       FieldEnum.dimension => 'Measurement',
       FieldEnum.reference => 'Reference',
       FieldEnum.location => 'Location',
+      FieldEnum.group => 'Group',
     };
   }
 
@@ -31,6 +32,7 @@ extension FieldEnumDisplayName on FieldEnum {
       FieldEnum.dimension => Icons.straighten,
       FieldEnum.reference => Icons.link,
       FieldEnum.location => Icons.location_on,
+      FieldEnum.group => Icons.dashboard,
     };
   }
 }
