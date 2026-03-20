@@ -87,17 +87,13 @@ class AiAnalysisOrchestrator
     };
   }
 
-  /// Describes the shape of a group field's values from sample data.
+  /// Describes the shape of a group field's values from metadata.
+  /// Never includes actual user data — only type shapes and labels.
   String _describeGroupShape(FieldAnalysisContext context) {
-    // If metadata contains sub-field info, use it for a precise description
+    // If metadata contains sub-field shape description, use it
     final meta = context.metadata;
     if (meta != null && meta.containsKey('subFieldShapes')) {
-      final shapes = meta['subFieldShapes'] as String;
-      return shapes;
-    }
-    // Fallback — use sample values to hint at shape
-    if (context.sampleValues.isNotEmpty) {
-      return 'object[] or object[][] (see sample: ${context.sampleValues.first})';
+      return meta['subFieldShapes'] as String;
     }
     return 'object[] or object[][] (group field — shape depends on sub-fields)';
   }
