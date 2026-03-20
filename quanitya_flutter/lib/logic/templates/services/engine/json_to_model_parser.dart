@@ -200,8 +200,8 @@ class JsonToModelParser {
     final uiElementName = fieldJson['uiElement'] as String?;
     final uiElement = _parseUiElementFromName(uiElementName);
     
-    // Parse options for enumerated fields
-    final options = fieldType == FieldEnum.enumerated
+    // Parse options for enumerated and multiEnum fields
+    final options = (fieldType == FieldEnum.enumerated || fieldType == FieldEnum.multiEnum)
         ? (fieldJson['options'] as List<dynamic>?)?.cast<String>()
         : null;
     
@@ -345,6 +345,7 @@ class JsonToModelParser {
         }
 
       case FieldEnum.enumerated:
+      case FieldEnum.multiEnum:
         final options = fieldJson['options'] as List<dynamic>?;
         if (options != null) {
           validators.add(

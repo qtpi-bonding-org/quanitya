@@ -174,6 +174,12 @@ class FieldContextService {
         'chartTypes': <String>[],
         'description': 'Structured group of sub-fields',
       },
+      FieldEnum.multiEnum => {
+        'dataType': 'categorical_multi',
+        'operations': ['frequency', 'distribution', 'co-occurrence'],
+        'insights': ['most selected', 'combination patterns', 'selection counts'],
+        'examples': ['symptoms', 'tags', 'multiple categories'],
+      },
     };
   }
 }

@@ -132,7 +132,7 @@ class _FieldEditorListState extends State<FieldEditorList> {
               ),
             ),
             // Show options for enumerated fields
-            if (field.type == FieldEnum.enumerated &&
+            if ((field.type == FieldEnum.enumerated || field.type == FieldEnum.multiEnum) &&
                 field.options != null &&
                 field.options!.isNotEmpty)
               Text(
@@ -230,6 +230,7 @@ class _FieldEditorListState extends State<FieldEditorList> {
       FieldEnum.reference => Icons.link,
       FieldEnum.location => Icons.location_on,
       FieldEnum.group => Icons.dashboard,
+      FieldEnum.multiEnum => Icons.checklist,
     };
   }
 

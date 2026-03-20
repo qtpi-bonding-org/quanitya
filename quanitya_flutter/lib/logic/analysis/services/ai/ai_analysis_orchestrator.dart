@@ -82,6 +82,7 @@ class AiAnalysisOrchestrator
       FieldEnum.enumerated => 'string[] (one of predefined options)',
       FieldEnum.datetime => 'string[] (ISO date strings)',
       FieldEnum.group => _describeGroupShape(context),
+      FieldEnum.multiEnum => 'string[][] (arrays of selected option strings)',
       FieldEnum.reference => 'string[] (reference IDs)',
       FieldEnum.location => '{latitude: number, longitude: number}[]',
     };

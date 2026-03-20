@@ -142,7 +142,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final isEnumerated = widget.fieldType == FieldEnum.enumerated;
+    final isEnumerated = widget.fieldType == FieldEnum.enumerated || widget.fieldType == FieldEnum.multiEnum;
     final draftColor = context.colors.textSecondary; // Blue-gray "pencil sketch"
     final supportsDefault = _defaultHandler.supportsManualDefault(widget.fieldType);
     
@@ -512,6 +512,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         const SizedBox.shrink(), // No default for locations
       FieldEnum.group =>
         const SizedBox.shrink(), // No default for groups
+      FieldEnum.multiEnum =>
+        const SizedBox.shrink(), // No default for multi-select
     };
   }
 
@@ -724,8 +726,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     final label = _labelController.text.trim();
     if (label.isEmpty) return false;
 
-    // Enumerated fields need at least one option
-    if (widget.fieldType == FieldEnum.enumerated && _options.isEmpty) {
+    // Enumerated and multiEnum fields need at least one option
+    if ((widget.fieldType == FieldEnum.enumerated || widget.fieldType == FieldEnum.multiEnum) && _options.isEmpty) {
       return false;
     }
 
@@ -815,7 +817,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             uiElement: _selectedWidget,
             isList: _isList,
             unit: widget.fieldType == FieldEnum.dimension ? _selectedUnit : null,
-            options: widget.fieldType == FieldEnum.enumerated ? _options : null,
+            options: (widget.fieldType == FieldEnum.enumerated || widget.fieldType == FieldEnum.multiEnum) ? _options : null,
             defaultValue: effectiveDefault,
             validators: validators,
           )
@@ -825,7 +827,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             uiElement: _selectedWidget,
             isList: _isList,
             unit: widget.fieldType == FieldEnum.dimension ? _selectedUnit : null,
-            options: widget.fieldType == FieldEnum.enumerated ? _options : null,
+            options: (widget.fieldType == FieldEnum.enumerated || widget.fieldType == FieldEnum.multiEnum) ? _options : null,
             defaultValue: effectiveDefault,
             validators: validators,
           );
@@ -845,6 +847,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       FieldEnum.reference => Icons.link,
       FieldEnum.location => Icons.location_on,
       FieldEnum.group => Icons.dashboard,
+      FieldEnum.multiEnum => Icons.checklist,
     };
   }
 

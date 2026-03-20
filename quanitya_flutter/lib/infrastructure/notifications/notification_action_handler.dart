@@ -155,6 +155,7 @@ class NotificationActionHandler implements INotificationActionHandler {
       FieldEnum.reference => null,
       FieldEnum.location => null,
       FieldEnum.group => null,
+      FieldEnum.multiEnum => <String>[],
     };
   }
 }

@@ -17,6 +17,7 @@ extension FieldEnumDisplayName on FieldEnum {
       FieldEnum.reference => 'Reference',
       FieldEnum.location => 'Location',
       FieldEnum.group => 'Group',
+      FieldEnum.multiEnum => 'Multi-Select',
     };
   }
 
@@ -33,6 +34,7 @@ extension FieldEnumDisplayName on FieldEnum {
       FieldEnum.reference => Icons.link,
       FieldEnum.location => Icons.location_on,
       FieldEnum.group => Icons.dashboard,
+      FieldEnum.multiEnum => Icons.checklist,
     };
   }
 }

@@ -33,6 +33,7 @@ class FieldChartMapper {
       FieldEnum.reference => ChartType.none,
       FieldEnum.location => ChartType.none,
       FieldEnum.group => ChartType.none,
+      FieldEnum.multiEnum => ChartType.none,
     };
   }
 

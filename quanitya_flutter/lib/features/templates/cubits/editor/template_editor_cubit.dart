@@ -578,6 +578,7 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
       FieldEnum.reference => null,
       FieldEnum.location => null,
       FieldEnum.group => null,
+      FieldEnum.multiEnum => <String>[],
     };
   }
 }

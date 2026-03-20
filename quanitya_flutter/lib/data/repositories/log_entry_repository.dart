@@ -413,6 +413,7 @@ class LogEntryRepository implements ILogEntryRepository {
         value is String ? null : '$label must be a reference ID',
       FieldEnum.location => _validateLocation(value, label),
       FieldEnum.group => throw StateError('Group fields should not reach scalar validation'),
+      FieldEnum.multiEnum => _validateMultiEnum(value, field.options, label),
     };
   }
 
@@ -435,6 +436,26 @@ class LogEntryRepository implements ILogEntryRepository {
       }
     }
     return '$label must be a date/time';
+  }
+
+  String? _validateMultiEnum(
+    dynamic value,
+    List<String>? options,
+    String label,
+  ) {
+    if (value is! List) return '$label must be a list';
+    for (final item in value) {
+      if (item is! String) return '$label items must be strings';
+      if (options != null && options.isNotEmpty && !options.contains(item)) {
+        return '$label: "$item" is not a valid option';
+      }
+    }
+    // Check for duplicates
+    final unique = value.cast<String>().toSet();
+    if (unique.length != value.length) {
+      return '$label must not contain duplicate selections';
+    }
+    return null;
   }
 
   String? _validateEnumerated(

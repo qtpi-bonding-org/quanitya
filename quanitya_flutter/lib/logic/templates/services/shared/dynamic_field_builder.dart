@@ -106,6 +106,7 @@ class DynamicFieldBuilder {
       FieldEnum.dimension => UiElementEnum.stepper,
       FieldEnum.reference => null,
       FieldEnum.group => null,
+      FieldEnum.multiEnum => UiElementEnum.chips,
     };
   }
 
@@ -257,6 +258,7 @@ class DynamicFieldBuilder {
       FieldEnum.reference => null,
       FieldEnum.location => null,
       FieldEnum.group => _getGroupDefault(field),
+      FieldEnum.multiEnum => <String>[],
     };
   }
 

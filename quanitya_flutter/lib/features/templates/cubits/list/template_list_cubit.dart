@@ -113,6 +113,7 @@ class TemplateListCubit extends QuanityaCubit<TemplateListState> {
       FieldEnum.reference => null,
       FieldEnum.location => null,
       FieldEnum.group => null,
+      FieldEnum.multiEnum => <String>[],
     };
   }
 

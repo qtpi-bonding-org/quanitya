@@ -200,8 +200,8 @@ class UnifiedSchemaGenerator {
       required.add('unit');
     }
 
-    // Add options for enumerated fields
-    if (fieldType == FieldEnum.enumerated) {
+    // Add options for enumerated and multiEnum fields
+    if (fieldType == FieldEnum.enumerated || fieldType == FieldEnum.multiEnum) {
       properties['options'] = {
         'type': 'array',
         'items': {'type': 'string', 'minLength': 1, 'maxLength': 50},

@@ -62,6 +62,13 @@ class FieldWidgetCombinations {
     FieldEnum.location: [
       UiElementEnum.locationPicker,
     ],
+
+    // Multi-select fields can use chips, dropdowns, or radio buttons
+    FieldEnum.multiEnum: [
+      UiElementEnum.chips,
+      UiElementEnum.dropdown,
+      UiElementEnum.radio,
+    ],
   };
 
   /// Gets valid UI elements for a specific field type

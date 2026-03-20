@@ -31,4 +31,7 @@ enum FieldEnum {
 
   /// Structured group of sub-fields (JSON object)
   group,
+
+  /// Multi-select from predefined options (stores List<String>)
+  multiEnum,
 }

@@ -294,6 +294,7 @@ class DataRetrievalService {
             case FieldEnum.datetime:
             case FieldEnum.reference:
             case FieldEnum.group:
+            case FieldEnum.multiEnum:
               break; // Not aggregatable
           }
         }

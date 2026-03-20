@@ -147,6 +147,10 @@ class SymbolicCombinationGenerator {
       case FieldEnum.group:
         // Group fields have no direct UI element — rendered via sub-fields
         return false;
+
+      case FieldEnum.multiEnum:
+        // Multi-select fields work with selection UI elements
+        return _isSelectionCompatibleUi(uiElement);
     }
   }
 
