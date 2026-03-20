@@ -28,4 +28,7 @@ enum FieldEnum {
 
   /// GPS location (latitude/longitude captured on tap)
   location,
+
+  /// Structured group of sub-fields (JSON object)
+  group,
 }
