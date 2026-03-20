@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb, visibleForTesting;
 import 'package:health/health.dart';
 import 'package:injectable/injectable.dart';
 
@@ -144,7 +144,7 @@ class HealthSyncService {
           permissions: List.filled(types.length, HealthDataAccess.READ),
         );
         // hasPermissions returns bool? — null means undetermined (iOS READ)
-        return result ?? (Platform.isIOS ? true : false);
+        return result ?? (!kIsWeb && Platform.isIOS ? true : false);
       },
       IngestionException.new,
       'hasPermissions',
