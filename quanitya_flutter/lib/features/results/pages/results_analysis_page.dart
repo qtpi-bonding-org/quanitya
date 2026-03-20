@@ -38,7 +38,7 @@ class ResultsAnalysisPage extends StatelessWidget {
             context.watch<HiddenVisibilityCubit>().state.showingHidden;
         final analyzable = state.templates
             .where((item) =>
-                item.hasGraphableFields &&
+                item.hasAnalyzableFields &&
                 (showHidden || !item.isHidden))
             .toList();
 
@@ -80,7 +80,6 @@ class _AnalysisFoldBody extends StatelessWidget {
         final data = state.data;
         if (data == null) return const SizedBox.shrink();
 
-        // Show placeholder if no analysis results and no numeric fields
         if (state.analysisResults.isEmpty && data.numericFields.isEmpty) {
           return const QuanityaEmptyState();
         }

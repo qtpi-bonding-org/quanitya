@@ -84,6 +84,11 @@ class ResultsListCubit extends QuanityaCubit<ResultsListState> {
             lastLoggedAt: s.lastLoggedAt,
             hasGraphableFields: t.template.fields
                 .any((f) => graphableTypes.contains(f.type)),
+            hasAnalyzableFields: t.template.fields.any((f) =>
+                f.type == FieldEnum.integer ||
+                f.type == FieldEnum.float ||
+                f.type == FieldEnum.dimension ||
+                f.type == FieldEnum.boolean),
             isHidden: t.template.isHidden,
             icon: t.aesthetics.icon,
             emoji: t.aesthetics.emoji,

@@ -342,7 +342,7 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
       // Add date divider with pre-computed formatted date
       final date = DateTime.parse(dateKey);
       final formattedDate =
-          QuanityaDateFormat.monthDay(date);
+          QuanityaDateFormat.monthDayCompact(date);
 
       items.add(
         TimelineItem.dateDivider(
