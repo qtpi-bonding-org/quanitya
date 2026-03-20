@@ -17,6 +17,7 @@ import '../../../../design_system/widgets/quanitya/generatable/quanitya_slider.d
 import '../../../../design_system/widgets/quanitya/generatable/quanitya_stepper.dart';
 import '../../../../design_system/widgets/quanitya/generatable/quanitya_text_field.dart';
 import '../../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
+import '../../../../design_system/widgets/quanitya/generatable/quanitya_multi_chip_group.dart';
 
 /// Builds appropriate input widgets for dynamic template fields.
 ///
@@ -55,6 +56,16 @@ class DynamicFieldBuilder {
         onChanged: onChanged,
         widgetColors: widgetColors,
         textStyle: textStyle,
+      );
+    }
+
+    // Handle multi-select fields
+    if (field.type == FieldEnum.multiEnum) {
+      return _buildMultiChipField(
+        field: field,
+        values: (value as List<dynamic>?)?.cast<String>() ?? <String>[],
+        onChanged: onChanged,
+        widgetColors: widgetColors,
       );
     }
 
@@ -276,6 +287,36 @@ class DynamicFieldBuilder {
     return map;
   }
 
+
+  /// Builds a multi-select chip field for multiEnum type.
+  static Widget _buildMultiChipField({
+    required TemplateField field,
+    required List<String> values,
+    required ValueChanged<dynamic> onChanged,
+    Map<String, Color>? widgetColors,
+  }) {
+    final options = field.options ?? [];
+    if (options.isEmpty) {
+      return Builder(
+        builder: (context) =>
+            Text(context.l10n.fieldBuilderNoOptions),
+      );
+    }
+
+    final selectedColor = widgetColors?['selectedColor']
+        ?? QuanityaPalette.primary.textPrimary;
+    final unselectedColor = widgetColors?['unselectedColor']
+        ?? QuanityaPalette.primary.interactableColor;
+
+    return QuanityaMultiChipGroup<String>(
+      values: values,
+      options: options,
+      labelBuilder: (opt) => opt,
+      selectedColor: selectedColor,
+      unselectedColor: unselectedColor,
+      onChanged: (updated) => onChanged(updated),
+    );
+  }
 
   /// Builds a group field — renders sub-fields vertically in a squircle border.
   static Widget _buildGroupField({
