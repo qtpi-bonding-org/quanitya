@@ -109,7 +109,7 @@ class AiAnalysisOrchestrator
   }) async {
     try {
       // 1. Load the centralized prompt configuration
-      final promptConfigStr = await rootBundle.loadString('prompt.json');
+      final promptConfigStr = await rootBundle.loadString('assets/prompt.json');
       final promptConfig = jsonDecode(promptConfigStr);
 
       // 2. Build the system prompt using jinja
@@ -126,7 +126,7 @@ class AiAnalysisOrchestrator
         LlmRequest(
           systemPrompt: systemPrompt,
           userPrompt: intent,
-          jsonSchema: promptConfig['json_schema'],
+          jsonSchema: (promptConfig['json_schema'] as Map<String, dynamic>)['schema'] as Map<String, dynamic>,
           callType: callType,
         ),
       );

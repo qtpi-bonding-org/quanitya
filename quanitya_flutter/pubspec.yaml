@@ -215,6 +215,7 @@ flutter:
   assets:
     - assets/quanitya.png
     - assets/prompt.json
+    - assets/template_prompt.json
     - assets/scripts/
 
   # An image asset can refer to one or more resolution-specific "variants", see
