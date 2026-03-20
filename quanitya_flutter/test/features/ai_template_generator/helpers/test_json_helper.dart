@@ -113,6 +113,10 @@ Map<String, dynamic> createValidField(FieldEnum fieldType, UiElementEnum uiEleme
     case FieldEnum.group:
       // No additional properties required
       break;
+
+    case FieldEnum.multiEnum:
+      fieldData['options'] = ['Option1', 'Option2', 'Option3'];
+      break;
   }
 
   return fieldData;
