@@ -31,6 +31,7 @@ void main() {
       final shareable = ShareableTemplate.create(
         author: author,
         template: template,
+        category: 'test',
       );
 
       expect(shareable.version, '1.0');

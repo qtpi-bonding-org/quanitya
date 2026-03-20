@@ -25,6 +25,7 @@ void main() {
   ShareableTemplate createTestShareable() {
     return ShareableTemplate(
       version: '1.0',
+      category: 'test',
       author: const AuthorCredit(name: 'Test Author'),
       template: TrackerTemplateModel(
         id: 'shared-id',

@@ -32,9 +32,15 @@ class ShareableTemplate with _$ShareableTemplate {
     
     /// Optional template description for sharing
     String? description,
-    
+
     /// Creation timestamp
     DateTime? createdAt,
+
+    /// Category for catalog grouping (e.g., "health", "fitness")
+    required String category,
+
+    /// Tags for filtering and search
+    List<String>? tags,
   }) = _ShareableTemplate;
 
   /// Creates from JSON map
@@ -45,9 +51,11 @@ class ShareableTemplate with _$ShareableTemplate {
   factory ShareableTemplate.create({
     required AuthorCredit author,
     required TrackerTemplateModel template,
+    required String category,
     TemplateAestheticsModel? aesthetics,
     List<AnalysisScriptModel>? analysisScripts,
     String? description,
+    List<String>? tags,
   }) {
     return ShareableTemplate(
       version: '1.0',
@@ -57,6 +65,8 @@ class ShareableTemplate with _$ShareableTemplate {
       analysisScripts: analysisScripts,
       description: description,
       createdAt: DateTime.now(),
+      category: category,
+      tags: tags,
     );
   }
 }

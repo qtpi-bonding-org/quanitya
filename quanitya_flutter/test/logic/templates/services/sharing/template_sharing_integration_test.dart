@@ -32,6 +32,7 @@ void main() {
         final shareable = ShareableTemplate.create(
           author: author,
           template: template,
+          category: 'test',
         );
 
         expect(shareable.version, '1.0');
@@ -56,12 +57,13 @@ void main() {
         final original = ShareableTemplate.create(
           author: author,
           template: template,
+          category: 'test',
           description: 'Test description',
         );
 
         // Serialize to JSON
         final json = original.toJson();
-        
+
         // Print JSON to debug
         print('Generated JSON: $json');
         
@@ -108,6 +110,7 @@ void main() {
         final original = ShareableTemplate.create(
           author: author,
           template: template,
+          category: 'test',
           description: 'Round trip test',
         );
 

@@ -42,6 +42,7 @@ class TemplateExportService {
     final shareableTemplate = ShareableTemplate.create(
       author: author,
       template: templateWithAesthetics.template,
+      category: 'uncategorized',
       aesthetics: templateWithAesthetics
           .aesthetics, // Always present in TemplateWithAesthetics
       analysisScripts: analysisScripts,
