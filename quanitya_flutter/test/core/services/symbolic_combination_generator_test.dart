@@ -17,8 +17,11 @@ void main() {
       test('should generate combinations for all field types', () {
         final combinations = generator.generateAllValidEnumCombinations();
         
-        // Should have combinations for all field types
+        // Should have combinations for all generatable field types
+        // reference and group are excluded — no direct UI element
         for (final fieldType in FieldEnum.values) {
+          if (fieldType == FieldEnum.reference) continue;
+          if (fieldType == FieldEnum.group) continue;
           final fieldCombinations = combinations.where((c) => c.$1 == fieldType);
           expect(
             fieldCombinations.isNotEmpty,
@@ -220,6 +223,9 @@ void main() {
           final combinations = generator.generateAllValidEnumCombinations();
           
           for (final fieldType in FieldEnum.values) {
+            // reference and group have no UI combinations — skip
+            if (fieldType == FieldEnum.reference) continue;
+            if (fieldType == FieldEnum.group) continue;
             final fieldCombinations = combinations.where((c) => c.$1 == fieldType);
             expect(
               fieldCombinations.isNotEmpty,
