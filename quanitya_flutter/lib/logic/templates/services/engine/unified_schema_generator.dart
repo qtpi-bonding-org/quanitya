@@ -80,12 +80,17 @@ class UnifiedSchemaGenerator {
   Map<String, dynamic> _generateFieldsArraySchema(
     List<(FieldEnum, UiElementEnum, List<ValidatorType>)> combinations,
   ) {
+    final scalarOptions = combinations
+        .map(_convertEnumTupleToSchemaOption)
+        .toList();
+
+    // Add group field as a separate schema option
+    final groupOption = _generateGroupFieldSchema(scalarOptions);
+
     return {
       'type': 'array',
       'items': {
-        'anyOf': combinations
-            .map(_convertEnumTupleToSchemaOption)
-            .toList(),
+        'anyOf': [...scalarOptions, groupOption],
       },
       'minItems': 1,
       'maxItems': 10,
@@ -210,6 +215,68 @@ class UnifiedSchemaGenerator {
     // we omit it from AI generation. Users can set defaults manually in the editor.
 
     return schemaOption;
+  }
+
+  /// Generates the JSON Schema option for group fields.
+  ///
+  /// Group fields contain sub-fields that reuse the scalar field schemas.
+  /// The group itself has no uiElement — sub-fields define their own.
+  Map<String, dynamic> _generateGroupFieldSchema(
+    List<Map<String, dynamic>> scalarFieldSchemas,
+  ) {
+    return {
+      'type': 'object',
+      'properties': {
+        'label': {
+          'type': 'string',
+          'description':
+              'Human-readable label for this group (e.g., "Sets", "Ingredients")',
+          'minLength': 1,
+          'maxLength': 50,
+        },
+        'fieldType': {
+          'type': 'string',
+          'const': 'group',
+        },
+        'isList': {
+          'type': 'boolean',
+          'description':
+              'If true, field accepts multiple grouped entries (e.g., multiple sets in a workout)',
+        },
+        'listMinItems': {
+          'type': 'integer',
+          'minimum': 0,
+          'maximum': 10,
+          'description':
+              'Minimum number of group items when isList is true. Use 0 for no minimum.',
+        },
+        'listMaxItems': {
+          'type': 'integer',
+          'minimum': 1,
+          'maximum': 10,
+          'description':
+              'Maximum number of group items when isList is true. Use 10 for no maximum.',
+        },
+        'subFields': {
+          'type': 'array',
+          'items': {
+            'anyOf': scalarFieldSchemas,
+          },
+          'minItems': 1,
+          'maxItems': 10,
+          'description': 'Sub-fields within this group',
+        },
+      },
+      'required': [
+        'label',
+        'fieldType',
+        'isList',
+        'listMinItems',
+        'listMaxItems',
+        'subFields',
+      ],
+      'additionalProperties': false,
+    };
   }
 
   /// Generates color configuration schema from QuanityaWidgetRegistry.
