@@ -19,6 +19,7 @@ import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dar
 import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../guided_tour/guided_tour_service.dart';
+import '../../sync_status/widgets/sync_status_indicator.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../../infrastructure/webhooks/models/api_key_model.dart';
@@ -63,7 +64,14 @@ class SettingsContent extends StatelessWidget {
               HSpace.x2,
               Text(context.l10n.settingsDevicesSection, style: context.text.titleMedium),
             ]),
-            child: const DeviceListSection(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SyncStatusIndicator(),
+                VSpace.x2,
+                const DeviceListSection(),
+              ],
+            ),
           ),
           VSpace.x3,
 

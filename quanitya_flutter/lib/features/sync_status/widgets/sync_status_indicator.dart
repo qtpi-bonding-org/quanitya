@@ -74,19 +74,19 @@ class SyncStatusIndicator extends StatelessWidget {
         ),
       SyncConnectionState.connected => (
           Icons.cloud_done,
-          palette.successColor,
+          palette.stateOnColor,
           context.l10n.syncConnected,
         ),
       SyncConnectionState.syncing => (
           Icons.sync,
-          palette.interactableColor,
+          palette.stateOnColor,
           state.isDownloading
               ? context.l10n.syncDownloading
               : context.l10n.syncUploading,
         ),
       SyncConnectionState.error => (
           Icons.cloud_off,
-          palette.errorColor,
+          palette.destructiveColor,
           context.l10n.syncError,
         ),
       SyncConnectionState.disconnected => (
