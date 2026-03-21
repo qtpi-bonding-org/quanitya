@@ -242,18 +242,19 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     }
   }
 
-  /// Handle PowerSync connection/disconnection based on syncing mode
+  /// Handle PowerSync connection/disconnection based on syncing mode.
+  ///
+  /// Throws on failure — callers are responsible for handling errors:
+  /// - User-initiated switches (switchToLocal/Cloud/SelfHosted): wrapped in
+  ///   tryOperation, which catches and shows error toast.
+  /// - External changes (_handleExternalModeChange): has its own catch that
+  ///   updates mode but sets failure status.
   Future<void> _handlePowerSyncModeChange(AppSyncingMode mode) async {
-    try {
-      if (GetIt.instance.isRegistered<IPowerSyncService>() &&
-          GetIt.instance.isRegistered<Client>()) {
-        final powerSync = GetIt.instance<IPowerSyncService>();
-        final client = GetIt.instance<Client>();
-        await powerSync.handleModeChange(mode, client);
-      }
-    } catch (e) {
-      // Don't fail the mode switch if PowerSync fails
-      // App can work without sync
+    if (GetIt.instance.isRegistered<IPowerSyncService>() &&
+        GetIt.instance.isRegistered<Client>()) {
+      final powerSync = GetIt.instance<IPowerSyncService>();
+      final client = GetIt.instance<Client>();
+      await powerSync.handleModeChange(mode, client);
     }
   }
 }
