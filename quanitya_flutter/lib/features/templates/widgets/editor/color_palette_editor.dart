@@ -21,6 +21,7 @@ class ColorPaletteEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+      buildWhen: (p, c) => p.aesthetics != c.aesthetics,
       builder: (context, state) => _buildColorSelector(context, state),
     );
   }

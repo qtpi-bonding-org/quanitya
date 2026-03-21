@@ -37,6 +37,7 @@ class _SortOptionsContent extends StatelessWidget {
     final palette = QuanityaPalette.primary;
 
     return BlocBuilder<TimelineDataCubit, TimelineDataState>(
+      buildWhen: (p, c) => p.pastSort != c.pastSort || p.filters != c.filters,
       builder: (context, dataState) {
         final cubit = context.read<TimelineDataCubit>();
 

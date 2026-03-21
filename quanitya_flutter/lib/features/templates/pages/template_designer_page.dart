@@ -46,6 +46,8 @@ class TemplateDesignerPage extends StatelessWidget {
         child: Scaffold(
           appBar: _buildAppBar(context),
           body: BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+            buildWhen: (p, c) =>
+                p.completeTemplate != c.completeTemplate,
             builder: (context, state) {
               return TemplateEditorForm(
                 onPreview: state.completeTemplate != null
@@ -64,6 +66,7 @@ class TemplateDesignerPage extends StatelessWidget {
     return AppBar(
       centerTitle: true,
       title: BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+        buildWhen: (p, c) => p.template != c.template,
         builder: (context, state) {
           final title = state.template != null
               ? context.l10n.editTemplateTitle
@@ -73,6 +76,7 @@ class TemplateDesignerPage extends StatelessWidget {
       ),
       actions: [
         BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+          buildWhen: (p, c) => p.template != c.template,
           builder: (context, state) {
             if (state.template != null) {
               // Edit mode: show share

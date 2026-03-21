@@ -36,6 +36,7 @@ class _FieldEditorListState extends State<FieldEditorList> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+      buildWhen: (p, c) => p.fields != c.fields,
       builder: (context, state) {
         if (state.fields.isEmpty) {
           return _buildEmptyState(context);

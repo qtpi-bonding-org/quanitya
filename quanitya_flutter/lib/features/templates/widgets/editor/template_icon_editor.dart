@@ -25,6 +25,8 @@ class TemplateIconEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+      buildWhen: (p, c) =>
+          p.aesthetics != c.aesthetics || p.templateName != c.templateName,
       builder: (context, state) {
         final iconString = state.aesthetics?.icon;
         final iconData = _parseIconFromString(iconString);

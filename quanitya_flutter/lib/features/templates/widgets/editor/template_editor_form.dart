@@ -90,6 +90,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+      buildWhen: (p, c) => p.template != c.template,
       builder: (context, state) {
         final isEditing = state.template != null;
 

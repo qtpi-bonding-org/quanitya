@@ -37,6 +37,9 @@ class _TemplateFilterContent extends StatelessWidget {
     final palette = QuanityaPalette.primary;
 
     return BlocBuilder<TimelineDataCubit, TimelineDataState>(
+      buildWhen: (p, c) =>
+          p.filters.templateId != c.filters.templateId ||
+          p.availableTemplates != c.availableTemplates,
       builder: (context, dataState) {
         final cubit = context.read<TimelineDataCubit>();
         final showHidden = context.watch<HiddenVisibilityCubit>().state.showingHidden;
