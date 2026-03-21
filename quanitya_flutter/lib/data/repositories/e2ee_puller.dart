@@ -472,9 +472,26 @@ class E2EEPuller implements IE2EEPuller {
   /// On first run (no checkpoint), processes all records.
   /// On subsequent runs, only processes records with updated_at >= checkpoint.
   /// After processing, advances the checkpoint and resubscribes.
+  /// Build a watch stream for an encrypted table, filtered by checkpoint.
+  ///
+  /// Each encrypted table has the same shape (id, encrypted_data, updated_at).
+  /// We use typed Drift queries per table to avoid dynamic dispatch issues
+  /// with extension methods.
+  Stream<List<T>> _buildFilteredStream<T extends DataClass>(
+    SimpleSelectStatement<Table, T> query,
+    Expression<bool> Function(DateTime checkpoint) whereClause,
+    DateTime? checkpoint,
+  ) {
+    if (checkpoint != null) {
+      query.where((_) => whereClause(checkpoint));
+    }
+    return query.watch();
+  }
+
   Future<void> _startWatching<T extends DataClass>({
     required String tableName,
-    required ResultSetImplementation<Table, T> table,
+    required SimpleSelectStatement<Table, T> Function() queryBuilder,
+    required Expression<bool> Function(DateTime checkpoint) whereClause,
     required EncryptedTableProcessor processor,
   }) async {
     // Cancel any existing subscription for this table
@@ -482,12 +499,9 @@ class E2EEPuller implements IE2EEPuller {
 
     final checkpoint = await _getCheckpoint(tableName);
 
-    final query = _db.select(table);
-    if (checkpoint != null) {
-      query.where((t) => (t as dynamic).updatedAt.isBiggerOrEqualValue(checkpoint));
-    }
+    final stream = _buildFilteredStream(queryBuilder(), whereClause, checkpoint);
 
-    _subscriptions[tableName] = query.watch().listen((records) async {
+    _subscriptions[tableName] = stream.listen((records) async {
       if (records.isEmpty) return;
 
       debugPrint('E2EEPuller: Processing ${records.length} $tableName');
@@ -502,15 +516,16 @@ class E2EEPuller implements IE2EEPuller {
         }
       }
 
-      // Advance checkpoint and resubscribe with the new value
+      // Advance checkpoint and resubscribe with the new value.
+      // With strict `>`, the resubscribed query excludes the just-processed
+      // records (their updated_at == checkpoint, not > checkpoint).
       await _updateCheckpoint(tableName, maxUpdatedAt);
       _lastSyncTime = DateTime.now();
 
-      // Resubscribe so the WHERE clause uses the new checkpoint.
-      // This is safe to call from within the listener — Drift handles it.
       _startWatching(
         tableName: tableName,
-        table: table,
+        queryBuilder: queryBuilder,
+        whereClause: whereClause,
         processor: processor,
       );
     });
@@ -523,31 +538,36 @@ class E2EEPuller implements IE2EEPuller {
 
     await _startWatching(
       tableName: 'encrypted_templates',
-      table: _db.encryptedTemplates,
+      queryBuilder: () => _db.select(_db.encryptedTemplates),
+      whereClause: (cp) => _db.encryptedTemplates.updatedAt.isBiggerThanValue(cp),
       processor: _templateProcessor,
     );
 
     await _startWatching(
       tableName: 'encrypted_entries',
-      table: _db.encryptedEntries,
+      queryBuilder: () => _db.select(_db.encryptedEntries),
+      whereClause: (cp) => _db.encryptedEntries.updatedAt.isBiggerThanValue(cp),
       processor: _entryProcessor,
     );
 
     await _startWatching(
       tableName: 'encrypted_schedules',
-      table: _db.encryptedSchedules,
+      queryBuilder: () => _db.select(_db.encryptedSchedules),
+      whereClause: (cp) => _db.encryptedSchedules.updatedAt.isBiggerThanValue(cp),
       processor: _scheduleProcessor,
     );
 
     await _startWatching(
       tableName: 'encrypted_analysis_scripts',
-      table: _db.encryptedAnalysisScripts,
+      queryBuilder: () => _db.select(_db.encryptedAnalysisScripts),
+      whereClause: (cp) => _db.encryptedAnalysisScripts.updatedAt.isBiggerThanValue(cp),
       processor: _pipelineProcessor,
     );
 
     await _startWatching(
       tableName: 'encrypted_template_aesthetics',
-      table: _db.encryptedTemplateAesthetics,
+      queryBuilder: () => _db.select(_db.encryptedTemplateAesthetics),
+      whereClause: (cp) => _db.encryptedTemplateAesthetics.updatedAt.isBiggerThanValue(cp),
       processor: _aestheticsProcessor,
     );
 
