@@ -61,16 +61,27 @@ class TemplateGalleryCubit extends QuanityaCubit<TemplateGalleryState> {
   bool isSelected(String slug) => state.selectedSlugs.contains(slug);
 
   /// Fetch and cache a template preview for detail display.
-  Future<ShareableTemplate> fetchPreview(String slug) async {
+  Future<void> fetchPreview(String slug) async {
     if (state.previewCache.containsKey(slug)) {
-      return state.previewCache[slug]!;
+      emit(state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: TemplateGalleryOperation.preview,
+        previewSlug: slug,
+      ));
+      return;
     }
-    final template = await _catalogService.fetchTemplate(slug);
-    final updatedCache =
-        Map<String, ShareableTemplate>.from(state.previewCache);
-    updatedCache[slug] = template;
-    emit(state.copyWith(previewCache: updatedCache));
-    return template;
+    return tryOperation(() async {
+      final template = await _catalogService.fetchTemplate(slug);
+      final updatedCache =
+          Map<String, ShareableTemplate>.from(state.previewCache);
+      updatedCache[slug] = template;
+      return state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: TemplateGalleryOperation.preview,
+        previewCache: updatedCache,
+        previewSlug: slug,
+      );
+    }, emitLoading: true);
   }
 
   /// Import all currently selected templates.

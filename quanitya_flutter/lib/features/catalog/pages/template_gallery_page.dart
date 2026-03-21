@@ -9,6 +9,7 @@ import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart'
 import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
+import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../templates/widgets/shared/template_preview.dart';
@@ -40,41 +41,53 @@ class _GalleryPageBody extends StatelessWidget {
     return QuanityaPageWrapper(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: BlocBuilder<TemplateGalleryCubit, TemplateGalleryState>(
-          builder: (context, state) {
-            return Column(
-              children: [
-                // Header
-                Padding(
-                  padding: AppPadding.page,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      VSpace.x2,
-                      Text(
-                        context.l10n.galleryTitle,
-                        style: context.text.headlineSmall,
+        body: SimpleUiFlowListener<TemplateGalleryCubit, TemplateGalleryState>(
+          child: BlocListener<TemplateGalleryCubit, TemplateGalleryState>(
+            listenWhen: (prev, curr) =>
+                curr.lastOperation == TemplateGalleryOperation.preview &&
+                curr.status == UiFlowStatus.success &&
+                curr.previewSlug != null &&
+                prev.status != curr.status,
+            listener: (context, state) {
+              _openPreviewSheet(context, state);
+            },
+            child: BlocBuilder<TemplateGalleryCubit, TemplateGalleryState>(
+              builder: (context, state) {
+                return Column(
+                  children: [
+                    // Header
+                    Padding(
+                      padding: AppPadding.page,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          VSpace.x2,
+                          Text(
+                            context.l10n.galleryTitle,
+                            style: context.text.headlineSmall,
+                          ),
+                          VSpace.x05,
+                          Text(
+                            context.l10n.gallerySubtitle,
+                            style: context.text.bodySmall?.copyWith(
+                              color: context.colors.textSecondary,
+                            ),
+                          ),
+                          VSpace.x2,
+                        ],
                       ),
-                      VSpace.x05,
-                      Text(
-                        context.l10n.gallerySubtitle,
-                        style: context.text.bodySmall?.copyWith(
-                          color: context.colors.textSecondary,
-                        ),
-                      ),
-                      VSpace.x2,
-                    ],
-                  ),
-                ),
+                    ),
 
-                // Body
-                Expanded(child: _buildBody(context, state)),
+                    // Body
+                    Expanded(child: _buildBody(context, state)),
 
-                // Footer
-                _Footer(),
-              ],
-            );
-          },
+                    // Footer
+                    _Footer(),
+                  ],
+                );
+              },
+            ),
+          ),
         ),
       ),
     );
@@ -110,19 +123,22 @@ class _GalleryPageBody extends StatelessWidget {
     );
   }
 
-  void _showPreview(BuildContext context, CatalogEntry entry) async {
+  void _showPreview(BuildContext context, CatalogEntry entry) {
+    context.read<TemplateGalleryCubit>().fetchPreview(entry.slug);
+  }
+
+  void _openPreviewSheet(BuildContext context, TemplateGalleryState state) {
+    final slug = state.previewSlug!;
+    final shareable = state.previewCache[slug]!;
     final cubit = context.read<TemplateGalleryCubit>();
+    final isSelected = cubit.isSelected(slug);
 
-    // Show a loading sheet while fetching
-    final shareable = await cubit.fetchPreview(entry.slug);
-
-    if (!context.mounted) return;
-
-    final isSelected = cubit.isSelected(entry.slug);
+    // Find the entry name from the catalog
+    final entry = state.catalog?.templates.firstWhere((t) => t.slug == slug);
 
     LooseInsertSheet.show(
       context: context,
-      title: entry.name,
+      title: entry?.name ?? shareable.template.name,
       builder: (sheetContext) => TemplatePreview(
         template: shareable.template,
         aesthetics: shareable.aesthetics,
@@ -132,7 +148,7 @@ class _GalleryPageBody extends StatelessWidget {
               label: context.l10n.galleryDeselect,
               icon: Icons.remove_circle_outline,
               onPressed: () {
-                cubit.toggleSelection(entry.slug);
+                cubit.toggleSelection(slug);
                 Navigator.of(sheetContext).pop();
               },
             )
@@ -141,7 +157,7 @@ class _GalleryPageBody extends StatelessWidget {
               label: context.l10n.gallerySelect,
               icon: Icons.add_circle_outline,
               onPressed: () {
-                cubit.toggleSelection(entry.slug);
+                cubit.toggleSelection(slug);
                 Navigator.of(sheetContext).pop();
               },
             ),

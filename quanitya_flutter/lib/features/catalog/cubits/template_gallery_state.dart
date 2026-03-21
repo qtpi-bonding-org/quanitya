@@ -22,6 +22,7 @@ class TemplateGalleryState
     @Default(null) String? selectedCategory,
     @Default({}) Set<String> selectedSlugs,
     @Default({}) Map<String, ShareableTemplate> previewCache,
+    String? previewSlug,
     @Default(0) int importedCount,
     @Default(0) int failedCount,
   }) = _TemplateGalleryState;
