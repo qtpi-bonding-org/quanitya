@@ -969,5 +969,16 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "tourHomeTemporalLabels": "Swipe between Past, Present, and Future to see your history, today's trackers, and upcoming reminders.",
+  "tourHomeTemplateCard": "Tap a tracker to log an entry.",
+  "tourHomeQuickEntry": "Quick log with one tap using default values.",
+  "tourHomeResultsTab": "View your charts and analysis insights here.",
+  "tourDesignerAiPrompt": "Describe what you want to track and we'll generate a template for you.",
+  "tourDesignerNameField": "Give your tracker a name.",
+  "tourDesignerFields": "Add fields to define what data you want to capture — numbers, text, toggles, sliders, and more.",
+  "tourDesignerSchedule": "Set up daily or weekly reminders so you don't forget to log.",
+  "tourDesignerPreview": "Preview your tracker before saving.",
+  "settingsShowTour": "Show guided tour again",
+  "tourResetSuccess": "Tours will show on next visit"
 }
