@@ -20,7 +20,7 @@ class ScheduleWithContext {
   });
 }
 
-enum ScheduleListOperation { load, pause, resume, delete, update }
+enum ScheduleListOperation { load, create, pause, resume, delete, update }
 
 @freezed
 class ScheduleListState

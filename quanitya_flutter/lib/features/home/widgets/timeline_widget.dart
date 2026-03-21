@@ -5,6 +5,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_empty_or.dart';
 import '../../../design_system/widgets/template_icon_bubble.dart';
 import '../../../data/dao/log_entry_query_dao.dart';
+import '../../../support/extensions/context_extensions.dart';
 import '../cubits/timeline_data_state.dart';
 
 class TimelineWidget extends StatelessWidget {
@@ -38,6 +39,7 @@ class TimelineWidget extends StatelessWidget {
           return item.when(
             entry: (entryWithContext, isFirst, isLast, showTimeOnly, timeString, dateString, dataPreview, iconString, emoji, accentColorHex) {
               return _buildTimelineEntry(
+                context,
                 entryWithContext,
                 isFirst,
                 isLast,
@@ -60,6 +62,7 @@ class TimelineWidget extends StatelessWidget {
 
   /// Build optimized timeline entry using pre-computed values
   Widget _buildTimelineEntry(
+    BuildContext context,
     LogEntryWithContext entryWithContext,
     bool isFirst,
     bool isLast,
@@ -74,7 +77,7 @@ class TimelineWidget extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'View log entry',
+      label: context.l10n.logEntryViewLabel,
       child: GestureDetector(
         onTap: onItemTap != null ? () => onItemTap!(item) : null,
         child: IntrinsicHeight(

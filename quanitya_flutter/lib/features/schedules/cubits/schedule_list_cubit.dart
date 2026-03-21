@@ -82,6 +82,17 @@ class ScheduleListCubit extends QuanityaCubit<ScheduleListState> {
     }, emitLoading: false);
   }
 
+  /// Create a new schedule and generate its todos + notifications
+  Future<void> create(ScheduleModel schedule) async {
+    await tryOperation(() async {
+      await _scheduleService.save(schedule);
+      return state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: ScheduleListOperation.create,
+      );
+    }, emitLoading: true);
+  }
+
   /// Delete a schedule and clean up its notifications + todos
   Future<void> delete(String scheduleId) async {
     await tryOperation(() async {

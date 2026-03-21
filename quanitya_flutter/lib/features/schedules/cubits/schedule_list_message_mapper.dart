@@ -13,6 +13,7 @@ class ScheduleListMessageMapper
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         ScheduleListOperation.load => null, // Silent load
+        ScheduleListOperation.create => MessageKey.success(L10nKeys.scheduleCreated),
         ScheduleListOperation.pause => MessageKey.success(L10nKeys.schedulePaused),
         ScheduleListOperation.resume => MessageKey.success(L10nKeys.scheduleResumed),
         ScheduleListOperation.delete => MessageKey.success(L10nKeys.scheduleDeleted),
