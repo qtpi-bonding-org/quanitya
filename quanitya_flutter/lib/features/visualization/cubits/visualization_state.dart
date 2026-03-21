@@ -2,10 +2,20 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../data/repositories/data_retrieval_service.dart';
+import '../../../logic/analysis/models/analysis_output.dart';
+import '../../../logic/analysis/models/analysis_script.dart';
 
 part 'visualization_state.freezed.dart';
 
 enum VisualizationOperation { load }
+
+/// Typed container for an executed analysis script and its output.
+class ScriptResult {
+  final AnalysisScriptModel script;
+  final AnalysisOutput result;
+
+  const ScriptResult({required this.script, required this.result});
+}
 
 @freezed
 class VisualizationState
@@ -20,7 +30,7 @@ class VisualizationState
     TemplateAggregatedData? data,
     /// Consistency rate (0.0 to 1.0) - percentage of days with entries
     @Default(0.0) double consistencyRate,
-    /// Analysis results: Map<scriptId, {script, result}>
-    @Default({}) Map<String, dynamic> analysisResults,
+    /// Analysis results keyed by script ID
+    @Default({}) Map<String, ScriptResult> analysisResults,
   }) = _VisualizationState;
 }

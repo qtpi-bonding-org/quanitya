@@ -44,14 +44,14 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
         (s) => s.fieldId.startsWith('$templateId:'),
       ).toList();
 
-      final analysisResults = <String, dynamic>{};
+      final analysisResults = <String, ScriptResult>{};
       for (final script in relevantScripts) {
         try {
           final result = await _analysisEngine.execute(script);
-          analysisResults[script.id] = {
-            'script': script,
-            'result': result,
-          };
+          analysisResults[script.id] = ScriptResult(
+            script: script,
+            result: result,
+          );
         } catch (e) {
           // Log error but continue with other scripts
           debugPrint('Failed to execute script ${script.name}: $e');

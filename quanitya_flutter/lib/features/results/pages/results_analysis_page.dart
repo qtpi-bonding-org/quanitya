@@ -11,6 +11,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/analysis_output/analysis_output.dart';
 import '../../../logic/analysis/models/analysis_output.dart';
+import '../../../logic/analysis/models/analysis_script.dart';
 import '../../../logic/analysis/models/matrix_vector_scalar/time_series_matrix.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
@@ -151,7 +152,7 @@ class _AnalyzeFieldsSection extends StatelessWidget {
 
 /// Displays executed analysis pipeline results.
 class _AnalysisResultsSection extends StatelessWidget {
-  final Map<String, dynamic> analysisResults;
+  final Map<String, ScriptResult> analysisResults;
 
   const _AnalysisResultsSection({required this.analysisResults});
 
@@ -187,13 +188,9 @@ class _AnalysisResultsSection extends StatelessWidget {
         ),
         VSpace.x3,
         ...analysisResults.entries.map((entry) {
-          final scriptData = entry.value as Map<String, dynamic>;
-          final script = scriptData['script'];
-          final result = scriptData['result'];
-
           return _AnalysisResultCard(
-            script: script,
-            result: result,
+            script: entry.value.script,
+            result: entry.value.result,
           );
         }),
       ],
@@ -203,8 +200,8 @@ class _AnalysisResultsSection extends StatelessWidget {
 
 /// Individual analysis result card.
 class _AnalysisResultCard extends StatelessWidget {
-  final dynamic script;
-  final dynamic result;
+  final AnalysisScriptModel script;
+  final AnalysisOutput result;
 
   const _AnalysisResultCard({
     required this.script,
@@ -237,7 +234,7 @@ class _AnalysisResultCard extends StatelessWidget {
           if (script.reasoning != null) ...[
             VSpace.x05,
             Text(
-              script.reasoning,
+              script.reasoning!,
               style: context.text.bodyMedium?.copyWith(
                 color: palette.textSecondary,
               ),
@@ -250,7 +247,7 @@ class _AnalysisResultCard extends StatelessWidget {
     );
   }
 
-  Widget _buildResultDisplay(BuildContext context, dynamic result) {
+  Widget _buildResultDisplay(BuildContext context, AnalysisOutput result) {
     return result.when(
       scalar: (scalars) => _buildScalarDisplay(context, scalars),
       vector: (vectors) => _buildVectorDisplay(context, vectors),
