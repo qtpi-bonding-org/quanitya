@@ -24,6 +24,9 @@ import '../../cubits/editor/template_editor_state.dart';
 import '../../cubits/generator/template_generator_cubit.dart';
 import '../../../../design_system/widgets/ai/ai_prompt_widget.dart';
 import '../../../settings/cubits/llm_provider/llm_provider_cubit.dart';
+import '../../../../app/bootstrap.dart';
+import '../../../guided_tour/guided_tour_service.dart';
+import '../../../guided_tour/designer_tour.dart';
 import 'color_palette_editor.dart';
 import 'container_style_editor.dart';
 import 'field_editor_list.dart';
@@ -52,6 +55,34 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   bool _isGenerating = false;
 
   @override
+  void initState() {
+    super.initState();
+    _maybeShowDesignerTour();
+  }
+
+  Future<void> _maybeShowDesignerTour() async {
+    final tourService = getIt<GuidedTourService>();
+    if (!await tourService.shouldShowTour(GuidedTourService.designerKey)) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      // Only show in create mode (no existing template loaded)
+      final state = context.read<TemplateEditorCubit>().state;
+      if (state.template != null) return; // edit mode — skip
+
+      showDesignerTour(
+        context,
+        aiPromptKey: DesignerTourKeys.aiPrompt,
+        nameFieldKey: DesignerTourKeys.nameField,
+        fieldsSectionKey: DesignerTourKeys.fieldsSection,
+        scheduleFoldKey: DesignerTourKeys.scheduleFold,
+        previewButtonKey: DesignerTourKeys.previewButton,
+      );
+      await tourService.markTourSeen(GuidedTourService.designerKey);
+    });
+  }
+
+  @override
   void dispose() {
     super.dispose();
   }
@@ -73,44 +104,53 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                   children: [
                     // AI prompt — only shown when creating, no fold needed
                     if (!isEditing)
-                      AiPromptWidget(
-                        title: context.l10n.aiGeneratorTitle,
-                        hintText: context.l10n.aiGeneratorHint,
-                        isLoading: _isGenerating,
-                        onGenerate: (prompt) =>
-                            _generateFromAi(context, prompt),
+                      KeyedSubtree(
+                        key: DesignerTourKeys.aiPrompt,
+                        child: AiPromptWidget(
+                          title: context.l10n.aiGeneratorTitle,
+                          hintText: context.l10n.aiGeneratorHint,
+                          isLoading: _isGenerating,
+                          onGenerate: (prompt) =>
+                              _generateFromAi(context, prompt),
+                        ),
                       ),
 
                     // Identity fold — always expanded
-                    NotebookFold(
-                      initiallyExpanded: true,
-                      header: Text(
-                        context.l10n.templateNameLabel,
-                        style: context.text.titleMedium?.copyWith(
-                          color: context.colors.textPrimary,
+                    KeyedSubtree(
+                      key: DesignerTourKeys.nameField,
+                      child: NotebookFold(
+                        initiallyExpanded: true,
+                        header: Text(
+                          context.l10n.templateNameLabel,
+                          style: context.text.titleMedium?.copyWith(
+                            color: context.colors.textPrimary,
+                          ),
                         ),
-                      ),
-                      child: QuanityaColumn(
-                        crossAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const TemplateIconEditor(),
-                          VSpace.x3,
-                          const TemplateBasicInfoEditor(),
-                        ],
+                        child: QuanityaColumn(
+                          crossAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const TemplateIconEditor(),
+                            VSpace.x3,
+                            const TemplateBasicInfoEditor(),
+                          ],
+                        ),
                       ),
                     ),
 
                     // Fields fold — always expanded
-                    NotebookFold(
-                      initiallyExpanded: true,
-                      header: _buildFieldsHeader(context, state),
-                      child: QuanityaColumn(
-                        crossAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const FieldEditorList(),
-                          VSpace.x3,
-                          _buildAddFieldList(context),
-                        ],
+                    KeyedSubtree(
+                      key: DesignerTourKeys.fieldsSection,
+                      child: NotebookFold(
+                        initiallyExpanded: true,
+                        header: _buildFieldsHeader(context, state),
+                        child: QuanityaColumn(
+                          crossAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const FieldEditorList(),
+                            VSpace.x3,
+                            _buildAddFieldList(context),
+                          ],
+                        ),
                       ),
                     ),
 
@@ -136,29 +176,32 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                     ),
 
                     // Schedule fold — collapsed by default (optional)
-                    NotebookFold(
-                      initiallyExpanded: false,
-                      header: Text(
-                        '${context.l10n.scheduleTitle} (${context.l10n.optionalLabel})',
-                        style: context.text.titleMedium?.copyWith(
-                          color: context.colors.textPrimary,
+                    KeyedSubtree(
+                      key: DesignerTourKeys.scheduleFold,
+                      child: NotebookFold(
+                        initiallyExpanded: false,
+                        header: Text(
+                          '${context.l10n.scheduleTitle} (${context.l10n.optionalLabel})',
+                          style: context.text.titleMedium?.copyWith(
+                            color: context.colors.textPrimary,
+                          ),
                         ),
-                      ),
-                      child: ScheduleSection(
-                        frequency: state.scheduleFrequency,
-                        reminderTime: state.scheduleHour != null
-                            ? TimeOfDay(hour: state.scheduleHour!, minute: state.scheduleMinute ?? 0)
-                            : null,
-                        weeklyDays: state.scheduleWeeklyDays,
-                        onFrequencyChanged: (freq) => context
-                            .read<TemplateEditorCubit>()
-                            .updateScheduleFrequency(freq),
-                        onTimeChanged: (time) => context
-                            .read<TemplateEditorCubit>()
-                            .updateScheduleTime(time.hour, time.minute),
-                        onWeeklyDaysChanged: (days) => context
-                            .read<TemplateEditorCubit>()
-                            .updateScheduleWeeklyDays(days),
+                        child: ScheduleSection(
+                          frequency: state.scheduleFrequency,
+                          reminderTime: state.scheduleHour != null
+                              ? TimeOfDay(hour: state.scheduleHour!, minute: state.scheduleMinute ?? 0)
+                              : null,
+                          weeklyDays: state.scheduleWeeklyDays,
+                          onFrequencyChanged: (freq) => context
+                              .read<TemplateEditorCubit>()
+                              .updateScheduleFrequency(freq),
+                          onTimeChanged: (time) => context
+                              .read<TemplateEditorCubit>()
+                              .updateScheduleTime(time.hour, time.minute),
+                          onWeeklyDaysChanged: (days) => context
+                              .read<TemplateEditorCubit>()
+                              .updateScheduleWeeklyDays(days),
+                        ),
                       ),
                     ),
 
@@ -223,9 +266,12 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                   },
                   isDestructive: true,
                 ),
-          middle: QuanityaTextButton(
-            text: context.l10n.previewAction,
-            onPressed: state.canSave ? widget.onPreview : null,
+          middle: KeyedSubtree(
+            key: DesignerTourKeys.previewButton,
+            child: QuanityaTextButton(
+              text: context.l10n.previewAction,
+              onPressed: state.canSave ? widget.onPreview : null,
+            ),
           ),
           end: QuanityaTextButton(
             text: context.l10n.actionSave,
