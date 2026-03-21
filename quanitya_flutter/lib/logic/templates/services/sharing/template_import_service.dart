@@ -200,12 +200,17 @@ class TemplateImportService {
     // Generate new IDs for local storage
     final templateId = const Uuid().v4();
 
-    // Convert template with new ID
+    // Convert template with new IDs, tracking old → new field ID mapping
+    final fieldIdMap = <String, String>{};
+    final newFields = shareableTemplate.template.fields.map((field) {
+      final newId = const Uuid().v4();
+      fieldIdMap[field.id] = newId;
+      return field.copyWith(id: newId);
+    }).toList();
+
     final localTemplate = shareableTemplate.template.copyWith(
       id: templateId,
-      fields: shareableTemplate.template.fields
-          .map((field) => field.copyWith(id: const Uuid().v4()))
-          .toList(),
+      fields: newFields,
       updatedAt: DateTime.now(),
       isArchived: false,
       isHidden: false,
@@ -236,23 +241,29 @@ class TemplateImportService {
     if (shareableTemplate.analysisScripts != null &&
         shareableTemplate.analysisScripts!.isNotEmpty &&
         _scriptRepository != null) {
-      await _importAnalysisScripts(shareableTemplate.analysisScripts!);
+      await _importAnalysisScripts(
+        shareableTemplate.analysisScripts!,
+        fieldIdMap,
+      );
     }
 
     return templateWithAesthetics;
   }
 
-  /// Import analysis scripts for the template.
+  /// Import analysis scripts, remapping field IDs to match new template.
   Future<void> _importAnalysisScripts(
     List<AnalysisScriptModel> scripts,
+    Map<String, String> fieldIdMap,
   ) async {
     if (_scriptRepository == null) return;
 
     for (final script in scripts) {
       try {
-        // Create new script with new ID but preserve other data
+        // Remap fieldId to new UUID
+        final newFieldId = fieldIdMap[script.fieldId] ?? script.fieldId;
         final localScript = script.copyWith(
           id: const Uuid().v4(),
+          fieldId: newFieldId,
           updatedAt: DateTime.now(),
         );
 
