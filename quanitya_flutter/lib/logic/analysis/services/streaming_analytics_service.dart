@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 
 import '../../../data/interfaces/analysis_script_interface.dart';
+import '../../../data/interfaces/log_entry_interface.dart';
 import '../exceptions/analysis_exceptions.dart';
 import '../models/analysis_script.dart';
 import '../models/analysis_enums.dart';
@@ -21,8 +22,13 @@ import '../services/analysis_engine.dart';
 class StreamingAnalyticsService {
   final IAnalysisScriptRepository _scriptRepo;
   final AnalysisEngine _analysisEngine;
+  final ILogEntryRepository _logEntryRepo;
 
-  const StreamingAnalyticsService(this._scriptRepo, this._analysisEngine);
+  const StreamingAnalyticsService(
+    this._scriptRepo,
+    this._analysisEngine,
+    this._logEntryRepo,
+  );
 
   /// Stream scalar results for a saved script.
   ///
@@ -117,15 +123,15 @@ class StreamingAnalyticsService {
     }
   }
 
-  /// Stream template data changes.
+  /// Stream template data changes by watching actual log entries.
   ///
-  /// This is a placeholder that streams template data changes.
-  /// In a real implementation, this would watch for log entry changes
-  /// for the specific template.
+  /// Emits whenever log entries for the given template change,
+  /// triggering recalculation only when data actually changes
+  /// (instead of polling every 5 seconds).
   Stream<void> _streamTemplateData(String templateId) {
-    // For now, emit periodically to trigger recalculation
-    // In the future, this could watch actual log entry changes
-    return Stream.periodic(const Duration(seconds: 5));
+    return _logEntryRepo
+        .watchPastEntries(templateId: templateId)
+        .map((_) {}); // Discard data, just need the change signal
   }
 
   /// Extract templateId from fieldId format "templateId:fieldName"
