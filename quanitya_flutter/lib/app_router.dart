@@ -11,6 +11,7 @@ import 'l10n/app_localizations.dart';
 import 'data/repositories/template_with_aesthetics_repository.dart';
 import 'features/home/pages/notebook_shell.dart';
 import 'design_system/widgets/quanitya/general/zen_paper_background.dart';
+import 'features/catalog/pages/template_gallery_page.dart';
 import 'features/onboarding/pages/onboarding_page.dart';
 import 'features/onboarding/pages/about_page.dart';
 import 'features/onboarding/pages/recovery_key_backup_page.dart';
@@ -76,7 +77,8 @@ class AppRouter {
         state.matchedLocation == AppRoutes.recoveryKeyBackup ||
         state.matchedLocation == AppRoutes.accountRecovery ||
         state.matchedLocation == AppRoutes.showPairingQr ||
-        state.matchedLocation == AppRoutes.connectDevice) {
+        state.matchedLocation == AppRoutes.connectDevice ||
+        state.matchedLocation == AppRoutes.templateGallery) {
       return null;
     }
 
@@ -182,6 +184,11 @@ class AppRouter {
           ),
 
           GoRoute(
+            path: AppRoutes.templateGallery,
+            name: RouteNames.templateGallery,
+            builder: (context, state) => const TemplateGalleryPage(),
+          ),
+          GoRoute(
             path: AppRoutes.templateEditor,
             name: RouteNames.templateEditor,
             builder: (context, state) {
@@ -235,6 +242,7 @@ class AppRoutes {
   static const String templateEditor = '/template-editor';
   static const String connectDevice = '/connect-device';
   static const String scriptBuilder = '/script-builder';
+  static const String templateGallery = '/template-gallery';
 }
 
 class RouteNames {
@@ -249,6 +257,7 @@ class RouteNames {
   static const String templateEditor = 'templateEditor';
   static const String connectDevice = 'connectDevice';
   static const String scriptBuilder = 'scriptBuilder';
+  static const String templateGallery = 'templateGallery';
 }
 
 class AppNavigation {
@@ -295,6 +304,10 @@ class AppNavigation {
 
   static void toRecoveryKeyBackup(BuildContext context, OnboardingCubit cubit) {
     context.pushNamed(RouteNames.recoveryKeyBackup, extra: cubit);
+  }
+
+  static void toTemplateGallery(BuildContext context) {
+    context.pushNamed(RouteNames.templateGallery);
   }
 
   static void toAnalysisBuilder(BuildContext context, {String? fieldId, String? templateId}) {

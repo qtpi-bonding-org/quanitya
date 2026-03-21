@@ -982,5 +982,18 @@
   "settingsShowTour": "Show guided tour again",
   "tourResetSuccess": "Tours will show on next visit",
 
-  "catalogFilterAll": "All"
+  "catalogFilterAll": "All",
+
+  "galleryTitle": "Get started with predefined templates",
+  "gallerySubtitle": "(or skip and create your own)",
+  "gallerySkip": "Skip",
+  "galleryStartWith": "Start with {count} templates",
+  "@galleryStartWith": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "gallerySelect": "Select",
+  "galleryDeselect": "Deselect",
+  "galleryOffline": "Connect to browse templates"
 }

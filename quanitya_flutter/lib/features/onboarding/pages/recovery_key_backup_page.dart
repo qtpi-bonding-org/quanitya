@@ -296,7 +296,7 @@ class _ContinueSection extends StatelessWidget {
         QuanityaTextButton(
           text: context.l10n.continueAction,
           onPressed: state.canContinue
-              ? () => AppNavigation.toHome(context)
+              ? () => AppNavigation.toTemplateGallery(context)
               : null,
         ),
       ],
