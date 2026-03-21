@@ -331,6 +331,65 @@ class InAppPurchaseProvider implements IPurchaseProvider {
   }
 
   @override
+  Future<void> reconcileSubscriptionEntitlements() {
+    return tryMethod(
+      () async {
+        // Only run on iOS/macOS — StoreKit 2 transactions API.
+        if (kIsWeb || !(Platform.isIOS || Platform.isMacOS)) {
+          debugPrint(
+            'reconcileSubscriptionEntitlements: skipping (not iOS/macOS)',
+          );
+          return;
+        }
+
+        debugPrint('reconcileSubscriptionEntitlements: querying SK2 transactions...');
+        final allTransactions = await SK2Transaction.transactions();
+        // Only reconcile subscriptions — consumables are one-time and already
+        // handled by the purchase stream. subscriptionGroupID is non-null for
+        // auto-renewable and non-renewable subscriptions.
+        final transactions = allTransactions.where(
+          (tx) => tx.subscriptionGroupID != null,
+        ).toList();
+        debugPrint(
+          'reconcileSubscriptionEntitlements: found ${transactions.length} subscription transactions (${allTransactions.length} total)',
+        );
+
+        for (final transaction in transactions) {
+          try {
+            final productId = transaction.productId;
+            debugPrint(
+              'reconcileSubscriptionEntitlements: submitting '
+              'productId=$productId, '
+              'transactionId=${transaction.id}',
+            );
+
+            final result = PurchaseResult(
+              status: PurchaseStatus.success,
+              rail: PurchaseRail.appleIap,
+              productId: productId,
+              transactionId: transaction.id,
+            );
+
+            final validation = await validateWithServer(result);
+            debugPrint(
+              'reconcileSubscriptionEntitlements: '
+              'productId=$productId → '
+              'success=${validation.success}',
+            );
+          } catch (e) {
+            debugPrint(
+              'reconcileSubscriptionEntitlements: failed for '
+              '${transaction.productId}: $e',
+            );
+          }
+        }
+      },
+      PurchaseException.new,
+      'reconcileSubscriptionEntitlements',
+    );
+  }
+
+  @override
   Future<void> dispose() async {
     await _purchaseSubscription?.cancel();
     _purchaseSubscription = null;

@@ -106,6 +106,19 @@ class PurchaseService implements IPurchaseService {
   }
 
   @override
+  Future<void> reconcileSubscriptionEntitlements() {
+    return tryMethod(
+      () async {
+        for (final provider in _providers.values) {
+          await provider.reconcileSubscriptionEntitlements();
+        }
+      },
+      PurchaseException.new,
+      'reconcileSubscriptionEntitlements',
+    );
+  }
+
+  @override
   Future<List<RailCatalogEntry>> getRailCatalog() {
     return tryMethod(
       () async {

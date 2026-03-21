@@ -25,6 +25,11 @@ abstract class IPurchaseService {
   /// Recover and validate any pending purchases across all providers.
   Future<void> recoverPendingPurchases();
 
+  /// Reconcile subscription entitlements with the server.
+  ///
+  /// Delegates to each provider's reconcileSubscriptionEntitlements().
+  Future<void> reconcileSubscriptionEntitlements();
+
   /// Get rail catalog from server for the current platform.
   ///
   /// Returns server-authoritative rail statuses and product IDs.

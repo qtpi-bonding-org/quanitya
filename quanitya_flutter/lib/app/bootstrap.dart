@@ -137,6 +137,7 @@ Future<void> bootstrap() async {
           await provider.initialize();
           purchaseService.registerProvider(provider);
           await purchaseService.recoverPendingPurchases();
+          await purchaseService.reconcileSubscriptionEntitlements();
           debugPrint(
             'Bootstrap: Registered ${provider.rail.name} purchase provider',
           );

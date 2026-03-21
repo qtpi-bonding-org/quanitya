@@ -33,6 +33,14 @@ abstract class IPurchaseProvider {
   /// are validated and completed automatically by the stream handler.
   Future<void> recoverPendingPurchases();
 
+  /// Reconcile subscription entitlements with the server.
+  ///
+  /// On iOS/macOS, queries StoreKit 2 for current transactions and submits
+  /// any unprocessed subscription renewals to the server. Server-side
+  /// idempotency (receipt hash) prevents double-granting.
+  /// No-op on Android, web, and other platforms.
+  Future<void> reconcileSubscriptionEntitlements();
+
   /// Clean up resources (e.g., cancel stream subscriptions).
   Future<void> dispose();
 }
