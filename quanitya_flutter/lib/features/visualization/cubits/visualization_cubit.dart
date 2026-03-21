@@ -45,6 +45,7 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
       ).toList();
 
       final analysisResults = <String, ScriptResult>{};
+      final failedScriptNames = <String>[];
       for (final script in relevantScripts) {
         try {
           final result = await _analysisEngine.execute(script);
@@ -53,7 +54,7 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
             result: result,
           );
         } catch (e) {
-          // Log error but continue with other scripts
+          failedScriptNames.add(script.name);
           debugPrint('Failed to execute script ${script.name}: $e');
         }
       }
@@ -64,6 +65,7 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
         data: data,
         consistencyRate: consistencyRate.clamp(0.0, 1.0),
         analysisResults: analysisResults,
+        failedScriptNames: failedScriptNames,
       );
     }, emitLoading: true);
   }

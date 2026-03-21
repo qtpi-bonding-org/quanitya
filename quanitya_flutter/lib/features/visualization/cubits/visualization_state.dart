@@ -32,5 +32,7 @@ class VisualizationState
     @Default(0.0) double consistencyRate,
     /// Analysis results keyed by script ID
     @Default({}) Map<String, ScriptResult> analysisResults,
+    /// Names of scripts that failed to execute (for user feedback)
+    @Default([]) List<String> failedScriptNames,
   }) = _VisualizationState;
 }
