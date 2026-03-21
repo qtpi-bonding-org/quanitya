@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:quanitya_flutter/features/catalog/services/template_catalog_service.dart';
+import 'package:quanitya_flutter/infrastructure/config/app_config.dart';
 
 http.Response _utf8Response(String body, int statusCode) {
   return http.Response.bytes(
@@ -39,7 +40,7 @@ void main() {
       final client = MockClient((request) async {
         return _utf8Response(jsonEncode(catalogJson), 200);
       });
-      final service = TemplateCatalogService(client);
+      final service = TemplateCatalogService(client, AppConfig());
 
       final catalog = await service.fetchCatalog();
 
@@ -57,7 +58,7 @@ void main() {
         callCount++;
         return _utf8Response(jsonEncode(catalogJson), 200);
       });
-      final service = TemplateCatalogService(client);
+      final service = TemplateCatalogService(client, AppConfig());
 
       final first = await service.fetchCatalog();
       final second = await service.fetchCatalog();
@@ -70,7 +71,7 @@ void main() {
       final client = MockClient((request) async {
         return http.Response('Not Found', 404);
       });
-      final service = TemplateCatalogService(client);
+      final service = TemplateCatalogService(client, AppConfig());
 
       expect(
         () => service.fetchCatalog(),
@@ -86,7 +87,7 @@ void main() {
       final client = MockClient((request) async {
         return http.Response('', 200);
       });
-      final service = TemplateCatalogService(client);
+      final service = TemplateCatalogService(client, AppConfig());
 
       final url = service.getTemplateUrl('daily-mood');
 
