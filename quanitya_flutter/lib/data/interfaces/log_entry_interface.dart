@@ -54,12 +54,16 @@ abstract class ILogEntryRepository {
   /// Watches logged/completed entries with full context (template + aesthetics).
   Stream<List<LogEntryWithContext>> watchPastEntriesWithContext({
     String? templateId,
+    DateTime? startDate,
+    DateTime? endDate,
     bool sortAscending = false,
   });
 
   /// Watches upcoming/todo entries with full context (template + aesthetics).
   Stream<List<LogEntryWithContext>> watchUpcomingEntriesWithContext({
     String? templateId,
+    DateTime? startDate,
+    DateTime? endDate,
     bool sortAscending = true,
   });
 

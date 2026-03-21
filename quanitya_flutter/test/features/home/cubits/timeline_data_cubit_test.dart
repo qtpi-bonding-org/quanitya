@@ -58,10 +58,18 @@ void main() {
     templateController =
         StreamController<List<TrackerTemplateModel>>.broadcast();
 
-    when(() => mockRepo.watchPastEntriesWithContext())
-        .thenAnswer((_) => pastController.stream);
-    when(() => mockRepo.watchUpcomingEntriesWithContext())
-        .thenAnswer((_) => futureController.stream);
+    when(() => mockRepo.watchPastEntriesWithContext(
+          templateId: any(named: 'templateId'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          sortAscending: any(named: 'sortAscending'),
+        )).thenAnswer((_) => pastController.stream);
+    when(() => mockRepo.watchUpcomingEntriesWithContext(
+          templateId: any(named: 'templateId'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          sortAscending: any(named: 'sortAscending'),
+        )).thenAnswer((_) => futureController.stream);
     when(() => mockTemplateDao.watch(isArchived: false))
         .thenAnswer((_) => templateController.stream);
   });
@@ -142,39 +150,25 @@ void main() {
       cubit.close();
     });
 
-    test('setTemplateFilter filters entries by template ID', () async {
+    test('setTemplateFilter updates filter state and resubscribes', () async {
       final cubit = createCubit();
 
-      pastController.add([
-        _makeEntry(
-          id: 'e1',
-          templateId: 't1',
-          templateName: 'Mood',
-          occurredAt: DateTime(2026, 1, 15),
-        ),
-        _makeEntry(
-          id: 'e2',
-          templateId: 't2',
-          templateName: 'Sleep',
-          occurredAt: DateTime(2026, 1, 15),
-        ),
-        _makeEntry(
-          id: 'e3',
-          templateId: 't1',
-          templateName: 'Mood',
-          occurredAt: DateTime(2026, 1, 14),
-        ),
-      ]);
+      pastController.add([]);
       await Future.delayed(Duration.zero);
-
-      expect(cubit.state.totalPastCount, 3);
 
       cubit.setTemplateFilter('t1');
       expect(cubit.state.filters.templateId, 't1');
-      expect(cubit.state.totalPastCount, 2);
+
+      // Verify the repo was called with the template filter
+      verify(() => mockRepo.watchPastEntriesWithContext(
+            templateId: 't1',
+            startDate: any(named: 'startDate'),
+            endDate: any(named: 'endDate'),
+            sortAscending: any(named: 'sortAscending'),
+          )).called(1);
 
       cubit.setTemplateFilter(null);
-      expect(cubit.state.totalPastCount, 3);
+      expect(cubit.state.filters.templateId, null);
       cubit.close();
     });
 
@@ -243,35 +237,37 @@ void main() {
       cubit.close();
     });
 
-    test('setTimeRange filters by time range', () async {
+    test('setTimeRange updates filter state and resubscribes with date params', () async {
       final cubit = createCubit();
 
-      final now = DateTime.now();
-      pastController.add([
-        _makeEntry(
-          id: 'e1',
-          templateId: 't1',
-          templateName: 'Mood',
-          occurredAt: now.subtract(const Duration(days: 1)),
-        ),
-        _makeEntry(
-          id: 'e2',
-          templateId: 't1',
-          templateName: 'Mood',
-          occurredAt: now.subtract(const Duration(days: 30)),
-        ),
-      ]);
+      pastController.add([]);
       await Future.delayed(Duration.zero);
 
-      expect(cubit.state.totalPastCount, 2);
+      // Clear initial subscription calls
+      clearInteractions(mockRepo);
 
       cubit.setTimeRange(TimelineTimeRange.week);
       expect(cubit.state.filters.timeRange, TimelineTimeRange.week);
-      // Only the entry from yesterday should pass the week filter
-      expect(cubit.state.totalPastCount, 1);
+
+      // Verify repo was called with date range params (not null)
+      verify(() => mockRepo.watchPastEntriesWithContext(
+            templateId: any(named: 'templateId'),
+            startDate: any(named: 'startDate', that: isNotNull),
+            endDate: any(named: 'endDate', that: isNotNull),
+            sortAscending: any(named: 'sortAscending'),
+          )).called(1);
 
       cubit.setTimeRange(TimelineTimeRange.all);
-      expect(cubit.state.totalPastCount, 2);
+      expect(cubit.state.filters.timeRange, TimelineTimeRange.all);
+
+      // All = no date filter (null)
+      verify(() => mockRepo.watchPastEntriesWithContext(
+            templateId: any(named: 'templateId'),
+            startDate: null,
+            endDate: null,
+            sortAscending: any(named: 'sortAscending'),
+          )).called(1);
+
       cubit.close();
     });
 
