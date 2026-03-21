@@ -11,15 +11,31 @@ class DashboardHeader extends StatefulWidget {
   State<DashboardHeader> createState() => _DashboardHeaderState();
 }
 
-class _DashboardHeaderState extends State<DashboardHeader> {
-  late Timer _timer;
+class _DashboardHeaderState extends State<DashboardHeader>
+    with WidgetsBindingObserver {
+  Timer? _timer;
   late DateTime _now;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _now = DateTime.now();
-    // Update every second
+    _startTimer();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _now = DateTime.now();
+      _startTimer();
+    } else if (state == AppLifecycleState.paused) {
+      _stopTimer();
+    }
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
@@ -29,9 +45,15 @@ class _DashboardHeaderState extends State<DashboardHeader> {
     });
   }
 
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
   @override
   void dispose() {
-    _timer.cancel();
+    _stopTimer();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 

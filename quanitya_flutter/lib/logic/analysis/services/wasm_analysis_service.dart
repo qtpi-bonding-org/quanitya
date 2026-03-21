@@ -18,12 +18,15 @@ import '../exceptions/analysis_exceptions.dart';
 /// - NaN/Infinity handling (prevents crashes)
 /// - Aggregation support (output timestamps)
 /// - Argument shadowing security (prevents scope chain attacks)
+/// - Execution timeout (prevents infinite-loop hangs)
 abstract class IWasmAnalysisService {
   Future<AnalysisOutput> execute(AnalysisScriptModel script);
 }
 
 @Injectable(as: IWasmAnalysisService)
 class WasmAnalysisService implements IWasmAnalysisService {
+  static const _jsTimeout = Duration(seconds: 30);
+
   final IAnalysisScriptRepository _repo;
 
   // Performance: Cache heavy library strings in memory
@@ -120,8 +123,16 @@ class WasmAnalysisService implements IWasmAnalysisService {
       await javascript.runJavaScriptReturningResult(simpleStats);
       await javascript.runJavaScriptReturningResult(jstat);
 
-      // Execute rendered script
-      final jsResult = await javascript.runJavaScriptReturningResult(fullScript);
+      // Execute rendered script with timeout to prevent infinite-loop hangs
+      final jsResult = await javascript
+          .runJavaScriptReturningResult(fullScript)
+          .timeout(
+            _jsTimeout,
+            onTimeout: () => throw AnalysisException(
+              'Script timed out after ${_jsTimeout.inSeconds}s. '
+              'Check for infinite loops or reduce data size.',
+            ),
+          );
 
       // Parse result (javascript_flutter returns decoded JSON or string)
       if (jsResult is String) {
