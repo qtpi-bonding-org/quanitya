@@ -49,8 +49,11 @@ class TemplateExportService {
       description: description?.trim(),
     );
 
+    // Sanitize IDs for clean, readable export
+    final sanitized = shareableTemplate.sanitizeForExport();
+
     // Convert to JSON with pretty formatting
-    final jsonMap = shareableTemplate.toJson();
+    final jsonMap = sanitized.toJson();
     return const JsonEncoder.withIndent('  ').convert(jsonMap);
   }
 

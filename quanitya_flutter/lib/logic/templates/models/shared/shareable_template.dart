@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'template_field.dart';
 import 'tracker_template.dart';
 import 'template_aesthetics.dart';
 import '../../../analysis/models/analysis_script.dart';
@@ -14,6 +15,8 @@ part 'shareable_template.g.dart';
 /// All templates are MIT licensed by default.
 @freezed
 class ShareableTemplate with _$ShareableTemplate {
+  const ShareableTemplate._();
+
   const factory ShareableTemplate({
     /// Schema version for compatibility checking (e.g., "1.0")
     required String version,
@@ -67,6 +70,67 @@ class ShareableTemplate with _$ShareableTemplate {
       createdAt: DateTime.now(),
       category: category,
       tags: tags,
+    );
+  }
+
+  /// Replaces internal UUIDs with clean sequential IDs for export.
+  ///
+  /// Produces human-readable JSON where field IDs are "field-1", "field-2",
+  /// sub-fields are "field-2-sub-1", etc. All internal references (aesthetics
+  /// templateId, analysis script fieldIds) are remapped consistently.
+  ShareableTemplate sanitizeForExport() {
+    const exportTemplateId = 'template';
+    final idMap = <String, String>{};
+
+    // Remap fields with sequential IDs
+    final sanitizedFields = <TemplateField>[];
+    for (int i = 0; i < template.fields.length; i++) {
+      final field = template.fields[i];
+      final cleanId = 'field-${i + 1}';
+      idMap[field.id] = cleanId;
+
+      // Remap sub-fields for group type
+      List<TemplateField>? sanitizedSubFields;
+      if (field.subFields != null) {
+        sanitizedSubFields = [];
+        for (int j = 0; j < field.subFields!.length; j++) {
+          final sub = field.subFields![j];
+          final cleanSubId = '$cleanId-sub-${j + 1}';
+          idMap[sub.id] = cleanSubId;
+          sanitizedSubFields.add(sub.copyWith(id: cleanSubId));
+        }
+      }
+
+      sanitizedFields.add(field.copyWith(
+        id: cleanId,
+        subFields: sanitizedSubFields,
+      ));
+    }
+
+    final sanitizedTemplate = template.copyWith(
+      id: exportTemplateId,
+      fields: sanitizedFields,
+    );
+
+    // Remap aesthetics
+    final sanitizedAesthetics = aesthetics?.copyWith(
+      id: 'aesthetics',
+      templateId: exportTemplateId,
+    );
+
+    // Remap analysis scripts
+    final sanitizedScripts = analysisScripts?.map((script) {
+      final newFieldId = idMap[script.fieldId] ?? script.fieldId;
+      return script.copyWith(
+        id: 'script-${analysisScripts!.indexOf(script) + 1}',
+        fieldId: newFieldId,
+      );
+    }).toList();
+
+    return copyWith(
+      template: sanitizedTemplate,
+      aesthetics: sanitizedAesthetics,
+      analysisScripts: sanitizedScripts,
     );
   }
 }

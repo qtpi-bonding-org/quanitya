@@ -16,7 +16,9 @@ import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
+import '../../guided_tour/guided_tour_service.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../../infrastructure/webhooks/models/api_key_model.dart';
@@ -114,6 +116,21 @@ class SettingsContent extends StatelessWidget {
               Text(context.l10n.webhooksTitle, style: context.text.titleMedium),
             ]),
             child: const _WebhooksSection(),
+          ),
+          VSpace.x3,
+
+          QuanityaTextButton(
+            text: context.l10n.settingsShowTour,
+            onPressed: () async {
+              await GetIt.instance<GuidedTourService>().resetAllTours();
+              if (context.mounted) {
+                PostItToast.show(
+                  context,
+                  message: context.l10n.tourResetSuccess,
+                  type: PostItType.info,
+                );
+              }
+            },
           ),
           VSpace.x3,
 
