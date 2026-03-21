@@ -22,8 +22,9 @@ import '../../logic/templates/models/shared/template_aesthetics.dart';
 /// Development seeder service for populating the database with fake data.
 ///
 /// Use this to quickly test UI without manually entering data.
-/// Only available in debug builds.
+/// Only registered in debug builds via @Environment('dev').
 @lazySingleton
+@Environment('dev')
 class DevSeederService {
   final AppDatabase _db;
   final ICryptoKeyRepository _cryptoKeyRepo;
