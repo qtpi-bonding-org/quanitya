@@ -659,5 +659,9 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+
+  "subscriptionDisclosure": "Payment will be charged to your Apple ID account at confirmation of purchase. Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period. You can manage and cancel subscriptions in your device Settings > Apple ID > Subscriptions.",
+  "subscriptionDisclosurePrivacyPolicy": "Privacy Policy",
+  "subscriptionDisclosureTermsOfService": "Terms of Service"
 }

@@ -1,8 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
@@ -203,6 +205,9 @@ class _ProductSections extends StatelessWidget {
       }
     }
 
+    final hasSubscriptions =
+        sections.any((s) => s.key == StoreProductType.subscription);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -235,7 +240,13 @@ class _ProductSections extends StatelessWidget {
               ),
             ),
           VSpace.x2,
+          if (section.key == StoreProductType.subscription)
+            const _SubscriptionDisclosure(),
         ],
+        if (!hasSubscriptions)
+          // No subscription section rendered — still show disclosure
+          // if subscriptions may load later. Omit in this case.
+          const SizedBox.shrink(),
       ],
     );
   }
@@ -338,6 +349,84 @@ class _PeriodColumn extends StatelessWidget {
               ),
             )),
       ],
+    );
+  }
+}
+
+/// Apple-required subscription disclosure text with links to
+/// Privacy Policy and Terms of Service.
+class _SubscriptionDisclosure extends StatefulWidget {
+  const _SubscriptionDisclosure();
+
+  @override
+  State<_SubscriptionDisclosure> createState() =>
+      _SubscriptionDisclosureState();
+}
+
+class _SubscriptionDisclosureState extends State<_SubscriptionDisclosure> {
+  static const _privacyUrl = 'https://quanitya.com/#privacy';
+  static const _termsUrl = 'https://quanitya.com/#terms';
+
+  late final TapGestureRecognizer _privacyRecognizer;
+  late final TapGestureRecognizer _termsRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _privacyRecognizer = TapGestureRecognizer()
+      ..onTap = () => _openUrl(_privacyUrl);
+    _termsRecognizer = TapGestureRecognizer()
+      ..onTap = () => _openUrl(_termsUrl);
+  }
+
+  @override
+  void dispose() {
+    _privacyRecognizer.dispose();
+    _termsRecognizer.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    final baseStyle = context.text.bodySmall?.copyWith(
+      color: palette.textSecondary,
+    );
+    final linkStyle = baseStyle?.copyWith(
+      decoration: TextDecoration.underline,
+      decorationColor: palette.textSecondary,
+    );
+
+    return Padding(
+      padding: AppPadding.pageHorizontal,
+      child: Text.rich(
+        TextSpan(
+          style: baseStyle,
+          children: [
+            TextSpan(text: context.l10n.subscriptionDisclosure),
+            const TextSpan(text: '\n\n'),
+            TextSpan(
+              text: context.l10n.subscriptionDisclosurePrivacyPolicy,
+              style: linkStyle,
+              recognizer: _privacyRecognizer,
+            ),
+            const TextSpan(text: '  ·  '),
+            TextSpan(
+              text: context.l10n.subscriptionDisclosureTermsOfService,
+              style: linkStyle,
+              recognizer: _termsRecognizer,
+            ),
+          ],
+        ),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }

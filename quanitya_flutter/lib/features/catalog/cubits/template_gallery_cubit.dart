@@ -74,19 +74,29 @@ class TemplateGalleryCubit extends QuanityaCubit<TemplateGalleryState> {
   }
 
   /// Import all currently selected templates.
+  ///
+  /// Tracks per-template success/failure. After the loop:
+  /// - All succeeded → [UiFlowStatus.success]
+  /// - Some failed → [UiFlowStatus.success] with [failedCount] for UI messaging
+  /// - All failed → [UiFlowStatus.failure]
   Future<void> importSelected() => tryOperation(() async {
+        var imported = 0;
+        var failed = 0;
         for (final slug in state.selectedSlugs) {
           final url = _catalogService.getTemplateUrl(slug);
           try {
             await _importService.importFromUrl(url);
+            imported++;
           } catch (_) {
-            // Skip individual failures, continue importing others.
-            continue;
+            failed++;
           }
         }
+        final allFailed = imported == 0 && failed > 0;
         return state.copyWith(
-          status: UiFlowStatus.success,
+          status: allFailed ? UiFlowStatus.failure : UiFlowStatus.success,
           lastOperation: TemplateGalleryOperation.import_,
+          importedCount: imported,
+          failedCount: failed,
         );
       }, emitLoading: true);
 

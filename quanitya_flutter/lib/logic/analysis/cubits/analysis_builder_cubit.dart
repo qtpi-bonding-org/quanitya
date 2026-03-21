@@ -375,20 +375,10 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     }, emitLoading: true);
   }
 
-  // --- Legacy Stubs for UI Compatibility ---
-
   AnalysisDataType getCurrentTailType() => AnalysisDataType.timeSeriesMatrix;
 
-  void addCombinerStep(Calculation op, Map<String, dynamic> params) {}
-  void addStepToBranch(
-    SlotPosition pos,
-    Calculation op,
-    Map<String, dynamic> params,
-  ) {}
   void finishBranches() => emit(state.copyWith(branchesFinished: true));
   void editBranches() => emit(state.copyWith(branchesFinished: false));
-  void updateNodeParams(int index, Map<String, dynamic> params) {}
-  void removeStepFromSlot(SlotPosition pos, int index) {}
 
   void setSelectedFieldForAi(String? fieldId) {
     emit(state.copyWith(selectedFieldForAi: fieldId));

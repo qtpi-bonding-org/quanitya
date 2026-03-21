@@ -6,6 +6,8 @@
 		<string>This app needs camera access to scan QR codes for device pairing.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>This app needs photo library access to scan QR codes from images.</string>
+		<key>NSFaceIDUsageDescription</key>
+		<string>Authenticate to access hidden templates and protected data.</string>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
@@ -17,7 +19,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>quanitya_flutter</string>
+		<string>Quanitya</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
