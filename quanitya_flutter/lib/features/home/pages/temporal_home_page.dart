@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/bootstrap.dart';
 import '../../../app_router.dart';
 import '../../../design_system/primitives/app_sizes.dart';
+import '../../guided_tour/guided_tour_service.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
@@ -109,7 +110,10 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
             ],
             labels: [
               _buildTemporalLabel(context, '-t'),
-              _buildTemporalLabel(context, 't'),
+              KeyedSubtree(
+                key: HomeTourKeys.temporalLabels,
+                child: _buildTemporalLabel(context, 't'),
+              ),
               _buildTemporalLabel(context, '+t'),
             ],
             overlays: [

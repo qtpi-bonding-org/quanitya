@@ -4,7 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
+import '../../../../app/bootstrap.dart';
 import '../../../../app_router.dart';
+import '../../../guided_tour/guided_tour_service.dart';
+import '../../../guided_tour/home_tour.dart';
 import '../../../log_entry/widgets/log_entry_sheet.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
@@ -16,8 +19,34 @@ import '../../cubits/list/template_list_state.dart';
 import 'dashboard_header.dart';
 import 'tracker_card.dart';
 
-class TemplateListWidget extends StatelessWidget {
+class TemplateListWidget extends StatefulWidget {
   const TemplateListWidget({super.key});
+
+  @override
+  State<TemplateListWidget> createState() => _TemplateListWidgetState();
+}
+
+class _TemplateListWidgetState extends State<TemplateListWidget> {
+  bool _tourAttempted = false;
+
+  Future<void> _maybeShowHomeTour(BuildContext context) async {
+    final tourService = getIt<GuidedTourService>();
+    if (!await tourService.shouldShowTour(GuidedTourService.homeKey)) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      if (HomeTourKeys.templateCard.currentContext == null) return;
+
+      showHomeTour(
+        context,
+        temporalLabelsKey: HomeTourKeys.temporalLabels,
+        templateCardKey: HomeTourKeys.templateCard,
+        quickEntryKey: HomeTourKeys.quickEntry,
+        resultsTabKey: HomeTourKeys.resultsTab,
+      );
+      await tourService.markTourSeen(GuidedTourService.homeKey);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +72,14 @@ class TemplateListWidget extends StatelessWidget {
                 ),
               );
             }
+          }
+
+          // Trigger home tour once templates have loaded
+          if (!_tourAttempted &&
+              state.templates.isNotEmpty &&
+              !state.isLoading) {
+            _tourAttempted = true;
+            _maybeShowHomeTour(context);
           }
         },
         builder: (context, state) {
@@ -71,28 +108,34 @@ class TemplateListWidget extends StatelessWidget {
                   VSpace.x3,
                   LayoutGroup.grid(
                     minItemWidth: 20,
-                    children: visible.map((item) {
-                      final cubit = context.read<TemplateListCubit>();
-                      return TrackerCard(
-                        title: item.template.name,
-                        icon: item.aesthetics.icon,
-                        emoji: item.aesthetics.emoji,
-                        color: item.aesthetics.palette.accents.firstOrNull,
-                        template: item.template,
-                        onIconTap: () {
-                          AppNavigation.toTemplateDesigner(context, item);
-                        },
-                        onEdit: () {
-                          LogEntrySheet.showCreate(
-                            context: context,
-                            templateId: item.template.id,
+                    children: [
+                      for (var i = 0; i < visible.length; i++)
+                        () {
+                          final item = visible[i];
+                          final cubit = context.read<TemplateListCubit>();
+                          return TrackerCard(
+                            title: item.template.name,
+                            icon: item.aesthetics.icon,
+                            emoji: item.aesthetics.emoji,
+                            color: item.aesthetics.palette.accents.firstOrNull,
+                            template: item.template,
+                            tourCardKey: i == 0 ? HomeTourKeys.templateCard : null,
+                            tourQuickEntryKey: i == 0 ? HomeTourKeys.quickEntry : null,
+                            onIconTap: () {
+                              AppNavigation.toTemplateDesigner(context, item);
+                            },
+                            onEdit: () {
+                              LogEntrySheet.showCreate(
+                                context: context,
+                                templateId: item.template.id,
+                              );
+                            },
+                            onQuickAction: () {
+                              cubit.instantLog(item.template);
+                            },
                           );
-                        },
-                        onQuickAction: () {
-                          cubit.instantLog(item.template);
-                        },
-                      );
-                    }).toList(),
+                        }(),
+                    ],
                   ),
                 ],
               ),

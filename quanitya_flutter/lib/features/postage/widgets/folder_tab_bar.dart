@@ -16,11 +16,15 @@ class FolderTab {
   /// Small arrow shown to the right of the icon (e.g. outgoing indicator).
   final IconData? rightIndicator;
 
+  /// Optional key used by guided tour to target this tab.
+  final GlobalKey? tourKey;
+
   const FolderTab({
     required this.icon,
     required this.label,
     this.leftIndicator,
     this.rightIndicator,
+    this.tourKey,
   });
 }
 
@@ -52,17 +56,18 @@ class FolderTabBar extends StatelessWidget {
           ),
           child: Row(
             children: List.generate(tabs.length, (index) {
+              final tab = tabs[index];
               final isSelected = index == currentIndex;
-              return Expanded(
+              Widget tabWidget = Expanded(
                 child: Semantics(
                   button: true,
                   selected: isSelected,
-                  label: tabs[index].label,
+                  label: tab.label,
                   child: GestureDetector(
                     onTap: () => onTabSelected(index),
                     behavior: HitTestBehavior.opaque,
                     child: _FolderTabWidget(
-                      tab: tabs[index],
+                      tab: tab,
                       isSelected: isSelected,
                       position: index == 0
                           ? _TabPosition.first
@@ -73,6 +78,10 @@ class FolderTabBar extends StatelessWidget {
                   ),
                 ),
               );
+              if (tab.tourKey != null) {
+                tabWidget = KeyedSubtree(key: tab.tourKey, child: tabWidget);
+              }
+              return tabWidget;
             }),
           ),
         ),

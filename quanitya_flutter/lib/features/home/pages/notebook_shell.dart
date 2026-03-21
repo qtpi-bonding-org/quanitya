@@ -9,6 +9,7 @@ import '../../app_syncing_mode/widgets/mode_indicator.dart';
 import '../../errors/cubits/errors_cubit.dart';
 import '../../notices/cubits/notices_cubit.dart';
 import '../../postage/pages/postage_page.dart';
+import '../../guided_tour/guided_tour_service.dart';
 import '../../postage/widgets/folder_tab_bar.dart';
 import '../../results/pages/results_section.dart';
 import '../../office/pages/office_page.dart';
@@ -49,7 +50,7 @@ class _NotebookShellState extends State<NotebookShell> {
 
           final tabs = [
             FolderTab(icon: Icons.auto_stories, label: context.l10n.tabLogbook),
-            FolderTab(icon: Icons.insights, label: context.l10n.tabResults),
+            FolderTab(icon: Icons.insights, label: context.l10n.tabResults, tourKey: HomeTourKeys.resultsTab),
             FolderTab(
               icon: Icons.mail_outline,
               label: context.l10n.tabPostage,

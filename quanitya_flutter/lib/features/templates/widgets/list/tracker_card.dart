@@ -18,6 +18,8 @@ class TrackerCard extends StatelessWidget {
   final VoidCallback? onIconTap; // Navigate to template editor
   final VoidCallback? onEdit;
   final VoidCallback? onQuickAction;
+  final GlobalKey? tourCardKey;
+  final GlobalKey? tourQuickEntryKey;
 
   const TrackerCard({
     super.key,
@@ -29,6 +31,8 @@ class TrackerCard extends StatelessWidget {
     this.onIconTap,
     this.onEdit,
     this.onQuickAction,
+    this.tourCardKey,
+    this.tourQuickEntryKey,
   });
 
   @override
@@ -36,7 +40,20 @@ class TrackerCard extends StatelessWidget {
     // No-Card Design: Content sits directly on the page.
     // Alignment provides the structure.
     
-    return Column(
+    Widget quickActionWidget = QuanityaIconButton(
+      icon: Icons.bolt,
+      iconSize: AppSizes.iconMedium,
+      tooltip: _canInstantLog()
+          ? context.l10n.tooltipQuickEntry
+          : context.l10n.tooltipQuickEntryUnavailable,
+      onPressed: _canInstantLog() ? onQuickAction : null,
+      // Uses interactableColor by default
+    );
+    if (tourQuickEntryKey != null) {
+      quickActionWidget = KeyedSubtree(key: tourQuickEntryKey!, child: quickActionWidget);
+    }
+
+    final column = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // 1. Icon (Big & Centered) - Priority: icon → emoji → default
@@ -86,30 +103,27 @@ class TrackerCard extends StatelessWidget {
               onPressed: onEdit,
               // Uses interactableColor by default
             ),
-            
+
             // Standard Breath between separate actions
             HSpace.x1,
 
             // Quick Action (Lightning) - Using QuanityaIconButton with interactableColor
             Opacity(
               opacity: _canInstantLog() ? 1.0 : 0.3,
-              child: QuanityaIconButton(
-                icon: Icons.bolt,
-                iconSize: AppSizes.iconMedium,
-                tooltip: _canInstantLog()
-                    ? context.l10n.tooltipQuickEntry
-                    : context.l10n.tooltipQuickEntryUnavailable,
-                onPressed: _canInstantLog() ? onQuickAction : null,
-                // Uses interactableColor by default
-              ),
+              child: quickActionWidget,
             ),
           ],
         ),
-        
+
         // Bottom cushion
         VSpace.x1,
       ],
     );
+
+    if (tourCardKey != null) {
+      return KeyedSubtree(key: tourCardKey!, child: column);
+    }
+    return column;
   }
 
   Widget _buildIcon(BuildContext context) {
