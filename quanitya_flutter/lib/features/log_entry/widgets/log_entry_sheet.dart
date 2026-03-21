@@ -8,6 +8,7 @@ import '../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/structures/row.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
+import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../logic/templates/models/shared/template_aesthetics.dart';
@@ -62,7 +63,15 @@ class LogEntrySheet extends StatefulWidget {
   }) async {
     final repo = GetIt.I<TemplateWithAestheticsRepository>();
     final data = await repo.findById(templateId);
-    if (data == null || !context.mounted) return;
+    if (!context.mounted) return;
+    if (data == null) {
+      PostItToast.show(
+        context,
+        message: context.l10n.errorTemplateNotFound,
+        type: PostItType.error,
+      );
+      return;
+    }
 
     LooseInsertSheet.show(
       context: context,

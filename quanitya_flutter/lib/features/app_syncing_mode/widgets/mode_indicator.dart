@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../support/extensions/context_extensions.dart';
 import '../cubits/app_syncing_cubit.dart';
 import '../cubits/app_syncing_state.dart';
 import '../models/app_syncing_mode.dart';
@@ -36,12 +37,24 @@ class ModeIndicator extends StatelessWidget {
           AppSyncingMode.local => Icons.cloud, // unreachable
         };
 
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSizes.space),
-          child: Icon(
-            icon,
-            color: color,
-            size: AppSizes.iconSmall,
+        final modeName = switch (state.mode) {
+          AppSyncingMode.cloud => context.l10n.operatingModeCloud,
+          AppSyncingMode.selfHosted => context.l10n.operatingModeSelfHosted,
+          AppSyncingMode.local => '', // unreachable
+        };
+        final semanticLabel = state.isConnected
+            ? context.l10n.modeIndicatorConnected(modeName)
+            : context.l10n.modeIndicatorDisconnected(modeName);
+
+        return Semantics(
+          label: semanticLabel,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppSizes.space),
+            child: Icon(
+              icon,
+              color: color,
+              size: AppSizes.iconSmall,
+            ),
           ),
         );
       },

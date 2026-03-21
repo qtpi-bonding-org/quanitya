@@ -193,7 +193,20 @@
   "quickAccessIconDescription": "Este ícone aparece na página inicial para acesso rápido.",
   "templateNamePlaceholder": "Nome do Modelo",
   "homePastDescription": "Histórico e Registros",
+  "homePresentDescription": "Rastreadores de Hoje",
   "homeFutureDescription": "Tarefas Planejadas",
+  "modeIndicatorConnected": "{mode}, conectado",
+  "@modeIndicatorConnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
+  "modeIndicatorDisconnected": "{mode}, desconectado",
+  "@modeIndicatorDisconnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
   "tooltipEditTemplate": "Editar modelo",
   "tooltipCustomLog": "Registro personalizado",
   "tooltipQuickEntry": "Registro rápido",
@@ -294,6 +307,7 @@
   "templateIntegrationScriptOrchestrationFailed": "A orquestração falhou",
   "templateIntegrationWidgetGenerationFailed": "Falha na construção do formulário.",
   "logEntrySaved": "Registro salvo",
+  "scheduleCreated": "Cronograma criado",
   "schedulePaused": "Cronograma pausado",
   "scheduleResumed": "Cronograma retomado",
   "scheduleDeleted": "Cronograma excluído",

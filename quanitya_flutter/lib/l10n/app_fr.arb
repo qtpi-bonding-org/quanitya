@@ -193,7 +193,20 @@
   "quickAccessIconDescription": "Cette icône apparaît sur la page d'accueil.",
   "templateNamePlaceholder": "Nom du modèle",
   "homePastDescription": "Historique et journaux",
+  "homePresentDescription": "Suivis du jour",
   "homeFutureDescription": "Tâches planifiées",
+  "modeIndicatorConnected": "{mode}, connecté",
+  "@modeIndicatorConnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
+  "modeIndicatorDisconnected": "{mode}, déconnecté",
+  "@modeIndicatorDisconnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
   "tooltipEditTemplate": "Modifier le modèle",
   "tooltipCustomLog": "Journal personnalisé",
   "tooltipQuickEntry": "Entrée rapide",
@@ -294,6 +307,7 @@
   "templateIntegrationScriptOrchestrationFailed": "Un problème est survenu",
   "templateIntegrationWidgetGenerationFailed": "Impossible de construire le formulaire.",
   "logEntrySaved": "Entrée enregistrée",
+  "scheduleCreated": "Programme créé",
   "schedulePaused": "Programme suspendu",
   "scheduleResumed": "Programme repris",
   "scheduleDeleted": "Programme supprimé",

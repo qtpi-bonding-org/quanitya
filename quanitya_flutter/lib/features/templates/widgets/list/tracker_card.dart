@@ -61,7 +61,7 @@ class TrackerCard extends StatelessWidget {
         Center(
           child: Semantics(
             button: true,
-            label: 'Edit template',
+            label: context.l10n.tooltipEditTemplate,
             child: GestureDetector(
               onTap: onIconTap,
               child: _buildIcon(context),

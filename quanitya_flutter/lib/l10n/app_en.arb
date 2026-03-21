@@ -202,7 +202,20 @@
   "quickAccessIconDescription": "This icon appears on the home page for quick access.",
   "templateNamePlaceholder": "Template Name",
   "homePastDescription": "History & Logs",
+  "homePresentDescription": "Today's Trackers",
   "homeFutureDescription": "Planned Tasks",
+  "modeIndicatorConnected": "{mode}, connected",
+  "@modeIndicatorConnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
+  "modeIndicatorDisconnected": "{mode}, disconnected",
+  "@modeIndicatorDisconnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
   "tooltipEditTemplate": "Edit template",
   "tooltipCustomLog": "Custom log",
   "tooltipQuickEntry": "Quick entry",
@@ -304,6 +317,7 @@
   "templateIntegrationScriptOrchestrationFailed": "Something went wrong",
   "templateIntegrationWidgetGenerationFailed": "Could not build the form.",
   "logEntrySaved": "Entry logged",
+  "scheduleCreated": "Schedule created",
   "schedulePaused": "Schedule paused",
   "scheduleResumed": "Schedule resumed",
   "scheduleDeleted": "Schedule deleted",

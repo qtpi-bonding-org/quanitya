@@ -44,7 +44,7 @@ class _QuanityaAppState extends State<QuanityaApp> {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [Locale('en')],
+          supportedLocales: AppLocalizations.supportedLocales,
           builder: (context, child) {
             UiScaler.instance.init(context);
 

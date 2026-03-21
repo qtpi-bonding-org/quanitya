@@ -193,7 +193,20 @@
   "quickAccessIconDescription": "Este icono aparece en el inicio.",
   "templateNamePlaceholder": "Nombre de la Plantilla",
   "homePastDescription": "Historial y Registros",
+  "homePresentDescription": "Rastreadores de Hoy",
   "homeFutureDescription": "Tareas Planeadas",
+  "modeIndicatorConnected": "{mode}, conectado",
+  "@modeIndicatorConnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
+  "modeIndicatorDisconnected": "{mode}, desconectado",
+  "@modeIndicatorDisconnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
   "tooltipEditTemplate": "Editar plantilla",
   "tooltipCustomLog": "Registro personalizado",
   "tooltipQuickEntry": "Entrada rápida",
@@ -294,6 +307,7 @@
   "templateIntegrationScriptOrchestrationFailed": "Algo salió mal",
   "templateIntegrationWidgetGenerationFailed": "No se pudo construir el formulario.",
   "logEntrySaved": "Entrada registrada",
+  "scheduleCreated": "Programa creado",
   "schedulePaused": "Programa pausado",
   "scheduleResumed": "Programa reanudado",
   "scheduleDeleted": "Programa eliminado",
