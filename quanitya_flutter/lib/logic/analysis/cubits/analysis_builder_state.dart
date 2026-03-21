@@ -45,7 +45,7 @@ class ScriptBranch with _$ScriptBranch {
 
 @freezed
 class AnalysisBuilderState
-    with _$AnalysisBuilderState
+    with _$AnalysisBuilderState, UiFlowStateMixin
     implements IUiFlowState {
   const factory AnalysisBuilderState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
@@ -101,16 +101,4 @@ class AnalysisBuilderState
   }) = _AnalysisBuilderState;
 
   const AnalysisBuilderState._();
-
-  // IUiFlowState implementation
-  @override
-  bool get isIdle => status == UiFlowStatus.idle;
-  @override
-  bool get isLoading => status == UiFlowStatus.loading;
-  @override
-  bool get isSuccess => status == UiFlowStatus.success;
-  @override
-  bool get isFailure => status == UiFlowStatus.failure;
-  @override
-  bool get hasError => error != null;
 }

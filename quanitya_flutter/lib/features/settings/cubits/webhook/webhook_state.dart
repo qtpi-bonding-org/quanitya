@@ -18,9 +18,9 @@ enum WebhookOperation {
 }
 
 @freezed
-class WebhookState with _$WebhookState implements IUiFlowState {
+class WebhookState with _$WebhookState, UiFlowStateMixin implements IUiFlowState {
   const WebhookState._();
-  
+
   const factory WebhookState({
     @Default([]) List<WebhookModel> webhooks,
     @Default([]) List<ApiKeyModel> apiKeys,
@@ -28,19 +28,4 @@ class WebhookState with _$WebhookState implements IUiFlowState {
     Object? error,
     WebhookOperation? lastOperation,
   }) = _WebhookState;
-
-  @override
-  bool get isIdle => status == UiFlowStatus.idle;
-
-  @override
-  bool get isLoading => status == UiFlowStatus.loading;
-
-  @override
-  bool get isSuccess => status == UiFlowStatus.success;
-
-  @override
-  bool get isFailure => status == UiFlowStatus.failure;
-
-  @override
-  bool get hasError => error != null;
 }

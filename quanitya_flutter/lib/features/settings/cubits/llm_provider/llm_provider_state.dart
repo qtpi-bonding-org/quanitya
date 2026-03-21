@@ -9,7 +9,7 @@ part 'llm_provider_state.freezed.dart';
 enum LlmProviderOperation { load, save, delete, testConnection, fetchModels }
 
 @freezed
-class LlmProviderState with _$LlmProviderState implements IUiFlowState {
+class LlmProviderState with _$LlmProviderState, UiFlowStateMixin implements IUiFlowState {
   const LlmProviderState._();
 
   const factory LlmProviderState({
@@ -20,19 +20,4 @@ class LlmProviderState with _$LlmProviderState implements IUiFlowState {
     Object? error,
     LlmProviderOperation? lastOperation,
   }) = _LlmProviderState;
-
-  @override
-  bool get isIdle => status == UiFlowStatus.idle;
-
-  @override
-  bool get isLoading => status == UiFlowStatus.loading;
-
-  @override
-  bool get isSuccess => status == UiFlowStatus.success;
-
-  @override
-  bool get isFailure => status == UiFlowStatus.failure;
-
-  @override
-  bool get hasError => error != null;
 }

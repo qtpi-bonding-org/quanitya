@@ -16,7 +16,7 @@ enum AppSyncingOperation {
 typedef AppOperatingOperation = AppSyncingOperation;
 
 @freezed
-class AppSyncingState with _$AppSyncingState implements IUiFlowState {
+class AppSyncingState with _$AppSyncingState, UiFlowStateMixin implements IUiFlowState {
   const factory AppSyncingState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,
@@ -36,23 +36,7 @@ class AppSyncingState with _$AppSyncingState implements IUiFlowState {
     DateTime? lastConnectionTest,
   }) = _AppSyncingState;
 
-  // IUiFlowState implementations
   const AppSyncingState._();
-
-  @override
-  bool get isIdle => status == UiFlowStatus.idle;
-
-  @override
-  bool get isLoading => status == UiFlowStatus.loading;
-
-  @override
-  bool get isSuccess => status == UiFlowStatus.success;
-
-  @override
-  bool get isFailure => status == UiFlowStatus.failure;
-
-  @override
-  bool get hasError => error != null;
 }
 
 /// Typedef for backward compatibility

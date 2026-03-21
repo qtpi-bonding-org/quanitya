@@ -10,28 +10,12 @@ enum FeedbackOperation {
 
 /// State for feedback submission.
 @freezed
-class FeedbackState with _$FeedbackState implements IUiFlowState {
+class FeedbackState with _$FeedbackState, UiFlowStateMixin implements IUiFlowState {
   const factory FeedbackState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,
     FeedbackOperation? lastOperation,
   }) = _FeedbackState;
   
-  // IUiFlowState implementations
   const FeedbackState._();
-  
-  @override
-  bool get isIdle => status == UiFlowStatus.idle;
-  
-  @override
-  bool get isLoading => status == UiFlowStatus.loading;
-  
-  @override
-  bool get isSuccess => status == UiFlowStatus.success;
-  
-  @override
-  bool get isFailure => status == UiFlowStatus.failure;
-  
-  @override
-  bool get hasError => error != null;
 }
