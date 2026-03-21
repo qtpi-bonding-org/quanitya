@@ -414,3 +414,17 @@ class LlmProviderConfigs extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+/// Local-only checkpoint table for E2EEPuller.
+/// Tracks the most recent `updated_at` processed per encrypted table.
+/// NOT synced via PowerSync — purely local bookkeeping.
+class PullerCheckpoints extends Table {
+  /// Encrypted table name (e.g. 'encrypted_entries')
+  TextColumn get encryptedTable => text().named('encrypted_table')();
+
+  /// Most recent updated_at timestamp successfully processed
+  DateTimeColumn get lastProcessedAt => dateTime().named('last_processed_at')();
+
+  @override
+  Set<Column> get primaryKey => {encryptedTable};
+}

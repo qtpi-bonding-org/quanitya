@@ -36,6 +36,7 @@ part 'app_database.g.dart';
     AnalyticsInboxEntries,
     OpenRouterModels,
     LlmProviderConfigs,
+    PullerCheckpoints,
   ],
 )
 class AppDatabase extends _$AppDatabase {

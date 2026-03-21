@@ -418,11 +418,9 @@ class E2EEPuller implements IE2EEPuller {
   late final AnalysisScriptProcessor _pipelineProcessor;
   late final AestheticsProcessor _aestheticsProcessor;
 
-  StreamSubscription<List<EncryptedTemplate>>? _templateSubscription;
-  StreamSubscription<List<EncryptedEntry>>? _entrySubscription;
-  StreamSubscription<List<EncryptedSchedule>>? _scheduleSubscription;
-  StreamSubscription<List<EncryptedAnalysisScript>>? _pipelineSubscription;
-  StreamSubscription<List<EncryptedTemplateAesthetic>>? _aestheticsSubscription;
+  /// Active subscription references, keyed by table name.
+  /// Used to cancel and recreate subscriptions when checkpoint advances.
+  final Map<String, StreamSubscription> _subscriptions = {};
   bool _isListening = false;
   DateTime? _lastSyncTime;
 
@@ -444,83 +442,126 @@ class E2EEPuller implements IE2EEPuller {
     );
   }
 
+  /// Get the checkpoint timestamp for a table (null = first run, process all)
+  Future<DateTime?> _getCheckpoint(String tableName) async {
+    final row = await (_db.select(_db.pullerCheckpoints)
+          ..where((t) => t.encryptedTable.equals(tableName)))
+        .getSingleOrNull();
+    return row?.lastProcessedAt;
+  }
+
+  /// Update the checkpoint to the max updated_at in the processed batch
+  Future<void> _updateCheckpoint(String tableName, DateTime lastProcessedAt) async {
+    await _db.into(_db.pullerCheckpoints).insertOnConflictUpdate(
+      PullerCheckpointsCompanion(
+        encryptedTable: Value(tableName),
+        lastProcessedAt: Value(lastProcessedAt),
+      ),
+    );
+  }
+
+  /// Reset all checkpoints, forcing a full re-process on next stream emission.
+  /// Call this when PowerSync performs a full re-sync.
+  Future<void> resetCheckpoints() async {
+    await _db.delete(_db.pullerCheckpoints).go();
+    debugPrint('E2EEPuller: All checkpoints reset');
+  }
+
+  /// Start watching an encrypted table with checkpoint filtering.
+  ///
+  /// On first run (no checkpoint), processes all records.
+  /// On subsequent runs, only processes records with updated_at >= checkpoint.
+  /// After processing, advances the checkpoint and resubscribes.
+  Future<void> _startWatching<T extends DataClass>({
+    required String tableName,
+    required ResultSetImplementation<Table, T> table,
+    required EncryptedTableProcessor processor,
+  }) async {
+    // Cancel any existing subscription for this table
+    await _subscriptions[tableName]?.cancel();
+
+    final checkpoint = await _getCheckpoint(tableName);
+
+    final query = _db.select(table);
+    if (checkpoint != null) {
+      query.where((t) => (t as dynamic).updatedAt.isBiggerOrEqualValue(checkpoint));
+    }
+
+    _subscriptions[tableName] = query.watch().listen((records) async {
+      if (records.isEmpty) return;
+
+      debugPrint('E2EEPuller: Processing ${records.length} $tableName');
+      await processor.processEncryptedRecords(records);
+
+      // Find max updated_at in this batch
+      DateTime maxUpdatedAt = checkpoint ?? DateTime.fromMillisecondsSinceEpoch(0);
+      for (final record in records) {
+        final updatedAt = (record as dynamic).updatedAt as DateTime;
+        if (updatedAt.isAfter(maxUpdatedAt)) {
+          maxUpdatedAt = updatedAt;
+        }
+      }
+
+      // Advance checkpoint and resubscribe with the new value
+      await _updateCheckpoint(tableName, maxUpdatedAt);
+      _lastSyncTime = DateTime.now();
+
+      // Resubscribe so the WHERE clause uses the new checkpoint.
+      // This is safe to call from within the listener — Drift handles it.
+      _startWatching(
+        tableName: tableName,
+        table: table,
+        processor: processor,
+      );
+    });
+  }
+
   @override
   Future<void> initialize() async {
     if (_isListening) return;
+    debugPrint('E2EEPuller: Initializing streams with checkpoints...');
 
-    debugPrint('E2EEPuller: Initializing streams...');
+    await _startWatching(
+      tableName: 'encrypted_templates',
+      table: _db.encryptedTemplates,
+      processor: _templateProcessor,
+    );
 
-    // Start listening to encrypted table changes from PowerSync
-    // Each processor handles its own table pair safely
-    _templateSubscription = _db.select(_db.encryptedTemplates).watch().listen((
-      templates,
-    ) async {
-      if (templates.isNotEmpty) {
-        debugPrint('E2EEPuller: Processing ${templates.length} templates');
-      }
-      await _templateProcessor.processEncryptedRecords(templates);
-      _lastSyncTime = DateTime.now();
-    });
+    await _startWatching(
+      tableName: 'encrypted_entries',
+      table: _db.encryptedEntries,
+      processor: _entryProcessor,
+    );
 
-    _entrySubscription = _db.select(_db.encryptedEntries).watch().listen((
-      entries,
-    ) async {
-      if (entries.isNotEmpty) {
-        debugPrint('E2EEPuller: Processing ${entries.length} entries');
-      }
-      await _entryProcessor.processEncryptedRecords(entries);
-      _lastSyncTime = DateTime.now();
-    });
+    await _startWatching(
+      tableName: 'encrypted_schedules',
+      table: _db.encryptedSchedules,
+      processor: _scheduleProcessor,
+    );
 
-    _scheduleSubscription = _db.select(_db.encryptedSchedules).watch().listen((
-      schedules,
-    ) async {
-      if (schedules.isNotEmpty) {
-        debugPrint('E2EEPuller: Processing ${schedules.length} schedules');
-      }
-      await _scheduleProcessor.processEncryptedRecords(schedules);
-      _lastSyncTime = DateTime.now();
-    });
+    await _startWatching(
+      tableName: 'encrypted_analysis_scripts',
+      table: _db.encryptedAnalysisScripts,
+      processor: _pipelineProcessor,
+    );
 
-    _pipelineSubscription = _db
-        .select(_db.encryptedAnalysisScripts)
-        .watch()
-        .listen((pipelines) async {
-          if (pipelines.isNotEmpty) {
-            debugPrint('E2EEPuller: Processing ${pipelines.length} scripts');
-          }
-          await _pipelineProcessor.processEncryptedRecords(pipelines);
-          _lastSyncTime = DateTime.now();
-        });
-
-    _aestheticsSubscription = _db
-        .select(_db.encryptedTemplateAesthetics)
-        .watch()
-        .listen((aesthetics) async {
-          if (aesthetics.isNotEmpty) {
-            debugPrint('E2EEPuller: Processing ${aesthetics.length} aesthetics');
-          }
-          await _aestheticsProcessor.processEncryptedRecords(aesthetics);
-          _lastSyncTime = DateTime.now();
-        });
+    await _startWatching(
+      tableName: 'encrypted_template_aesthetics',
+      table: _db.encryptedTemplateAesthetics,
+      processor: _aestheticsProcessor,
+    );
 
     _isListening = true;
     _lastSyncTime = DateTime.now();
-    debugPrint('E2EEPuller: Streams initialized and listening');
+    debugPrint('E2EEPuller: Streams initialized with checkpoint filtering');
   }
 
   @override
   Future<void> dispose() async {
-    await _templateSubscription?.cancel();
-    await _entrySubscription?.cancel();
-    await _scheduleSubscription?.cancel();
-    await _pipelineSubscription?.cancel();
-    await _aestheticsSubscription?.cancel();
-    _templateSubscription = null;
-    _entrySubscription = null;
-    _scheduleSubscription = null;
-    _pipelineSubscription = null;
-    _aestheticsSubscription = null;
+    for (final sub in _subscriptions.values) {
+      await sub.cancel();
+    }
+    _subscriptions.clear();
     _isListening = false;
   }
 
