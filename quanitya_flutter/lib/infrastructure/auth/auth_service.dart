@@ -15,6 +15,7 @@ import '../crypto/crypto_key_repository.dart';
 import '../crypto/data_encryption_service.dart';
 import '../crypto/interfaces/i_secure_storage.dart';
 import '../crypto/utils/hashcash.dart';
+import '../platform/secure_preferences.dart';
 import 'registration_payload.dart';
 
 /// Result of account creation - contains the ultimate private key for user backup
@@ -107,6 +108,7 @@ class AuthService {
   final IDataEncryptionService _encryption;
   final Client _client;
   final ISecureStorage _secureStorage;
+  final SecurePreferences _prefs;
 
   static const _registrationPayloadKey = 'quanitya_registration_payload';
   static const _crossDeviceRegistrationBlobKey = 'quanitya_cross_device_registration';
@@ -119,6 +121,7 @@ class AuthService {
     this._encryption,
     this._client,
     this._secureStorage,
+    this._prefs,
   );
 
   /// Initialize auth service
@@ -446,10 +449,7 @@ class AuthService {
           }
 
           // 5. Mark device as registered with server
-          await _secureStorage.storeSecureData(
-            _registeredWithServerKey,
-            'true',
-          );
+          await _prefs.setBool(_registeredWithServerKey, true);
         } catch (serverError) {
           rethrow;
         }
@@ -463,7 +463,7 @@ class AuthService {
   ///
   /// Returns `true` if registration has completed successfully.
   Future<bool> get isRegisteredWithServer async =>
-      await _secureStorage.getSecureData(_registeredWithServerKey) != null;
+      (await _prefs.getBool(_registeredWithServerKey)) == true;
 
   /// Ensure the device is registered with the server.
   ///
@@ -481,7 +481,7 @@ class AuthService {
   /// AUTH_DEVICE_NOT_FOUND) so that [ensureRegistered] will
   /// re-attempt registration on the next call.
   Future<void> clearRegistrationFlag() async {
-    await _secureStorage.deleteSecureData(_registeredWithServerKey);
+    await _prefs.remove(_registeredWithServerKey);
   }
 
   /// Delete account on server using proof-of-work + ECDSA signature.

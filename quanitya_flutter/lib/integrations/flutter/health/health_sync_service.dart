@@ -7,8 +7,8 @@ import 'package:injectable/injectable.dart';
 import '../../../data/dao/template_query_dao.dart';
 import '../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../infrastructure/core/try_operation.dart';
-import '../../../infrastructure/crypto/interfaces/i_secure_storage.dart';
 import '../../../infrastructure/platform/app_lifecycle_service.dart';
+import '../../../infrastructure/platform/secure_preferences.dart';
 import '../../../logic/ingestion/exceptions/ingestion_exception.dart';
 import '../../../logic/ingestion/services/data_ingestion_service.dart';
 import '../../../logic/ingestion/adapters/flutter_data_source_adapter.dart';
@@ -39,7 +39,7 @@ class HealthSyncService {
   final DataIngestionService _ingestionService;
   final TemplateQueryDao _templateQueryDao;
   final TemplateWithAestheticsRepository _templateRepo;
-  final ISecureStorage _storage;
+  final SecurePreferences _prefs;
   final AppLifecycleService _lifecycleService;
 
   final Health _health;
@@ -49,7 +49,7 @@ class HealthSyncService {
     this._ingestionService,
     this._templateQueryDao,
     this._templateRepo,
-    this._storage,
+    this._prefs,
     this._lifecycleService,
   ) : _health = Health();
 
@@ -59,20 +59,19 @@ class HealthSyncService {
     this._ingestionService,
     this._templateQueryDao,
     this._templateRepo,
-    this._storage,
+    this._prefs,
     this._lifecycleService,
     this._health,
   );
 
   /// Whether the user has enabled automatic health sync on resume.
   Future<bool> isEnabled() async {
-    final value = await _storage.getSecureData(_enabledKey);
-    return value == 'true';
+    return (await _prefs.getBool(_enabledKey)) == true;
   }
 
   /// Persist the enabled flag and register/unregister the resume hook.
   Future<void> setEnabled(bool enabled) async {
-    await _storage.storeSecureData(_enabledKey, enabled.toString());
+    await _prefs.setBool(_enabledKey, enabled);
     if (enabled) {
       _lifecycleService.registerOnResume(
         _lifecycleKey,
