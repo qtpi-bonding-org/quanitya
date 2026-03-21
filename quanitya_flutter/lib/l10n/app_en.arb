@@ -980,5 +980,7 @@
   "tourDesignerSchedule": "Set up daily or weekly reminders so you don't forget to log.",
   "tourDesignerPreview": "Preview your tracker before saving.",
   "settingsShowTour": "Show guided tour again",
-  "tourResetSuccess": "Tours will show on next visit"
+  "tourResetSuccess": "Tours will show on next visit",
+
+  "catalogFilterAll": "All"
 }
