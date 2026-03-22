@@ -1016,5 +1016,9 @@
     "description": "Apple-required subscription disclosure text shown near purchase buttons"
   },
   "subscriptionDisclosurePrivacyPolicy": "Privacy Policy",
-  "subscriptionDisclosureTermsOfService": "Terms of Service"
+  "subscriptionDisclosureTermsOfService": "Terms of Service",
+
+  "accessibilityChangeColor": "Change color",
+  "accessibilityChangeReminderTime": "Change reminder time",
+  "accessibilityChangeTemplateIcon": "Change template icon"
 }

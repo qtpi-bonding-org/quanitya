@@ -134,7 +134,7 @@ class _TimePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Change reminder time',
+      label: context.l10n.accessibilityChangeReminderTime,
       child: GestureDetector(
         onTap: () async {
           final picked = await showTimePicker(

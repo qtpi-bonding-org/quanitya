@@ -166,12 +166,12 @@ class _AddScheduleSheetState extends State<AddScheduleSheet> {
             itemBuilder: (context, index) {
               final template = templates[index];
               final isSelected = _selectedTemplate?.id == template.id;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedTemplate = template),
-                child: Semantics(
-                  button: true,
-                  selected: isSelected,
-                  label: template.name,
+              return Semantics(
+                button: true,
+                selected: isSelected,
+                label: template.name,
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedTemplate = template),
                   child: Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: AppSizes.space * 1.5,

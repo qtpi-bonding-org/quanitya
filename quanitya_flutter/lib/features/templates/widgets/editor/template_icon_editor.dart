@@ -63,7 +63,7 @@ class TemplateIconEditor extends StatelessWidget {
             Center(
               child: Semantics(
                 button: true,
-                label: 'Change template icon',
+                label: context.l10n.accessibilityChangeTemplateIcon,
                 child: GestureDetector(
                   onTap: () => _showIconPicker(context),
                   child: Column(

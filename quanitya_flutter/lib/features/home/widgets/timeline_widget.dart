@@ -52,7 +52,7 @@ class TimelineWidget extends StatelessWidget {
               );
             },
             dateDivider: (dateKey, isFirst, formattedDate) {
-              return _buildDateDivider(formattedDate, isFirst);
+              return _buildDateDivider(context, formattedDate, isFirst);
             },
           );
         },
@@ -129,9 +129,7 @@ class TimelineWidget extends StatelessWidget {
                         Expanded(
                           child: Text(
                             template.name,
-                            style: TextStyle(
-                              fontSize: AppSizes.fontBig,
-                              fontWeight: FontWeight.bold,
+                            style: context.text.titleMedium?.copyWith(
                               color: QuanityaPalette.primary.textPrimary,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -139,8 +137,7 @@ class TimelineWidget extends StatelessWidget {
                         ),
                         Text(
                           timeString, // Always show time only since we have date dividers
-                          style: TextStyle(
-                            fontSize: AppSizes.fontSmall,
+                          style: context.text.bodySmall?.copyWith(
                             color: QuanityaPalette.primary.textSecondary,
                           ),
                         ),
@@ -151,8 +148,7 @@ class TimelineWidget extends StatelessWidget {
                     if (dataPreview.isNotEmpty)
                       Text(
                         dataPreview,
-                        style: TextStyle(
-                          fontSize: AppSizes.fontStandard,
+                        style: context.text.bodyMedium?.copyWith(
                           color: QuanityaPalette.primary.textPrimary,
                         ),
                         maxLines: 1,
@@ -170,7 +166,7 @@ class TimelineWidget extends StatelessWidget {
   }
 
   /// Build a date divider with pre-computed formatted date
-  Widget _buildDateDivider(String formattedDate, bool isFirst) {
+  Widget _buildDateDivider(BuildContext context, String formattedDate, bool isFirst) {
     final palette = QuanityaPalette.primary;
     
     return SizedBox(
@@ -202,10 +198,8 @@ class TimelineWidget extends StatelessWidget {
                 HSpace.x2,
                 Text(
                   formattedDate,
-                  style: TextStyle(
-                    fontSize: AppSizes.fontMini,
+                  style: context.text.labelSmall?.copyWith(
                     color: palette.textSecondary,
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 HSpace.x2,

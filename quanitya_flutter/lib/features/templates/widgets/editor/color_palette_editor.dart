@@ -127,7 +127,7 @@ class ColorPaletteEditor extends StatelessWidget {
   ) {
     return Semantics(
       button: true,
-      label: 'Change color',
+      label: context.l10n.accessibilityChangeColor,
       child: GestureDetector(
         onTap: () => _showColorPicker(context, color, onColorChanged),
         child: SizedBox(

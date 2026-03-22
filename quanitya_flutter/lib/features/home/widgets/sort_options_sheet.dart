@@ -142,8 +142,7 @@ class _SectionHeader extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: AppSizes.fontMini,
+        style: context.text.labelSmall?.copyWith(
           fontWeight: FontWeight.bold,
           color: palette.textPrimary,
         ),

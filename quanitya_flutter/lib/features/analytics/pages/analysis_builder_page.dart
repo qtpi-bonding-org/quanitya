@@ -278,18 +278,16 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
             _lastSnippet = value;
             cubit.updateSnippet(value);
           },
-          textStyle: TextStyle(
+          textStyle: context.text.bodySmall?.copyWith(
             fontFamily: _codeEditorFontFamily,
-            fontSize: AppSizes.fontSmall,
             height: _codeEditorLineHeight,
           ),
           gutterStyle: GutterStyle(
             showLineNumbers: true,
             showFoldingHandles: false,
             showErrors: false,
-            textStyle: TextStyle(
+            textStyle: context.text.labelSmall?.copyWith(
               fontFamily: _codeEditorFontFamily,
-              fontSize: AppSizes.fontMini,
               color: QuanityaPalette.primary.textSecondary,
             ),
           ),
