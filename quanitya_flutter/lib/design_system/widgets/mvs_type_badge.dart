@@ -37,7 +37,7 @@ class MvsTypeBadge extends StatelessWidget {
     final typeName = _getLabel(type);
 
     return Semantics(
-      label: 'Data type: $typeName',
+      label: context.l10n.accessibilityDataType(typeName),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

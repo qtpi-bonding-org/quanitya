@@ -402,7 +402,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   Widget _buildListToggle(BuildContext context, Color draftColor) {
     return Semantics(
       toggled: _isList,
-      label: 'Allow multiple values',
+      label: context.l10n.accessibilityAllowMultipleValues,
       child: InkWell(
         onTap: () => setState(() => _isList = !_isList),
       borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
@@ -592,7 +592,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
 
     return Semantics(
       button: true,
-      label: 'Set default date/time',
+      label: context.l10n.accessibilitySetDefaultDateTime,
       child: InkWell(
         onTap: () async {
         final now = DateTime.now();

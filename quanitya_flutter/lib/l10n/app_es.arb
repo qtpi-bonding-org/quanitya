@@ -681,5 +681,17 @@
 
   "accessibilityChangeColor": "Cambiar color",
   "accessibilityChangeReminderTime": "Cambiar hora del recordatorio",
-  "accessibilityChangeTemplateIcon": "Cambiar icono de plantilla"
+  "accessibilityChangeTemplateIcon": "Cambiar icono de plantilla",
+
+  "accessibilityScheduleFor": "Schedule for {name}",
+  "accessibilityChangeTime": "Change time",
+  "accessibilityAddField": "Add {label} field",
+  "accessibilityAllowMultipleValues": "Allow multiple values",
+  "accessibilitySetDefaultDateTime": "Set default date/time",
+  "accessibilityDecrease": "Decrease",
+  "accessibilityIncrease": "Increase",
+  "accessibilityGenerating": "Generating...",
+  "accessibilityDataType": "Data type: {typeName}",
+  "accessibilityDataTableRows": "Data table with {count} {count, plural, =1{row} other{rows}}",
+  "analysisEntriesCount": "Entries ({count})"
 }

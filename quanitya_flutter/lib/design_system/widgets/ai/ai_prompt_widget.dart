@@ -111,7 +111,7 @@ class _AiPromptWidgetState extends State<AiPromptWidget> {
           onSubmitted: (_) => _handleGenerate(),
           suffixIcon: widget.isLoading
               ? Semantics(
-                  label: 'Generating...',
+                  label: context.l10n.accessibilityGenerating,
                   child: Padding(
                     padding: EdgeInsets.all(AppSizes.space),
                     child: SizedBox(

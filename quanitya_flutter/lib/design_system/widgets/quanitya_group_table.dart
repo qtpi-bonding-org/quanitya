@@ -65,8 +65,7 @@ class QuanityaGroupTable extends StatelessWidget {
         ?.copyWith(color: effectiveValueColor);
 
     return Semantics(
-      label: 'Data table with ${rows.length} '
-          '${rows.length == 1 ? 'row' : 'rows'}',
+      label: context.l10n.accessibilityDataTableRows(rows.length),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

@@ -372,7 +372,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   ) {
     return Semantics(
       button: true,
-      label: 'Add $label field',
+      label: context.l10n.accessibilityAddField(label),
       child: InkWell(
         onTap: () => _showFieldEditorSheet(context, type),
         child: Padding(

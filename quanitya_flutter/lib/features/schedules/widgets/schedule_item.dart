@@ -120,7 +120,7 @@ class _ScheduleItemState extends State<ScheduleItem> {
 
     return Semantics(
       button: widget.onTap != null,
-      label: 'Schedule for ${template.name}',
+      label: context.l10n.accessibilityScheduleFor(template.name),
       child: GestureDetector(
       onTap: widget.onTap,
       behavior: HitTestBehavior.opaque,
@@ -271,7 +271,7 @@ class _InlineScheduleControls extends StatelessWidget {
             ignoring: frequency == ScheduleFrequency.off,
             child: Semantics(
               button: true,
-              label: 'Change time',
+              label: context.l10n.accessibilityChangeTime,
               child: GestureDetector(
                 onTap: () async {
                   final picked = await showTimePicker(

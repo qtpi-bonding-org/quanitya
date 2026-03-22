@@ -1020,5 +1020,42 @@
 
   "accessibilityChangeColor": "Change color",
   "accessibilityChangeReminderTime": "Change reminder time",
-  "accessibilityChangeTemplateIcon": "Change template icon"
+  "accessibilityChangeTemplateIcon": "Change template icon",
+
+  "accessibilityScheduleFor": "Schedule for {name}",
+  "@accessibilityScheduleFor": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "accessibilityChangeTime": "Change time",
+  "accessibilityAddField": "Add {label} field",
+  "@accessibilityAddField": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "accessibilityAllowMultipleValues": "Allow multiple values",
+  "accessibilitySetDefaultDateTime": "Set default date/time",
+  "accessibilityDecrease": "Decrease",
+  "accessibilityIncrease": "Increase",
+  "accessibilityGenerating": "Generating...",
+  "accessibilityDataType": "Data type: {typeName}",
+  "@accessibilityDataType": {
+    "placeholders": {
+      "typeName": { "type": "String" }
+    }
+  },
+  "accessibilityDataTableRows": "Data table with {count} {count, plural, =1{row} other{rows}}",
+  "@accessibilityDataTableRows": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "analysisEntriesCount": "Entries ({count})",
+  "@analysisEntriesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

@@ -534,7 +534,7 @@ class _EntryRangeControlState extends State<_EntryRangeControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Entries (${widget.entryCount})', style: context.text.bodySmall?.copyWith(
+        Text(context.l10n.analysisEntriesCount(widget.entryCount), style: context.text.bodySmall?.copyWith(
           color: palette.textSecondary,
         )),
         VSpace.x1,
