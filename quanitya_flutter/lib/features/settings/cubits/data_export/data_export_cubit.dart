@@ -45,18 +45,27 @@ class DataExportCubit extends QuanityaCubit<DataExportState> {
     }, emitLoading: true);
   }
 
-  /// Pick an import file and return the table names found in it.
+  /// Pick an import file and store the table names found in it.
   ///
-  /// Returns null if the user cancelled or an error occurred.
-  Future<List<String>?> pickImportFile() async {
-    try {
-      return await _exportRepo.parseImportFile();
-    } on ImportCancelledException {
-      return null;
-    } catch (e) {
-      emit(createErrorState(e));
-      return null;
-    }
+  /// On success, populates [DataExportState.pickedTableNames].
+  /// On cancellation, stays idle (no error). On error, emits failure state.
+  Future<void> pickImportFile() async {
+    await tryOperation(() async {
+      try {
+        final tables = await _exportRepo.parseImportFile();
+        return state.copyWith(
+          status: UiFlowStatus.success,
+          lastOperation: DataExportOperation.pickFile,
+          pickedTableNames: tables,
+        );
+      } on ImportCancelledException {
+        // User cancelled file picker — stay idle, clear any stale picks.
+        return state.copyWith(
+          status: UiFlowStatus.idle,
+          pickedTableNames: [],
+        );
+      }
+    });
   }
 
   /// Import selected tables from the previously picked file.

@@ -1066,5 +1066,7 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "catalogTemplatesImported": "Templates imported",
+  "syncReconnected": "Sync reconnected"
 }

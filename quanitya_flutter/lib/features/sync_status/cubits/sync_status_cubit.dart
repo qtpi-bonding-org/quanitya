@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
 import 'package:powersync_sqlcipher/powersync.dart' show SyncStatus;
 
@@ -51,20 +52,12 @@ class SyncStatusCubit extends QuanityaCubit<SyncStatusState> {
 
   Future<void> retrySync() => tryOperation(() async {
     emit(state.copyWith(isRetrying: true));
-    try {
-      await _powerSyncService.retrySync();
-      return state.copyWith(
-        isRetrying: false,
-        lastOperation: SyncStatusOperation.retrySync,
-      );
-    } catch (e) {
-      emit(state.copyWith(
-        isRetrying: false,
-        connectionState: SyncConnectionState.error,
-        errorMessage: 'Retry failed',
-      ));
-      rethrow;
-    }
+    await _powerSyncService.retrySync();
+    return state.copyWith(
+      isRetrying: false,
+      status: UiFlowStatus.success,
+      lastOperation: SyncStatusOperation.retrySync,
+    );
   });
 
   SyncStatusState _mapStatus(SyncStatus status) {

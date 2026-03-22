@@ -702,5 +702,7 @@
   "accessibilityGenerating": "Generating...",
   "accessibilityDataType": "Data type: {typeName}",
   "accessibilityDataTableRows": "Data table with {count} {count, plural, =1{row} other{rows}}",
-  "analysisEntriesCount": "Entries ({count})"
+  "analysisEntriesCount": "Entries ({count})",
+  "catalogTemplatesImported": "Templates imported",
+  "syncReconnected": "Sync reconnected"
 }

@@ -16,6 +16,8 @@ import '../../settings/cubits/recovery_key/recovery_key_cubit.dart';
 import '../../settings/cubits/recovery_key/recovery_key_state.dart';
 import '../../settings/cubits/recovery_key/recovery_key_message_mapper.dart';
 import '../../settings/cubits/device_management/device_management_cubit.dart';
+import '../../settings/cubits/device_management/device_management_state.dart';
+import '../../settings/cubits/device_management/device_management_message_mapper.dart';
 import '../../settings/cubits/webhook/webhook_cubit.dart';
 import '../../settings/cubits/webhook/webhook_state.dart';
 import '../../settings/cubits/webhook/webhook_message_mapper.dart';
@@ -24,7 +26,10 @@ import '../../settings/cubits/llm_provider/llm_provider_state.dart';
 import '../../settings/cubits/llm_provider/llm_provider_message_mapper.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../app_syncing_mode/cubits/app_syncing_state.dart';
+import '../../app_syncing_mode/cubits/app_syncing_message_mapper.dart';
 import '../../sync_status/cubits/sync_status_cubit.dart';
+import '../../sync_status/cubits/sync_status_state.dart';
+import '../../sync_status/cubits/sync_status_message_mapper.dart';
 import '../../settings/pages/settings_page.dart';
 // Purchase cubits
 import '../../purchase/cubits/purchase_cubit.dart';
@@ -119,6 +124,18 @@ class _OfficePageState extends State<OfficePage> {
             ),
             (child) => UiFlowListener<EntitlementCubit, EntitlementState>(
               mapper: GetIt.instance<EntitlementMessageMapper>(),
+              child: child,
+            ),
+            (child) => UiFlowListener<AppSyncingCubit, AppSyncingState>(
+              mapper: GetIt.instance<AppSyncingMessageMapper>(),
+              child: child,
+            ),
+            (child) => UiFlowListener<SyncStatusCubit, SyncStatusState>(
+              mapper: GetIt.instance<SyncStatusMessageMapper>(),
+              child: child,
+            ),
+            (child) => UiFlowListener<DeviceManagementCubit, DeviceManagementState>(
+              mapper: GetIt.instance<DeviceManagementMessageMapper>(),
               child: child,
             ),
           ],

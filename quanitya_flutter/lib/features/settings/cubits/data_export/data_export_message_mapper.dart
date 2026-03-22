@@ -11,6 +11,7 @@ class DataExportMessageMapper implements IStateMessageMapper<DataExportState> {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         DataExportOperation.export => MessageKey.success(L10nKeys.settingsExportSuccess),
+        DataExportOperation.pickFile => null, // No toast — file picker is its own feedback
         DataExportOperation.importData => MessageKey.success(L10nKeys.settingsImportSuccess),
       };
     }

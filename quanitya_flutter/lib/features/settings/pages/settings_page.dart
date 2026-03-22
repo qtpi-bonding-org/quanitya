@@ -267,8 +267,10 @@ class _DataSection extends StatelessWidget {
     final cubit = context.read<DataExportCubit>();
 
     // 1. Pick file and get available table names.
-    final availableTables = await cubit.pickImportFile();
-    if (availableTables == null || !context.mounted) return;
+    await cubit.pickImportFile();
+    if (!context.mounted) return;
+    final availableTables = cubit.state.pickedTableNames;
+    if (availableTables.isEmpty || cubit.state.status == UiFlowStatus.failure) return;
 
     // 2. Let user select which tables to import.
     final selected = await TableSelectionSheet.show(
