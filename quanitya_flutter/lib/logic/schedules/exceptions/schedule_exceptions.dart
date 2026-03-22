@@ -13,6 +13,15 @@ abstract class ScheduleException implements Exception {
       'ScheduleException: $message${cause != null ? ' (caused by: $cause)' : ''}';
 }
 
+/// Thrown when a general schedule operation fails.
+class ScheduleOperationException extends ScheduleException {
+  const ScheduleOperationException(super.message, [super.cause]);
+
+  @override
+  String toString() =>
+      'ScheduleOperationException: $message${cause != null ? ' (caused by: $cause)' : ''}';
+}
+
 /// Thrown when generating schedule entries fails.
 class ScheduleGenerationException extends ScheduleException {
   const ScheduleGenerationException(super.message, [super.cause]);
