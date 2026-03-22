@@ -213,6 +213,11 @@ Future<void> bootstrap() async {
       if (getIt.isRegistered<ScheduleGeneratorService>())
         getIt<ScheduleGeneratorService>().generatePendingTodos().then((result) {
           debugPrint('Bootstrap: Todo generation complete - $result');
+          if (result.failedScheduleIds.isNotEmpty) {
+            debugPrint('Bootstrap: WARNING - ${result.failedScheduleIds.length} '
+                'schedule(s) failed to generate todos: '
+                '${result.failedScheduleIds.join(', ')}');
+          }
         }),
 
       // 9.5. Sync tested LLM models (fails silently if offline)

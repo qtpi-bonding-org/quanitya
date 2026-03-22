@@ -126,7 +126,11 @@ class ScheduleGeneratorService {
         }
 
         debugPrint('ScheduleGeneratorService: Done - created $totalCreated, skipped $totalSkipped');
-        
+        if (failedIds.isNotEmpty) {
+          debugPrint('ScheduleGeneratorService: WARNING - ${failedIds.length} '
+              'schedule(s) failed: ${failedIds.join(', ')}');
+        }
+
         return GenerationResult(
           todosCreated: totalCreated,
           schedulesProcessed: activeSchedules.length,

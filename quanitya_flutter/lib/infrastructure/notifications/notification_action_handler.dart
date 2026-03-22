@@ -121,6 +121,7 @@ class NotificationActionHandler implements INotificationActionHandler {
       debugPrint('NotificationActionHandler: Quick logged for template ${template.name}');
     } catch (e) {
       debugPrint('NotificationActionHandler: Quick log failed: $e');
+      rethrow;
     }
   }
 
