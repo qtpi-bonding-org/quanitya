@@ -274,6 +274,7 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
         token: token,
       );
     } catch (e) {
+      debugPrint('🔴 PowerSyncConnector: fetchCredentials failed: $e');
       return null;
     }
   }

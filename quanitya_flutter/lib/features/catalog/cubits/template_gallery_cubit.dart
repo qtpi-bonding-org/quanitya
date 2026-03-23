@@ -1,6 +1,7 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
 
+import '../../../infrastructure/core/try_operation.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../models/catalog_data.dart';
 import '../services/template_catalog_service.dart';
@@ -94,7 +95,8 @@ class TemplateGalleryCubit extends QuanityaCubit<TemplateGalleryState> {
 
   /// Import all currently selected templates.
   ///
-  /// Tracks per-template success/failure. After the loop:
+  /// Each import is wrapped in tryMethod for proper error logging.
+  /// Tracks per-template success/failure:
   /// - All succeeded → [UiFlowStatus.success]
   /// - Some failed → [UiFlowStatus.success] with [failedCount] for UI messaging
   /// - All failed → [UiFlowStatus.failure]
@@ -104,9 +106,14 @@ class TemplateGalleryCubit extends QuanityaCubit<TemplateGalleryState> {
         for (final slug in state.selectedSlugs) {
           final url = _catalogService.getTemplateUrl(slug);
           try {
-            await _importService.importFromUrl(url);
+            await tryMethod(
+              () => _importService.importFromUrl(url),
+              (message, [cause]) => Exception('$message (slug: $slug)'),
+              'importTemplate',
+            );
             imported++;
           } catch (_) {
+            // tryMethod already logged the error — just track the count
             failed++;
           }
         }

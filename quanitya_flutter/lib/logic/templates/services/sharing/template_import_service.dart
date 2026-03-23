@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../infrastructure/core/try_operation.dart';
+
 import '../../models/shared/shareable_template.dart';
 import '../../models/shared/template_aesthetics.dart';
 import '../../../analysis/models/analysis_script.dart';
@@ -259,17 +261,21 @@ class TemplateImportService {
 
     for (final script in scripts) {
       try {
-        // Remap fieldId to new UUID
-        final newFieldId = fieldIdMap[script.fieldId] ?? script.fieldId;
-        final localScript = script.copyWith(
-          id: const Uuid().v4(),
-          fieldId: newFieldId,
-          updatedAt: DateTime.now(),
+        await tryMethod(
+          () async {
+            final newFieldId = fieldIdMap[script.fieldId] ?? script.fieldId;
+            final localScript = script.copyWith(
+              id: const Uuid().v4(),
+              fieldId: newFieldId,
+              updatedAt: DateTime.now(),
+            );
+            await _scriptRepository.saveScript(localScript);
+          },
+          (message, [cause]) => TemplateImportException(message, TemplateImportErrorType.unknown),
+          'importScript',
         );
-
-        await _scriptRepository.saveScript(localScript);
-      } catch (e) {
-        // Skip failed script imports, don't fail entire template import
+      } catch (_) {
+        // tryMethod already logged — continue to next script
         continue;
       }
     }
