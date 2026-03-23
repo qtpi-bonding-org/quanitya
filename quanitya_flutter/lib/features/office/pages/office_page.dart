@@ -97,12 +97,7 @@ class _OfficePageState extends State<OfficePage> {
         BlocProvider(create: (_) => GetIt.instance<EntitlementCubit>()),
         BlocProvider.value(value: GetIt.instance<PaidAccountCubit>()),
       ],
-      child: BlocListener<AppSyncingCubit, AppSyncingState>(
-        listenWhen: (prev, curr) => prev.mode != curr.mode,
-        listener: (context, state) {
-          context.read<SyncStatusCubit>().onModeChanged(state.mode);
-        },
-        child: MultiUiFlowListener(
+      child: MultiUiFlowListener(
           listeners: [
             (child) => UiFlowListener<LlmProviderCubit, LlmProviderState>(
               mapper: GetIt.instance<LlmProviderMessageMapper>(),
@@ -161,7 +156,6 @@ class _OfficePageState extends State<OfficePage> {
             ),
           ),
         ),
-      ),
     );
   }
 }
