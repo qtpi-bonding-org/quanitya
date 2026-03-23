@@ -90,7 +90,7 @@ class EntitlementDisplay extends StatelessWidget {
                       Text(
                         context.l10n.entitlementActive,
                         style: context.text.bodyMedium?.copyWith(
-                          color: palette.successColor,
+                          color: palette.stateOnColor,
                           fontWeight: FontWeight.bold,
                         ),
                       )
