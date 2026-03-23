@@ -1,22 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
-import '../../design_system/primitives/app_sizes.dart';
 import '../../support/extensions/context_extensions.dart';
-
-Widget _tourText(BuildContext context, String text) {
-  return Padding(
-    padding: EdgeInsets.symmetric(vertical: AppSizes.space * 2),
-    child: Text(
-      text,
-      textAlign: TextAlign.center,
-      style: context.text.bodyMedium?.copyWith(
-        color: Colors.white,
-        height: 1.5,
-      ),
-    ),
-  );
-}
+import 'tour_runner.dart';
 
 List<TargetFocus> _buildHomeTourTargets({
   required GlobalKey temporalLabelsKey,
@@ -36,7 +22,7 @@ List<TargetFocus> _buildHomeTourTargets({
         TargetContent(
           align: ContentAlign.custom,
           customPosition: CustomTargetContentPosition(top: centerY),
-          child: _tourText(context, context.l10n.tourHomeTemporalLabels),
+          child: tourText(context, context.l10n.tourHomeTemporalLabels),
         ),
       ],
       shape: ShapeLightFocus.RRect,
@@ -50,7 +36,7 @@ List<TargetFocus> _buildHomeTourTargets({
         TargetContent(
           align: ContentAlign.custom,
           customPosition: CustomTargetContentPosition(top: centerY),
-          child: _tourText(context, context.l10n.tourHomeDesignerButton),
+          child: tourText(context, context.l10n.tourHomeDesignerButton),
         ),
       ],
     ),
@@ -63,7 +49,7 @@ List<TargetFocus> _buildHomeTourTargets({
         TargetContent(
           align: ContentAlign.custom,
           customPosition: CustomTargetContentPosition(top: centerY),
-          child: _tourText(context, context.l10n.tourHomeResultsTab),
+          child: tourText(context, context.l10n.tourHomeResultsTab),
         ),
       ],
     ),
@@ -77,18 +63,14 @@ void showHomeTour(
   required GlobalKey resultsTabKey,
   VoidCallback? onFinish,
 }) {
-  final targets = _buildHomeTourTargets(
-    temporalLabelsKey: temporalLabelsKey,
-    designerButtonKey: designerButtonKey,
-    resultsTabKey: resultsTabKey,
-    context: context,
-  );
-
-  TutorialCoachMark(
-    targets: targets,
-    colorShadow: Colors.black,
-    opacityShadow: 0.8,
-    hideSkip: true,
+  runTour(
+    context,
+    targets: _buildHomeTourTargets(
+      temporalLabelsKey: temporalLabelsKey,
+      designerButtonKey: designerButtonKey,
+      resultsTabKey: resultsTabKey,
+      context: context,
+    ),
     onFinish: onFinish,
-  ).show(context: context);
+  );
 }

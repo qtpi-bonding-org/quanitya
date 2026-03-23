@@ -1,22 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
-import '../../design_system/primitives/app_sizes.dart';
 import '../../support/extensions/context_extensions.dart';
-
-Widget _tourText(BuildContext context, String text) {
-  return Padding(
-    padding: EdgeInsets.symmetric(vertical: AppSizes.space * 2),
-    child: Text(
-      text,
-      textAlign: TextAlign.center,
-      style: context.text.bodyMedium?.copyWith(
-        color: Colors.white,
-        height: 1.5,
-      ),
-    ),
-  );
-}
+import 'tour_runner.dart';
 
 List<TargetFocus> _buildDesignerTourTargets({
   required GlobalKey aiPromptKey,
@@ -38,7 +24,7 @@ List<TargetFocus> _buildDesignerTourTargets({
         TargetContent(
           align: ContentAlign.custom,
           customPosition: CustomTargetContentPosition(top: centerY),
-          child: _tourText(context, context.l10n.tourDesignerAiPrompt),
+          child: tourText(context, context.l10n.tourDesignerAiPrompt),
         ),
       ],
       shape: ShapeLightFocus.RRect,
@@ -52,7 +38,7 @@ List<TargetFocus> _buildDesignerTourTargets({
         TargetContent(
           align: ContentAlign.custom,
           customPosition: CustomTargetContentPosition(top: centerY),
-          child: _tourText(context, context.l10n.tourDesignerNameField),
+          child: tourText(context, context.l10n.tourDesignerNameField),
         ),
       ],
       shape: ShapeLightFocus.RRect,
@@ -66,7 +52,7 @@ List<TargetFocus> _buildDesignerTourTargets({
         TargetContent(
           align: ContentAlign.custom,
           customPosition: CustomTargetContentPosition(top: centerY),
-          child: _tourText(context, context.l10n.tourDesignerFields),
+          child: tourText(context, context.l10n.tourDesignerFields),
         ),
       ],
       shape: ShapeLightFocus.RRect,
@@ -80,7 +66,7 @@ List<TargetFocus> _buildDesignerTourTargets({
         TargetContent(
           align: ContentAlign.custom,
           customPosition: CustomTargetContentPosition(top: centerY),
-          child: _tourText(context, context.l10n.tourDesignerSchedule),
+          child: tourText(context, context.l10n.tourDesignerSchedule),
         ),
       ],
       shape: ShapeLightFocus.RRect,
@@ -94,7 +80,7 @@ List<TargetFocus> _buildDesignerTourTargets({
         TargetContent(
           align: ContentAlign.custom,
           customPosition: CustomTargetContentPosition(top: centerY),
-          child: _tourText(context, context.l10n.tourDesignerPreview),
+          child: tourText(context, context.l10n.tourDesignerPreview),
         ),
       ],
     ),
@@ -110,20 +96,16 @@ void showDesignerTour(
   required GlobalKey previewButtonKey,
   VoidCallback? onFinish,
 }) {
-  final targets = _buildDesignerTourTargets(
-    aiPromptKey: aiPromptKey,
-    nameFieldKey: nameFieldKey,
-    fieldsSectionKey: fieldsSectionKey,
-    scheduleFoldKey: scheduleFoldKey,
-    previewButtonKey: previewButtonKey,
-    context: context,
-  );
-
-  TutorialCoachMark(
-    targets: targets,
-    colorShadow: Colors.black,
-    opacityShadow: 0.8,
-    hideSkip: true,
+  runTour(
+    context,
+    targets: _buildDesignerTourTargets(
+      aiPromptKey: aiPromptKey,
+      nameFieldKey: nameFieldKey,
+      fieldsSectionKey: fieldsSectionKey,
+      scheduleFoldKey: scheduleFoldKey,
+      previewButtonKey: previewButtonKey,
+      context: context,
+    ),
     onFinish: onFinish,
-  ).show(context: context);
+  );
 }
