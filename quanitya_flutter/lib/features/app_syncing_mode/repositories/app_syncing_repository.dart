@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
 import 'package:quanitya_flutter/infrastructure/core/try_operation.dart';
@@ -27,7 +28,9 @@ class AppSyncingRepository {
   Future<AppOperatingSetting> getSettings() {
     return tryMethod(() async {
       await _ensureInitialized();
-      return await _db.select(_db.appOperatingSettings).getSingle();
+      final settings = await _db.select(_db.appOperatingSettings).getSingle();
+      debugPrint('📋 AppSyncingRepository: getSettings() → mode=${settings.mode.name}, connected=${settings.isConnected}');
+      return settings;
     }, AppSyncingException.new, 'getSettings');
   }
 
@@ -63,6 +66,7 @@ class AppSyncingRepository {
       if (updated == 0) {
         throw const AppSyncingException('Failed to update syncing mode');
       }
+      debugPrint('✅ AppSyncingRepository: Mode updated to ${mode.name} ($updated rows)');
     }, AppSyncingException.new, 'updateMode');
   }
 

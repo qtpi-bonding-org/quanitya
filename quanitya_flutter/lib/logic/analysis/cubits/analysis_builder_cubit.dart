@@ -21,6 +21,38 @@ import '../services/wasm_analysis_service.dart';
 import '../models/analysis_output.dart';
 import 'analysis_builder_state.dart';
 
+/// Default hint snippet shown in the code editor when no script is loaded.
+/// Documents the JS ↔ Flutter API so users know what's available.
+const analysisHintSnippet = '''
+// ── data in ──────────────────────────────────
+// data.values      → your field values (any type):
+//   number:  [7.5, 8, 6, ...]
+//   string:  ["good", "bad", ...]
+//   bool:    [true, false, ...]
+//   group:   [{sleep: 7, mood: "ok"}, ...]
+// data.timestamps  → [1705000000000, ...]  (ms epoch)
+// data.getDates()  → [Date, Date, ...]
+// data.col()       → [{value, timestamp, date}, ...]
+//
+// ── libraries ────────────────────────────────
+// ss / simpleStatistics  (simple-statistics)
+// jstat                  (jStat)
+//
+// ── return (depends on output mode) ──────────
+// scalar: return 42;
+//         return {label: "Mean", value: 7.5, unit: "kg"};
+//         return [{label: "A", value: 1}, ...];
+//
+// vector: return {label: "Dist", values: [1, 2, 3]};
+//         return [{label: "A", values: [...]}, ...];
+//
+// matrix: return {label: "Series", values: [...],
+//                 timestamps: [ms, ...]};
+// ─────────────────────────────────────────────
+
+return ss.mean(data.values);
+''';
+
 @injectable
 class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
   final IAnalysisScriptRepository _repository;
@@ -86,7 +118,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         availableFieldNames: availableFields,
         availableScripts: existing,
         selectedScriptId: script?.id,
-        snippet: script?.snippet ?? '',
+        snippet: script?.snippet ?? analysisHintSnippet,
         reasoning: script?.reasoning ?? '',
         outputMode: script?.outputMode ?? AnalysisOutputMode.scalar,
         snippetLanguage: script?.snippetLanguage ?? AnalysisSnippetLanguage.js,
@@ -134,7 +166,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
   void newScript() {
     emit(state.copyWith(
       selectedScriptId: null,
-      snippet: '',
+      snippet: analysisHintSnippet,
       reasoning: '',
       outputMode: AnalysisOutputMode.scalar,
       snippetLanguage: AnalysisSnippetLanguage.js,
