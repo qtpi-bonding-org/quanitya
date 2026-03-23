@@ -75,7 +75,6 @@ class LogEntrySheet extends StatefulWidget {
 
     LooseInsertSheet.show(
       context: context,
-      title: data.template.name,
       builder: (_) => LogEntrySheet._(
         mode: LogEntrySheetMode.create,
         template: data.template,
