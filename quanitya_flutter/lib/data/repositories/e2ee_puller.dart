@@ -501,33 +501,34 @@ class E2EEPuller implements IE2EEPuller {
 
     final stream = _buildFilteredStream(queryBuilder(), whereClause, checkpoint);
 
+    // Track the effective checkpoint locally to filter already-processed records
+    // without resubscribing. Drift's watch() re-emits on any table write, so we
+    // filter in the listener instead of rebuilding the query.
+    DateTime effectiveCheckpoint = checkpoint ?? DateTime.fromMillisecondsSinceEpoch(0);
+
     _subscriptions[tableName] = stream.listen((records) async {
-      if (records.isEmpty) return;
-
-      debugPrint('E2EEPuller: Processing ${records.length} $tableName');
-      await processor.processEncryptedRecords(records);
-
-      // Find max updated_at in this batch
-      DateTime maxUpdatedAt = checkpoint ?? DateTime.fromMillisecondsSinceEpoch(0);
-      for (final record in records) {
+      // Filter out records at or below the current checkpoint — Drift may
+      // re-emit them after unrelated writes to the same table.
+      final newRecords = records.where((record) {
         final updatedAt = (record as dynamic).updatedAt as DateTime;
-        if (updatedAt.isAfter(maxUpdatedAt)) {
-          maxUpdatedAt = updatedAt;
+        return updatedAt.isAfter(effectiveCheckpoint);
+      }).toList();
+
+      if (newRecords.isEmpty) return;
+
+      debugPrint('E2EEPuller: Processing ${newRecords.length} $tableName');
+      await processor.processEncryptedRecords(newRecords);
+
+      // Advance checkpoint
+      for (final record in newRecords) {
+        final updatedAt = (record as dynamic).updatedAt as DateTime;
+        if (updatedAt.isAfter(effectiveCheckpoint)) {
+          effectiveCheckpoint = updatedAt;
         }
       }
 
-      // Advance checkpoint and resubscribe with the new value.
-      // With strict `>`, the resubscribed query excludes the just-processed
-      // records (their updated_at == checkpoint, not > checkpoint).
-      await _updateCheckpoint(tableName, maxUpdatedAt);
+      await _updateCheckpoint(tableName, effectiveCheckpoint);
       _lastSyncTime = DateTime.now();
-
-      _startWatching(
-        tableName: tableName,
-        queryBuilder: queryBuilder,
-        whereClause: whereClause,
-        processor: processor,
-      );
     });
   }
 
