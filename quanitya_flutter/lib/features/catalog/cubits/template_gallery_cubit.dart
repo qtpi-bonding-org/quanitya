@@ -84,6 +84,14 @@ class TemplateGalleryCubit extends QuanityaCubit<TemplateGalleryState> {
     }, emitLoading: true);
   }
 
+  /// Clear the current preview slug so the same template can be re-opened.
+  void clearPreview() {
+    emit(state.copyWith(
+      previewSlug: null,
+      lastOperation: null,
+    ));
+  }
+
   /// Import all currently selected templates.
   ///
   /// Tracks per-template success/failure. After the loop:

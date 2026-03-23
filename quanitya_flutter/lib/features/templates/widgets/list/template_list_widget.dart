@@ -33,18 +33,26 @@ class _TemplateListWidgetState extends State<TemplateListWidget> {
     final tourService = getIt<GuidedTourService>();
     if (!await tourService.shouldShowTour(GuidedTourService.homeKey)) return;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-      if (HomeTourKeys.templateCard.currentContext == null) return;
+    // Wait two frames to ensure all keyed widgets are fully laid out
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
 
-      showHomeTour(
-        context,
-        temporalLabelsKey: HomeTourKeys.temporalLabels,
-        templateCardKey: HomeTourKeys.templateCard,
-        quickEntryKey: HomeTourKeys.quickEntry,
-        resultsTabKey: HomeTourKeys.resultsTab,
-      );
-      await tourService.markTourSeen(GuidedTourService.homeKey);
+        // All keys must be attached before the tour can highlight them
+        if (HomeTourKeys.temporalLabels.currentContext == null ||
+            HomeTourKeys.designerButton.currentContext == null ||
+            HomeTourKeys.resultsTab.currentContext == null) {
+          return;
+        }
+
+        showHomeTour(
+          context,
+          temporalLabelsKey: HomeTourKeys.temporalLabels,
+          designerButtonKey: HomeTourKeys.designerButton,
+          resultsTabKey: HomeTourKeys.resultsTab,
+          onFinish: () => tourService.markTourSeen(GuidedTourService.homeKey),
+        );
+      });
     });
   }
 
@@ -119,8 +127,6 @@ class _TemplateListWidgetState extends State<TemplateListWidget> {
                             emoji: item.aesthetics.emoji,
                             color: item.aesthetics.palette.accents.firstOrNull,
                             template: item.template,
-                            tourCardKey: i == 0 ? HomeTourKeys.templateCard : null,
-                            tourQuickEntryKey: i == 0 ? HomeTourKeys.quickEntry : null,
                             onIconTap: () {
                               AppNavigation.toTemplateDesigner(context, item);
                             },

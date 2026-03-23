@@ -7,8 +7,8 @@ import '../../../support/extensions/context_extensions.dart';
 
 /// A read-only gallery card for community template browsing.
 ///
-/// Simplified version of [TrackerCard] — shows emoji + name only,
-/// with a teal checkmark overlay when selected. No action buttons.
+/// Shows emoji + name, with a teal checkmark overlay when selected.
+/// Uses [InkWell] for proper 48dp touch targets and feedback.
 class GalleryCard extends StatelessWidget {
   final String emoji;
   final String name;
@@ -30,57 +30,61 @@ class GalleryCard extends StatelessWidget {
     return Semantics(
       button: true,
       label: name,
+      selected: isSelected,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // 1. Emoji with optional selection overlay
-            Center(
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Text(
-                    emoji,
-                    style: TextStyle(fontSize: AppSizes.iconXLarge),
-                  ),
-                  if (isSelected)
-                    Positioned(
-                      top: -2,
-                      right: -6,
-                      child: Icon(
-                        Icons.check_circle,
-                        size: AppSizes.iconMedium,
-                        color: palette.interactableColor,
-                      ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: AppSizes.buttonHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Emoji with optional selection overlay
+              Center(
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Text(
+                      emoji,
+                      style: TextStyle(fontSize: AppSizes.fontMassive),
                     ),
-                ],
-              ),
-            ),
-
-            VSpace.x05,
-
-            // 2. Name (uppercase, spaced lettering)
-            Padding(
-              padding: AppPadding.horizontalSingle,
-              child: Text(
-                name.toUpperCase(),
-                style: context.text.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.1,
-                  color: isSelected
-                      ? palette.interactableColor
-                      : context.colors.textPrimary,
+                    if (isSelected)
+                      Positioned(
+                        top: -2,
+                        right: -6,
+                        child: Icon(
+                          Icons.check_circle,
+                          size: AppSizes.iconMedium,
+                          color: palette.interactableColor,
+                        ),
+                      ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
 
-            VSpace.x1,
-          ],
+              VSpace.x05,
+
+              // Name
+              Padding(
+                padding: AppPadding.horizontalSingle,
+                child: Text(
+                  name.toUpperCase(),
+                  style: context.text.labelSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.1,
+                    color: isSelected
+                        ? palette.interactableColor
+                        : palette.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+
+              VSpace.x1,
+            ],
+          ),
         ),
       ),
     );

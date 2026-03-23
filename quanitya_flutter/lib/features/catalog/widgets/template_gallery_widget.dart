@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
@@ -11,7 +12,7 @@ import 'gallery_card.dart';
 
 /// Reusable template gallery widget with category filtering and a responsive grid.
 ///
-/// Shows a horizontal chip row for category selection (including "All")
+/// Shows a wrapping chip group for category selection (including "All")
 /// and a scrollable grid of [GalleryCard] widgets below.
 class TemplateGalleryWidget extends StatelessWidget {
   /// Called when a gallery card is tapped.
@@ -32,26 +33,23 @@ class TemplateGalleryWidget extends StatelessWidget {
 
         return Column(
           children: [
-            // 1. Category chip row (horizontal scroll)
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
+            // 1. Category chips (wrapping)
+            Wrap(
+              spacing: AppSizes.spaceHalf,
+              runSpacing: AppSizes.spaceHalf,
+              children: [
+                PenCircledChip(
+                  label: context.l10n.catalogFilterAll,
+                  isSelected: state.selectedCategory == null,
+                  onTap: () => cubit.selectCategory(null),
+                ),
+                for (final category in categories)
                   PenCircledChip(
-                    label: context.l10n.catalogFilterAll,
-                    isSelected: state.selectedCategory == null,
-                    onTap: () => cubit.selectCategory(null),
+                    label: category.name,
+                    isSelected: state.selectedCategory == category.id,
+                    onTap: () => cubit.selectCategory(category.id),
                   ),
-                  for (final category in categories) ...[
-                    HSpace.x05,
-                    PenCircledChip(
-                      label: category.name,
-                      isSelected: state.selectedCategory == category.id,
-                      onTap: () => cubit.selectCategory(category.id),
-                    ),
-                  ],
-                ],
-              ),
+              ],
             ),
 
             VSpace.x2,

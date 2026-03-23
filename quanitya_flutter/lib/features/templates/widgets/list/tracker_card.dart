@@ -18,8 +18,6 @@ class TrackerCard extends StatelessWidget {
   final VoidCallback? onIconTap; // Navigate to template editor
   final VoidCallback? onEdit;
   final VoidCallback? onQuickAction;
-  final GlobalKey? tourCardKey;
-  final GlobalKey? tourQuickEntryKey;
 
   const TrackerCard({
     super.key,
@@ -31,8 +29,6 @@ class TrackerCard extends StatelessWidget {
     this.onIconTap,
     this.onEdit,
     this.onQuickAction,
-    this.tourCardKey,
-    this.tourQuickEntryKey,
   });
 
   @override
@@ -40,7 +36,7 @@ class TrackerCard extends StatelessWidget {
     // No-Card Design: Content sits directly on the page.
     // Alignment provides the structure.
     
-    Widget quickActionWidget = QuanityaIconButton(
+    final quickActionWidget = QuanityaIconButton(
       icon: Icons.bolt,
       iconSize: AppSizes.iconMedium,
       tooltip: _canInstantLog()
@@ -49,9 +45,6 @@ class TrackerCard extends StatelessWidget {
       onPressed: _canInstantLog() ? onQuickAction : null,
       // Uses interactableColor by default
     );
-    if (tourQuickEntryKey != null) {
-      quickActionWidget = KeyedSubtree(key: tourQuickEntryKey!, child: quickActionWidget);
-    }
 
     final column = Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -120,9 +113,6 @@ class TrackerCard extends StatelessWidget {
       ],
     );
 
-    if (tourCardKey != null) {
-      return KeyedSubtree(key: tourCardKey!, child: column);
-    }
     return column;
   }
 

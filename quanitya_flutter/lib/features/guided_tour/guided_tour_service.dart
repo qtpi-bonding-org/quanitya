@@ -30,8 +30,7 @@ class GuidedTourService {
 /// Only one instance of each target exists at a time.
 class HomeTourKeys {
   static final temporalLabels = GlobalKey(debugLabel: 'tour_temporal_labels');
-  static final templateCard = GlobalKey(debugLabel: 'tour_template_card');
-  static final quickEntry = GlobalKey(debugLabel: 'tour_quick_entry');
+  static final designerButton = GlobalKey(debugLabel: 'tour_designer_button');
   static final resultsTab = GlobalKey(debugLabel: 'tour_results_tab');
 }
 

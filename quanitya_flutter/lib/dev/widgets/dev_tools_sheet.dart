@@ -24,6 +24,7 @@ import '../../data/interfaces/log_entry_interface.dart';
 import '../../infrastructure/notifications/notification_service.dart';
 import '../../logic/log_entries/models/log_entry.dart';
 import '../../logic/schedules/services/schedule_generator_service.dart';
+import '../../features/guided_tour/guided_tour_service.dart';
 import '../services/dev_seeder_service.dart';
 
 /// Shows a bottom sheet with dev tools
@@ -554,11 +555,15 @@ class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
           final seeder = GetIt.instance<DevSeederService>();
           await seeder.clearAll();
 
-          // 3. Sign out (clears all crypto keys including iCloud Keychain)
+          // 3. Reset guided tour flags
+          final tourService = GetIt.instance<GuidedTourService>();
+          await tourService.resetAllTours();
+
+          // 4. Sign out (clears all crypto keys including iCloud Keychain)
           final authService = GetIt.instance<AuthService>();
           await authService.signOut();
 
-          // 4. Reset router key check and navigate to onboarding
+          // 5. Reset router key check and navigate to onboarding
           AppRouter.resetKeyCheck();
           if (mounted) {
             navigator.pop();

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../app_router.dart';
+import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
+import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
@@ -15,11 +18,11 @@ import '../../../support/extensions/context_extensions.dart';
 import '../../templates/widgets/shared/template_preview.dart';
 import '../cubits/template_gallery_cubit.dart';
 import '../models/catalog_data.dart';
-import '../widgets/template_gallery_widget.dart';
+import '../widgets/gallery_card.dart';
 
 /// Full-screen gallery page shown after onboarding.
 ///
-/// Wraps [TemplateGalleryWidget] with a header, preview sheets, and a
+/// Wraps the gallery with a header, preview sheets, and a
 /// sticky footer button that lets the user skip or import selected templates.
 class TemplateGalleryPage extends StatelessWidget {
   const TemplateGalleryPage({super.key});
@@ -47,7 +50,8 @@ class _GalleryPageBody extends StatelessWidget {
                 curr.lastOperation == TemplateGalleryOperation.preview &&
                 curr.status == UiFlowStatus.success &&
                 curr.previewSlug != null &&
-                prev.status != curr.status,
+                (prev.previewSlug != curr.previewSlug ||
+                    prev.status != curr.status),
             listener: (context, state) {
               _openPreviewSheet(context, state);
             },
@@ -55,34 +59,11 @@ class _GalleryPageBody extends StatelessWidget {
               builder: (context, state) {
                 return Column(
                   children: [
-                    // Header
-                    Padding(
-                      padding: AppPadding.page,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          VSpace.x2,
-                          Text(
-                            context.l10n.galleryTitle,
-                            style: context.text.headlineSmall,
-                          ),
-                          VSpace.x05,
-                          Text(
-                            context.l10n.gallerySubtitle,
-                            style: context.text.bodySmall?.copyWith(
-                              color: context.colors.textSecondary,
-                            ),
-                          ),
-                          VSpace.x2,
-                        ],
-                      ),
-                    ),
+                    // Scrollable: header + chips + grid
+                    Expanded(child: _buildScrollableBody(context, state)),
 
-                    // Body
-                    Expanded(child: _buildBody(context, state)),
-
-                    // Footer
-                    _Footer(),
+                    // Footer (fixed at bottom)
+                    const _Footer(),
                   ],
                 );
               },
@@ -93,9 +74,10 @@ class _GalleryPageBody extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, TemplateGalleryState state) {
+  Widget _buildScrollableBody(
+      BuildContext context, TemplateGalleryState state) {
     if (state.status == UiFlowStatus.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: QuanityaEmptyState());
     }
 
     if (state.status == UiFlowStatus.failure) {
@@ -109,7 +91,7 @@ class _GalleryPageBody extends StatelessWidget {
             Text(
               context.l10n.galleryOffline,
               style: context.text.bodyMedium?.copyWith(
-                color: context.colors.textSecondary,
+                color: QuanityaPalette.primary.textSecondary,
               ),
             ),
           ],
@@ -117,9 +99,75 @@ class _GalleryPageBody extends StatelessWidget {
       );
     }
 
-    return Padding(
+    final cubit = context.read<TemplateGalleryCubit>();
+    final categories = state.catalog?.categories ?? [];
+    final templates = cubit.filteredTemplates;
+
+    return SingleChildScrollView(
       padding: AppPadding.pageHorizontal,
-      child: TemplateGalleryWidget(onCardTap: (entry) => _showPreview(context, entry)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: AppPadding.verticalDouble,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                VSpace.x2,
+                Text(
+                  context.l10n.galleryTitle,
+                  style: context.text.headlineMedium,
+                ),
+                VSpace.x05,
+                Text(
+                  context.l10n.gallerySubtitle,
+                  style: context.text.bodyMedium?.copyWith(
+                    color: QuanityaPalette.primary.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Category chips (wrapping)
+          Wrap(
+            spacing: AppSizes.spaceHalf,
+            runSpacing: AppSizes.spaceHalf,
+            children: [
+              PenCircledChip(
+                label: context.l10n.catalogFilterAll,
+                isSelected: state.selectedCategory == null,
+                onTap: () => cubit.selectCategory(null),
+              ),
+              for (final category in categories)
+                PenCircledChip(
+                  label: category.name,
+                  isSelected: state.selectedCategory == category.id,
+                  onTap: () => cubit.selectCategory(category.id),
+                ),
+            ],
+          ),
+
+          VSpace.x2,
+
+          // Template grid
+          LayoutGroup.grid(
+            minItemWidth: 20,
+            children: [
+              for (final entry in templates)
+                GalleryCard(
+                  emoji: entry.emoji,
+                  name: entry.name,
+                  isSelected: cubit.isSelected(entry.slug),
+                  onTap: () => _showPreview(context, entry),
+                ),
+            ],
+          ),
+
+          VSpace.x2,
+        ],
+      ),
     );
   }
 
@@ -163,11 +211,13 @@ class _GalleryPageBody extends StatelessWidget {
             ),
         ],
       ),
-    );
+    ).whenComplete(() => cubit.clearPreview());
   }
 }
 
 class _Footer extends StatelessWidget {
+  const _Footer();
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TemplateGalleryCubit, TemplateGalleryState>(

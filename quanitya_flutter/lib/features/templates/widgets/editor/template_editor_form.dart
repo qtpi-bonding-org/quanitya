@@ -77,8 +77,8 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
         fieldsSectionKey: DesignerTourKeys.fieldsSection,
         scheduleFoldKey: DesignerTourKeys.scheduleFold,
         previewButtonKey: DesignerTourKeys.previewButton,
+        onFinish: () => tourService.markTourSeen(GuidedTourService.designerKey),
       );
-      await tourService.markTourSeen(GuidedTourService.designerKey);
     });
   }
 

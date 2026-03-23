@@ -125,12 +125,10 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
               TemporalPresentPanel(),
               TemporalFuturePanel(),
             ],
+            labelsKey: HomeTourKeys.temporalLabels,
             labels: [
               _buildTemporalLabel(context, '-t'),
-              KeyedSubtree(
-                key: HomeTourKeys.temporalLabels,
-                child: _buildTemporalLabel(context, 't'),
-              ),
+              _buildTemporalLabel(context, 't'),
               _buildTemporalLabel(context, '+t'),
             ],
             semanticTabLabels: [
@@ -184,20 +182,25 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                           }
                         ),
                       if (_currentIndex == 1)
-                        QuanityaIconButton(
-                          icon: Icons.assignment_add,
-                          iconSize: AppSizes.iconMedium,
-                          color: palette.interactableColor,
-                          tooltip: context.l10n.createTemplateTitle,
-                          onPressed: () => AppNavigation.toTemplateDesigner(context),
+                        KeyedSubtree(
+                          key: HomeTourKeys.designerButton,
+                          child: QuanityaIconButton(
+                            icon: Icons.assignment_add,
+                            iconSize: AppSizes.iconMedium,
+                            color: palette.interactableColor,
+                            tooltip: context.l10n.createTemplateTitle,
+                            onPressed: () => AppNavigation.toTemplateDesigner(context),
+                          ),
                         ),
                       if (_currentIndex == 2)
-                        QuanityaIconButton(
-                          icon: Icons.alarm_add,
-                          iconSize: AppSizes.iconMedium,
-                          color: palette.interactableColor,
-                          tooltip: context.l10n.addSchedule,
-                          onPressed: () => _addSchedule(context),
+                        Builder(
+                          builder: (context) => QuanityaIconButton(
+                            icon: Icons.alarm_add,
+                            iconSize: AppSizes.iconMedium,
+                            color: palette.interactableColor,
+                            tooltip: context.l10n.addSchedule,
+                            onPressed: () => _addSchedule(context),
+                          ),
                         ),
                     ],
                   ),

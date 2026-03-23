@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
+import '../../design_system/primitives/app_sizes.dart';
 import '../../support/extensions/context_extensions.dart';
+
+Widget _tourText(BuildContext context, String text) {
+  return Padding(
+    padding: EdgeInsets.symmetric(vertical: AppSizes.space * 2),
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      style: context.text.bodyMedium?.copyWith(
+        color: Colors.white,
+        height: 1.5,
+      ),
+    ),
+  );
+}
 
 List<TargetFocus> _buildDesignerTourTargets({
   required GlobalKey aiPromptKey,
@@ -11,19 +26,19 @@ List<TargetFocus> _buildDesignerTourTargets({
   required GlobalKey previewButtonKey,
   required BuildContext context,
 }) {
+  final centerY = MediaQuery.sizeOf(context).height * 0.4;
+
   return [
     TargetFocus(
       identify: 'ai_prompt',
       keyTarget: aiPromptKey,
+      enableOverlayTab: true,
+      enableTargetTab: true,
       contents: [
         TargetContent(
-          align: ContentAlign.bottom,
-          child: Text(
-            context.l10n.tourDesignerAiPrompt,
-            style: context.text.bodyMedium?.copyWith(
-              color: Colors.white,
-            ),
-          ),
+          align: ContentAlign.custom,
+          customPosition: CustomTargetContentPosition(top: centerY),
+          child: _tourText(context, context.l10n.tourDesignerAiPrompt),
         ),
       ],
       shape: ShapeLightFocus.RRect,
@@ -31,15 +46,13 @@ List<TargetFocus> _buildDesignerTourTargets({
     TargetFocus(
       identify: 'name_field',
       keyTarget: nameFieldKey,
+      enableOverlayTab: true,
+      enableTargetTab: true,
       contents: [
         TargetContent(
-          align: ContentAlign.bottom,
-          child: Text(
-            context.l10n.tourDesignerNameField,
-            style: context.text.bodyMedium?.copyWith(
-              color: Colors.white,
-            ),
-          ),
+          align: ContentAlign.custom,
+          customPosition: CustomTargetContentPosition(top: centerY),
+          child: _tourText(context, context.l10n.tourDesignerNameField),
         ),
       ],
       shape: ShapeLightFocus.RRect,
@@ -47,15 +60,13 @@ List<TargetFocus> _buildDesignerTourTargets({
     TargetFocus(
       identify: 'fields_section',
       keyTarget: fieldsSectionKey,
+      enableOverlayTab: true,
+      enableTargetTab: true,
       contents: [
         TargetContent(
-          align: ContentAlign.bottom,
-          child: Text(
-            context.l10n.tourDesignerFields,
-            style: context.text.bodyMedium?.copyWith(
-              color: Colors.white,
-            ),
-          ),
+          align: ContentAlign.custom,
+          customPosition: CustomTargetContentPosition(top: centerY),
+          child: _tourText(context, context.l10n.tourDesignerFields),
         ),
       ],
       shape: ShapeLightFocus.RRect,
@@ -63,15 +74,13 @@ List<TargetFocus> _buildDesignerTourTargets({
     TargetFocus(
       identify: 'schedule_fold',
       keyTarget: scheduleFoldKey,
+      enableOverlayTab: true,
+      enableTargetTab: true,
       contents: [
         TargetContent(
-          align: ContentAlign.top,
-          child: Text(
-            context.l10n.tourDesignerSchedule,
-            style: context.text.bodyMedium?.copyWith(
-              color: Colors.white,
-            ),
-          ),
+          align: ContentAlign.custom,
+          customPosition: CustomTargetContentPosition(top: centerY),
+          child: _tourText(context, context.l10n.tourDesignerSchedule),
         ),
       ],
       shape: ShapeLightFocus.RRect,
@@ -79,15 +88,13 @@ List<TargetFocus> _buildDesignerTourTargets({
     TargetFocus(
       identify: 'preview_button',
       keyTarget: previewButtonKey,
+      enableOverlayTab: true,
+      enableTargetTab: true,
       contents: [
         TargetContent(
-          align: ContentAlign.top,
-          child: Text(
-            context.l10n.tourDesignerPreview,
-            style: context.text.bodyMedium?.copyWith(
-              color: Colors.white,
-            ),
-          ),
+          align: ContentAlign.custom,
+          customPosition: CustomTargetContentPosition(top: centerY),
+          child: _tourText(context, context.l10n.tourDesignerPreview),
         ),
       ],
     ),
@@ -101,6 +108,7 @@ void showDesignerTour(
   required GlobalKey fieldsSectionKey,
   required GlobalKey scheduleFoldKey,
   required GlobalKey previewButtonKey,
+  VoidCallback? onFinish,
 }) {
   final targets = _buildDesignerTourTargets(
     aiPromptKey: aiPromptKey,
@@ -116,5 +124,6 @@ void showDesignerTour(
     colorShadow: Colors.black,
     opacityShadow: 0.8,
     hideSkip: true,
+    onFinish: onFinish,
   ).show(context: context);
 }

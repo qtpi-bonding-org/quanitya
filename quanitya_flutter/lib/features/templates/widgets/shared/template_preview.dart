@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_color_palette/flutter_color_palette.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
+import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/styled_field_container.dart';
 import '../../../../support/extensions/color_extensions.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../logic/templates/enums/ai/allowed_font.dart';
 import '../../../../logic/templates/enums/ai/template_preset.dart';
-import '../../../../logic/templates/models/shared/model_runtime_converter.dart';
 import '../../../../logic/templates/models/shared/template_aesthetics.dart';
 import '../../../../logic/templates/models/shared/template_field.dart';
 import '../../../../logic/templates/models/shared/tracker_template.dart';
@@ -146,8 +145,6 @@ class TemplatePreview extends StatefulWidget {
 
 class _TemplatePreviewState extends State<TemplatePreview> {
   late final Map<String, dynamic> _previewValues;
-  late final ModelRuntimeConverter _converter;
-  late final IColorPalette _palette;
 
   // Resolved accent colors from aesthetics
   Color? _accent1;
@@ -158,11 +155,6 @@ class _TemplatePreviewState extends State<TemplatePreview> {
   @override
   void initState() {
     super.initState();
-    _converter = ModelRuntimeConverter();
-    _palette = widget.aesthetics != null
-        ? _converter.toColorPalette(widget.aesthetics!.palette)
-        : _getDefaultPalette();
-
     _resolveAestheticsColors();
     _previewValues = Map<String, dynamic>.from(widget.initialValues ?? {});
     _initializeDefaultValues();
@@ -178,16 +170,6 @@ class _TemplatePreviewState extends State<TemplatePreview> {
     if (accents.length > 1) _accent2 = accents[1].toColor();
     if (tones.isNotEmpty) _tone1 = tones[0].toColor();
     if (tones.length > 1) _tone2 = tones[1].toColor();
-  }
-
-  IColorPalette _getDefaultPalette() {
-    return AppColorPalette.enumerated(
-      colors: QuanityaPalette.category10,
-      neutrals: [
-        QuanityaPalette.primary.textPrimary,
-        QuanityaPalette.primary.backgroundPrimary,
-      ],
-    );
   }
 
   void _initializeDefaultValues() {
@@ -336,54 +318,27 @@ class _TemplatePreviewState extends State<TemplatePreview> {
   Widget _buildIconOrEmoji() {
     final aesthetics = widget.aesthetics;
 
-    // Emoji first
+    // Emoji first — render directly, no container
     if (aesthetics?.emoji != null && aesthetics!.emoji!.isNotEmpty) {
-      return Container(
-        width: AppSizes.iconXLarge,
-        height: AppSizes.iconXLarge,
-        decoration: BoxDecoration(
-          color: _accentColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          aesthetics.emoji!,
-          style: TextStyle(fontSize: AppSizes.iconLarge),
-        ),
+      return Text(
+        aesthetics.emoji!,
+        style: TextStyle(fontSize: AppSizes.fontMassive),
       );
     }
 
-    // Icon
+    // Icon — render directly with accent color
     if (aesthetics?.icon != null && aesthetics!.icon!.isNotEmpty) {
       final iconData = IconResolver.resolve(aesthetics.icon!);
       if (iconData != null) {
-        return Container(
-          width: AppSizes.iconXLarge,
-          height: AppSizes.iconXLarge,
-          decoration: BoxDecoration(
-            color: _accentColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-          ),
-          alignment: Alignment.center,
-          child: Icon(iconData, size: AppSizes.iconLarge, color: _accentColor),
-        );
+        return Icon(iconData, size: AppSizes.fontMassive, color: _accentColor);
       }
     }
 
     // Default
-    return Container(
-      width: AppSizes.iconXLarge,
-      height: AppSizes.iconXLarge,
-      decoration: BoxDecoration(
-        color: _accentColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-      ),
-      alignment: Alignment.center,
-      child: Icon(
-        Icons.assignment_outlined,
-        size: AppSizes.iconLarge,
-        color: _accentColor,
-      ),
+    return Icon(
+      Icons.assignment_outlined,
+      size: AppSizes.fontMassive,
+      color: _accentColor,
     );
   }
 
@@ -434,40 +389,13 @@ class _TemplatePreviewState extends State<TemplatePreview> {
       padding: AppPadding.page,
       child: Column(
         children: [
-          Divider(height: 1, color: _tone2 ?? Theme.of(context).dividerColor),
           VSpace.x2,
           Row(
             children: widget.actions.map((action) {
-              final isLast = action == widget.actions.last;
               return Expanded(
-                flex: action.isPrimary ? 2 : 1,
-                child: Padding(
-                  padding: isLast
-                      ? EdgeInsets.zero
-                      : AppPadding.horizontalSingle,
-                  child: action.isPrimary
-                      ? FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: _accentColor,
-                            foregroundColor: QuanityaPalette.primary.backgroundPrimary,
-                            textStyle: _bodyStyle.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          onPressed: action.onPressed,
-                          icon: Icon(action.icon),
-                          label: Text(action.label),
-                        )
-                      : OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: _accentColor,
-                            side: BorderSide(color: _accentColor),
-                            textStyle: _bodyStyle,
-                          ),
-                          onPressed: action.onPressed,
-                          icon: Icon(action.icon),
-                          label: Text(action.label),
-                        ),
+                child: QuanityaTextButton(
+                  text: action.label,
+                  onPressed: action.onPressed,
                 ),
               );
             }).toList(),
