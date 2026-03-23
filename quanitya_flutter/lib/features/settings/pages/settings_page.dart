@@ -4,10 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:go_router/go_router.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
-import '../../../../app_router.dart';
 import '../../../../infrastructure/auth/auth_service.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
@@ -20,11 +18,14 @@ import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart
 import '../../guided_tour/guided_tour_service.dart';
 import '../../sync_status/widgets/sync_status_indicator.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
-import '../../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../../infrastructure/webhooks/models/webhook_model.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
+import '../../../../data/sync/powersync_service.dart';
+import '../../../../infrastructure/purchase/entitlement_cache.dart';
+import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
+import '../../purchase/cubits/paid_account_cubit.dart';
 import '../cubits/data_export/data_export_cubit.dart';
 import '../cubits/recovery_key/recovery_key_cubit.dart';
 import '../cubits/device_management/device_management_cubit.dart';
@@ -736,8 +737,6 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
-    final goRouter = GoRouter.of(context);
-
     QuanityaConfirmationDialog.show(
       context: context,
       title: context.l10n.deleteAccountTitle,
@@ -749,24 +748,50 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
         setState(() => _isLoading = true);
 
         try {
-          // Delete server-side data if auth service is available
+          // Delete server-side account and all associated data
           if (GetIt.instance.isRegistered<AuthService>()) {
-            try {
-              await GetIt.instance<AuthService>().deleteAccount();
-            } catch (_) {
-              // Server deletion may fail if offline or local-only mode.
-              // Still proceed with local wipe so the user can reset.
-            }
+            await GetIt.instance<AuthService>().deleteAccount();
           }
 
-          // Wipe local keys (this also clears secure storage)
-          final keyRepo = GetIt.instance<ICryptoKeyRepository>();
-          await keyRepo.clearKeys();
+          // Clear registration flag so the app knows it's no longer registered
+          if (GetIt.instance.isRegistered<AuthService>()) {
+            await GetIt.instance<AuthService>().clearRegistrationFlag();
+          }
 
-          AppRouter.resetKeyCheck();
+          // Clear entitlement cache (server data is gone)
+          if (GetIt.instance.isRegistered<EntitlementCache>()) {
+            await GetIt.instance<EntitlementCache>().clear();
+          }
+
+          // Reset paid account flag
+          if (GetIt.instance.isRegistered<PaidAccountCubit>()) {
+            await GetIt.instance<PaidAccountCubit>().reset();
+          }
+
+          // Disconnect PowerSync (nothing to sync anymore)
+          if (GetIt.instance.isRegistered<IPowerSyncService>()) {
+            await GetIt.instance<IPowerSyncService>().disconnect();
+          }
+
+          // Switch back to local mode
+          if (GetIt.instance.isRegistered<AppSyncingCubit>()) {
+            await GetIt.instance<AppSyncingCubit>().switchToLocal();
+          }
 
           if (mounted) {
-            goRouter.goNamed(RouteNames.onboarding);
+            PostItToast.show(
+              context,
+              message: context.l10n.deleteAccountSuccess,
+              type: PostItType.info,
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            PostItToast.show(
+              context,
+              message: context.l10n.deleteAccountFailed,
+              type: PostItType.error,
+            );
           }
         } finally {
           if (mounted) setState(() => _isLoading = false);
