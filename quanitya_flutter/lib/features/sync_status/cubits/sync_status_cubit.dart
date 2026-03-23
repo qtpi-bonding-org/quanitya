@@ -10,7 +10,7 @@ import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../app_syncing_mode/models/app_syncing_mode.dart';
 import 'sync_status_state.dart';
 
-@injectable
+@lazySingleton
 class SyncStatusCubit extends QuanityaCubit<SyncStatusState> {
   final IPowerSyncService _powerSyncService;
   StreamSubscription<SyncStatus>? _statusSubscription;
@@ -53,6 +53,15 @@ class SyncStatusCubit extends QuanityaCubit<SyncStatusState> {
     } else {
       startListening(mode);
     }
+  }
+
+  /// Called when sync entitlement expires (insufficientCredits from server).
+  void onSyncExpired() {
+    _statusSubscription?.cancel();
+    emit(state.copyWith(
+      connectionState: SyncConnectionState.error,
+      errorMessage: 'Sync credits expired',
+    ));
   }
 
   Future<void> retrySync() => tryOperation(() async {

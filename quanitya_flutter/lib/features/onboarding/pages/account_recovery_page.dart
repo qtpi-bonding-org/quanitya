@@ -19,6 +19,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/device_name_display.dart';
+import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
@@ -155,6 +156,13 @@ class _RecoveryForm extends StatelessWidget {
             debugPrint('🔑 Recovery: entitlements refreshed');
           } catch (e) {
             debugPrint('🔑 Recovery: entitlement refresh failed: $e');
+            if (context.mounted) {
+              PostItToast.show(
+                context,
+                message: context.l10n.recoveryEntitlementOffline,
+                type: PostItType.warning,
+              );
+            }
           }
 
           // Connect PowerSync if sync entitlement is active

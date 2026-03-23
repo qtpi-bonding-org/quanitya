@@ -15,6 +15,7 @@ import '../db/app_database.dart';
 import '../../infrastructure/config/dev_config.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../infrastructure/security/database_key_service.dart';
+import '../../features/sync_status/cubits/sync_status_cubit.dart';
 import '../../infrastructure/purchase/entitlement_cache.dart';
 import '../../infrastructure/purchase/entitlement_service.dart' show syncEntitlementTags;
 
@@ -302,6 +303,11 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
             return entry;
           }).toList();
           await cache.store(updated);
+
+          // Notify SyncStatusCubit singleton so UI updates
+          if (GetIt.instance.isRegistered<SyncStatusCubit>()) {
+            GetIt.instance<SyncStatusCubit>().onSyncExpired();
+          }
         } catch (_) {
           // Cache update is best-effort
         }

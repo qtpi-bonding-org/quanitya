@@ -102,6 +102,7 @@
   "validateRecoveryKey": "Validate Recovery Key",
   "actionValidate": "Validate",
   "settingsTutorialSection": "Tutorial",
+  "recoveryEntitlementOffline": "Could not load entitlements. Sync will be available when online.",
   "confirm": "Confirm",
   "import_": "Import",
   "exportData": "Export Data",

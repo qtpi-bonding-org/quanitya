@@ -57,8 +57,7 @@ class PurchaseTabContent extends StatelessWidget {
                 curr.status == UiFlowStatus.success &&
                 prev.status != curr.status,
             listener: (context, state) {
-              context.read<PaidAccountCubit>().markPurchased();
-
+              // markPurchased() now called in InAppPurchaseProvider.validateWithServer()
               context.read<EntitlementCubit>()
                 ..loadEntitlements()
                 ..checkSyncAccess()

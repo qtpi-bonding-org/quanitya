@@ -92,8 +92,7 @@ class _OfficePageState extends State<OfficePage> {
         BlocProvider(create: (_) => GetIt.instance<WebhookCubit>()..load()),
         BlocProvider.value(value: GetIt.instance<LlmProviderCubit>()..load()),
         BlocProvider.value(value: GetIt.instance<AppSyncingCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<SyncStatusCubit>()
-          ..startListening(GetIt.instance<AppSyncingCubit>().state.mode)),
+        BlocProvider.value(value: GetIt.instance<SyncStatusCubit>()),
         BlocProvider(create: (_) => GetIt.instance<PurchaseCubit>()),
         BlocProvider(create: (_) => GetIt.instance<EntitlementCubit>()),
         BlocProvider.value(value: GetIt.instance<PaidAccountCubit>()),

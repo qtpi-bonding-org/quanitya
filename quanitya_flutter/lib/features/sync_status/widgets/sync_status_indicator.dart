@@ -125,7 +125,7 @@ class SyncStatusIndicator extends StatelessWidget {
       SyncConnectionState.error => (
           Icons.cloud_off,
           palette.destructiveColor,
-          context.l10n.syncError,
+          state.errorMessage ?? context.l10n.syncError,
         ),
       SyncConnectionState.disconnected => (
           Icons.cloud_off,

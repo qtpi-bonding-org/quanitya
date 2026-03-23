@@ -17,6 +17,7 @@ import '../../crypto/data_encryption_service.dart';
 import '../../crypto/utils/hashcash.dart';
 import '../../device/device_info_service.dart';
 import 'package:get_it/get_it.dart';
+import '../../../features/purchase/cubits/paid_account_cubit.dart';
 import '../../../features/settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../../features/settings/repositories/llm_provider_config_repository.dart';
 import '../entitlement_cache.dart';
@@ -339,6 +340,11 @@ class InAppPurchaseProvider implements IPurchaseProvider {
               'amount=$validationAmount',
             );
 
+            // Mark as paid account (fires for all purchases including orphan recovery)
+            if (GetIt.instance.isRegistered<PaidAccountCubit>()) {
+              await GetIt.instance<PaidAccountCubit>().markPurchased();
+            }
+
             // Auto-switch LLM provider to Quanitya when AI credits are purchased
             if (validationTag == 'llm_calls') {
               await _llmConfigRepo.saveQuanityaSelection();
@@ -523,6 +529,8 @@ class InAppPurchaseProvider implements IPurchaseProvider {
     return null;
   }
 
+  final Set<String> _recoveringTransactions = {};
+
   void _handlePurchaseUpdates(List<iap.PurchaseDetails> purchaseDetailsList) {
     for (final details in purchaseDetailsList) {
       final result = _mapPurchaseDetails(details);
@@ -538,13 +546,18 @@ class InAppPurchaseProvider implements IPurchaseProvider {
       } else if (details.status == iap.PurchaseStatus.purchased ||
           details.status == iap.PurchaseStatus.restored) {
         // Orphaned transaction — no active purchase request waiting for this.
-        // Validate with server and completePurchase to clear Apple's queue.
-        _recoverOrphanedPurchase(result);
+        // Skip if already being recovered (prevents re-entry loop).
+        final txnId = result.transactionId ?? result.productId;
+        if (!_recoveringTransactions.contains(txnId)) {
+          _recoverOrphanedPurchase(result);
+        }
       }
     }
   }
 
   Future<void> _recoverOrphanedPurchase(PurchaseResult result) async {
+    final txnId = result.transactionId ?? result.productId;
+    _recoveringTransactions.add(txnId);
     try {
       debugPrint('_recoverOrphanedPurchase: recovering '
           'productId=${result.productId}, '
@@ -566,6 +579,8 @@ class InAppPurchaseProvider implements IPurchaseProvider {
               'completePurchase also failed: $e2');
         }
       }
+    } finally {
+      _recoveringTransactions.remove(txnId);
     }
   }
 

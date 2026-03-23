@@ -31,6 +31,7 @@ import '../logic/schedules/services/schedule_generator_service.dart';
 import '../features/settings/services/tested_models_service.dart';
 import '../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../features/purchase/cubits/paid_account_cubit.dart';
+import '../features/sync_status/cubits/sync_status_cubit.dart';
 import '../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../integrations/flutter/health/health_sync_service.dart';
 import 'bootstrap.config.dart';
@@ -208,6 +209,12 @@ Future<void> bootstrap() async {
           'Bootstrap: Skipping PowerSync (${!hasSyncAccess ? "no sync entitlement" : "not authenticated"})',
         );
       }
+    }
+
+    // 6.5. Initialize SyncStatusCubit — start listening to PowerSync status
+    if (getIt.isRegistered<SyncStatusCubit>()) {
+      final syncCubit = getIt<AppSyncingCubit>();
+      getIt<SyncStatusCubit>().startListening(syncCubit.state.mode);
     }
 
     // 7-11. Parallel initialization of independent services
