@@ -4,7 +4,7 @@ import 'purchase_models.dart';
 ///
 /// Each provider handles a specific payment rail. The orchestrator
 /// (IPurchaseService) delegates to the appropriate provider based on the rail.
-abstract class IPurchaseProvider {
+abstract class IDigitalPurchaseRepository {
   /// Which payment rail this provider handles.
   PurchaseRail get rail;
 

@@ -9,7 +9,7 @@ import '../core/try_operation.dart';
 import '../platform/platform_capability_service.dart';
 import '../public_submission/public_submission_service.dart';
 import 'entitlement_repository.dart';
-import 'i_purchase_provider.dart';
+import 'i_digital_purchase_repository.dart';
 import 'i_purchase_service.dart';
 import 'purchase_exception.dart';
 import 'purchase_models.dart';
@@ -21,7 +21,7 @@ class PurchaseService implements IPurchaseService {
   final PlatformCapabilityService _platformCaps;
   final EntitlementRepository _entitlementRepo;
   final LlmProviderConfigRepository _llmConfigRepo;
-  final Map<PurchaseRail, IPurchaseProvider> _providers = {};
+  final Map<PurchaseRail, IDigitalPurchaseRepository> _providers = {};
 
   PurchaseService(
     this._submissionService,
@@ -32,7 +32,7 @@ class PurchaseService implements IPurchaseService {
   );
 
   @override
-  void registerProvider(IPurchaseProvider provider) {
+  void registerProvider(IDigitalPurchaseRepository provider) {
     _providers[provider.rail] = provider;
     debugPrint('PurchaseService: Registered provider for ${provider.rail}');
   }
@@ -60,7 +60,7 @@ class PurchaseService implements IPurchaseService {
   }
 
   @override
-  Future<IPurchaseProvider?> getDefaultProvider() {
+  Future<IDigitalPurchaseRepository?> getDefaultProvider() {
     return tryMethod(
       () async {
         for (final provider in _providers.values) {

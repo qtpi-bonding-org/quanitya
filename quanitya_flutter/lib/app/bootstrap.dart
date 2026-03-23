@@ -20,7 +20,7 @@ import '../infrastructure/config/dev_config.dart';
 import '../infrastructure/platform/platform_capability_service.dart';
 import '../infrastructure/purchase/entitlement_cache.dart';
 import '../infrastructure/purchase/i_entitlement_service.dart';
-import '../infrastructure/purchase/i_purchase_provider.dart';
+import '../infrastructure/purchase/i_digital_purchase_repository.dart';
 import '../infrastructure/purchase/i_purchase_service.dart';
 import '../infrastructure/purchase/purchase_models.dart';
 import '../infrastructure/error_reporting/error_reporter_service.dart';
@@ -138,8 +138,8 @@ Future<void> bootstrap() async {
 
       if (supportedRails.isNotEmpty &&
           !kIsWeb &&
-          getIt.isRegistered<IPurchaseProvider>()) {
-        final provider = getIt<IPurchaseProvider>();
+          getIt.isRegistered<IDigitalPurchaseRepository>()) {
+        final provider = getIt<IDigitalPurchaseRepository>();
         if (supportedRails.contains(provider.rail) &&
             await provider.isAvailable()) {
           await provider.initialize();
