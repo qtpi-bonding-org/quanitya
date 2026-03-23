@@ -6,7 +6,7 @@ import '../../data/repositories/e2ee_puller.dart';
 import '../../data/sync/powersync_service.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../features/app_syncing_mode/repositories/app_syncing_repository.dart';
-import '../../features/app_syncing_mode/services/network_service.dart';
+import '../network/network_repository.dart';
 import '../auth/auth_service.dart';
 import '../config/app_config.dart';
 import '../core/try_operation.dart';
@@ -38,7 +38,7 @@ class SyncService {
   final EntitlementRepository _entitlementRepo;
   final AuthService _authService;
   final IE2EEPuller _puller;
-  final INetworkService _networkService;
+  final INetworkRepository _networkService;
   final AppConfig _config;
   final Client _client;
 

@@ -6,7 +6,7 @@ import 'dart:async';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../models/app_syncing_mode.dart';
-import '../services/network_service.dart';
+import '../../../infrastructure/network/network_repository.dart';
 import '../repositories/app_syncing_repository.dart';
 import '../../../data/db/app_database.dart'; // For AppOperatingSetting
 import '../exceptions/app_syncing_exceptions.dart';
@@ -16,7 +16,7 @@ import 'app_syncing_state.dart';
 @lazySingleton
 class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
   final AppSyncingRepository _repository;
-  final INetworkService _networkService;
+  final INetworkRepository _networkService;
 
   StreamSubscription<AppOperatingSetting>? _settingsSubscription;
   bool _isUpdatingFromSelf = false; // Prevent circular updates
