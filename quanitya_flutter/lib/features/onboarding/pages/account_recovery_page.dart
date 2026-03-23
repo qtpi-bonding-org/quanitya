@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
@@ -138,35 +139,47 @@ class _RecoveryForm extends StatelessWidget {
             curr.status.isSuccess &&
             curr.lastOperation == RecoveryKeyOperation.recover,
         listener: (context, state) async {
+          debugPrint('🔑 Recovery: success — starting post-recovery setup');
           AppRouter.resetKeyCheck();
 
           // Post-recovery setup: restore entitlement state so bootstrap
           // can connect PowerSync on next restart.
           final paidAccount = GetIt.instance<PaidAccountCubit>();
           await paidAccount.markPurchased();
+          debugPrint('🔑 Recovery: marked as paid account');
 
           // Refresh entitlements from server (updates cache)
           try {
             final entitlementService = GetIt.instance<IEntitlementService>();
             await entitlementService.getEntitlements();
-          } catch (_) {
-            // Best-effort — will refresh on next bootstrap
+            debugPrint('🔑 Recovery: entitlements refreshed');
+          } catch (e) {
+            debugPrint('🔑 Recovery: entitlement refresh failed: $e');
           }
 
           // Connect PowerSync if sync entitlement is active
           final entitlementCache = GetIt.instance<EntitlementCache>();
-          if (await entitlementCache.hasSyncAccess()) {
+          final hasSyncAccess = await entitlementCache.hasSyncAccess();
+          debugPrint('🔑 Recovery: hasSyncAccess=$hasSyncAccess');
+
+          if (hasSyncAccess) {
             final syncCubit = GetIt.instance<AppSyncingCubit>();
+            debugPrint('🔑 Recovery: current mode=${syncCubit.state.mode.name}');
             if (syncCubit.state.mode == AppSyncingMode.local) {
+              debugPrint('🔑 Recovery: switching to cloud...');
               await syncCubit.switchToCloud();
+              debugPrint('🔑 Recovery: switched to cloud, mode=${syncCubit.state.mode.name}');
             }
             if (syncCubit.state.mode.supportsSync) {
+              debugPrint('🔑 Recovery: connecting PowerSync...');
               final ps = GetIt.instance<IPowerSyncService>();
               final client = GetIt.instance<Client>();
               await ps.connect(client, syncCubit.state.mode);
+              debugPrint('🔑 Recovery: PowerSync connected=${ps.isConnected}');
             }
           }
 
+          debugPrint('🔑 Recovery: post-recovery setup complete, navigating home');
           if (context.mounted) {
             AppNavigation.toHome(context);
           }

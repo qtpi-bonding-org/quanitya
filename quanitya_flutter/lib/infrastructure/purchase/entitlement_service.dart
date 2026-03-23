@@ -1,5 +1,6 @@
 import 'package:anonaccred_client/anonaccred_client.dart'
     show AccountEntitlement;
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
@@ -30,6 +31,10 @@ class EntitlementService implements IEntitlementService {
         await _authService.ensureAuthenticated();
         final entitlements =
             await _client.modules.anonaccred.commerce.getEntitlements();
+        debugPrint('📦 EntitlementService: server returned ${entitlements.length} entitlements');
+        for (final e in entitlements) {
+          debugPrint('📦   tag=${e.entitlement?.tag} balance=${e.balance} type=${e.entitlement?.type.name}');
+        }
         final cached = entitlements
             .where((e) => e.entitlement?.tag != null)
             .map(
@@ -41,6 +46,7 @@ class EntitlementService implements IEntitlementService {
               ),
             )
             .toList();
+        debugPrint('📦 EntitlementService: cached ${cached.length} entitlements');
         await _cache.store(cached);
         return entitlements;
       },

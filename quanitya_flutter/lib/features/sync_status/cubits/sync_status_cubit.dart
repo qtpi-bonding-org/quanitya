@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
 import 'package:powersync_sqlcipher/powersync.dart' show SyncStatus;
@@ -18,18 +19,22 @@ class SyncStatusCubit extends QuanityaCubit<SyncStatusState> {
 
   void startListening(AppSyncingMode mode) {
     _statusSubscription?.cancel();
+    debugPrint('🔄 SyncStatusCubit: startListening(mode=${mode.name}, psConnected=${_powerSyncService.isConnected})');
 
     if (!mode.supportsSync) {
+      debugPrint('🔄 SyncStatusCubit: mode does not support sync → disabled');
       emit(const SyncStatusState(connectionState: SyncConnectionState.disabled));
       return;
     }
 
     if (!_powerSyncService.isConnected) {
+      debugPrint('🔄 SyncStatusCubit: PowerSync not connected → disconnected');
       emit(const SyncStatusState(connectionState: SyncConnectionState.disconnected));
     }
 
     _statusSubscription = _powerSyncService.statusStream.listen(
       (status) {
+        debugPrint('🔄 SyncStatusCubit: PS status → connected=${status.connected} downloading=${status.downloading} uploading=${status.uploading} error=${status.anyError}');
         emit(_mapStatus(status));
       },
       onError: (error) {

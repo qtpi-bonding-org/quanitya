@@ -281,6 +281,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
           textStyle: context.text.bodySmall?.copyWith(
             fontFamily: _codeEditorFontFamily,
             height: _codeEditorLineHeight,
+            color: const Color(0xFFD4D4D4),
           ),
           gutterStyle: GutterStyle(
             showLineNumbers: true,
