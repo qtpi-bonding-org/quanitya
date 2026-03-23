@@ -28,6 +28,7 @@ import '../infrastructure/notifications/notification_service.dart';
 import '../logic/schedules/services/schedule_generator_service.dart';
 import '../features/settings/services/tested_models_service.dart';
 import '../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
+import '../features/purchase/cubits/paid_account_cubit.dart';
 import '../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../integrations/flutter/health/health_sync_service.dart';
 import 'bootstrap.config.dart';
@@ -155,6 +156,12 @@ Future<void> bootstrap() async {
           'Bootstrap: No purchase providers to register for this platform',
         );
       }
+    }
+
+    // 5.6. Initialize PaidAccountCubit — check if user has ever purchased
+    if (getIt.isRegistered<PaidAccountCubit>()) {
+      final paidAccountCubit = getIt<PaidAccountCubit>();
+      await paidAccountCubit.initialize();
     }
 
     // 6. Connect PowerSync for cloud sync (only if not in local mode AND user is authenticated)

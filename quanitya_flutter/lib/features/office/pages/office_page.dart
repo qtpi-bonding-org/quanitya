@@ -38,6 +38,7 @@ import '../../purchase/cubits/purchase_message_mapper.dart';
 import '../../purchase/cubits/entitlement_cubit.dart';
 import '../../purchase/cubits/entitlement_state.dart';
 import '../../purchase/cubits/entitlement_message_mapper.dart';
+import '../../purchase/cubits/paid_account_cubit.dart';
 import '../../purchase/pages/purchase_page.dart';
 // App info
 import '../../settings/pages/app_info_page.dart';
@@ -94,6 +95,7 @@ class _OfficePageState extends State<OfficePage> {
           ..startListening(GetIt.instance<AppSyncingCubit>().state.mode)),
         BlocProvider(create: (_) => GetIt.instance<PurchaseCubit>()),
         BlocProvider(create: (_) => GetIt.instance<EntitlementCubit>()),
+        BlocProvider.value(value: GetIt.instance<PaidAccountCubit>()),
       ],
       child: BlocListener<AppSyncingCubit, AppSyncingState>(
         listenWhen: (prev, curr) => prev.mode != curr.mode,

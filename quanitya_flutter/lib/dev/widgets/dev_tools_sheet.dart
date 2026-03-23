@@ -25,6 +25,7 @@ import '../../infrastructure/notifications/notification_service.dart';
 import '../../logic/log_entries/models/log_entry.dart';
 import '../../logic/schedules/services/schedule_generator_service.dart';
 import '../../features/guided_tour/guided_tour_service.dart';
+import '../../features/purchase/cubits/paid_account_cubit.dart';
 import '../services/dev_seeder_service.dart';
 
 /// Shows a bottom sheet with dev tools
@@ -558,6 +559,11 @@ class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
           // 3. Reset guided tour flags
           final tourService = GetIt.instance<GuidedTourService>();
           await tourService.resetAllTours();
+
+          // 3b. Reset paid account flag
+          if (GetIt.instance.isRegistered<PaidAccountCubit>()) {
+            await GetIt.instance<PaidAccountCubit>().reset();
+          }
 
           // 4. Sign out (clears all crypto keys including iCloud Keychain)
           final authService = GetIt.instance<AuthService>();

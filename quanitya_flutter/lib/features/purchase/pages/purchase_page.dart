@@ -17,6 +17,7 @@ import '../../../support/extensions/context_extensions.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../app_syncing_mode/models/app_syncing_mode.dart';
 import '../cubits/entitlement_cubit.dart';
+import '../cubits/paid_account_cubit.dart';
 import '../cubits/entitlement_message_mapper.dart';
 import '../cubits/entitlement_state.dart';
 import '../cubits/purchase_cubit.dart';
@@ -53,17 +54,19 @@ class PurchaseTabContent extends StatelessWidget {
             curr.status == UiFlowStatus.success &&
             prev.status != curr.status,
         listener: (context, state) {
+          // Mark as paid account (persists flag for entitlement UI)
+          context.read<PaidAccountCubit>().markPurchased();
+
           // Switch to cloud mode after successful purchase
           final syncCubit = context.read<AppSyncingCubit>();
           if (syncCubit.state.mode == AppSyncingMode.local) {
             syncCubit.switchToCloud();
           }
           // Refresh entitlements
-          final mode = syncCubit.state.mode;
           context.read<EntitlementCubit>()
             ..loadEntitlements(mode: AppSyncingMode.cloud)
             ..checkSyncAccess(mode: AppSyncingMode.cloud)
-            ..loadStorageUsage(mode: mode);
+            ..loadStorageUsage(mode: AppSyncingMode.cloud);
         },
         child: RefreshIndicator(
         onRefresh: () async {
