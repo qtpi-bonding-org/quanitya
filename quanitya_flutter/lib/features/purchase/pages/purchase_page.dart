@@ -47,7 +47,25 @@ class PurchaseTabContent extends StatelessWidget {
               child: child,
             ),
       ],
-      child: RefreshIndicator(
+      child: BlocListener<PurchaseCubit, PurchaseState>(
+        listenWhen: (prev, curr) =>
+            curr.lastOperation == PurchaseOperation.purchase &&
+            curr.status == UiFlowStatus.success &&
+            prev.status != curr.status,
+        listener: (context, state) {
+          // Switch to cloud mode after successful purchase
+          final syncCubit = context.read<AppSyncingCubit>();
+          if (syncCubit.state.mode == AppSyncingMode.local) {
+            syncCubit.switchToCloud();
+          }
+          // Refresh entitlements
+          final mode = syncCubit.state.mode;
+          context.read<EntitlementCubit>()
+            ..loadEntitlements(mode: AppSyncingMode.cloud)
+            ..checkSyncAccess(mode: AppSyncingMode.cloud)
+            ..loadStorageUsage(mode: mode);
+        },
+        child: RefreshIndicator(
         onRefresh: () async {
           final mode = context.read<AppSyncingCubit>().state.mode;
           context.read<PurchaseCubit>().loadProducts();
@@ -152,6 +170,7 @@ class PurchaseTabContent extends StatelessWidget {
             VSpace.x3,
           ],
         ),
+      ),
       ),
     );
   }
