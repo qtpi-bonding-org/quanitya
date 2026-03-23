@@ -16,7 +16,6 @@ import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
-import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../guided_tour/guided_tour_service.dart';
 import '../../sync_status/widgets/sync_status_indicator.dart';
@@ -132,18 +131,13 @@ class SettingsContent extends StatelessWidget {
           ),
           VSpace.x3,
 
-          QuanityaTextButton(
-            text: context.l10n.settingsShowTour,
-            onPressed: () async {
-              await GetIt.instance<GuidedTourService>().resetAllTours();
-              if (context.mounted) {
-                PostItToast.show(
-                  context,
-                  message: context.l10n.tourResetSuccess,
-                  type: PostItType.info,
-                );
-              }
-            },
+          NotebookFold(
+            header: Row(children: [
+              Icon(Icons.school_outlined, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+              HSpace.x2,
+              Text(context.l10n.settingsTutorialSection, style: context.text.titleMedium),
+            ]),
+            child: const _TutorialSection(),
           ),
           VSpace.x3,
 
@@ -169,6 +163,56 @@ void _showValidateRecoveryKeyDialog(BuildContext context) {
     context: context,
     cubit: context.read<RecoveryKeyCubit>(),
   );
+}
+
+class _TutorialSection extends StatefulWidget {
+  const _TutorialSection();
+
+  @override
+  State<_TutorialSection> createState() => _TutorialSectionState();
+}
+
+class _TutorialSectionState extends State<_TutorialSection> {
+  bool _showTours = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadState();
+  }
+
+  Future<void> _loadState() async {
+    final tourService = GetIt.instance<GuidedTourService>();
+    final shouldShow = await tourService.shouldShowTour(GuidedTourService.homeKey);
+    if (mounted) setState(() => _showTours = shouldShow);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            context.l10n.settingsShowTour,
+            style: context.text.bodyMedium,
+          ),
+        ),
+        QuanityaToggle(
+          value: _showTours,
+          onChanged: (enabled) async {
+            final tourService = GetIt.instance<GuidedTourService>();
+            if (enabled) {
+              await tourService.resetAllTours();
+            } else {
+              await tourService.markTourSeen(GuidedTourService.homeKey);
+              await tourService.markTourSeen(GuidedTourService.designerKey);
+            }
+            if (mounted) setState(() => _showTours = enabled);
+          },
+        ),
+      ],
+    );
+  }
 }
 
 class _HealthConnectSection extends StatelessWidget {

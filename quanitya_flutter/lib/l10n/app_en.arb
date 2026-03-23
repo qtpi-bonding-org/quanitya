@@ -101,6 +101,7 @@
   "settingsDataSection": "Data Import / Export",
   "validateRecoveryKey": "Validate Recovery Key",
   "actionValidate": "Validate",
+  "settingsTutorialSection": "Tutorial",
   "confirm": "Confirm",
   "import_": "Import",
   "exportData": "Export Data",
