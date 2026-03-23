@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
@@ -537,21 +535,9 @@ class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
 
         setState(() => _isLoading = true);
         try {
-          // 1. Disconnect PowerSync and delete its local database file
-          //    (prevents stale encrypted records from being re-synced)
+          // 1. Disconnect PowerSync (keep DB file — singletons still reference it)
           if (GetIt.instance.isRegistered<IPowerSyncService>()) {
-            final ps = GetIt.instance<IPowerSyncService>();
-            await ps.disconnect();
-            final dbPath = ps.dbPath;
-            if (dbPath != null) {
-              final dbFile = File(dbPath);
-              if (await dbFile.exists()) await dbFile.delete();
-              // WAL and SHM journal files
-              final wal = File('$dbPath-wal');
-              final shm = File('$dbPath-shm');
-              if (await wal.exists()) await wal.delete();
-              if (await shm.exists()) await shm.delete();
-            }
+            await GetIt.instance<IPowerSyncService>().disconnect();
           }
 
           // 2. Clear all Drift database tables and E2EE puller checkpoints
