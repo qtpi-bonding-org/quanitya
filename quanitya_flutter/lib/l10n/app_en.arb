@@ -639,6 +639,7 @@
   "stackTraceCopied": "Stack trace copied",
   "pairingDataCopied": "Pairing data copied",
   "deviceManagementRequiresCloud": "Device management requires cloud or self-hosted mode.",
+  "deviceLocalOnly": "Stored locally",
   "tooltipViewInsights": "View insights",
   "tooltipAnalyzeData": "Analyze Data",
   "tooltipStop": "Stop",

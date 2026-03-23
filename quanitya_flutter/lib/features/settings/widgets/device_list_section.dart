@@ -28,14 +28,23 @@ class DeviceListSection extends StatefulWidget {
 
 class _DeviceListSectionState extends State<DeviceListSection> {
   bool _isRegistered = false;
+  bool _hasCrossDeviceKey = false;
 
   @override
   void initState() {
     super.initState();
-    _loadIfRegistered();
+    _loadState();
   }
 
-  Future<void> _loadIfRegistered() async {
+  Future<void> _loadState() async {
+    final keyRepo = GetIt.instance<ICryptoKeyRepository>();
+
+    // Check for cross-device key (iCloud) — available even when not registered
+    if (keyRepo.isCrossDeviceStorageAvailable) {
+      final crossKey = await keyRepo.getCrossDeviceKey();
+      if (mounted) setState(() => _hasCrossDeviceKey = crossKey != null);
+    }
+
     final registered =
         await GetIt.instance<AuthService>().isRegisteredWithServer;
     if (!mounted) return;
@@ -61,9 +70,9 @@ class _DeviceListSectionState extends State<DeviceListSection> {
 
   @override
   Widget build(BuildContext context) {
-    // If not registered with server, show message that device management
-    // requires a server connection
+    // If not registered with server, show local-only view
     if (!_isRegistered) {
+      final keyRepo = GetIt.instance<ICryptoKeyRepository>();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -73,6 +82,42 @@ class _DeviceListSectionState extends State<DeviceListSection> {
             style: context.text.titleMedium,
           ),
           VSpace.x2,
+
+          // Show cross-device key if available (iCloud survives app deletion)
+          if (_hasCrossDeviceKey) ...[
+            Row(
+              children: [
+                Icon(
+                  Icons.cloud_outlined,
+                  size: AppSizes.iconLarge,
+                  color: context.colors.secondaryColor,
+                ),
+                HSpace.x3,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        keyRepo.crossDeviceLabel,
+                        style: context.text.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      VSpace.x05,
+                      Text(
+                        context.l10n.deviceLocalOnly,
+                        style: context.text.bodySmall?.copyWith(
+                          color: context.colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            VSpace.x2,
+          ],
+
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
