@@ -190,14 +190,6 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
               state.isSuccess) {
             Navigator.of(context).pop();
           }
-          if (state.lastOperation == DynamicTemplateOperation.submit &&
-              state.status == UiFlowStatus.failure) {
-            PostItToast.show(
-              context,
-              message: context.l10n.validationFixErrors,
-              type: PostItType.error,
-            );
-          }
         },
         builder: (context, state) {
           if (state.template == null) {
