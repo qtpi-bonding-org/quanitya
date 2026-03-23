@@ -3,7 +3,6 @@ import 'package:anonaccred_client/anonaccred_client.dart'
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
-import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../auth/auth_service.dart';
 import '../core/try_operation.dart';
 import 'entitlement_exception.dart';
@@ -23,8 +22,7 @@ class EntitlementService implements IEntitlementService {
   EntitlementService(this._client, this._authService);
 
   @override
-  Future<List<AccountEntitlement>> getEntitlements(AppSyncingMode mode) {
-    if (!mode.requiresServer) return Future.value([]);
+  Future<List<AccountEntitlement>> getEntitlements() {
     return tryMethod(
       () async {
         await _authService.ensureAuthenticated();
@@ -36,8 +34,7 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<double> getEntitlementBalance(String tag, AppSyncingMode mode) {
-    if (!mode.requiresServer) return Future.value(0);
+  Future<double> getEntitlementBalance(String tag) {
     return tryMethod(
       () async {
         await _authService.ensureAuthenticated();
@@ -51,12 +48,11 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<bool> hasSyncAccess(AppSyncingMode mode) {
-    if (!mode.requiresServer) return Future.value(false);
+  Future<bool> hasSyncAccess() {
     return tryMethod(
       () async {
         for (final tag in syncEntitlementTags) {
-          final balance = await getEntitlementBalance(tag, mode);
+          final balance = await getEntitlementBalance(tag);
           if (balance > 0) return true;
         }
         return false;
@@ -67,8 +63,7 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<void> consumeEntitlement(String tag, double quantity, AppSyncingMode mode) {
-    if (!mode.requiresServer) return Future.value();
+  Future<void> consumeEntitlement(String tag, double quantity) {
     return tryMethod(
       () async {
         await _authService.ensureAuthenticated();

@@ -12,9 +12,8 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../../../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../../../features/app_syncing_mode/models/app_syncing_mode.dart';
-import '../../../infrastructure/auth/auth_service.dart' show AuthException, AuthFailure;
+import '../../../infrastructure/auth/auth_service.dart'
+    show AuthException, AuthFailure, AuthService;
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../cubits/device_management/device_management_cubit.dart';
 import '../cubits/device_management/device_management_state.dart';
@@ -28,12 +27,20 @@ class DeviceListSection extends StatefulWidget {
 }
 
 class _DeviceListSectionState extends State<DeviceListSection> {
+  bool _isRegistered = false;
+
   @override
   void initState() {
     super.initState();
-    // Only load devices if app is in a mode that supports server features
-    final appMode = context.read<AppSyncingCubit>().state.mode;
-    if (appMode.requiresServer) {
+    _loadIfRegistered();
+  }
+
+  Future<void> _loadIfRegistered() async {
+    final registered =
+        await GetIt.instance<AuthService>().isRegisteredWithServer;
+    if (!mounted) return;
+    setState(() => _isRegistered = registered);
+    if (registered) {
       context.read<DeviceManagementCubit>().loadDevices();
     }
   }
@@ -54,10 +61,9 @@ class _DeviceListSectionState extends State<DeviceListSection> {
 
   @override
   Widget build(BuildContext context) {
-    final appMode = context.watch<AppSyncingCubit>().state.mode;
-    
-    // If in local mode, show message that device management requires server
-    if (!appMode.requiresServer) {
+    // If not registered with server, show message that device management
+    // requires a server connection
+    if (!_isRegistered) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -89,12 +95,12 @@ class _DeviceListSectionState extends State<DeviceListSection> {
         ],
       );
     }
-    
+
     return BlocConsumer<DeviceManagementCubit, DeviceManagementState>(
       listener: (context, state) {
         // Only show error toast for non-offline errors
         // Offline is expected for local-first app, so we silently handle it
-        if (state.status == UiFlowStatus.failure && 
+        if (state.status == UiFlowStatus.failure &&
             state.error != null &&
             !_isOfflineError(state.error)) {
           GetIt.instance<IFeedbackService>().show(
@@ -219,7 +225,7 @@ class _DeviceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lastActive = QuanityaDateFormat.timestamp(device.lastActive);
-    
+
     // All devices use secondary color (blue-gray), dimmed if revoked
     final iconColor = isRevoked
         ? context.colors.secondaryColor.withValues(alpha: 0.5)
@@ -248,7 +254,7 @@ class _DeviceCard extends StatelessWidget {
                       style: context.text.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                         decoration: isRevoked ? TextDecoration.lineThrough : null,
-                        color: isRevoked 
+                        color: isRevoked
                             ? context.colors.textSecondary.withValues(alpha: 0.5)
                             : null,
                       ),

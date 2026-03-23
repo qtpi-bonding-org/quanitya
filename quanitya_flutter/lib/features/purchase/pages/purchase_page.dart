@@ -59,11 +59,10 @@ class PurchaseTabContent extends StatelessWidget {
             listener: (context, state) {
               context.read<PaidAccountCubit>().markPurchased();
 
-              final mode = context.read<AppSyncingCubit>().state.mode;
               context.read<EntitlementCubit>()
-                ..loadEntitlements(mode: mode)
-                ..checkSyncAccess(mode: mode)
-                ..loadStorageUsage(mode: mode);
+                ..loadEntitlements()
+                ..checkSyncAccess()
+                ..loadStorageUsage();
             },
           ),
 
@@ -85,11 +84,10 @@ class PurchaseTabContent extends StatelessWidget {
         onRefresh: () async {
           context.read<PurchaseCubit>().loadProducts();
           if (context.read<PaidAccountCubit>().hasPurchased) {
-            final mode = context.read<AppSyncingCubit>().state.mode;
             context.read<EntitlementCubit>()
-              ..loadEntitlements(mode: mode)
-              ..checkSyncAccess(mode: mode)
-              ..loadStorageUsage(mode: mode);
+              ..loadEntitlements()
+              ..checkSyncAccess()
+              ..loadStorageUsage();
           }
         },
         child: ListView(
@@ -104,14 +102,13 @@ class PurchaseTabContent extends StatelessWidget {
                 if (!hasPurchased) return const SizedBox.shrink();
                 return BlocBuilder<EntitlementCubit, EntitlementState>(
                   builder: (context, state) {
-                    final mode = context.read<AppSyncingCubit>().state.mode;
                     return EntitlementDisplay(
                       entitlements: state.entitlements,
                       storageBytes: state.storageBytes,
                       entryCount: state.entryCount,
-                      hasError: state.hasError && mode.requiresServer,
+                      hasError: state.hasError,
                       onRetry: () {
-                        context.read<EntitlementCubit>().loadEntitlements(mode: mode);
+                        context.read<EntitlementCubit>().loadEntitlements();
                       },
                     );
                   },

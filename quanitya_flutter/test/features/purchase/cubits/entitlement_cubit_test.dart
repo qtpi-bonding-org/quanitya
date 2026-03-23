@@ -8,7 +8,6 @@ import 'package:anonaccred_client/anonaccred_client.dart'
 
 import 'package:quanitya_flutter/data/db/app_database.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_entitlement_service.dart';
-import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/entitlement_cubit.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/entitlement_state.dart';
 
@@ -19,10 +18,6 @@ class MockAppDatabase extends Mock implements AppDatabase {}
 void main() {
   late MockEntitlementService mockService;
   late MockAppDatabase mockDb;
-
-  setUpAll(() {
-    registerFallbackValue(AppSyncingMode.cloud);
-  });
 
   setUp(() {
     mockService = MockEntitlementService();
@@ -41,7 +36,7 @@ void main() {
     blocTest<EntitlementCubit, EntitlementState>(
       'loadEntitlements emits loading then success with entitlements',
       build: () {
-        when(() => mockService.getEntitlements(any())).thenAnswer(
+        when(() => mockService.getEntitlements()).thenAnswer(
           (_) async => [
             AccountEntitlement(
               accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
@@ -52,7 +47,7 @@ void main() {
         );
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.loadEntitlements(mode: AppSyncingMode.cloud),
+      act: (cubit) => cubit.loadEntitlements(),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -72,11 +67,11 @@ void main() {
     blocTest<EntitlementCubit, EntitlementState>(
       'checkSyncAccess emits true when service says yes',
       build: () {
-        when(() => mockService.hasSyncAccess(any()))
+        when(() => mockService.hasSyncAccess())
             .thenAnswer((_) async => true);
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.checkSyncAccess(mode: AppSyncingMode.cloud),
+      act: (cubit) => cubit.checkSyncAccess(),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -95,11 +90,11 @@ void main() {
     blocTest<EntitlementCubit, EntitlementState>(
       'checkSyncAccess emits false when no credits',
       build: () {
-        when(() => mockService.hasSyncAccess(any()))
+        when(() => mockService.hasSyncAccess())
             .thenAnswer((_) async => false);
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.checkSyncAccess(mode: AppSyncingMode.cloud),
+      act: (cubit) => cubit.checkSyncAccess(),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -117,11 +112,11 @@ void main() {
     blocTest<EntitlementCubit, EntitlementState>(
       'checkSyncAccess emits failure when service throws',
       build: () {
-        when(() => mockService.hasSyncAccess(any()))
+        when(() => mockService.hasSyncAccess())
             .thenThrow(Exception('Network error'));
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.checkSyncAccess(mode: AppSyncingMode.cloud),
+      act: (cubit) => cubit.checkSyncAccess(),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
@@ -135,13 +130,13 @@ void main() {
     );
 
     blocTest<EntitlementCubit, EntitlementState>(
-      'loadEntitlements in local mode returns empty without server call',
+      'loadEntitlements returns empty list when service returns none',
       build: () {
-        when(() => mockService.getEntitlements(AppSyncingMode.local))
+        when(() => mockService.getEntitlements())
             .thenAnswer((_) async => []);
         return EntitlementCubit(mockService, mockDb);
       },
-      act: (cubit) => cubit.loadEntitlements(mode: AppSyncingMode.local),
+      act: (cubit) => cubit.loadEntitlements(),
       expect: () => [
         predicate<EntitlementState>(
           (s) => s.status == UiFlowStatus.loading,
