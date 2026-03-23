@@ -39,7 +39,7 @@ void main() {
     await db.close();
   });
 
-  /// Insert an encrypted template directly into the encrypted table.
+  /// Insert an encrypted template using Drift's API (triggers stream notifications).
   Future<void> insertEncryptedTemplate({
     required String id,
     required String name,
@@ -53,12 +53,14 @@ void main() {
       'isArchived': false,
       'isHidden': false,
     });
-    // FakeEncryptionService just utf8-encodes, so base64 of that is the blob
     final encryptedData = base64.encode(utf8.encode(json));
 
-    await db.customStatement(
-      'INSERT OR REPLACE INTO encrypted_templates (id, encrypted_data, updated_at) VALUES (?, ?, ?)',
-      [id, encryptedData, updatedAt.toIso8601String()],
+    await db.into(db.encryptedTemplates).insertOnConflictUpdate(
+      EncryptedTemplatesCompanion(
+        id: Value(id),
+        encryptedData: Value(encryptedData),
+        updatedAt: Value(updatedAt),
+      ),
     );
   }
 
@@ -160,6 +162,60 @@ void main() {
 
       count = await db.select(db.pullerCheckpoints).get();
       expect(count, isEmpty);
+    });
+
+    test('does not re-process same record after checkpoint advances', () async {
+      var processCount = 0;
+      final now = DateTime(2026, 3, 21, 12, 0);
+      await insertEncryptedTemplate(id: 'tmpl-1', name: 'Mood', updatedAt: now);
+
+      await puller.initialize();
+      // Give streams time to fire and process
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      // Count how many local records exist — should be exactly 1
+      final locals = await db.select(db.trackerTemplates).get();
+      expect(locals.length, 1);
+
+      // Verify checkpoint was set
+      final checkpoint = await (db.select(db.pullerCheckpoints)
+            ..where((t) => t.encryptedTable.equals('encrypted_templates')))
+          .getSingleOrNull();
+      expect(checkpoint, isNotNull);
+
+      // Wait more time — if there's an infinite loop, the stream would keep firing
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      // Still exactly 1 local record — no duplicate processing
+      final localsAfter = await db.select(db.trackerTemplates).get();
+      expect(localsAfter.length, 1, reason: 'Record should not be re-processed');
+    });
+
+    test('processes new record after existing one without looping', () async {
+      final t1 = DateTime(2026, 3, 21, 12, 0);
+      await insertEncryptedTemplate(id: 'tmpl-1', name: 'Mood', updatedAt: t1);
+
+      await puller.initialize();
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      // First record processed
+      var locals = await db.select(db.trackerTemplates).get();
+      expect(locals.length, 1);
+
+      // Insert a second record with a newer timestamp
+      final t2 = DateTime(2026, 3, 21, 14, 0);
+      await insertEncryptedTemplate(id: 'tmpl-2', name: 'Sleep', updatedAt: t2);
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      // Both records should exist — no duplicates
+      locals = await db.select(db.trackerTemplates).get();
+      expect(locals.length, 2);
+      expect(locals.map((l) => l.name).toSet(), {'Mood', 'Sleep'});
+
+      // Wait to confirm no looping
+      await Future.delayed(const Duration(milliseconds: 300));
+      locals = await db.select(db.trackerTemplates).get();
+      expect(locals.length, 2, reason: 'No duplicate processing should occur');
     });
   });
 }
