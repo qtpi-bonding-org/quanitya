@@ -28,7 +28,7 @@ import 'registration_payload.dart';
 class AccountService {
   final AuthRepository _authRepo;
   final ICryptoKeyRepository _keyRepository;
-  final IDataEncryptionService _encryption;
+  final IDataEncryption _encryption;
   final Client _client;
   final ISecureStorage _secureStorage;
 

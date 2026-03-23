@@ -15,7 +15,7 @@ import 'table_pairs.dart';
 class ScheduleDualDao extends DualDao<Schedule, EncryptedSchedule> {
   ScheduleDualDao(
     AppDatabase db,
-    IDataEncryptionService encryption,
+    IDataEncryption encryption,
   ) : super(
         db: db,
         encryption: encryption,

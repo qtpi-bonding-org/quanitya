@@ -93,7 +93,7 @@ AuthException _wrapAuthError(String message, [Object? cause]) {
 ///
 /// Coordinates between:
 /// - [ICryptoKeyRepository] for key generation and storage
-/// - [IDataEncryptionService] for signing and blob encryption
+/// - [IDataEncryption] for signing and blob encryption
 /// - Serverpod [Client] for server API calls (anonaccred endpoints)
 ///
 /// Key concepts:
@@ -105,7 +105,7 @@ AuthException _wrapAuthError(String message, [Object? cause]) {
 @lazySingleton
 class AuthService {
   final ICryptoKeyRepository _keyRepository;
-  final IDataEncryptionService _encryption;
+  final IDataEncryption _encryption;
   final Client _client;
   final ISecureStorage _secureStorage;
   final SecurePreferences _prefs;
@@ -842,7 +842,7 @@ class AuthService {
   ///
   /// Flow:
   /// 1. Get challenge from server
-  /// 2. Sign challenge with device private key (ECDSA P-256) via DataEncryptionService
+  /// 2. Sign challenge with device private key (ECDSA P-256) via DataEncryption
   /// 3. Server verifies signature and issues JWT
   /// 4. Store JWT in Serverpod's FlutterAuthSessionManager
   ///

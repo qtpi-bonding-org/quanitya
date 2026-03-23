@@ -99,7 +99,7 @@ abstract class IPairingService {
 @LazySingleton(as: IPairingService)
 class PairingService implements IPairingService {
   final ICryptoKeyRepository _keyRepository;
-  final IDataEncryptionService _encryption;
+  final IDataEncryption _encryption;
   final Client _client;
   final AppSyncingRepository _appOperatingRepository;
 

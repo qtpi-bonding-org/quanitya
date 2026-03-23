@@ -51,7 +51,7 @@ abstract class EncryptedTableProcessor<
   TEncrypted extends DataClass
 > {
   final AppDatabase db;
-  final IDataEncryptionService encryption;
+  final IDataEncryption encryption;
   final TablePair<TLocal, TEncrypted> tables;
 
   EncryptedTableProcessor({
@@ -412,7 +412,7 @@ class SyncStatus {
 @LazySingleton(as: IE2EEPuller)
 class E2EEPuller implements IE2EEPuller {
   final AppDatabase _db;
-  final IDataEncryptionService _encryption;
+  final IDataEncryption _encryption;
 
   // Type-safe processors using TablePair pattern
   late final TrackerTemplateProcessor _templateProcessor;

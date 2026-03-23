@@ -16,7 +16,7 @@ import 'table_pairs.dart';
 class LogEntryDualDao extends DualDao<LogEntry, EncryptedEntry> {
   LogEntryDualDao(
     AppDatabase db,
-    IDataEncryptionService encryption,
+    IDataEncryption encryption,
   ) : super(
         db: db,
         encryption: encryption,

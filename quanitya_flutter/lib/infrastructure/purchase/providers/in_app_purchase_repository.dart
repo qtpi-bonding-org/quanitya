@@ -30,7 +30,7 @@ import '../purchase_models.dart';
 class InAppPurchaseRepository implements IPurchaseProvider, IDigitalPurchaseRepository {
   final Client _client;
   final ICryptoKeyRepository _keyRepository;
-  final IDataEncryptionService _encryption;
+  final IDataEncryption _encryption;
   final AuthService _authService;
   final DeviceInfoService _deviceInfoService;
 

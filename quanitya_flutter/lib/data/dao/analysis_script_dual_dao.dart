@@ -14,7 +14,7 @@ import 'table_pairs.dart';
 @injectable
 class AnalysisScriptDualDao
     extends DualDao<AnalysisScript, EncryptedAnalysisScript> {
-  AnalysisScriptDualDao(AppDatabase db, IDataEncryptionService encryption)
+  AnalysisScriptDualDao(AppDatabase db, IDataEncryption encryption)
     : super(
         db: db,
         encryption: encryption,

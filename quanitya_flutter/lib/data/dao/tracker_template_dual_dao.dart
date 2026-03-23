@@ -18,7 +18,7 @@ class TrackerTemplateDualDao
     extends DualDao<TrackerTemplate, EncryptedTemplate> {
   TrackerTemplateDualDao(
     AppDatabase db,
-    IDataEncryptionService encryption,
+    IDataEncryption encryption,
   ) : super(
         db: db,
         encryption: encryption,

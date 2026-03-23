@@ -45,7 +45,7 @@ class TablePair<TLocal, TEncrypted> {
 /// - db.customStatement() works within Drift transactions
 abstract class DualDao<TLocal extends DataClass, TEncrypted extends DataClass> {
   final AppDatabase db;
-  final IDataEncryptionService encryption;
+  final IDataEncryption encryption;
   final TablePair<TLocal, TEncrypted> tables;
   final Uuid _uuidGenerator = const Uuid();
   
