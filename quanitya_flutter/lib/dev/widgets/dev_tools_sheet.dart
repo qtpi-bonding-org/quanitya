@@ -27,6 +27,7 @@ import '../../logic/schedules/services/schedule_generator_service.dart';
 import '../../features/guided_tour/guided_tour_service.dart';
 import '../../features/purchase/cubits/paid_account_cubit.dart';
 import '../../infrastructure/purchase/entitlement_cache.dart';
+import '../../data/repositories/e2ee_puller.dart';
 import '../services/dev_seeder_service.dart';
 
 /// Shows a bottom sheet with dev tools
@@ -553,9 +554,14 @@ class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
             }
           }
 
-          // 2. Clear all Drift database tables
+          // 2. Clear all Drift database tables and E2EE puller checkpoints
           final seeder = GetIt.instance<DevSeederService>();
           await seeder.clearAll();
+          if (GetIt.instance.isRegistered<IE2EEPuller>()) {
+            final puller = GetIt.instance<IE2EEPuller>();
+            await puller.dispose();
+            await puller.resetCheckpoints();
+          }
 
           // 3. Reset guided tour flags
           final tourService = GetIt.instance<GuidedTourService>();

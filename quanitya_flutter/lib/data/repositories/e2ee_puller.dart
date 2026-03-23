@@ -31,6 +31,9 @@ abstract class IE2EEPuller {
 
   /// Get the current sync status
   Future<SyncStatus> getSyncStatus();
+
+  /// Reset all checkpoints, forcing a full re-process on next initialization.
+  Future<void> resetCheckpoints();
 }
 
 /// Type-safe processor for encrypted table changes
