@@ -1079,5 +1079,6 @@
     }
   },
   "catalogTemplatesImported": "Templates imported",
-  "syncReconnected": "Sync reconnected"
+  "syncReconnected": "Sync reconnected",
+  "validationFixErrors": "Please fix the highlighted fields."
 }

@@ -100,6 +100,7 @@ class DynamicTemplateCubit extends QuanityaCubit<DynamicTemplateState> {
       if (!validate()) {
         return state.copyWith(
           status: UiFlowStatus.failure,
+          lastOperation: DynamicTemplateOperation.submit,
           error: 'Please fix validation errors',
         );
       }

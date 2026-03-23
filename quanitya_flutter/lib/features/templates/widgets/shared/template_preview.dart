@@ -28,6 +28,7 @@ class TemplatePreview extends StatefulWidget {
   final List<TemplatePreviewAction> actions;
   final Map<String, dynamic>? initialValues;
   final ValueChanged<Map<String, dynamic>>? onValuesChanged;
+  final Map<String, String?> fieldErrors;
 
   const TemplatePreview({
     super.key,
@@ -36,6 +37,7 @@ class TemplatePreview extends StatefulWidget {
     this.actions = const [],
     this.initialValues,
     this.onValuesChanged,
+    this.fieldErrors = const {},
   });
 
   /// Factory for editor context
@@ -347,6 +349,8 @@ class _TemplatePreviewState extends State<TemplatePreview> {
       field.uiElement?.name ?? 'default',
     );
 
+    final error = widget.fieldErrors[field.id];
+
     final fieldContent = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -367,6 +371,16 @@ class _TemplatePreviewState extends State<TemplatePreview> {
             color: QuanityaPalette.primary.textPrimary,
           ),
         ),
+        if (error != null) ...[
+          VSpace.x05,
+          Text(
+            error,
+            style: _bodyStyle.copyWith(
+              fontSize: AppSizes.fontSmall,
+              color: QuanityaPalette.primary.destructiveColor,
+            ),
+          ),
+        ],
       ],
     );
 

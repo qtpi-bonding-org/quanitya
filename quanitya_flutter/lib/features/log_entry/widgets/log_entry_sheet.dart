@@ -178,10 +178,25 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
       create: (_) => GetIt.I<DynamicTemplateCubit>()
         ..loadTemplate(widget.template!),
       child: BlocConsumer<DynamicTemplateCubit, DynamicTemplateState>(
+        listenWhen: (prev, curr) =>
+            prev.status != curr.status ||
+            prev.lastOperation != curr.lastOperation,
+        buildWhen: (prev, curr) =>
+            prev.template != curr.template ||
+            prev.status != curr.status ||
+            prev.fieldErrors != curr.fieldErrors,
         listener: (context, state) {
           if (state.lastOperation == DynamicTemplateOperation.submit &&
               state.isSuccess) {
             Navigator.of(context).pop();
+          }
+          if (state.lastOperation == DynamicTemplateOperation.submit &&
+              state.status == UiFlowStatus.failure) {
+            PostItToast.show(
+              context,
+              message: context.l10n.validationFixErrors,
+              type: PostItType.error,
+            );
           }
         },
         builder: (context, state) {
@@ -197,6 +212,7 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
                   template: widget.template!,
                   aesthetics: widget.aesthetics,
                   initialValues: state.values,
+                  fieldErrors: state.fieldErrors,
                   onValuesChanged: (values) {
                     for (final entry in values.entries) {
                       context
