@@ -4,13 +4,19 @@ import 'package:quanitya_flutter/features/guided_tour/guided_tour_service.dart';
 
 /// Minimal fake — 3 methods, no crypto baggage.
 class FakeSecurePreferences implements SecurePreferences {
-  final Map<String, bool> _store = {};
+  final Map<String, dynamic> _store = {};
 
   @override
-  Future<bool?> getBool(String key) async => _store[key];
+  Future<bool?> getBool(String key) async => _store[key] as bool?;
 
   @override
   Future<void> setBool(String key, bool value) async => _store[key] = value;
+
+  @override
+  Future<String?> getString(String key) async => _store[key] as String?;
+
+  @override
+  Future<void> setString(String key, String value) async => _store[key] = value;
 
   @override
   Future<void> remove(String key) async => _store.remove(key);
