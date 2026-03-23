@@ -5,6 +5,7 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 import '../auth/auth_service.dart';
 import '../core/try_operation.dart';
+import 'entitlement_cache.dart';
 import 'entitlement_exception.dart';
 import 'i_entitlement_service.dart';
 
@@ -18,15 +19,30 @@ const List<String> syncEntitlementTags = [
 class EntitlementService implements IEntitlementService {
   final Client _client;
   final AuthService _authService;
+  final EntitlementCache _cache;
 
-  EntitlementService(this._client, this._authService);
+  EntitlementService(this._client, this._authService, this._cache);
 
   @override
   Future<List<AccountEntitlement>> getEntitlements() {
     return tryMethod(
       () async {
         await _authService.ensureAuthenticated();
-        return await _client.modules.anonaccred.commerce.getEntitlements();
+        final entitlements =
+            await _client.modules.anonaccred.commerce.getEntitlements();
+        final cached = entitlements
+            .where((e) => e.entitlement?.tag != null)
+            .map(
+              (e) => CachedEntitlement(
+                tag: e.entitlement!.tag,
+                balance: e.balance,
+                type: e.entitlement!.type.name,
+                name: e.entitlement?.name,
+              ),
+            )
+            .toList();
+        await _cache.store(cached);
+        return entitlements;
       },
       EntitlementException.new,
       'getEntitlements',
@@ -48,19 +64,7 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<bool> hasSyncAccess() {
-    return tryMethod(
-      () async {
-        for (final tag in syncEntitlementTags) {
-          final balance = await getEntitlementBalance(tag);
-          if (balance > 0) return true;
-        }
-        return false;
-      },
-      EntitlementException.new,
-      'hasSyncAccess',
-    );
-  }
+  Future<bool> hasSyncAccess() => _cache.hasSyncAccess();
 
   @override
   Future<void> consumeEntitlement(String tag, double quantity) {

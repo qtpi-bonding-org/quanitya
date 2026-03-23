@@ -16,6 +16,7 @@ import '../../crypto/crypto_key_repository.dart';
 import '../../crypto/data_encryption_service.dart';
 import '../../crypto/utils/hashcash.dart';
 import '../../device/device_info_service.dart';
+import '../entitlement_cache.dart';
 import '../i_purchase_provider.dart';
 import '../purchase_exception.dart';
 import '../purchase_models.dart';
@@ -27,6 +28,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
   final IDataEncryptionService _encryption;
   final AuthService _authService;
   final DeviceInfoService _deviceInfoService;
+  final EntitlementCache _cache;
 
   InAppPurchaseProvider(
     this._client,
@@ -34,6 +36,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
     this._encryption,
     this._authService,
     this._deviceInfoService,
+    this._cache,
   );
 
   final iap.InAppPurchase _iapInstance = iap.InAppPurchase.instance;
@@ -300,6 +303,36 @@ class InAppPurchaseProvider implements IPurchaseProvider {
           if (rawDetails != null) {
             await _iapInstance.completePurchase(rawDetails);
             debugPrint('validateWithServer: completePurchase called');
+          }
+
+          // Update the entitlement cache with the new balance.
+          final validationTag = result.tag;
+          final validationAmount = result.amount;
+          if (validationTag != null && validationAmount != null) {
+            final cached = await _cache.load();
+            final updatedList = List<CachedEntitlement>.from(cached);
+            final existingIndex =
+                updatedList.indexWhere((e) => e.tag == validationTag);
+            if (existingIndex >= 0) {
+              final existing = updatedList[existingIndex];
+              updatedList[existingIndex] = CachedEntitlement(
+                tag: existing.tag,
+                balance: existing.balance + validationAmount,
+                type: existing.type,
+                name: existing.name,
+              );
+            } else {
+              updatedList.add(CachedEntitlement(
+                tag: validationTag,
+                balance: validationAmount,
+                type: 'consumable', // default, corrected on next full refresh
+              ));
+            }
+            await _cache.store(updatedList);
+            debugPrint(
+              'validateWithServer: cache updated for tag=$validationTag '
+              'amount=$validationAmount',
+            );
           }
         }
 
