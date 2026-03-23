@@ -57,16 +57,12 @@ class PurchaseTabContent extends StatelessWidget {
           // Mark as paid account (persists flag for entitlement UI)
           context.read<PaidAccountCubit>().markPurchased();
 
-          // Switch to cloud mode after successful purchase
-          final syncCubit = context.read<AppSyncingCubit>();
-          if (syncCubit.state.mode == AppSyncingMode.local) {
-            syncCubit.switchToCloud();
-          }
-          // Refresh entitlements
+          // Refresh entitlements to reflect the new purchase
+          final mode = context.read<AppSyncingCubit>().state.mode;
           context.read<EntitlementCubit>()
-            ..loadEntitlements(mode: AppSyncingMode.cloud)
-            ..checkSyncAccess(mode: AppSyncingMode.cloud)
-            ..loadStorageUsage(mode: AppSyncingMode.cloud);
+            ..loadEntitlements(mode: mode)
+            ..checkSyncAccess(mode: mode)
+            ..loadStorageUsage(mode: mode);
         },
         child: RefreshIndicator(
         onRefresh: () async {
