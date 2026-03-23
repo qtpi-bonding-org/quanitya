@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_color_palette/flutter_color_palette.dart';
 import '../../primitives/app_spacings.dart';
 import '../../primitives/app_sizes.dart';
 import '../../primitives/quanitya_palette.dart';
@@ -129,7 +130,7 @@ class _AiPromptWidgetState extends State<AiPromptWidget> {
     );
   }
 
-  Widget _buildHeader(dynamic palette) {
+  Widget _buildHeader(IColorPalette palette) {
     final row = QuanityaRow(
       spacing: HSpace.x1,
       alignment: CrossAxisAlignment.center,
