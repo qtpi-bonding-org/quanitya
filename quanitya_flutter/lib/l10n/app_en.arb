@@ -969,6 +969,7 @@
   },
   "fieldBuilderUpdateLocation": "Update Location",
   "fieldBuilderCaptureLocation": "Capture Location",
+  "syncLocalOnly": "Local only",
   "syncConnecting": "Connecting...",
   "syncConnected": "Synced",
   "syncDownloading": "Downloading...",

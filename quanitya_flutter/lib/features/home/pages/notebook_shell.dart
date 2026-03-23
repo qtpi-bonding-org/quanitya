@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
-import '../../../design_system/primitives/app_sizes.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../../app_syncing_mode/widgets/mode_indicator.dart';
 import '../../errors/cubits/errors_cubit.dart';
 import '../../notices/cubits/notices_cubit.dart';
 import '../../postage/pages/postage_page.dart';
@@ -88,12 +86,6 @@ class _NotebookShellState extends State<NotebookShell> {
                       tabs: tabs,
                     ),
                   ],
-                ),
-                // Mode indicator — top-right, below safe area
-                Positioned(
-                  top: MediaQuery.of(context).padding.top + AppSizes.space,
-                  right: AppSizes.space * 2,
-                  child: const ModeIndicator(),
                 ),
               ],
             ),
