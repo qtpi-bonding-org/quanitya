@@ -915,8 +915,12 @@ class AuthService {
     try {
       await authenticateDevice();
     } on DeviceAuthenticationException catch (e) {
-      if (e.cause is! AuthenticationException ||
-          (e.cause as AuthenticationException).code != 'AUTH_DEVICE_NOT_FOUND') {
+      // Unwrap SafeExceptionCause from tryMethod to get the original exception
+      final originalCause = e.cause is SafeExceptionCause
+          ? (e.cause as SafeExceptionCause).originalException
+          : e.cause;
+      if (originalCause is! AuthenticationException ||
+          originalCause.code != 'AUTH_DEVICE_NOT_FOUND') {
         rethrow;
       }
       // Server doesn't know this device — re-register and retry once.
