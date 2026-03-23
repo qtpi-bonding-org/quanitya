@@ -60,9 +60,9 @@ class SettingsContent extends StatelessWidget {
         children: [
           NotebookFold(
             header: Row(children: [
-              Icon(Icons.devices, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+              Icon(Icons.person_outline, size: AppSizes.iconMedium, color: context.colors.textPrimary),
               HSpace.x2,
-              Text(context.l10n.settingsDevicesSection, style: context.text.titleMedium),
+              Text(context.l10n.settingsAccountSection, style: context.text.titleMedium),
             ]),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,6 +70,11 @@ class SettingsContent extends StatelessWidget {
                 const SyncStatusIndicator(),
                 VSpace.x2,
                 const DeviceListSection(),
+                VSpace.x3,
+                QuanityaTextButton(
+                  text: context.l10n.validateRecoveryKey,
+                  onPressed: () => _showValidateRecoveryKeyDialog(context),
+                ),
               ],
             ),
           ),
@@ -159,6 +164,13 @@ class SettingsContent extends StatelessWidget {
   }
 }
 
+void _showValidateRecoveryKeyDialog(BuildContext context) {
+  ImportRecoveryKeySheet.show(
+    context: context,
+    cubit: context.read<RecoveryKeyCubit>(),
+  );
+}
+
 class _HealthConnectSection extends StatelessWidget {
   const _HealthConnectSection();
 
@@ -239,11 +251,6 @@ class _DataSection extends StatelessWidget {
           text: context.l10n.importData,
           onPressed: () => _startImport(context),
         ),
-        VSpace.x3,
-        QuanityaTextButton(
-          text: context.l10n.importRecoveryKey,
-          onPressed: () => _showImportRecoveryKeyDialog(context),
-        ),
       ],
     );
   }
@@ -296,12 +303,6 @@ class _DataSection extends StatelessWidget {
     cubit.importData(selected);
   }
 
-  void _showImportRecoveryKeyDialog(BuildContext context) {
-    ImportRecoveryKeySheet.show(
-      context: context,
-      cubit: context.read<RecoveryKeyCubit>(),
-    );
-  }
 }
 
 /// API Keys section
