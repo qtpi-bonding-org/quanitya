@@ -70,12 +70,14 @@ class PurchaseTabContent extends StatelessWidget {
         },
         child: RefreshIndicator(
         onRefresh: () async {
-          final mode = context.read<AppSyncingCubit>().state.mode;
           context.read<PurchaseCubit>().loadProducts();
-          context.read<EntitlementCubit>()
-            ..loadEntitlements(mode: mode)
-            ..checkSyncAccess(mode: mode)
-            ..loadStorageUsage(mode: mode);
+          if (context.read<PaidAccountCubit>().hasPurchased) {
+            final mode = context.read<AppSyncingCubit>().state.mode;
+            context.read<EntitlementCubit>()
+              ..loadEntitlements(mode: mode)
+              ..checkSyncAccess(mode: mode)
+              ..loadStorageUsage(mode: mode);
+          }
         },
         child: ListView(
           padding: AppPadding.verticalSingle,
@@ -83,17 +85,22 @@ class PurchaseTabContent extends StatelessWidget {
             const SyncStatusIndicator(),
             VSpace.x1,
 
-            // Entitlement balance section
-            BlocBuilder<EntitlementCubit, EntitlementState>(
-              builder: (context, state) {
-                final mode = context.read<AppSyncingCubit>().state.mode;
-                return EntitlementDisplay(
-                  entitlements: state.entitlements,
-                  storageBytes: state.storageBytes,
-                  entryCount: state.entryCount,
-                  hasError: state.hasError && mode.requiresServer,
-                  onRetry: () {
-                    context.read<EntitlementCubit>().loadEntitlements(mode: mode);
+            // Entitlement balance section (only if user has ever purchased)
+            BlocBuilder<PaidAccountCubit, bool>(
+              builder: (context, hasPurchased) {
+                if (!hasPurchased) return const SizedBox.shrink();
+                return BlocBuilder<EntitlementCubit, EntitlementState>(
+                  builder: (context, state) {
+                    final mode = context.read<AppSyncingCubit>().state.mode;
+                    return EntitlementDisplay(
+                      entitlements: state.entitlements,
+                      storageBytes: state.storageBytes,
+                      entryCount: state.entryCount,
+                      hasError: state.hasError && mode.requiresServer,
+                      onRetry: () {
+                        context.read<EntitlementCubit>().loadEntitlements(mode: mode);
+                      },
+                    );
                   },
                 );
               },
