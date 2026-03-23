@@ -55,15 +55,6 @@ class SyncStatusCubit extends QuanityaCubit<SyncStatusState> {
     }
   }
 
-  /// Called when sync entitlement expires (insufficientCredits from server).
-  void onSyncExpired() {
-    _statusSubscription?.cancel();
-    emit(state.copyWith(
-      connectionState: SyncConnectionState.error,
-      errorMessage: 'Sync credits expired',
-    ));
-  }
-
   Future<void> retrySync() => tryOperation(() async {
     emit(state.copyWith(isRetrying: true));
     await _powerSyncService.retrySync();

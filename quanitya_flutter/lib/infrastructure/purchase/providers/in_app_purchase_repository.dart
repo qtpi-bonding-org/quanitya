@@ -16,33 +16,29 @@ import '../../crypto/crypto_key_repository.dart';
 import '../../crypto/data_encryption_service.dart';
 import '../../crypto/utils/hashcash.dart';
 import '../../device/device_info_service.dart';
-import 'package:get_it/get_it.dart';
-import '../../../features/purchase/cubits/paid_account_cubit.dart';
-import '../../../features/settings/cubits/llm_provider/llm_provider_cubit.dart';
-import '../../../features/settings/repositories/llm_provider_config_repository.dart';
-import '../entitlement_cache.dart';
 import '../i_purchase_provider.dart';
 import '../purchase_exception.dart';
 import '../purchase_models.dart';
 
+/// Repository for Apple/Google In-App Purchases.
+///
+/// Handles ONLY platform IAP operations: product listing, purchase initiation,
+/// server validation, and purchase completion. No side effects (no cubits,
+/// no cache updates, no LLM switching). Callers handle side effects.
 @LazySingleton(as: IPurchaseProvider)
-class InAppPurchaseProvider implements IPurchaseProvider {
+class InAppPurchaseRepository implements IPurchaseProvider {
   final Client _client;
   final ICryptoKeyRepository _keyRepository;
   final IDataEncryptionService _encryption;
   final AuthService _authService;
   final DeviceInfoService _deviceInfoService;
-  final EntitlementCache _cache;
-  final LlmProviderConfigRepository _llmConfigRepo;
 
-  InAppPurchaseProvider(
+  InAppPurchaseRepository(
     this._client,
     this._keyRepository,
     this._encryption,
     this._authService,
     this._deviceInfoService,
-    this._cache,
-    this._llmConfigRepo,
   );
 
   final iap.InAppPurchase _iapInstance = iap.InAppPurchase.instance;
@@ -305,55 +301,11 @@ class InAppPurchaseProvider implements IPurchaseProvider {
         debugPrint('validateWithServer: server response=$result');
 
         if (result.success) {
+          // Complete the platform purchase (clears Apple/Google queue)
           final rawDetails = _rawPurchaseDetails.remove(purchase.productId);
           if (rawDetails != null) {
             await _iapInstance.completePurchase(rawDetails);
             debugPrint('validateWithServer: completePurchase called');
-          }
-
-          // Update the entitlement cache with the new balance.
-          final validationTag = result.tag;
-          final validationAmount = result.amount;
-          if (validationTag != null && validationAmount != null) {
-            final cached = await _cache.load();
-            final updatedList = List<CachedEntitlement>.from(cached);
-            final existingIndex =
-                updatedList.indexWhere((e) => e.tag == validationTag);
-            if (existingIndex >= 0) {
-              final existing = updatedList[existingIndex];
-              updatedList[existingIndex] = CachedEntitlement(
-                tag: existing.tag,
-                balance: existing.balance + validationAmount,
-                type: existing.type,
-                name: existing.name,
-              );
-            } else {
-              updatedList.add(CachedEntitlement(
-                tag: validationTag,
-                balance: validationAmount,
-                type: 'consumable', // default, corrected on next full refresh
-              ));
-            }
-            await _cache.store(updatedList);
-            debugPrint(
-              'validateWithServer: cache updated for tag=$validationTag '
-              'amount=$validationAmount',
-            );
-
-            // Mark as paid account (fires for all purchases including orphan recovery)
-            if (GetIt.instance.isRegistered<PaidAccountCubit>()) {
-              await GetIt.instance<PaidAccountCubit>().markPurchased();
-            }
-
-            // Auto-switch LLM provider to Quanitya when AI credits are purchased
-            if (validationTag == 'llm_calls') {
-              await _llmConfigRepo.saveQuanityaSelection();
-              // Reload the singleton cubit so UI updates immediately
-              if (GetIt.instance.isRegistered<LlmProviderCubit>()) {
-                GetIt.instance<LlmProviderCubit>().load();
-              }
-              debugPrint('validateWithServer: LLM provider switched to Quanitya');
-            }
           }
         }
 
