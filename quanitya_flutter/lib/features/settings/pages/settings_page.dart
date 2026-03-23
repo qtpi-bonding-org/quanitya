@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
 import '../../../../infrastructure/auth/auth_service.dart';
+import '../../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
@@ -766,6 +767,15 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
           // Reset paid account flag
           if (GetIt.instance.isRegistered<PaidAccountCubit>()) {
             await GetIt.instance<PaidAccountCubit>().reset();
+          }
+
+          // Delete cross-device key (orphaned — server registration is gone)
+          if (GetIt.instance.isRegistered<ICryptoKeyRepository>()) {
+            try {
+              await GetIt.instance<ICryptoKeyRepository>().deleteCrossDeviceKey();
+            } catch (_) {
+              // May not exist — that's fine
+            }
           }
 
           // Disconnect PowerSync (nothing to sync anymore)
