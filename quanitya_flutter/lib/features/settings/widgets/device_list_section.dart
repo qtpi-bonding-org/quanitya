@@ -15,6 +15,7 @@ import '../../../support/extensions/context_extensions.dart';
 import '../../../infrastructure/auth/auth_service.dart'
     show AuthException, AuthFailure, AuthService;
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
+import '../../../infrastructure/device/device_info_service.dart';
 import '../cubits/device_management/device_management_cubit.dart';
 import '../cubits/device_management/device_management_state.dart';
 
@@ -28,7 +29,9 @@ class DeviceListSection extends StatefulWidget {
 
 class _DeviceListSectionState extends State<DeviceListSection> {
   bool _isRegistered = false;
+  bool _hasDeviceKey = false;
   bool _hasCrossDeviceKey = false;
+  String _deviceLabel = '';
 
   @override
   void initState() {
@@ -39,7 +42,18 @@ class _DeviceListSectionState extends State<DeviceListSection> {
   Future<void> _loadState() async {
     final keyRepo = GetIt.instance<ICryptoKeyRepository>();
 
-    // Check for cross-device key (iCloud) — available even when not registered
+    // Check for device key
+    final deviceKeyHex = await keyRepo.getDeviceSigningPublicKeyHex();
+    if (mounted && deviceKeyHex != null) {
+      final deviceInfo = GetIt.instance<DeviceInfoService>();
+      final name = await deviceInfo.getDeviceName();
+      setState(() {
+        _hasDeviceKey = true;
+        _deviceLabel = name;
+      });
+    }
+
+    // Check for cross-device key (iCloud) — survives app deletion
     if (keyRepo.isCrossDeviceStorageAvailable) {
       final crossKey = await keyRepo.getCrossDeviceKey();
       if (mounted) setState(() => _hasCrossDeviceKey = crossKey != null);
@@ -52,6 +66,21 @@ class _DeviceListSectionState extends State<DeviceListSection> {
     if (registered) {
       context.read<DeviceManagementCubit>().loadDevices();
     }
+  }
+
+  void _deleteCrossDeviceKey() {
+    QuanityaConfirmationDialog.show(
+      context: context,
+      title: context.l10n.deleteCloudKey,
+      message: context.l10n.deleteCloudKeyWarning,
+      confirmText: context.l10n.actionDelete,
+      isDestructive: true,
+      onConfirm: () async {
+        final keyRepo = GetIt.instance<ICryptoKeyRepository>();
+        await keyRepo.deleteCrossDeviceKey();
+        if (mounted) setState(() => _hasCrossDeviceKey = false);
+      },
+    );
   }
 
   /// Whether to show the "Enable Cross-Device Sync" button.
@@ -70,7 +99,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
 
   @override
   Widget build(BuildContext context) {
-    // If not registered with server, show local-only view
+    // If not registered with server, show local-only view with detected keys
     if (!_isRegistered) {
       final keyRepo = GetIt.instance<ICryptoKeyRepository>();
       return Column(
@@ -83,37 +112,23 @@ class _DeviceListSectionState extends State<DeviceListSection> {
           ),
           VSpace.x2,
 
-          // Show cross-device key if available (iCloud survives app deletion)
+          // This device key
+          if (_hasDeviceKey) ...[
+            _LocalKeyRow(
+              icon: _DeviceCard._getDeviceIcon(_deviceLabel),
+              label: _deviceLabel,
+              subtitle: context.l10n.thisDevice,
+            ),
+            VSpace.x2,
+          ],
+
+          // Cross-device key (iCloud)
           if (_hasCrossDeviceKey) ...[
-            Row(
-              children: [
-                Icon(
-                  Icons.cloud_outlined,
-                  size: AppSizes.iconLarge,
-                  color: context.colors.secondaryColor,
-                ),
-                HSpace.x3,
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        keyRepo.crossDeviceLabel,
-                        style: context.text.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      VSpace.x05,
-                      Text(
-                        context.l10n.deviceLocalOnly,
-                        style: context.text.bodySmall?.copyWith(
-                          color: context.colors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            _LocalKeyRow(
+              icon: Icons.cloud_outlined,
+              label: keyRepo.crossDeviceLabel,
+              subtitle: context.l10n.deviceLocalOnly,
+              onDelete: _deleteCrossDeviceKey,
             ),
             VSpace.x2,
           ],
@@ -358,7 +373,7 @@ class _DeviceCard extends StatelessWidget {
     );
   }
 
-  IconData _getDeviceIcon(String label) {
+  static IconData _getDeviceIcon(String label) {
     final lowerLabel = label.toLowerCase();
     if (lowerLabel == 'icloud' || lowerLabel == 'google backup') {
       return Icons.cloud_outlined;
@@ -393,6 +408,63 @@ class _DeviceCard extends StatelessWidget {
         if (deviceId == null) return;
         context.read<DeviceManagementCubit>().revokeDevice(deviceId);
       },
+    );
+  }
+}
+
+/// Local key row — shown when not registered with server.
+/// Displays a detected key with icon, label, subtitle, and optional delete.
+class _LocalKeyRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final VoidCallback? onDelete;
+
+  const _LocalKeyRow({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: AppSizes.iconLarge,
+          color: context.colors.secondaryColor,
+        ),
+        HSpace.x3,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: context.text.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              VSpace.x05,
+              Text(
+                subtitle,
+                style: context.text.bodySmall?.copyWith(
+                  color: context.colors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (onDelete != null)
+          QuanityaTextButton(
+            text: context.l10n.actionDelete,
+            isDestructive: true,
+            onPressed: onDelete,
+          ),
+      ],
     );
   }
 }

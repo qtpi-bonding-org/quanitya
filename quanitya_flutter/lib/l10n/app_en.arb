@@ -640,6 +640,8 @@
   "pairingDataCopied": "Pairing data copied",
   "deviceManagementRequiresCloud": "Device management requires cloud or self-hosted mode.",
   "deviceLocalOnly": "Stored locally",
+  "deleteCloudKey": "Delete Cloud Key",
+  "deleteCloudKeyWarning": "This will permanently remove your iCloud recovery key. If you also lose your ultimate recovery key, there will be no way to recover your account or entitlements. This cannot be undone.",
   "tooltipViewInsights": "View insights",
   "tooltipAnalyzeData": "Analyze Data",
   "tooltipStop": "Stop",
