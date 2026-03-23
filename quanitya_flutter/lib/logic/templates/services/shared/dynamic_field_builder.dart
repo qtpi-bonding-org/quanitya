@@ -512,25 +512,13 @@ class DynamicFieldBuilder {
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
-    final controller = TextEditingController(text: value?.toString() ?? '');
-    return Builder(
-      builder: (context) => QuanityaTextField(
-        controller: controller,
-        hintText: context.l10n.fieldBuilderEnterHint(field.label.toLowerCase()),
-        semanticLabel: field.label,
-        onChanged: onChanged,
-        style: textStyle,
-        textColor: textStyle?.color,
-        hintColor: colors?['borderColor']?.withValues(alpha: 0.6),
-        cursorColor:
-            colors?['cursorColor'] ?? QuanityaPalette.primary.interactableColor,
-        fillColor: colors?['fillColor'] ?? QuanityaPalette.primary.backgroundPrimary,
-        borderColor:
-            colors?['borderColor'] ?? QuanityaPalette.primary.textSecondary,
-        focusedBorderColor:
-            colors?['focusedBorderColor'] ?? QuanityaPalette.primary.interactableColor,
-        errorBorderColor: colors?['errorBorderColor'] ?? QuanityaPalette.primary.destructiveColor,
-      ),
+    return _StableTextField(
+      key: ValueKey('field_${field.id}'),
+      initialValue: value?.toString() ?? '',
+      field: field,
+      onChanged: onChanged,
+      colors: colors,
+      textStyle: textStyle,
     );
   }
 
@@ -541,26 +529,14 @@ class DynamicFieldBuilder {
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
-    final controller = TextEditingController(text: value?.toString() ?? '');
-    return Builder(
-      builder: (context) => QuanityaTextField(
-        controller: controller,
-        hintText: context.l10n.fieldBuilderEnterHint(field.label.toLowerCase()),
-        semanticLabel: field.label,
-        onChanged: onChanged,
-        maxLines: 4,
-        style: textStyle,
-        textColor: textStyle?.color,
-        hintColor: colors?['borderColor']?.withValues(alpha: 0.6),
-        cursorColor:
-            colors?['cursorColor'] ?? QuanityaPalette.primary.interactableColor,
-        fillColor: colors?['fillColor'] ?? QuanityaPalette.primary.backgroundPrimary,
-        borderColor:
-            colors?['borderColor'] ?? QuanityaPalette.primary.textSecondary,
-        focusedBorderColor:
-            colors?['focusedBorderColor'] ?? QuanityaPalette.primary.interactableColor,
-        errorBorderColor: colors?['errorBorderColor'] ?? QuanityaPalette.primary.destructiveColor,
-      ),
+    return _StableTextField(
+      key: ValueKey('field_${field.id}'),
+      initialValue: value?.toString() ?? '',
+      field: field,
+      onChanged: onChanged,
+      maxLines: 4,
+      colors: colors,
+      textStyle: textStyle,
     );
   }
 
@@ -883,6 +859,69 @@ class _TimerWidgetState extends State<_TimerWidget> {
             tooltip: context.l10n.tooltipReset,
           ),
       ],
+    );
+  }
+}
+
+/// Text field that owns its own [TextEditingController] so the cursor
+/// position is stable across parent rebuilds.
+class _StableTextField extends StatefulWidget {
+  final String initialValue;
+  final TemplateField field;
+  final ValueChanged<dynamic> onChanged;
+  final int maxLines;
+  final Map<String, Color>? colors;
+  final TextStyle? textStyle;
+
+  const _StableTextField({
+    super.key,
+    required this.initialValue,
+    required this.field,
+    required this.onChanged,
+    this.maxLines = 1,
+    this.colors,
+    this.textStyle,
+  });
+
+  @override
+  State<_StableTextField> createState() => _StableTextFieldState();
+}
+
+class _StableTextFieldState extends State<_StableTextField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = widget.colors;
+    return QuanityaTextField(
+      controller: _controller,
+      hintText: context.l10n.fieldBuilderEnterHint(widget.field.label.toLowerCase()),
+      semanticLabel: widget.field.label,
+      onChanged: widget.onChanged,
+      maxLines: widget.maxLines,
+      style: widget.textStyle,
+      textColor: widget.textStyle?.color,
+      hintColor: colors?['borderColor']?.withValues(alpha: 0.6),
+      cursorColor:
+          colors?['cursorColor'] ?? QuanityaPalette.primary.interactableColor,
+      fillColor: colors?['fillColor'] ?? QuanityaPalette.primary.backgroundPrimary,
+      borderColor:
+          colors?['borderColor'] ?? QuanityaPalette.primary.textSecondary,
+      focusedBorderColor:
+          colors?['focusedBorderColor'] ?? QuanityaPalette.primary.interactableColor,
+      errorBorderColor: colors?['errorBorderColor'] ?? QuanityaPalette.primary.destructiveColor,
     );
   }
 }
