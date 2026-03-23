@@ -105,15 +105,13 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                   children: [
                     // AI prompt — only shown when creating, no fold needed
                     if (!isEditing)
-                      KeyedSubtree(
-                        key: DesignerTourKeys.aiPrompt,
-                        child: AiPromptWidget(
-                          title: context.l10n.aiGeneratorTitle,
-                          hintText: context.l10n.aiGeneratorHint,
-                          isLoading: _isGenerating,
-                          onGenerate: (prompt) =>
-                              _generateFromAi(context, prompt),
-                        ),
+                      AiPromptWidget(
+                        title: context.l10n.aiGeneratorTitle,
+                        hintText: context.l10n.aiGeneratorHint,
+                        isLoading: _isGenerating,
+                        tourKey: DesignerTourKeys.aiPrompt,
+                        onGenerate: (prompt) =>
+                            _generateFromAi(context, prompt),
                       ),
 
                     // Identity fold — always expanded
