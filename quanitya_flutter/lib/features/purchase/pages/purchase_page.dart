@@ -48,22 +48,39 @@ class PurchaseTabContent extends StatelessWidget {
               child: child,
             ),
       ],
-      child: BlocListener<PurchaseCubit, PurchaseState>(
-        listenWhen: (prev, curr) =>
-            curr.lastOperation == PurchaseOperation.purchase &&
-            curr.status == UiFlowStatus.success &&
-            prev.status != curr.status,
-        listener: (context, state) {
-          // Mark as paid account (persists flag for entitlement UI)
-          context.read<PaidAccountCubit>().markPurchased();
+      child: MultiBlocListener(
+        listeners: [
+          // On purchase success: mark paid + refresh entitlements
+          BlocListener<PurchaseCubit, PurchaseState>(
+            listenWhen: (prev, curr) =>
+                curr.lastOperation == PurchaseOperation.purchase &&
+                curr.status == UiFlowStatus.success &&
+                prev.status != curr.status,
+            listener: (context, state) {
+              context.read<PaidAccountCubit>().markPurchased();
 
-          // Refresh entitlements to reflect the new purchase
-          final mode = context.read<AppSyncingCubit>().state.mode;
-          context.read<EntitlementCubit>()
-            ..loadEntitlements(mode: mode)
-            ..checkSyncAccess(mode: mode)
-            ..loadStorageUsage(mode: mode);
-        },
+              final mode = context.read<AppSyncingCubit>().state.mode;
+              context.read<EntitlementCubit>()
+                ..loadEntitlements(mode: mode)
+                ..checkSyncAccess(mode: mode)
+                ..loadStorageUsage(mode: mode);
+            },
+          ),
+
+          // When sync entitlement becomes active: auto-switch to cloud
+          BlocListener<EntitlementCubit, EntitlementState>(
+            listenWhen: (prev, curr) =>
+                !prev.hasSyncAccess &&
+                curr.hasSyncAccess &&
+                curr.lastOperation == EntitlementOperation.checkSyncAccess,
+            listener: (context, state) {
+              final syncCubit = context.read<AppSyncingCubit>();
+              if (syncCubit.state.mode == AppSyncingMode.local) {
+                syncCubit.switchToCloud();
+              }
+            },
+          ),
+        ],
         child: RefreshIndicator(
         onRefresh: () async {
           context.read<PurchaseCubit>().loadProducts();
