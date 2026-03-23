@@ -657,6 +657,7 @@
   "entitlementLabel": "Entitlement #{id}",
   "entitlementActive": "Active",
   "entitlementInactive": "Inactive",
+  "entitlementInactive": "Inactive",
   "outboxTitle": "Outbox",
   "outboxTabFeedback": "Feedback",
   "outboxTabAnalytics": "Analytics",
