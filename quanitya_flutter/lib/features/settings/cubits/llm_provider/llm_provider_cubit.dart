@@ -27,7 +27,9 @@ class LlmProviderCubit extends QuanityaCubit<LlmProviderState> {
     this._apiKeyRepo,
     this._testedModelsService,
     this._httpClient,
-  ) : super(const LlmProviderState());
+  ) : super(const LlmProviderState()) {
+    load();
+  }
 
   Future<void> load() async {
     await tryOperation(() async {
