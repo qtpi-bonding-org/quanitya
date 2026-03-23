@@ -16,6 +16,7 @@ import '../../crypto/crypto_key_repository.dart';
 import '../../crypto/data_encryption_service.dart';
 import '../../crypto/utils/hashcash.dart';
 import '../../device/device_info_service.dart';
+import '../../../features/settings/repositories/llm_provider_config_repository.dart';
 import '../entitlement_cache.dart';
 import '../i_purchase_provider.dart';
 import '../purchase_exception.dart';
@@ -29,6 +30,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
   final AuthService _authService;
   final DeviceInfoService _deviceInfoService;
   final EntitlementCache _cache;
+  final LlmProviderConfigRepository _llmConfigRepo;
 
   InAppPurchaseProvider(
     this._client,
@@ -37,6 +39,7 @@ class InAppPurchaseProvider implements IPurchaseProvider {
     this._authService,
     this._deviceInfoService,
     this._cache,
+    this._llmConfigRepo,
   );
 
   final iap.InAppPurchase _iapInstance = iap.InAppPurchase.instance;
@@ -333,6 +336,12 @@ class InAppPurchaseProvider implements IPurchaseProvider {
               'validateWithServer: cache updated for tag=$validationTag '
               'amount=$validationAmount',
             );
+
+            // Auto-switch LLM provider to Quanitya when AI credits are purchased
+            if (validationTag == 'llm_calls') {
+              await _llmConfigRepo.saveQuanityaSelection();
+              debugPrint('validateWithServer: LLM provider switched to Quanitya');
+            }
           }
         }
 
