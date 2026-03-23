@@ -1023,6 +1023,7 @@ class AuthService {
     return tryMethod(
       () async {
         await _keyRepository.clearKeys();
+        await clearRegistrationFlag();
       },
       _wrapAuthError,
       'signOut',
