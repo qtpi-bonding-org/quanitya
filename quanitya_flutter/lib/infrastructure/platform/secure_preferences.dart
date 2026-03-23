@@ -21,5 +21,10 @@ class SecurePreferences {
   Future<void> setBool(String key, bool value) =>
       _storage.storeSecureData(key, value.toString());
 
+  Future<String?> getString(String key) => _storage.getSecureData(key);
+
+  Future<void> setString(String key, String value) =>
+      _storage.storeSecureData(key, value);
+
   Future<void> remove(String key) => _storage.deleteSecureData(key);
 }
