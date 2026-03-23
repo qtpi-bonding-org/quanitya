@@ -16,6 +16,7 @@ import '../../crypto/crypto_key_repository.dart';
 import '../../crypto/data_encryption_service.dart';
 import '../../crypto/utils/hashcash.dart';
 import '../../device/device_info_service.dart';
+import '../i_digital_purchase_repository.dart';
 import '../i_purchase_provider.dart';
 import '../purchase_exception.dart';
 import '../purchase_models.dart';
@@ -26,7 +27,7 @@ import '../purchase_models.dart';
 /// server validation, and purchase completion. No side effects (no cubits,
 /// no cache updates, no LLM switching). Callers handle side effects.
 @LazySingleton(as: IPurchaseProvider)
-class InAppPurchaseRepository implements IPurchaseProvider {
+class InAppPurchaseRepository implements IPurchaseProvider, IDigitalPurchaseRepository {
   final Client _client;
   final ICryptoKeyRepository _keyRepository;
   final IDataEncryptionService _encryption;
