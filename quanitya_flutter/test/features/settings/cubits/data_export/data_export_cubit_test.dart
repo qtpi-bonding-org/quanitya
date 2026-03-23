@@ -109,35 +109,35 @@ void main() {
         when(mockRepo.parseImportFile()).thenAnswer((_) async => tables);
 
         final cubit = buildCubit();
-        final result = await cubit.pickImportFile();
+        await cubit.pickImportFile();
 
-        expect(result, equals(tables));
+        expect(cubit.state.pickedTableNames, equals(tables));
         verify(mockRepo.parseImportFile()).called(1);
 
         await cubit.close();
       });
 
-      test('returns null when user cancels file picker', () async {
+      test('stays idle when user cancels file picker', () async {
         when(mockRepo.parseImportFile())
             .thenThrow(const ImportCancelledException());
 
         final cubit = buildCubit();
-        final result = await cubit.pickImportFile();
+        await cubit.pickImportFile();
 
-        expect(result, isNull);
+        expect(cubit.state.pickedTableNames, isEmpty);
         expect(cubit.state.status, equals(UiFlowStatus.idle));
 
         await cubit.close();
       });
 
-      test('returns null and emits error on invalid file', () async {
+      test('emits error on invalid file', () async {
         when(mockRepo.parseImportFile())
             .thenThrow(const ImportFailedException('Invalid file'));
 
         final cubit = buildCubit();
-        final result = await cubit.pickImportFile();
+        await cubit.pickImportFile();
 
-        expect(result, isNull);
+        expect(cubit.state.pickedTableNames, isEmpty);
         expect(cubit.state.status, equals(UiFlowStatus.failure));
         expect(cubit.state.error, isA<ImportFailedException>());
 
