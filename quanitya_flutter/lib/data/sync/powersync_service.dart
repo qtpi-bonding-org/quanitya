@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:get_it/get_it.dart';
 import 'package:powersync_sqlcipher/powersync.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,6 +15,8 @@ import '../db/app_database.dart';
 import '../../infrastructure/config/dev_config.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../infrastructure/security/database_key_service.dart';
+import '../../infrastructure/purchase/entitlement_cache.dart';
+import '../../infrastructure/purchase/entitlement_service.dart' show syncEntitlementTags;
 
 /// Resolve localhost for Android emulator loopback
 String _resolveUrl(String url) {
@@ -170,7 +173,11 @@ class PowerSyncService implements IPowerSyncService {
       // Disconnect first to avoid "Stream already listened to" on hot restart
       await _powerSyncDb!.disconnect();
 
-      final connector = _ServerpodConnector(serverpodClient, mode);
+      final connector = _ServerpodConnector(
+        serverpodClient,
+        mode,
+        GetIt.instance<EntitlementCache>(),
+      );
       await _powerSyncDb!.connect(connector: connector);
       _isConnected = true;
       _currentMode = mode;
@@ -240,9 +247,10 @@ class PowerSyncService implements IPowerSyncService {
 class _ServerpodConnector extends PowerSyncBackendConnector {
   final Client _client;
   final AppSyncingMode _mode;
+  final EntitlementCache? _entitlementCache;
   String? _cachedEndpoint;
 
-  _ServerpodConnector(this._client, this._mode);
+  _ServerpodConnector(this._client, this._mode, [this._entitlementCache]);
 
   @override
   Future<PowerSyncCredentials?> fetchCredentials() async {
@@ -275,6 +283,30 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
       );
     } catch (e) {
       debugPrint('🔴 PowerSyncConnector: fetchCredentials failed: $e');
+
+      // If server says no sync credits, zero out cache so next bootstrap won't reconnect
+      final cache = _entitlementCache;
+      if (e.toString().contains('insufficientCredits') && cache != null) {
+        debugPrint('🔴 PowerSyncConnector: Sync entitlement expired — zeroing cache');
+        try {
+          final cached = await cache.load();
+          final updated = cached.map((entry) {
+            if (syncEntitlementTags.contains(entry.tag)) {
+              return CachedEntitlement(
+                tag: entry.tag,
+                balance: 0.0,
+                type: entry.type,
+                name: entry.name,
+              );
+            }
+            return entry;
+          }).toList();
+          await cache.store(updated);
+        } catch (_) {
+          // Cache update is best-effort
+        }
+      }
+
       return null;
     }
   }
