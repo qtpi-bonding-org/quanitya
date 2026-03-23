@@ -12,7 +12,7 @@ import 'sync_status_state.dart';
 
 @lazySingleton
 class SyncStatusCubit extends QuanityaCubit<SyncStatusState> {
-  final IPowerSyncService _powerSyncService;
+  final IPowerSyncRepository _powerSyncService;
   StreamSubscription<SyncStatus>? _statusSubscription;
 
   SyncStatusCubit(this._powerSyncService) : super(const SyncStatusState());

@@ -180,7 +180,7 @@ class _RecoveryForm extends StatelessWidget {
             }
             if (syncCubit.state.mode.supportsSync) {
               debugPrint('🔑 Recovery: connecting PowerSync...');
-              final ps = GetIt.instance<IPowerSyncService>();
+              final ps = GetIt.instance<IPowerSyncRepository>();
               final client = GetIt.instance<Client>();
               await ps.connect(client, syncCubit.state.mode);
               debugPrint('🔑 Recovery: PowerSync connected=${ps.isConnected}');

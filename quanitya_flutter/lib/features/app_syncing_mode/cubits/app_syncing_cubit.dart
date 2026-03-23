@@ -250,9 +250,9 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
   /// - External changes (_handleExternalModeChange): has its own catch that
   ///   updates mode but sets failure status.
   Future<void> _handlePowerSyncModeChange(AppSyncingMode mode) async {
-    if (GetIt.instance.isRegistered<IPowerSyncService>() &&
+    if (GetIt.instance.isRegistered<IPowerSyncRepository>() &&
         GetIt.instance.isRegistered<Client>()) {
-      final powerSync = GetIt.instance<IPowerSyncService>();
+      final powerSync = GetIt.instance<IPowerSyncRepository>();
       final client = GetIt.instance<Client>();
       await powerSync.handleModeChange(mode, client);
     }

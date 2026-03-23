@@ -33,7 +33,7 @@ class SyncException implements Exception {
 /// AppSyncingCubit, and UI pages. It does NOT call any cubits.
 @lazySingleton
 class SyncService {
-  final IPowerSyncService _powerSync;
+  final IPowerSyncRepository _powerSync;
   final AppSyncingRepository _syncRepo;
   final EntitlementRepository _entitlementRepo;
   final AuthService _authService;

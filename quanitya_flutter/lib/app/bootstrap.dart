@@ -181,7 +181,7 @@ Future<void> bootstrap() async {
     }
 
     // 6. Connect PowerSync — only if sync entitlement is active in cache
-    if (getIt.isRegistered<IPowerSyncService>()) {
+    if (getIt.isRegistered<IPowerSyncRepository>()) {
       final entitlementCache = getIt<EntitlementCache>();
       final hasSyncAccess = await entitlementCache.hasSyncAccess();
       final authService = getIt.isRegistered<AuthService>()
@@ -200,7 +200,7 @@ Future<void> bootstrap() async {
         }
 
         if (syncCubit.state.mode.supportsSync) {
-          final ps = getIt<IPowerSyncService>();
+          final ps = getIt<IPowerSyncRepository>();
           await ps.connect(getIt<Client>(), syncCubit.state.mode);
           debugPrint('Bootstrap: PowerSync connected = ${ps.isConnected}');
         }

@@ -779,8 +779,8 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
           }
 
           // Disconnect PowerSync (nothing to sync anymore)
-          if (GetIt.instance.isRegistered<IPowerSyncService>()) {
-            await GetIt.instance<IPowerSyncService>().disconnect();
+          if (GetIt.instance.isRegistered<IPowerSyncRepository>()) {
+            await GetIt.instance<IPowerSyncRepository>().disconnect();
           }
 
           // Switch back to local mode
