@@ -16,6 +16,8 @@ import '../../crypto/crypto_key_repository.dart';
 import '../../crypto/data_encryption_service.dart';
 import '../../crypto/utils/hashcash.dart';
 import '../../device/device_info_service.dart';
+import 'package:get_it/get_it.dart';
+import '../../../features/settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../../features/settings/repositories/llm_provider_config_repository.dart';
 import '../entitlement_cache.dart';
 import '../i_purchase_provider.dart';
@@ -340,6 +342,10 @@ class InAppPurchaseProvider implements IPurchaseProvider {
             // Auto-switch LLM provider to Quanitya when AI credits are purchased
             if (validationTag == 'llm_calls') {
               await _llmConfigRepo.saveQuanityaSelection();
+              // Reload the singleton cubit so UI updates immediately
+              if (GetIt.instance.isRegistered<LlmProviderCubit>()) {
+                GetIt.instance<LlmProviderCubit>().load();
+              }
               debugPrint('validateWithServer: LLM provider switched to Quanitya');
             }
           }

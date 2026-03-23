@@ -90,7 +90,7 @@ class _OfficePageState extends State<OfficePage> {
         BlocProvider(create: (_) => GetIt.instance<RecoveryKeyCubit>()),
         BlocProvider(create: (_) => GetIt.instance<DeviceManagementCubit>()),
         BlocProvider(create: (_) => GetIt.instance<WebhookCubit>()..load()),
-        BlocProvider(create: (_) => GetIt.instance<LlmProviderCubit>()..load()),
+        BlocProvider.value(value: GetIt.instance<LlmProviderCubit>()..load()),
         BlocProvider.value(value: GetIt.instance<AppSyncingCubit>()),
         BlocProvider(create: (_) => GetIt.instance<SyncStatusCubit>()
           ..startListening(GetIt.instance<AppSyncingCubit>().state.mode)),
