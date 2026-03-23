@@ -13,7 +13,7 @@ import '../exceptions/app_syncing_exceptions.dart';
 import '../../../data/sync/powersync_service.dart';
 import 'app_syncing_state.dart';
 
-@injectable
+@lazySingleton
 class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
   final AppSyncingRepository _repository;
   final INetworkService _networkService;
