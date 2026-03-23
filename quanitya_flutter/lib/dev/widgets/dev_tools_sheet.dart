@@ -26,6 +26,7 @@ import '../../logic/log_entries/models/log_entry.dart';
 import '../../logic/schedules/services/schedule_generator_service.dart';
 import '../../features/guided_tour/guided_tour_service.dart';
 import '../../features/purchase/cubits/paid_account_cubit.dart';
+import '../../infrastructure/purchase/entitlement_cache.dart';
 import '../services/dev_seeder_service.dart';
 
 /// Shows a bottom sheet with dev tools
@@ -563,6 +564,11 @@ class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
           // 3b. Reset paid account flag
           if (GetIt.instance.isRegistered<PaidAccountCubit>()) {
             await GetIt.instance<PaidAccountCubit>().reset();
+          }
+
+          // 3c. Clear entitlement cache
+          if (GetIt.instance.isRegistered<EntitlementCache>()) {
+            await GetIt.instance<EntitlementCache>().clear();
           }
 
           // 4. Sign out (clears all crypto keys including iCloud Keychain)

@@ -18,6 +18,8 @@ import '../data/sync/powersync_service.dart';
 import '../infrastructure/auth/auth_service.dart';
 import '../infrastructure/config/dev_config.dart';
 import '../infrastructure/platform/platform_capability_service.dart';
+import '../infrastructure/purchase/entitlement_cache.dart';
+import '../infrastructure/purchase/i_entitlement_service.dart';
 import '../infrastructure/purchase/i_purchase_provider.dart';
 import '../infrastructure/purchase/i_purchase_service.dart';
 import '../infrastructure/purchase/purchase_models.dart';
@@ -164,37 +166,47 @@ Future<void> bootstrap() async {
       await paidAccountCubit.initialize();
     }
 
-    // 6. Connect PowerSync for cloud sync (only if not in local mode AND user is authenticated)
+    // 5.7. Refresh entitlement cache (best-effort, stale cache is fine)
+    if (getIt.isRegistered<PaidAccountCubit>() &&
+        getIt<PaidAccountCubit>().hasPurchased &&
+        getIt.isRegistered<IEntitlementService>()) {
+      try {
+        final entitlementService = getIt<IEntitlementService>();
+        await entitlementService.getEntitlements(); // refreshes cache as side effect
+        debugPrint('Bootstrap: Entitlement cache refreshed');
+      } catch (e) {
+        debugPrint('Bootstrap: Entitlement cache refresh failed (using stale cache): $e');
+      }
+    }
+
+    // 6. Connect PowerSync — only if sync entitlement is active in cache
     if (getIt.isRegistered<IPowerSyncService>()) {
-      final appOperatingCubit = getIt<AppSyncingCubit>();
-      final currentMode = appOperatingCubit.state.mode;
+      final entitlementCache = getIt<EntitlementCache>();
+      final hasSyncAccess = await entitlementCache.hasSyncAccess();
+      final authService = getIt.isRegistered<AuthService>()
+          ? getIt<AuthService>()
+          : null;
+      final isAuthenticated = authService != null
+          ? await authService.isAuthenticated()
+          : false;
 
-      if (currentMode.supportsSync) {
-        // Check if user is actually authenticated before trying to connect PowerSync
-        final authService = getIt.isRegistered<AuthService>()
-            ? getIt<AuthService>()
-            : null;
-        final isAuthenticated = authService != null
-            ? await authService.isAuthenticated()
-            : false;
+      if (hasSyncAccess && isAuthenticated) {
+        final syncCubit = getIt<AppSyncingCubit>();
 
-        if (isAuthenticated) {
-          debugPrint(
-            'Bootstrap: Connecting PowerSync (mode: ${currentMode.name}, authenticated: true)...',
-          );
-          final powerSync = getIt<IPowerSyncService>();
-          final serverpodClient = getIt<Client>();
-          await powerSync.connect(serverpodClient, currentMode);
-          debugPrint(
-            'Bootstrap: PowerSync connected = ${powerSync.isConnected}',
-          );
-        } else {
-          debugPrint(
-            'Bootstrap: Skipping PowerSync connection - user not authenticated yet',
-          );
+        // Auto-switch to cloud if still in local mode
+        if (syncCubit.state.mode == AppSyncingMode.local) {
+          await syncCubit.switchToCloud();
+        }
+
+        if (syncCubit.state.mode.supportsSync) {
+          final ps = getIt<IPowerSyncService>();
+          await ps.connect(getIt<Client>(), syncCubit.state.mode);
+          debugPrint('Bootstrap: PowerSync connected = ${ps.isConnected}');
         }
       } else {
-        debugPrint('Bootstrap: Skipping PowerSync connection (local mode)');
+        debugPrint(
+          'Bootstrap: Skipping PowerSync (${!hasSyncAccess ? "no sync entitlement" : "not authenticated"})',
+        );
       }
     }
 
