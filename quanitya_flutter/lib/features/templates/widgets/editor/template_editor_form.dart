@@ -117,41 +117,41 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                       ),
 
                     // Identity fold — always expanded
-                    KeyedSubtree(
-                      key: DesignerTourKeys.nameField,
-                      child: NotebookFold(
-                        initiallyExpanded: true,
-                        header: Text(
+                    NotebookFold(
+                      initiallyExpanded: true,
+                      header: KeyedSubtree(
+                        key: DesignerTourKeys.nameField,
+                        child: Text(
                           context.l10n.templateNameLabel,
                           style: context.text.titleMedium?.copyWith(
                             color: context.colors.textPrimary,
                           ),
                         ),
-                        child: QuanityaColumn(
-                          crossAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const TemplateIconEditor(),
-                            VSpace.x3,
-                            const TemplateBasicInfoEditor(),
-                          ],
-                        ),
+                      ),
+                      child: QuanityaColumn(
+                        crossAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const TemplateIconEditor(),
+                          VSpace.x3,
+                          const TemplateBasicInfoEditor(),
+                        ],
                       ),
                     ),
 
                     // Fields fold — always expanded
-                    KeyedSubtree(
-                      key: DesignerTourKeys.fieldsSection,
-                      child: NotebookFold(
-                        initiallyExpanded: true,
-                        header: _buildFieldsHeader(context, state),
-                        child: QuanityaColumn(
-                          crossAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const FieldEditorList(),
-                            VSpace.x3,
-                            _buildAddFieldList(context),
-                          ],
-                        ),
+                    NotebookFold(
+                      initiallyExpanded: true,
+                      header: KeyedSubtree(
+                        key: DesignerTourKeys.fieldsSection,
+                        child: _buildFieldsHeader(context, state),
+                      ),
+                      child: QuanityaColumn(
+                        crossAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const FieldEditorList(),
+                          VSpace.x3,
+                          _buildAddFieldList(context),
+                        ],
                       ),
                     ),
 
@@ -177,32 +177,32 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                     ),
 
                     // Schedule fold — collapsed by default (optional)
-                    KeyedSubtree(
-                      key: DesignerTourKeys.scheduleFold,
-                      child: NotebookFold(
-                        initiallyExpanded: false,
-                        header: Text(
+                    NotebookFold(
+                      initiallyExpanded: false,
+                      header: KeyedSubtree(
+                        key: DesignerTourKeys.scheduleFold,
+                        child: Text(
                           '${context.l10n.scheduleTitle} (${context.l10n.optionalLabel})',
                           style: context.text.titleMedium?.copyWith(
                             color: context.colors.textPrimary,
                           ),
                         ),
-                        child: ScheduleSection(
-                          frequency: state.scheduleFrequency,
-                          reminderTime: state.scheduleHour != null
-                              ? TimeOfDay(hour: state.scheduleHour!, minute: state.scheduleMinute ?? 0)
-                              : null,
-                          weeklyDays: state.scheduleWeeklyDays,
-                          onFrequencyChanged: (freq) => context
-                              .read<TemplateEditorCubit>()
-                              .updateScheduleFrequency(freq),
-                          onTimeChanged: (time) => context
-                              .read<TemplateEditorCubit>()
-                              .updateScheduleTime(time.hour, time.minute),
-                          onWeeklyDaysChanged: (days) => context
-                              .read<TemplateEditorCubit>()
-                              .updateScheduleWeeklyDays(days),
-                        ),
+                      ),
+                      child: ScheduleSection(
+                        frequency: state.scheduleFrequency,
+                        reminderTime: state.scheduleHour != null
+                            ? TimeOfDay(hour: state.scheduleHour!, minute: state.scheduleMinute ?? 0)
+                            : null,
+                        weeklyDays: state.scheduleWeeklyDays,
+                        onFrequencyChanged: (freq) => context
+                            .read<TemplateEditorCubit>()
+                            .updateScheduleFrequency(freq),
+                        onTimeChanged: (time) => context
+                            .read<TemplateEditorCubit>()
+                            .updateScheduleTime(time.hour, time.minute),
+                        onWeeklyDaysChanged: (days) => context
+                            .read<TemplateEditorCubit>()
+                            .updateScheduleWeeklyDays(days),
                       ),
                     ),
 
