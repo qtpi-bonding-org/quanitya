@@ -26,7 +26,7 @@ import '../../../../data/sync/powersync_service.dart';
 import '../../../../infrastructure/purchase/entitlement_cache.dart';
 import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../../purchase/cubits/paid_account_cubit.dart';
+import '../../../infrastructure/purchase/entitlement_repository.dart';
 import '../cubits/data_export/data_export_cubit.dart';
 import '../cubits/recovery_key/recovery_key_cubit.dart';
 import '../cubits/device_management/device_management_cubit.dart';
@@ -760,13 +760,9 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
           }
 
           // Clear entitlement cache (server data is gone)
-          if (GetIt.instance.isRegistered<EntitlementCache>()) {
-            await GetIt.instance<EntitlementCache>().clear();
-          }
-
-          // Reset paid account flag
-          if (GetIt.instance.isRegistered<PaidAccountCubit>()) {
-            await GetIt.instance<PaidAccountCubit>().reset();
+          // Clear entitlement data (cache + paid flag)
+          if (GetIt.instance.isRegistered<EntitlementRepository>()) {
+            await GetIt.instance<EntitlementRepository>().clear();
           }
 
           // Delete cross-device key (orphaned — server registration is gone)

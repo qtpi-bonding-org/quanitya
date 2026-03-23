@@ -30,7 +30,7 @@ import '../infrastructure/notifications/notification_service.dart';
 import '../logic/schedules/services/schedule_generator_service.dart';
 import '../features/settings/services/tested_models_service.dart';
 import '../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../features/purchase/cubits/paid_account_cubit.dart';
+import '../infrastructure/purchase/entitlement_repository.dart';
 import '../features/sync_status/cubits/sync_status_cubit.dart';
 import '../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../integrations/flutter/health/health_sync_service.dart';
@@ -161,15 +161,9 @@ Future<void> bootstrap() async {
       }
     }
 
-    // 5.6. Initialize PaidAccountCubit — check if user has ever purchased
-    if (getIt.isRegistered<PaidAccountCubit>()) {
-      final paidAccountCubit = getIt<PaidAccountCubit>();
-      await paidAccountCubit.initialize();
-    }
-
     // 5.7. Refresh entitlement cache (best-effort, stale cache is fine)
-    if (getIt.isRegistered<PaidAccountCubit>() &&
-        getIt<PaidAccountCubit>().hasPurchased &&
+    if (getIt.isRegistered<EntitlementRepository>() &&
+        await getIt<EntitlementRepository>().hasEverPurchased() &&
         getIt.isRegistered<IEntitlementService>()) {
       try {
         final entitlementService = getIt<IEntitlementService>();

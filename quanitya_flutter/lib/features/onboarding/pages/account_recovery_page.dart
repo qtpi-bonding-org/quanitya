@@ -12,7 +12,7 @@ import '../../../infrastructure/purchase/entitlement_cache.dart';
 import '../../../infrastructure/purchase/i_entitlement_service.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../app_syncing_mode/models/app_syncing_mode.dart';
-import '../../purchase/cubits/paid_account_cubit.dart';
+import '../../../infrastructure/purchase/entitlement_repository.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
@@ -145,8 +145,8 @@ class _RecoveryForm extends StatelessWidget {
 
           // Post-recovery setup: restore entitlement state so bootstrap
           // can connect PowerSync on next restart.
-          final paidAccount = GetIt.instance<PaidAccountCubit>();
-          await paidAccount.markPurchased();
+          final entitlementRepo = GetIt.instance<EntitlementRepository>();
+          await entitlementRepo.markPurchased();
           debugPrint('🔑 Recovery: marked as paid account');
 
           // Refresh entitlements from server (updates cache)
