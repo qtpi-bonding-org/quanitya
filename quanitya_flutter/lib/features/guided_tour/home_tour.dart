@@ -8,6 +8,8 @@ List<TargetFocus> _buildHomeTourTargets({
   required GlobalKey temporalLabelsKey,
   required GlobalKey designerButtonKey,
   required GlobalKey resultsTabKey,
+  required GlobalKey postageTabKey,
+  required GlobalKey officeTabKey,
   required BuildContext context,
 }) {
   final centerY = MediaQuery.sizeOf(context).height * 0.4;
@@ -53,6 +55,32 @@ List<TargetFocus> _buildHomeTourTargets({
         ),
       ],
     ),
+    TargetFocus(
+      identify: 'postage_tab',
+      keyTarget: postageTabKey,
+      enableOverlayTab: true,
+      enableTargetTab: true,
+      contents: [
+        TargetContent(
+          align: ContentAlign.custom,
+          customPosition: CustomTargetContentPosition(top: centerY),
+          child: tourText(context, context.l10n.tourHomePostageTab),
+        ),
+      ],
+    ),
+    TargetFocus(
+      identify: 'office_tab',
+      keyTarget: officeTabKey,
+      enableOverlayTab: true,
+      enableTargetTab: true,
+      contents: [
+        TargetContent(
+          align: ContentAlign.custom,
+          customPosition: CustomTargetContentPosition(top: centerY),
+          child: tourText(context, context.l10n.tourHomeOfficeTab),
+        ),
+      ],
+    ),
   ];
 }
 
@@ -61,6 +89,8 @@ void showHomeTour(
   required GlobalKey temporalLabelsKey,
   required GlobalKey designerButtonKey,
   required GlobalKey resultsTabKey,
+  required GlobalKey postageTabKey,
+  required GlobalKey officeTabKey,
   VoidCallback? onFinish,
 }) {
   runTour(
@@ -69,6 +99,8 @@ void showHomeTour(
       temporalLabelsKey: temporalLabelsKey,
       designerButtonKey: designerButtonKey,
       resultsTabKey: resultsTabKey,
+      postageTabKey: postageTabKey,
+      officeTabKey: officeTabKey,
       context: context,
     ),
     onFinish: onFinish,

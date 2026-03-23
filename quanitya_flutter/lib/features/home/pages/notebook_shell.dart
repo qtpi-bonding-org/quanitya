@@ -54,12 +54,13 @@ class _NotebookShellState extends State<NotebookShell> {
             FolderTab(
               icon: Icons.mail_outline,
               label: context.l10n.tabPostage,
+              tourKey: HomeTourKeys.postageTab,
               leftIndicator:
                   hasNotifications ? Icons.south : null,
               rightIndicator:
                   hasErrors ? Icons.north : null,
             ),
-            FolderTab(icon: Icons.desk, label: context.l10n.tabOffice),
+            FolderTab(icon: Icons.desk, label: context.l10n.tabOffice, tourKey: HomeTourKeys.officeTab),
           ];
 
           return Scaffold(

@@ -32,6 +32,8 @@ class HomeTourKeys {
   static final temporalLabels = GlobalKey(debugLabel: 'tour_temporal_labels');
   static final designerButton = GlobalKey(debugLabel: 'tour_designer_button');
   static final resultsTab = GlobalKey(debugLabel: 'tour_results_tab');
+  static final postageTab = GlobalKey(debugLabel: 'tour_postage_tab');
+  static final officeTab = GlobalKey(debugLabel: 'tour_office_tab');
 }
 
 class DesignerTourKeys {

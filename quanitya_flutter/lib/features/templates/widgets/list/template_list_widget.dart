@@ -41,7 +41,9 @@ class _TemplateListWidgetState extends State<TemplateListWidget> {
         // All keys must be attached before the tour can highlight them
         if (HomeTourKeys.temporalLabels.currentContext == null ||
             HomeTourKeys.designerButton.currentContext == null ||
-            HomeTourKeys.resultsTab.currentContext == null) {
+            HomeTourKeys.resultsTab.currentContext == null ||
+            HomeTourKeys.postageTab.currentContext == null ||
+            HomeTourKeys.officeTab.currentContext == null) {
           return;
         }
 
@@ -50,6 +52,8 @@ class _TemplateListWidgetState extends State<TemplateListWidget> {
           temporalLabelsKey: HomeTourKeys.temporalLabels,
           designerButtonKey: HomeTourKeys.designerButton,
           resultsTabKey: HomeTourKeys.resultsTab,
+          postageTabKey: HomeTourKeys.postageTab,
+          officeTabKey: HomeTourKeys.officeTab,
           onFinish: () => tourService.markTourSeen(GuidedTourService.homeKey),
         );
       });
