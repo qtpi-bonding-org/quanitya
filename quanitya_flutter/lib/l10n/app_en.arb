@@ -654,7 +654,7 @@
   "restorePurchases": "Restore Purchases",
   "restorePurchasesSuccess": "Purchases restored",
   "deleteAccountTitle": "Delete Account",
-  "deleteAccountMessage": "This will permanently delete your cloud account, all synced data, and your iCloud recovery key. The only copy of your data will be on this device. You will also lose all purchased entitlements (sync, AI credits). This cannot be undone.",
+  "deleteAccountMessage": "This will permanently delete your cloud account, all synced data, and your iCloud recovery key. The only copy of your data will be on this device. You will also lose all purchased entitlements. This cannot be undone.",
   "deleteAccountConfirm": "Delete Account",
   "deleteAccountSuccess": "Cloud account deleted. Your local data is still on this device.",
   "deleteAccountFailed": "Could not delete cloud account. Check your connection and try again.",
