@@ -69,12 +69,12 @@ class _ImportRecoveryKeySheetState extends State<ImportRecoveryKeySheet> {
               ),
               HSpace.x2,
               QuanityaTextButton(
-                text: context.l10n.import_,
-                onPressed: () {
+                text: context.l10n.validateRecoveryKey,
+                onPressed: () async {
                   final jwk = _controller.text.trim();
                   if (jwk.isNotEmpty) {
-                    context.read<RecoveryKeyCubit>().validateRecoveryKey(jwk);
-                    Navigator.of(context).pop();
+                    await context.read<RecoveryKeyCubit>().validateRecoveryKey(jwk);
+                    if (context.mounted) Navigator.of(context).pop();
                   }
                 },
               ),
