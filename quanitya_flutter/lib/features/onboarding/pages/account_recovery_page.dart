@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:get_it/get_it.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 import '../../../app_router.dart';
 import '../../../app/bootstrap.dart';
+import '../../../data/sync/powersync_service.dart';
+import '../../../infrastructure/purchase/entitlement_cache.dart';
+import '../../../infrastructure/purchase/i_entitlement_service.dart';
+import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
+import '../../app_syncing_mode/models/app_syncing_mode.dart';
+import '../../purchase/cubits/paid_account_cubit.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
@@ -129,9 +137,39 @@ class _RecoveryForm extends StatelessWidget {
             prev.status != curr.status &&
             curr.status.isSuccess &&
             curr.lastOperation == RecoveryKeyOperation.recover,
-        listener: (context, state) {
+        listener: (context, state) async {
           AppRouter.resetKeyCheck();
-          AppNavigation.toHome(context);
+
+          // Post-recovery setup: restore entitlement state so bootstrap
+          // can connect PowerSync on next restart.
+          final paidAccount = GetIt.instance<PaidAccountCubit>();
+          await paidAccount.markPurchased();
+
+          // Refresh entitlements from server (updates cache)
+          try {
+            final entitlementService = GetIt.instance<IEntitlementService>();
+            await entitlementService.getEntitlements();
+          } catch (_) {
+            // Best-effort — will refresh on next bootstrap
+          }
+
+          // Connect PowerSync if sync entitlement is active
+          final entitlementCache = GetIt.instance<EntitlementCache>();
+          if (await entitlementCache.hasSyncAccess()) {
+            final syncCubit = GetIt.instance<AppSyncingCubit>();
+            if (syncCubit.state.mode == AppSyncingMode.local) {
+              await syncCubit.switchToCloud();
+            }
+            if (syncCubit.state.mode.supportsSync) {
+              final ps = GetIt.instance<IPowerSyncService>();
+              final client = GetIt.instance<Client>();
+              await ps.connect(client, syncCubit.state.mode);
+            }
+          }
+
+          if (context.mounted) {
+            AppNavigation.toHome(context);
+          }
         },
         child: BlocBuilder<RecoveryKeyCubit, RecoveryKeyState>(
           builder: (context, state) {
