@@ -79,56 +79,15 @@ void main() {
       expect(cubit.state.entitlements.first.balance, 25.0);
       expect(cubit.state.hasPurchased, isTrue);
 
-      // Calling it again should still work.
+      // Calling it again should still work and include sync access.
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => true);
       await cubit.loadEntitlements();
       expect(cubit.state.status, UiFlowStatus.success);
       expect(cubit.state.lastOperation, EntitlementOperation.loadEntitlements);
       expect(cubit.state.entitlements.length, 1);
       expect(cubit.state.entitlements.first.balance, 25.0);
-
-      await cubit.close();
-    });
-
-    test('checkSyncAccess emits true when service says yes', () async {
-      when(() => mockService.hasSyncAccess())
-          .thenAnswer((_) async => true);
-
-      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
-      await waitForInit();
-
-      await cubit.checkSyncAccess();
-      expect(cubit.state.status, UiFlowStatus.success);
-      expect(cubit.state.lastOperation, EntitlementOperation.checkSyncAccess);
       expect(cubit.state.hasSyncAccess, isTrue);
-
-      await cubit.close();
-    });
-
-    test('checkSyncAccess emits false when no credits', () async {
-      when(() => mockService.hasSyncAccess())
-          .thenAnswer((_) async => false);
-
-      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
-      await waitForInit();
-
-      await cubit.checkSyncAccess();
-      expect(cubit.state.status, UiFlowStatus.success);
-      expect(cubit.state.hasSyncAccess, isFalse);
-
-      await cubit.close();
-    });
-
-    test('checkSyncAccess emits failure when service throws', () async {
-      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
-      await waitForInit();
-
-      // Override stub AFTER init completes so only the next call fails.
-      when(() => mockService.hasSyncAccess())
-          .thenThrow(Exception('Network error'));
-
-      await cubit.checkSyncAccess();
-      expect(cubit.state.status, UiFlowStatus.failure);
-      expect(cubit.state.error, isNotNull);
 
       await cubit.close();
     });
@@ -217,20 +176,6 @@ void main() {
       expect(cubit.state.entitlements.length, 1);
       expect(cubit.state.lastOperation, EntitlementOperation.refreshIfStale);
       verify(() => mockService.getEntitlements()).called(greaterThanOrEqualTo(2)); // init + refresh
-
-      await cubit.close();
-    });
-
-    test('loadEntitlements also updates hasSyncAccess', () async {
-      when(() => mockService.hasSyncAccess())
-          .thenAnswer((_) async => true);
-
-      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
-      await waitForInit();
-
-      // Init already ran loadEntitlements which now includes hasSyncAccess
-      expect(cubit.state.hasSyncAccess, isTrue);
-      expect(cubit.state.lastOperation, isNotNull);
 
       await cubit.close();
     });

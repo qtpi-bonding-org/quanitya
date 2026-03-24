@@ -6,7 +6,7 @@ import 'package:anonaccred_client/anonaccred_client.dart'
 part 'entitlement_state.freezed.dart';
 
 /// Operations tracked by the EntitlementCubit.
-enum EntitlementOperation { loadEntitlements, checkSyncAccess, loadStorageUsage, markPurchased, reset, refreshIfStale }
+enum EntitlementOperation { loadEntitlements, loadStorageUsage, markPurchased, reset, refreshIfStale }
 
 @freezed
 class EntitlementState with _$EntitlementState, UiFlowStateMixin implements IUiFlowState {

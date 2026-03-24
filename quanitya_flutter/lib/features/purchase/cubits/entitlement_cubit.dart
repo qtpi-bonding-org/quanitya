@@ -53,17 +53,6 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
     }, emitLoading: true);
   }
 
-  Future<void> checkSyncAccess() async {
-    await tryOperation(() async {
-      final hasAccess = await _entitlementService.hasSyncAccess();
-      return state.copyWith(
-        status: UiFlowStatus.success,
-        lastOperation: EntitlementOperation.checkSyncAccess,
-        hasSyncAccess: hasAccess,
-      );
-    }, emitLoading: true);
-  }
-
   /// Loads storage usage from local encrypted entries.
   /// Multiplies by 4 to estimate server-side PostgreSQL cost
   /// (PowerSync oplog, indexes, row overhead, WAL).
