@@ -15,7 +15,6 @@ import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../../app_syncing_mode/models/app_syncing_mode.dart';
 import '../cubits/entitlement_cubit.dart';
 import '../cubits/paid_account_cubit.dart';
 import '../cubits/entitlement_message_mapper.dart';
@@ -48,37 +47,19 @@ class PurchaseTabContent extends StatelessWidget {
               child: child,
             ),
       ],
-      child: MultiBlocListener(
-        listeners: [
-          // On purchase success: mark paid + refresh entitlements
-          BlocListener<PurchaseCubit, PurchaseState>(
-            listenWhen: (prev, curr) =>
-                curr.lastOperation == PurchaseOperation.purchase &&
-                curr.status == UiFlowStatus.success &&
-                prev.status != curr.status,
-            listener: (context, state) {
-              // markPurchased() now called in InAppPurchaseProvider.validateWithServer()
-              context.read<EntitlementCubit>()
-                ..loadEntitlements()
-                ..checkSyncAccess()
-                ..loadStorageUsage();
-            },
-          ),
-
-          // When sync entitlement becomes active: auto-switch to cloud
-          BlocListener<EntitlementCubit, EntitlementState>(
-            listenWhen: (prev, curr) =>
-                !prev.hasSyncAccess &&
-                curr.hasSyncAccess &&
-                curr.lastOperation == EntitlementOperation.checkSyncAccess,
-            listener: (context, state) {
-              final syncCubit = context.read<AppSyncingCubit>();
-              if (syncCubit.state.mode == AppSyncingMode.local) {
-                syncCubit.switchToCloud();
-              }
-            },
-          ),
-        ],
+      child: BlocListener<PurchaseCubit, PurchaseState>(
+        listenWhen: (prev, curr) =>
+            curr.lastOperation == PurchaseOperation.purchase &&
+            curr.status == UiFlowStatus.success &&
+            prev.status != curr.status,
+        listener: (context, state) {
+          // PurchaseService already handled side effects (cache, markPurchased, LLM).
+          // Refresh entitlement cubit for UI display.
+          context.read<EntitlementCubit>()
+            ..loadEntitlements()
+            ..checkSyncAccess()
+            ..loadStorageUsage();
+        },
         child: RefreshIndicator(
         onRefresh: () async {
           context.read<PurchaseCubit>().loadProducts();

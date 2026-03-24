@@ -1,25 +1,19 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
-import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 import '../../../app_router.dart';
 import '../../../app/bootstrap.dart';
-import '../../../data/sync/powersync_service.dart';
-import '../../../infrastructure/purchase/entitlement_cache.dart';
-import '../../../infrastructure/purchase/i_entitlement_service.dart';
-import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../../app_syncing_mode/models/app_syncing_mode.dart';
 import '../../../infrastructure/purchase/entitlement_repository.dart';
+import '../../../infrastructure/purchase/i_entitlement_service.dart';
+import '../../../infrastructure/sync/sync_service.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/device_name_display.dart';
-import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
@@ -140,54 +134,27 @@ class _RecoveryForm extends StatelessWidget {
             curr.status.isSuccess &&
             curr.lastOperation == RecoveryKeyOperation.recover,
         listener: (context, state) async {
-          debugPrint('🔑 Recovery: success — starting post-recovery setup');
           AppRouter.resetKeyCheck();
 
-          // Post-recovery setup: restore entitlement state so bootstrap
-          // can connect PowerSync on next restart.
+          // Post-recovery: mark purchased + refresh entitlements
           final entitlementRepo = GetIt.instance<EntitlementRepository>();
           await entitlementRepo.markPurchased();
-          debugPrint('🔑 Recovery: marked as paid account');
 
-          // Refresh entitlements from server (updates cache)
           try {
             final entitlementService = GetIt.instance<IEntitlementService>();
             await entitlementService.getEntitlements();
-            debugPrint('🔑 Recovery: entitlements refreshed');
-          } catch (e) {
-            debugPrint('🔑 Recovery: entitlement refresh failed: $e');
-            if (context.mounted) {
-              PostItToast.show(
-                context,
-                message: context.l10n.recoveryEntitlementOffline,
-                type: PostItType.warning,
-              );
-            }
+          } catch (_) {
+            // Best-effort — sync will work on next restart
           }
 
-          // Connect PowerSync if sync entitlement is active
-          final entitlementCache = GetIt.instance<EntitlementCache>();
-          final hasSyncAccess = await entitlementCache.hasSyncAccess();
-          debugPrint('🔑 Recovery: hasSyncAccess=$hasSyncAccess');
-
-          if (hasSyncAccess) {
-            final syncCubit = GetIt.instance<AppSyncingCubit>();
-            debugPrint('🔑 Recovery: current mode=${syncCubit.state.mode.name}');
-            if (syncCubit.state.mode == AppSyncingMode.local) {
-              debugPrint('🔑 Recovery: switching to cloud...');
-              await syncCubit.switchToCloud();
-              debugPrint('🔑 Recovery: switched to cloud, mode=${syncCubit.state.mode.name}');
-            }
-            if (syncCubit.state.mode.supportsSync) {
-              debugPrint('🔑 Recovery: connecting PowerSync...');
-              final ps = GetIt.instance<IPowerSyncRepository>();
-              final client = GetIt.instance<Client>();
-              await ps.connect(client, syncCubit.state.mode);
-              debugPrint('🔑 Recovery: PowerSync connected=${ps.isConnected}');
-            }
+          // Connect sync if entitlements support it
+          final syncService = GetIt.instance<SyncService>();
+          try {
+            await syncService.reconnectWithNewKeys();
+          } catch (_) {
+            // Non-fatal — app works offline
           }
 
-          debugPrint('🔑 Recovery: post-recovery setup complete, navigating home');
           if (context.mounted) {
             AppNavigation.toHome(context);
           }
