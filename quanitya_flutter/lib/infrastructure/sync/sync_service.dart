@@ -7,7 +7,8 @@ import '../../data/sync/powersync_service.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../features/app_syncing_mode/repositories/app_syncing_repository.dart';
 import '../network/network_repository.dart';
-import '../auth/auth_service.dart';
+import '../auth/account_service.dart';
+import '../auth/auth_service.dart' show AuthService, DeviceAuthenticationException;
 import '../config/app_config.dart';
 import '../core/try_operation.dart';
 import '../purchase/entitlement_repository.dart';
@@ -37,6 +38,7 @@ class SyncService {
   final AppSyncingRepository _syncRepo;
   final EntitlementRepository _entitlementRepo;
   final AuthService _authService;
+  final AccountService _accountService;
   final IE2EEPuller _puller;
   final INetworkRepository _networkService;
   final AppConfig _config;
@@ -47,6 +49,7 @@ class SyncService {
     this._syncRepo,
     this._entitlementRepo,
     this._authService,
+    this._accountService,
     this._puller,
     this._networkService,
     this._config,
@@ -72,7 +75,14 @@ class SyncService {
       final authenticated = await _authService.isAuthenticated();
       if (!authenticated) {
         debugPrint('SyncService.connect: not authenticated — calling ensureAuthenticated');
-        await _authService.ensureAuthenticated();
+        try {
+          await _authService.ensureAuthenticated();
+        } on DeviceAuthenticationException {
+          // Device not found on server — re-register and retry once
+          debugPrint('SyncService.connect: device auth failed — re-registering');
+          await _accountService.ensureRegistered(deviceLabel: 'auto');
+          await _authService.ensureAuthenticated();
+        }
       }
 
       // Gate on sync entitlement.

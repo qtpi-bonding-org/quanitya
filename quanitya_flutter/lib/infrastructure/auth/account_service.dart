@@ -4,8 +4,16 @@ import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
+    show AuthSuccess, FlutterAuthSessionManagerExtension;
+import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
 import 'package:anonaccount_client/anonaccount_client.dart'
-    show AccountMethods, DataKeyMethods, DeviceMethods;
+    show
+        AccountDevice,
+        AccountMethods,
+        AuthenticationResult,
+        DataKeyMethods,
+        DeviceMethods;
 
 import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
@@ -14,7 +22,7 @@ import '../crypto/interfaces/i_secure_storage.dart';
 import '../crypto/utils/hashcash.dart';
 import 'auth_repository.dart';
 import 'auth_service.dart'
-    show AccountCreationException, AccountCreationResult, AccountRecoveryException;
+    show AccountCreationException, AccountCreationResult, AccountRecoveryException, AuthException, AuthFailure;
 import 'registration_payload.dart';
 
 /// Account lifecycle service — create, register, recover, delete accounts.
@@ -529,6 +537,331 @@ class AccountService {
       },
       (message, [cause]) => AccountRecoveryException(message, cause: cause),
       'validateRecoveryKey',
+    );
+  }
+
+  /// Recover account using cross-device key (Flow B — new device, synced key exists)
+  ///
+  /// Flow:
+  /// 1. Get cross-device key from platform storage
+  /// 2. Auth with server using cross-device key
+  /// 3. Get encrypted data key blob for cross-device entry
+  /// 4. Decrypt to recover symmetric data key
+  /// 5. Generate new local device key
+  /// 6. Register new local device under the same account
+  /// 7. Store local keys
+  ///
+  /// Throws [AccountRecoveryException] on failure.
+  Future<void> recoverFromCrossDeviceKey({required String deviceLabel}) {
+    return tryMethod(
+      () async {
+        // 1. Get cross-device key
+        final crossDeviceKeyDuo = await _keyRepository.getCrossDeviceKey();
+        if (crossDeviceKeyDuo == null) {
+          throw const AccountRecoveryException(
+            'Cross-device key not found in platform storage',
+          );
+        }
+
+        // 2. Auth with server using cross-device key
+        final crossDeviceKeyHex = await crossDeviceKeyDuo.signingKeyPair.exportPublicKeyHex();
+
+        final authChallengeResponse =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final authPow = await _computeProofOfWork(
+          authChallengeResponse.challenge,
+          authChallengeResponse.difficulty,
+        );
+        final authSignPayload =
+            '${authChallengeResponse.challenge}:${DeviceMethods.signIn}:$crossDeviceKeyHex';
+        final authPowSignature =
+            await _encryption.signWithKeyDuo(authSignPayload, crossDeviceKeyDuo);
+
+        final authResult = await _client.modules.anonaccount.device
+            .signIn(
+          challenge: authChallengeResponse.challenge,
+          proofOfWork: authPow,
+          signature: authPowSignature,
+          devicePublicKeyHex: crossDeviceKeyHex,
+        );
+
+        if (!authResult.success) {
+          throw AccountRecoveryException(
+            authResult.errorMessage ?? 'Cross-device key authentication failed',
+          );
+        }
+
+        // Store JWT session from sign-in
+        await _storeAuthSession(authResult);
+
+        // 3. Get encrypted data key for cross-device entry
+        final deviceInfoChallenge =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final deviceInfoPow = await _computeProofOfWork(
+          deviceInfoChallenge.challenge,
+          deviceInfoChallenge.difficulty,
+        );
+        final deviceInfoSignPayload =
+            '${deviceInfoChallenge.challenge}:${DataKeyMethods.retrieveEncryptedDataKey}:$crossDeviceKeyHex';
+        final deviceInfoSignature =
+            await _encryption.signWithKeyDuo(deviceInfoSignPayload, crossDeviceKeyDuo);
+
+        final deviceDataKeyResponse = await _client.modules.anonaccount.dataKey
+            .retrieveEncryptedDataKey(
+          challenge: deviceInfoChallenge.challenge,
+          proofOfWork: deviceInfoPow,
+          signature: deviceInfoSignature,
+          deviceSigningPublicKeyHex: crossDeviceKeyHex,
+        );
+
+        // 4. Decrypt to recover symmetric data key
+        final privateKey = crossDeviceKeyDuo.encryption.privateKey;
+        if (privateKey == null) {
+          throw const AccountRecoveryException(
+            'Cross-device key missing private encryption key',
+          );
+        }
+        final symmetricKeyJwk = await _encryption.decryptBlob(
+          deviceDataKeyResponse.encryptedDataKey,
+          privateKey,
+        );
+
+        // 5. Generate new local device key
+        await _keyRepository.generateAndStoreDeviceKey();
+        final localDeviceKey = await _keyRepository.getDeviceKey();
+        final localKeyHex = await _keyRepository.getDeviceSigningPublicKeyHex();
+
+        if (localDeviceKey == null || localKeyHex == null) {
+          throw const AccountRecoveryException(
+            'Failed to generate local device key',
+          );
+        }
+
+        // 6. Register new local device under the same account
+        final localBlob = await _encryption.createEncryptedBlob(
+          symmetricKeyJwk,
+          localDeviceKey.encryption.publicKey,
+        );
+        final regDevChallenge =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final regDevPow = await _computeProofOfWork(
+          regDevChallenge.challenge,
+          regDevChallenge.difficulty,
+        );
+        final callerKeyHex =
+            await _keyRepository.getDeviceSigningPublicKeyHex();
+        final regDevSignPayload =
+            '${regDevChallenge.challenge}:registerDeviceForAccount:$callerKeyHex';
+        final regDevSignature =
+            await _encryption.signWithDeviceKey(regDevSignPayload);
+        await _client.modules.anonaccount.deviceManagement.registerDeviceForAccount(
+          challenge: regDevChallenge.challenge,
+          proofOfWork: regDevPow,
+          publicKeyHex: callerKeyHex!,
+          signature: regDevSignature,
+          newDeviceSigningPublicKeyHex: localKeyHex,
+          newDeviceEncryptedDataKey: localBlob,
+          label: deviceLabel,
+        );
+
+        // 7. Store symmetric key locally
+        await _keyRepository.storeSymmetricDataKeyJwk(symmetricKeyJwk);
+
+        // 8. Mark device as registered with server
+        await _authRepo.setRegistered();
+      },
+      (message, [cause]) => AccountRecoveryException(message, cause: cause),
+      'recoverFromCrossDeviceKey',
+    );
+  }
+
+  /// Recreate cross-device key (Flow D — re-enable after revoking)
+  ///
+  /// Generates a new cross-device key, registers it with the server,
+  /// and stores it in platform storage.
+  ///
+  /// Throws [AuthException] on failure.
+  Future<void> recreateCrossDeviceKey() {
+    return tryMethod(
+      () async {
+        final label = _keyRepository.crossDeviceLabel;
+
+        // Get symmetric key to create encrypted blob
+        final symmetricKeyJwk = await _keyRepository.getSymmetricDataKeyJwk();
+        if (symmetricKeyJwk == null) {
+          throw const AuthException('Symmetric key not available');
+        }
+
+        // Generate new cross-device key (stores in platform storage)
+        final crossDeviceKeyDuo = await _keyRepository.generateCrossDeviceKey();
+        final crossDeviceKeyHex = await crossDeviceKeyDuo.signingKeyPair.exportPublicKeyHex();
+
+        // Encrypt symmetric key with cross-device key
+        final crossDeviceBlob = await _encryption.createEncryptedBlob(
+          symmetricKeyJwk,
+          crossDeviceKeyDuo.encryption.publicKey,
+        );
+
+        // Register with server using SignedPoW
+        final cdChallenge =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final cdPow = await _computeProofOfWork(
+          cdChallenge.challenge,
+          cdChallenge.difficulty,
+        );
+        final cdCallerKeyHex =
+            await _keyRepository.getDeviceSigningPublicKeyHex();
+        final cdSignPayload =
+            '${cdChallenge.challenge}:registerDeviceForAccount:$cdCallerKeyHex';
+        final cdSignature =
+            await _encryption.signWithDeviceKey(cdSignPayload);
+        await _client.modules.anonaccount.deviceManagement.registerDeviceForAccount(
+          challenge: cdChallenge.challenge,
+          proofOfWork: cdPow,
+          publicKeyHex: cdCallerKeyHex!,
+          signature: cdSignature,
+          newDeviceSigningPublicKeyHex: crossDeviceKeyHex,
+          newDeviceEncryptedDataKey: crossDeviceBlob,
+          label: label,
+        );
+      },
+      (message, [cause]) => AuthException(message, cause: cause),
+      'recreateCrossDeviceKey',
+    );
+  }
+
+  /// Store authentication result as a Serverpod auth session.
+  ///
+  /// Constructs an [AuthSuccess] from the [AuthenticationResult.details] map
+  /// and stores it via the [FlutterAuthSessionManager]. This enables
+  /// Serverpod's built-in JWT auth header management and token refresh.
+  Future<void> _storeAuthSession(AuthenticationResult result) async {
+    final details = result.details;
+    if (details == null) return;
+
+    final token = details['token'];
+    final authUserIdStr = details['authUserId'];
+    final authStrategy = details['authStrategy'] ?? 'jwt';
+    if (token == null || authUserIdStr == null) return;
+
+    final tokenExpiresAtStr = details['tokenExpiresAt'];
+    final refreshToken = details['refreshToken'];
+
+    final authSuccess = AuthSuccess(
+      authStrategy: authStrategy,
+      token: token,
+      tokenExpiresAt: tokenExpiresAtStr != null
+          ? DateTime.tryParse(tokenExpiresAtStr)
+          : null,
+      refreshToken: refreshToken,
+      authUserId: UuidValue.fromString(authUserIdStr),
+      scopeNames: {},
+    );
+
+    await _client.auth.updateSignedInUser(authSuccess);
+  }
+
+  /// Import ultimate key and hold for follow-up operations (e.g., revoke devices).
+  /// Call [clearUltimateKeySession] when navigating away.
+  Future<void> importUltimateKeyForSession(String jwk) {
+    return tryMethod(
+      () async {
+        await _keyRepository.importUltimateKeyTemporary(jwk);
+      },
+      (message, [cause]) => AccountRecoveryException(message, cause: cause),
+      'importUltimateKeyForSession',
+    );
+  }
+
+  /// Clear the temporary ultimate key from memory.
+  void clearUltimateKeySession() {
+    _keyRepository.clearTemporaryUltimateKey();
+  }
+
+  /// Get list of devices registered to this account.
+  ///
+  /// Throws [AuthException] on failure.
+  Future<List<AccountDevice>> listDevices() {
+    return tryMethod(
+      () async {
+        final challenge =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final pow = await _computeProofOfWork(
+          challenge.challenge,
+          challenge.difficulty,
+        );
+        final pubKeyHex =
+            await _keyRepository.getDeviceSigningPublicKeyHex();
+        final signPayload =
+            '${challenge.challenge}:listDevices:$pubKeyHex';
+        final sig = await _encryption.signWithDeviceKey(signPayload);
+        return await _client.modules.anonaccount.deviceManagement.listDevices(
+          challenge: challenge.challenge,
+          proofOfWork: pow,
+          publicKeyHex: pubKeyHex!,
+          signature: sig,
+        );
+      },
+      _wrapAccountError,
+      'listDevices',
+    );
+  }
+
+  /// Revoke a device by ID.
+  ///
+  /// Throws [AuthException] on failure.
+  Future<void> revokeDevice(int deviceId) {
+    return tryMethod(
+      () async {
+        final challenge =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final pow = await _computeProofOfWork(
+          challenge.challenge,
+          challenge.difficulty,
+        );
+        final pubKeyHex =
+            await _keyRepository.getDeviceSigningPublicKeyHex();
+        final signPayload =
+            '${challenge.challenge}:revokeDevice:$pubKeyHex';
+        final sig = await _encryption.signWithDeviceKey(signPayload);
+        await _client.modules.anonaccount.deviceManagement.revokeDevice(
+          challenge: challenge.challenge,
+          proofOfWork: pow,
+          publicKeyHex: pubKeyHex!,
+          signature: sig,
+          deviceId: deviceId,
+        );
+      },
+      _wrapAccountError,
+      'revokeDevice',
+    );
+  }
+
+  /// Get current device's signing public key hex.
+  ///
+  /// Facade for [ICryptoKeyRepository.getDeviceSigningPublicKeyHex].
+  /// Used by DeviceManagementCubit to identify current device in list.
+  ///
+  /// Throws [AuthException] on failure.
+  Future<String?> getCurrentDevicePublicKeyHex() {
+    return tryMethod(
+      () async {
+        return await _keyRepository.getDeviceSigningPublicKeyHex();
+      },
+      _wrapAccountError,
+      'getCurrentDevicePublicKeyHex',
+    );
+  }
+
+  /// Wraps an error as an [AuthException], detecting network errors from the cause.
+  static AuthException _wrapAccountError(String message, [Object? cause]) {
+    final causeStr = cause?.toString() ?? '';
+    final isNetwork = causeStr.contains('SocketException') ||
+        causeStr.contains('Connection refused');
+    return AuthException(
+      message,
+      kind: isNetwork ? AuthFailure.networkError : AuthFailure.general,
+      cause: cause,
     );
   }
 

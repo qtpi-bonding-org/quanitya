@@ -3,8 +3,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
-import 'package:quanitya_flutter/infrastructure/auth/auth_service.dart';
-import 'package:quanitya_flutter/infrastructure/device/device_info_service.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_purchase_service.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_models.dart';
 import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
@@ -13,16 +11,10 @@ import 'package:quanitya_flutter/features/purchase/cubits/purchase_state.dart';
 
 class MockPurchaseService extends Mock implements IPurchaseService {}
 
-class MockAuthService extends Mock implements AuthService {}
-
-class MockDeviceInfoService extends Mock implements DeviceInfoService {}
-
 class FakePurchaseRequest extends Fake implements PurchaseRequest {}
 
 void main() {
   late MockPurchaseService mockService;
-  late MockAuthService mockAuthService;
-  late MockDeviceInfoService mockDeviceInfoService;
 
   setUpAll(() {
     registerFallbackValue(FakePurchaseRequest());
@@ -31,10 +23,6 @@ void main() {
 
   setUp(() {
     mockService = MockPurchaseService();
-    mockAuthService = MockAuthService();
-    mockDeviceInfoService = MockDeviceInfoService();
-    when(() => mockAuthService.isRegisteredWithServer).thenAnswer((_) async => true);
-    when(() => mockDeviceInfoService.getDeviceName()).thenAnswer((_) async => 'iPhone 15 Pro');
   });
 
   group('PurchaseCubit', () {

@@ -12,8 +12,9 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../support/extensions/context_extensions.dart';
+import '../../../infrastructure/auth/auth_repository.dart';
 import '../../../infrastructure/auth/auth_service.dart'
-    show AuthException, AuthFailure, AuthService;
+    show AuthException, AuthFailure;
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../infrastructure/device/device_info_service.dart';
 import '../cubits/device_management/device_management_cubit.dart';
@@ -60,7 +61,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
     }
 
     final registered =
-        await GetIt.instance<AuthService>().isRegisteredWithServer;
+        await GetIt.instance<AuthRepository>().isRegisteredWithServer;
     if (!mounted) return;
     setState(() => _isRegistered = registered);
     if (registered) {

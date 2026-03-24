@@ -20,7 +20,7 @@ import 'features/onboarding/cubits/onboarding_cubit.dart';
 import 'features/device_pairing/pages/show_pairing_qr_page.dart';
 import 'features/device_pairing/pages/scan_pairing_qr_page.dart';
 import 'features/onboarding/pages/connect_device_page.dart';
-import 'infrastructure/auth/auth_service.dart';
+import 'infrastructure/auth/account_service.dart';
 import 'infrastructure/crypto/crypto_key_repository.dart';
 import 'infrastructure/device/device_info_service.dart';
 
@@ -51,11 +51,11 @@ class AppRouter {
   static Future<bool> _attemptCrossDeviceRecovery() async {
     try {
       debugPrint('AppRouter: Cross-device key found — attempting recovery...');
-      final authService = GetIt.instance<AuthService>();
+      final accountService = GetIt.instance<AccountService>();
       final deviceInfo = GetIt.instance<DeviceInfoService>();
       final deviceLabel = await deviceInfo.getDeviceName();
 
-      await authService.recoverFromCrossDeviceKey(deviceLabel: deviceLabel);
+      await accountService.recoverFromCrossDeviceKey(deviceLabel: deviceLabel);
       debugPrint('AppRouter: Cross-device recovery succeeded');
       return true;
     } catch (e) {

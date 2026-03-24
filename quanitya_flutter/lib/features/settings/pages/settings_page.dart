@@ -6,8 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
-import '../../../../infrastructure/auth/auth_service.dart';
-import '../../../../infrastructure/crypto/crypto_key_repository.dart';
+import '../../../../infrastructure/auth/delete_service.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
@@ -22,10 +21,8 @@ import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../../infrastructure/webhooks/models/webhook_model.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
-import '../../../../data/sync/powersync_service.dart';
 import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../../../infrastructure/purchase/entitlement_repository.dart';
 import '../cubits/data_export/data_export_cubit.dart';
 import '../cubits/recovery_key/recovery_key_cubit.dart';
 import '../cubits/device_management/device_management_cubit.dart';
@@ -748,37 +745,10 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
         setState(() => _isLoading = true);
 
         try {
-          // Delete server-side account and all associated data
-          if (GetIt.instance.isRegistered<AuthService>()) {
-            await GetIt.instance<AuthService>().deleteAccount();
-          }
+          // Delete server-side account and clean up all local state
+          await GetIt.instance<DeleteService>().deleteAccount();
 
-          // Clear registration flag so the app knows it's no longer registered
-          if (GetIt.instance.isRegistered<AuthService>()) {
-            await GetIt.instance<AuthService>().clearRegistrationFlag();
-          }
-
-          // Clear entitlement cache (server data is gone)
-          // Clear entitlement data (cache + paid flag)
-          if (GetIt.instance.isRegistered<EntitlementRepository>()) {
-            await GetIt.instance<EntitlementRepository>().clear();
-          }
-
-          // Delete cross-device key (orphaned — server registration is gone)
-          if (GetIt.instance.isRegistered<ICryptoKeyRepository>()) {
-            try {
-              await GetIt.instance<ICryptoKeyRepository>().deleteCrossDeviceKey();
-            } catch (_) {
-              // May not exist — that's fine
-            }
-          }
-
-          // Disconnect PowerSync (nothing to sync anymore)
-          if (GetIt.instance.isRegistered<IPowerSyncRepository>()) {
-            await GetIt.instance<IPowerSyncRepository>().disconnect();
-          }
-
-          // Switch back to local mode
+          // Switch back to local mode (UI state — not owned by DeleteService)
           if (GetIt.instance.isRegistered<AppSyncingCubit>()) {
             await GetIt.instance<AppSyncingCubit>().switchToLocal();
           }

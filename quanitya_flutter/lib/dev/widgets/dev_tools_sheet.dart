@@ -16,15 +16,13 @@ import '../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../support/extensions/context_extensions.dart';
 import '../../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../../infrastructure/auth/auth_service.dart';
+import '../../infrastructure/auth/account_service.dart';
+import '../../infrastructure/auth/delete_service.dart';
 import '../../data/dao/template_query_dao.dart';
 import '../../data/interfaces/log_entry_interface.dart';
 import '../../infrastructure/notifications/notification_service.dart';
 import '../../logic/log_entries/models/log_entry.dart';
 import '../../logic/schedules/services/schedule_generator_service.dart';
-import '../../features/guided_tour/guided_tour_service.dart';
-import '../../infrastructure/purchase/entitlement_repository.dart';
-import '../../data/repositories/e2ee_puller.dart';
 import '../services/dev_seeder_service.dart';
 
 /// Shows a bottom sheet with dev tools
@@ -172,8 +170,8 @@ class DevToolsSheet extends StatelessWidget {
                 child: _DevActionButton(
                   text: l10n.devCreate,
                   onPressed: () async {
-                    final authService = GetIt.instance<AuthService>();
-                    await authService.createAccount(deviceLabel: 'Dev Test Device');
+                    final accountService = GetIt.instance<AccountService>();
+                    await accountService.createAccount(deviceLabel: 'Dev Test Device');
                   },
                   successMessage: l10n.devAccountCreated,
                 ),
@@ -186,8 +184,8 @@ class DevToolsSheet extends StatelessWidget {
                 child: _DevActionButton(
                   text: l10n.devRegister,
                   onPressed: () async {
-                    final authService = GetIt.instance<AuthService>();
-                    await authService.registerAccountWithServer(deviceLabel: 'Dev Test Device');
+                    final accountService = GetIt.instance<AccountService>();
+                    await accountService.registerAccountWithServer(deviceLabel: 'Dev Test Device');
                   },
                   successMessage: l10n.devAccountRegistered,
                 ),
@@ -534,34 +532,14 @@ class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
 
         setState(() => _isLoading = true);
         try {
-          // 1. Disconnect PowerSync (keep DB file — singletons still reference it)
-          if (GetIt.instance.isRegistered<IPowerSyncRepository>()) {
-            await GetIt.instance<IPowerSyncRepository>().disconnect();
-          }
-
-          // 2. Clear all Drift database tables and E2EE puller checkpoints
+          // 1. Clear all Drift database tables
           final seeder = GetIt.instance<DevSeederService>();
           await seeder.clearAll();
-          if (GetIt.instance.isRegistered<IE2EEPuller>()) {
-            final puller = GetIt.instance<IE2EEPuller>();
-            await puller.dispose();
-            await puller.resetCheckpoints();
-          }
 
-          // 3. Reset guided tour flags
-          final tourService = GetIt.instance<GuidedTourService>();
-          await tourService.resetAllTours();
+          // 2. Factory reset (PowerSync, E2EE puller, tours, entitlements, keys, registration flag)
+          await GetIt.instance<DeleteService>().factoryReset();
 
-          // 3b. Clear entitlement data (cache + paid flag)
-          if (GetIt.instance.isRegistered<EntitlementRepository>()) {
-            await GetIt.instance<EntitlementRepository>().clear();
-          }
-
-          // 4. Sign out (clears all crypto keys including iCloud Keychain)
-          final authService = GetIt.instance<AuthService>();
-          await authService.signOut();
-
-          // 5. Reset router key check and navigate to onboarding
+          // 3. Reset router key check and navigate to onboarding
           AppRouter.resetKeyCheck();
           if (mounted) {
             navigator.pop();

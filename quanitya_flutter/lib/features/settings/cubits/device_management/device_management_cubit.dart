@@ -2,7 +2,8 @@ import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../../support/extensions/cubit_ui_flow_extension.dart';
-import '../../../../infrastructure/auth/auth_service.dart';
+import '../../../../infrastructure/auth/account_service.dart';
+import '../../../../infrastructure/auth/auth_service.dart' show AuthException;
 import '../../../../infrastructure/crypto/crypto_key_repository.dart';
 import 'device_management_state.dart';
 
@@ -15,20 +16,20 @@ import 'device_management_state.dart';
 /// - Manage cross-device key (iCloud / Google Block Store)
 @injectable
 class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
-  final AuthService _authService;
+  final AccountService _accountService;
   final ICryptoKeyRepository _keyRepository;
 
-  DeviceManagementCubit(this._authService, this._keyRepository)
+  DeviceManagementCubit(this._accountService, this._keyRepository)
       : super(const DeviceManagementState());
 
   /// Load all devices for the current account
   Future<void> loadDevices() async {
     await tryOperation(() async {
       // Get current device's public key to identify it in the list
-      final currentPublicKey = await _authService.getCurrentDevicePublicKeyHex();
+      final currentPublicKey = await _accountService.getCurrentDevicePublicKeyHex();
       
       // Fetch devices from server
-      final devices = await _authService.listDevices();
+      final devices = await _accountService.listDevices();
 
       return state.copyWith(
         status: UiFlowStatus.success,
@@ -60,7 +61,7 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
     await tryOperation(() async {
       emit(state.copyWith(revokingDeviceId: deviceId));
 
-      await _authService.revokeDevice(deviceId);
+      await _accountService.revokeDevice(deviceId);
 
       // If revoking the cross-device key, also delete from platform storage
       if (_keyRepository.isCrossDeviceStorageAvailable &&
@@ -69,7 +70,7 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
       }
 
       // Reload devices to get updated list
-      final devices = await _authService.listDevices();
+      final devices = await _accountService.listDevices();
 
       analytics?.trackDeviceRevoked();
 
@@ -88,10 +89,10 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
   /// and stores in platform storage.
   Future<void> recreateCrossDeviceKey() async {
     await tryOperation(() async {
-      await _authService.recreateCrossDeviceKey();
+      await _accountService.recreateCrossDeviceKey();
 
       // Reload devices to show new cross-device entry
-      final devices = await _authService.listDevices();
+      final devices = await _accountService.listDevices();
 
       analytics?.trackDevicePaired();
 

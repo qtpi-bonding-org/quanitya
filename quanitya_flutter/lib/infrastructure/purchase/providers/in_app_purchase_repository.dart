@@ -10,6 +10,7 @@ import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
+import '../../auth/account_service.dart';
 import '../../auth/auth_service.dart';
 import '../../core/try_operation.dart';
 import '../../crypto/crypto_key_repository.dart';
@@ -31,6 +32,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
   final ICryptoKeyRepository _keyRepository;
   final IDataEncryption _encryption;
   final AuthService _authService;
+  final AccountService _accountService;
   final DeviceInfoService _deviceInfoService;
 
   InAppPurchaseRepository(
@@ -38,6 +40,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
     this._keyRepository,
     this._encryption,
     this._authService,
+    this._accountService,
     this._deviceInfoService,
   );
 
@@ -258,7 +261,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
 
         // Ensure server registration and JWT session before validating.
         final deviceLabel = await _deviceInfoService.getDeviceName();
-        await _authService.ensureRegistered(deviceLabel: deviceLabel);
+        await _accountService.ensureRegistered(deviceLabel: deviceLabel);
         await _authService.ensureAuthenticated();
 
         debugPrint('validateWithServer: authenticated, validating...');

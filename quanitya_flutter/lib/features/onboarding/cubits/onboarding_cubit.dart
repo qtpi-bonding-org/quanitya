@@ -4,7 +4,7 @@ import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../app_router.dart';
-import '../../../infrastructure/auth/auth_service.dart';
+import '../../../infrastructure/auth/account_service.dart';
 import '../../../infrastructure/feedback/localization_service.dart';
 import '../../../infrastructure/platform/platform_local_auth.dart';
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
@@ -26,14 +26,14 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
   final ICryptoKeyRepository _keyRepository;
   final KeyExportService _keyExportService;
   final PlatformLocalAuth _localAuthService;
-  final AuthService _authService;
+  final AccountService _accountService;
   final DeviceInfoService _deviceInfoService;
 
   OnboardingCubit(
     this._keyRepository,
     this._keyExportService,
     this._localAuthService,
-    this._authService,
+    this._accountService,
     this._deviceInfoService,
   ) : super(const OnboardingState());
 
@@ -62,17 +62,17 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
   Future<void> createAccount() async {
     debugPrint('OnboardingCubit: createAccount() called');
     await tryOperation(() async {
-      debugPrint('OnboardingCubit: Inside tryOperation, calling authService.createAccount...');
+      debugPrint('OnboardingCubit: Inside tryOperation, calling accountService.createAccount...');
       
       // Get device name automatically
       final deviceLabel = await _deviceInfoService.getDeviceName();
       debugPrint('OnboardingCubit: Device label: $deviceLabel');
       
       // Create account on server (also generates all keys locally)
-      final result = await _authService.createAccount(
+      final result = await _accountService.createAccount(
         deviceLabel: deviceLabel,
       );
-      debugPrint('OnboardingCubit: authService.createAccount returned, recoveryKey length: ${result.ultimatePrivateKey.length}');
+      debugPrint('OnboardingCubit: accountService.createAccount returned, recoveryKey length: ${result.ultimatePrivateKey.length}');
 
       // Reset router key check since we now have keys
       AppRouter.resetKeyCheck();
