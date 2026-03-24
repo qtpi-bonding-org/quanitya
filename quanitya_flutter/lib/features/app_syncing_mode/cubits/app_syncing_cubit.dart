@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'dart:async';
@@ -32,28 +31,21 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
   }
 
   /// Load initial state from database and auto-connect if needed.
-  Future<void> _initialize() async {
-    try {
-      final settings = await _repository.getSettings();
-      emit(state.copyWith(
-        mode: settings.mode,
-        serverpodUrl: _repository.serverpodUrl,
-        selfHostedUrl: settings.selfHostedUrl,
-        lastConnectionTest: settings.lastConnectionTest,
-        status: UiFlowStatus.success,
-      ));
+  Future<void> _initialize() => tryOperation(() async {
+    final settings = await _repository.getSettings();
+    emit(state.copyWith(
+      mode: settings.mode,
+      serverpodUrl: _repository.serverpodUrl,
+      selfHostedUrl: settings.selfHostedUrl,
+      lastConnectionTest: settings.lastConnectionTest,
+      status: UiFlowStatus.success,
+    ));
 
-      if (settings.mode.supportsSync) {
-        await _syncService.connect(settings.mode);
-      }
-    } catch (e) {
-      debugPrint('AppSyncingCubit: Initialization failed: $e');
-      emit(state.copyWith(
-        status: UiFlowStatus.failure,
-        error: e,
-      ));
+    if (settings.mode.supportsSync) {
+      await _syncService.connect(settings.mode);
     }
-  }
+    return state;
+  }, emitLoading: false);
 
   /// Stream DB changes for external updates (e.g. another isolate).
   void _initializeStreaming() {

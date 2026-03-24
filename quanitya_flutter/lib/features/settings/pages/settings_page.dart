@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
@@ -198,14 +199,19 @@ class _TutorialSectionState extends State<_TutorialSection> {
         QuanityaToggle(
           value: _showTours,
           onChanged: (enabled) async {
-            final tourService = GetIt.instance<GuidedTourService>();
-            if (enabled) {
-              await tourService.resetAllTours();
-            } else {
-              await tourService.markTourSeen(GuidedTourService.homeKey);
-              await tourService.markTourSeen(GuidedTourService.designerKey);
+            try {
+              final tourService = GetIt.instance<GuidedTourService>();
+              if (enabled) {
+                await tourService.resetAllTours();
+              } else {
+                await tourService.markTourSeen(GuidedTourService.homeKey);
+                await tourService.markTourSeen(GuidedTourService.designerKey);
+              }
+              if (mounted) setState(() => _showTours = enabled);
+            } catch (e, stack) {
+              debugPrint('Tour toggle failed: $e');
+              await ErrorPrivserver.captureError(e, stack, source: 'SettingsPage.tourToggle');
             }
-            if (mounted) setState(() => _showTours = enabled);
           },
         ),
       ],
@@ -561,25 +567,30 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
                 ),
               )
             else ...[
-              Center(
-                child: QuanityaTextButton(
-                  text: context.l10n.addWebhook,
-                  onPressed: _templates!.isNotEmpty
-                      ? () => _showWebhookDialog(context, null)
-                      : null,
-                ),
-              ),
-              if (_templates!.isEmpty) ...[
-                VSpace.x1,
-                Center(
-                  child: Text(
-                    context.l10n.webhooksCreateTemplateFirst,
-                    style: context.text.bodySmall?.copyWith(
-                      color: context.colors.textSecondary,
+              Builder(builder: (context) {
+                final templates = _templates;
+                return Column(children: [
+                  Center(
+                    child: QuanityaTextButton(
+                      text: context.l10n.addWebhook,
+                      onPressed: templates != null && templates.isNotEmpty
+                          ? () => _showWebhookDialog(context, null)
+                          : null,
                     ),
                   ),
-                ),
-              ],
+                  if (templates != null && templates.isEmpty) ...[
+                    VSpace.x1,
+                    Center(
+                      child: Text(
+                        context.l10n.webhooksCreateTemplateFirst,
+                        style: context.text.bodySmall?.copyWith(
+                          color: context.colors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ]);
+              }),
             ],
           ],
         );
@@ -588,12 +599,13 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
   }
 
   void _showWebhookDialog(BuildContext context, WebhookModel? webhook) {
-    if (_templates == null) return;
+    final templates = _templates;
+    if (templates == null) return;
 
     WebhookSheet.show(
       context: context,
       cubit: context.read<WebhookCubit>(),
-      templates: _templates!.map((t) => t.template).toList(),
+      templates: templates.map((t) => t.template).toList(),
       webhook: webhook,
     );
   }
@@ -620,8 +632,9 @@ class _WebhookRow extends StatelessWidget {
         ? '${webhook.url.substring(0, 35)}...' 
         : webhook.url;
     
-    final lastTriggered = webhook.lastTriggeredAt != null
-        ? QuanityaDateFormat.timestamp(webhook.lastTriggeredAt!)
+    final dt = webhook.lastTriggeredAt;
+    final lastTriggered = dt != null
+        ? QuanityaDateFormat.timestamp(dt)
         : context.l10n.webhookNeverTriggered;
 
     return Semantics(

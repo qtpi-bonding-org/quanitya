@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
@@ -81,7 +82,7 @@ class AnalyticsService {
   /// Save event to local inbox. Never throws.
   void _track(String event, {Map<String, dynamic>? props}) {
     debugPrint('📊 Analytics: tracking "$event"');
-    _inbox.saveEvent(
+    unawaited(_inbox.saveEvent(
       eventName: event,
       clientTimestamp: DateTime.now().toUtc(),
       platform: _platformName,
@@ -90,7 +91,7 @@ class AnalyticsService {
       debugPrint('📊 Analytics: "$event" saved to inbox');
     }).catchError((e) {
       debugPrint('📊 Analytics: "$event" FAILED: $e');
-    });
+    }));
   }
 
   /// Batch-send all unsent events to the server.

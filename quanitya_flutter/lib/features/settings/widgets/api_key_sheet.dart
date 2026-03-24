@@ -69,8 +69,10 @@ class _ApiKeySheetState extends State<ApiKeySheet> {
   }
 
   Future<void> _loadExistingKeyValue() async {
+    final apiKey = widget.apiKey;
+    if (apiKey == null) return;
     final cubit = context.read<WebhookCubit>();
-    final value = await cubit.getApiKeyValue(widget.apiKey!.id);
+    final value = await cubit.getApiKeyValue(apiKey.id);
     if (mounted && value != null) {
       _keyValueController.text = value;
     }
@@ -202,8 +204,10 @@ class _ApiKeySheetState extends State<ApiKeySheet> {
     final keyValue = _keyValueController.text;
 
     if (_isEditing) {
+      final apiKey = widget.apiKey;
+      if (apiKey == null) return;
       cubit.updateApiKey(
-        id: widget.apiKey!.id,
+        id: apiKey.id,
         name: _nameController.text,
         authType: _authType,
         headerName: _authType == AuthType.apiKeyHeader ? _headerNameController.text : null,
@@ -229,7 +233,9 @@ class _ApiKeySheetState extends State<ApiKeySheet> {
       confirmText: context.l10n.actionDelete,
       isDestructive: true,
       onConfirm: () {
-        context.read<WebhookCubit>().deleteApiKey(widget.apiKey!.id);
+        final apiKey = widget.apiKey;
+        if (apiKey == null) return;
+        context.read<WebhookCubit>().deleteApiKey(apiKey.id);
         Navigator.of(context).pop();
       },
     );

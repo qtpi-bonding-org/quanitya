@@ -528,7 +528,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
         // Skip if already being recovered (prevents re-entry loop).
         final txnId = result.transactionId ?? result.productId;
         if (!_recoveringTransactions.contains(txnId)) {
-          _recoverOrphanedPurchase(result);
+          unawaited(_recoverOrphanedPurchase(result));
         }
       }
     }

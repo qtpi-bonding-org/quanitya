@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter/foundation.dart';
@@ -231,7 +233,7 @@ void _initializeClientAuth() {
 /// Auto-send analytics events if the user has opted in.
 /// Runs in the background — never blocks startup.
 void _autoSendAnalytics() {
-  Future(() async {
+  unawaited(Future(() async {
     try {
       final settingsRepo = getIt<AppSyncingRepository>();
       final autoSend = await settingsRepo.getAnalyticsAutoSend();
@@ -244,13 +246,13 @@ void _autoSendAnalytics() {
     } catch (e) {
       debugPrint('Bootstrap: Analytics auto-send failed (non-critical): $e');
     }
-  });
+  }));
 }
 
 /// Auto-send error reports if the user has opted in.
 /// Runs in the background — never blocks startup.
 void _autoSendErrors() {
-  Future(() async {
+  unawaited(Future(() async {
     try {
       final settingsRepo = getIt<AppSyncingRepository>();
       final autoSend = await settingsRepo.getErrorAutoSend();
@@ -268,7 +270,7 @@ void _autoSendErrors() {
     } catch (e) {
       debugPrint('Bootstrap: Error auto-send failed (non-critical): $e');
     }
-  });
+  }));
 }
 
 /// Configure ErrorPrivserver for privacy-preserving error reporting.

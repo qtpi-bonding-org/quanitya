@@ -27,7 +27,7 @@ class LoadingService implements cubit_ui_flow.ILoadingService {
           return;
         }
 
-        _overlayEntry = OverlayEntry(
+        final entry = OverlayEntry(
           builder: (context) => const Stack(
             children: [
               ModalBarrier(dismissible: false, color: Colors.black38),
@@ -35,8 +35,9 @@ class LoadingService implements cubit_ui_flow.ILoadingService {
             ],
           ),
         );
+        _overlayEntry = entry;
 
-        overlayState.insert(_overlayEntry!);
+        overlayState.insert(entry);
         debugPrint('✅ LoadingService: Overlay inserted.');
       } catch (e, stackTrace) {
         debugPrint('❌ LoadingService show() failed: $e\n$stackTrace');
@@ -49,8 +50,9 @@ class LoadingService implements cubit_ui_flow.ILoadingService {
   void hide() {
     Future.microtask(() {
       try {
-        if (_overlayEntry != null) {
-          _overlayEntry!.remove();
+        final entry = _overlayEntry;
+        if (entry != null) {
+          entry.remove();
           _overlayEntry = null;
           debugPrint('✅ LoadingService: Overlay removed.');
         }
