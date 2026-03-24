@@ -17,6 +17,7 @@ import '../../../support/extensions/context_extensions.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../cubits/entitlement_cubit.dart';
 import '../cubits/paid_account_cubit.dart';
+import '../cubits/paid_account_state.dart';
 import '../cubits/entitlement_message_mapper.dart';
 import '../cubits/entitlement_state.dart';
 import '../cubits/purchase_cubit.dart';
@@ -77,9 +78,9 @@ class PurchaseTabContent extends StatelessWidget {
             VSpace.x1,
 
             // Entitlement balance section (only if user has ever purchased)
-            BlocBuilder<PaidAccountCubit, bool>(
-              builder: (context, hasPurchased) {
-                if (!hasPurchased) return const SizedBox.shrink();
+            BlocBuilder<PaidAccountCubit, PaidAccountState>(
+              builder: (context, paidState) {
+                if (!paidState.hasPurchased) return const SizedBox.shrink();
                 return BlocBuilder<EntitlementCubit, EntitlementState>(
                   builder: (context, state) {
                     return EntitlementDisplay(

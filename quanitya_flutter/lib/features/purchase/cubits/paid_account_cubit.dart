@@ -1,36 +1,49 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
 
+import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../infrastructure/purchase/entitlement_repository.dart';
+import 'paid_account_state.dart';
 
-/// Thin reactive wrapper around EntitlementRepository.hasEverPurchased.
+/// Reactive wrapper around EntitlementRepository.hasEverPurchased.
 ///
-/// Exists only so UI can use BlocBuilder<PaidAccountCubit, bool> for
-/// reactive show/hide of entitlement UI. All persistence is in
-/// EntitlementRepository.
+/// Used by UI to gate entitlement display. All persistence is in
+/// EntitlementRepository. Self-hydrates in constructor.
 @lazySingleton
-class PaidAccountCubit extends Cubit<bool> {
+class PaidAccountCubit extends QuanityaCubit<PaidAccountState> {
   final EntitlementRepository _repo;
 
-  PaidAccountCubit(this._repo) : super(false) {
+  PaidAccountCubit(this._repo) : super(const PaidAccountState()) {
     _hydrate();
   }
 
+  bool get hasPurchased => state.hasPurchased;
+
   Future<void> _hydrate() async {
     final value = await _repo.hasEverPurchased();
-    emit(value);
+    emit(state.copyWith(
+      hasPurchased: value,
+      status: UiFlowStatus.success,
+      lastOperation: PaidAccountOperation.load,
+    ));
   }
 
-  bool get hasPurchased => state;
-
-  Future<void> markPurchased() async {
-    if (state) return;
+  Future<void> markPurchased() => tryOperation(() async {
+    if (state.hasPurchased) return state;
     await _repo.markPurchased();
-    emit(true);
-  }
+    return state.copyWith(
+      hasPurchased: true,
+      status: UiFlowStatus.success,
+      lastOperation: PaidAccountOperation.markPurchased,
+    );
+  });
 
-  Future<void> reset() async {
+  Future<void> reset() => tryOperation(() async {
     await _repo.clear();
-    emit(false);
-  }
+    return state.copyWith(
+      hasPurchased: false,
+      status: UiFlowStatus.success,
+      lastOperation: PaidAccountOperation.reset,
+    );
+  });
 }
