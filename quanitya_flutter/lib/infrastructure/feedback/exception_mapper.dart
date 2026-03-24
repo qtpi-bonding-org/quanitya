@@ -33,8 +33,7 @@ import '../../logic/templates/exceptions/template_rendering_exception.dart';
 import '../../logic/templates/services/sharing/template_import_service.dart' show TemplateImportException;
 import '../crypto/data_encryption_service.dart' show SymmetricKeyNotProvisionedException, DeviceKeyNotProvisionedException;
 import '../webhooks/webhook_exception.dart';
-import '../auth/exceptions/local_auth_exception.dart' as local_auth;
-import '../platform/exceptions/device_auth_exception.dart' as platform_auth;
+import '../platform/exceptions/device_auth_exception.dart';
 
 /// Global exception mapper for the Quanitya application.
 /// 
@@ -164,9 +163,8 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
       SymmetricKeyNotProvisionedException() => const MessageKey.error(L10nKeys.errorKeyNotProvisioned),
       DeviceKeyNotProvisionedException() => const MessageKey.error(L10nKeys.errorKeyNotProvisioned),
 
-      // Device auth exceptions (two separate types with same name)
-      local_auth.DeviceAuthException() => const MessageKey.error(L10nKeys.errorDeviceAuthFailed),
-      platform_auth.DeviceAuthException() => const MessageKey.error(L10nKeys.errorDeviceAuthFailed),
+      // Device auth exception
+      DeviceAuthException() => const MessageKey.error(L10nKeys.errorDeviceAuthFailed),
 
       // Generic exceptions
       FormatException() => const MessageKey.error(L10nKeys.errorFormatInvalid),

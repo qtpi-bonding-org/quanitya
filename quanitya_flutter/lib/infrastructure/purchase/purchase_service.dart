@@ -109,6 +109,9 @@ class PurchaseService implements IPurchaseService {
             // fail the purchase over a local cache write error.
             debugPrint('PurchaseService.purchase: cache update failed (non-fatal): $e');
           }
+        } else {
+          debugPrint('PurchaseService.purchase: server returned incomplete entitlement '
+              '(tag=${validationResult.tag}, amount=${validationResult.amount})');
         }
 
         return validationResult;

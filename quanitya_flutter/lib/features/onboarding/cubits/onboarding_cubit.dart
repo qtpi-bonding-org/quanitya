@@ -8,6 +8,8 @@ import '../../../infrastructure/auth/account_service.dart';
 import '../../../infrastructure/feedback/localization_service.dart';
 import '../../../infrastructure/platform/platform_local_auth.dart';
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
+import '../../../infrastructure/crypto/exceptions/crypto_exceptions.dart';
+import '../../../infrastructure/platform/exceptions/device_auth_exception.dart';
 import '../../../infrastructure/crypto/key_export_service.dart';
 import '../../../infrastructure/device/device_info_service.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
@@ -101,7 +103,7 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
       // Get the recovery key (one-time retrieval, wipes from memory)
       final recoveryKeyJwk = await _keyRepository.getUltimateKeyJwkOnce();
       if (recoveryKeyJwk == null) {
-        throw Exception('Failed to retrieve recovery key');
+        throw const KeyRetrievalException('Failed to retrieve recovery key');
       }
 
       // Reset router key check since we now have keys
@@ -125,10 +127,10 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
       );
 
       if (result == KeyExportResult.unavailable) {
-        throw Exception('iCloud Keychain not available on this device');
+        throw const KeyStorageException('iCloud Keychain not available on this device');
       }
       if (result == KeyExportResult.failed) {
-        throw Exception('Failed to save to iCloud Keychain');
+        throw const KeyStorageException('Failed to save to iCloud Keychain');
       }
 
       return state.copyWith(
@@ -153,7 +155,7 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
         return state.copyWith(status: UiFlowStatus.idle);
       }
       if (result == KeyExportResult.failed) {
-        throw Exception('Failed to export recovery key');
+        throw const KeyStorageException('Failed to export recovery key');
       }
 
       return state.copyWith(
@@ -190,7 +192,7 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
       );
 
       if (!authResult) {
-        throw Exception('Biometric authentication failed');
+        throw const DeviceAuthException('Biometric authentication failed');
       }
 
       // Store in secure storage (already encrypted by platform)

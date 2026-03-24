@@ -4,7 +4,6 @@ import 'package:get_it/get_it.dart';
 
 import '../../../support/extensions/context_extensions.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../../app_syncing_mode/models/app_syncing_mode.dart';
 import '../../errors/cubits/errors_cubit.dart';
 import '../../notices/cubits/notices_cubit.dart';
 import '../../purchase/cubits/entitlement_cubit.dart';
@@ -63,8 +62,10 @@ class _NotebookShellState extends State<NotebookShell>
         listenWhen: (prev, curr) => prev.hasSyncAccess != curr.hasSyncAccess,
         listener: (context, state) {
           final syncCubit = context.read<AppSyncingCubit>();
-          if (state.hasSyncAccess && syncCubit.state.mode.supportsSync) {
-            syncCubit.retryConnection();
+          if (state.hasSyncAccess) {
+            syncCubit.switchToCloud(emitLoading: false);
+          } else {
+            syncCubit.switchToLocal(emitLoading: false);
           }
         },
         child: Builder(

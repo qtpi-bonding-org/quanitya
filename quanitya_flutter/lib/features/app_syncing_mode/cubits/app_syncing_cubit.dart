@@ -103,7 +103,7 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
   // ---------------------------------------------------------------------------
 
   /// Switch to local-only mode.
-  Future<void> switchToLocal() async {
+  Future<void> switchToLocal({bool emitLoading = true}) async {
     _isUpdatingFromSelf = true;
     try {
       await tryOperation(() async {
@@ -114,14 +114,14 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
           status: UiFlowStatus.success,
           lastOperation: AppSyncingOperation.switchMode,
         );
-      }, emitLoading: true);
+      }, emitLoading: emitLoading);
     } finally {
       _isUpdatingFromSelf = false;
     }
   }
 
   /// Switch to cloud mode.
-  Future<void> switchToCloud() async {
+  Future<void> switchToCloud({bool emitLoading = true}) async {
     _isUpdatingFromSelf = true;
     try {
       await tryOperation(() async {
@@ -135,7 +135,7 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
           status: UiFlowStatus.success,
           lastOperation: AppSyncingOperation.switchMode,
         );
-      }, emitLoading: true);
+      }, emitLoading: emitLoading);
     } finally {
       _isUpdatingFromSelf = false;
     }

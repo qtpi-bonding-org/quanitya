@@ -36,15 +36,21 @@ class SyncStatusCubit extends QuanityaCubit<SyncStatusState> {
   }
 
   /// Retry sync connection through [SyncService] (checks auth + entitlements).
-  Future<void> retrySync() => tryOperation(() async {
+  Future<void> retrySync() async {
     emit(state.copyWith(isRetrying: true));
-    await _syncService.reconnect();
-    return state.copyWith(
-      isRetrying: false,
-      status: UiFlowStatus.success,
-      lastOperation: SyncStatusOperation.retrySync,
-    );
-  });
+    try {
+      await tryOperation(() async {
+        await _syncService.reconnect();
+        return state.copyWith(
+          isRetrying: false,
+          status: UiFlowStatus.success,
+          lastOperation: SyncStatusOperation.retrySync,
+        );
+      });
+    } finally {
+      if (state.isRetrying) emit(state.copyWith(isRetrying: false));
+    }
+  }
 
   SyncStatusState _mapStatus(SyncStatus status) {
     final SyncConnectionState connectionState;
