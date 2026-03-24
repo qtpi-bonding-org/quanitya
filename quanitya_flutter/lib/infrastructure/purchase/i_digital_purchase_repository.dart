@@ -8,6 +8,10 @@ abstract class IDigitalPurchaseRepository {
   /// Which payment rail this repository handles.
   PurchaseRail get rail;
 
+  /// Fires when an entitlement is granted outside the normal purchase flow
+  /// (e.g. orphaned purchase recovery, subscription reconciliation).
+  Stream<void> get onEntitlementGranted;
+
   /// Whether the store manages the purchase UI (IAP) or the app does (Monero/X402).
   PurchaseUiMode get uiMode;
 

@@ -10,6 +10,10 @@ import 'purchase_models.dart';
 /// Coordinates between providers, handles validation, and refreshes entitlements.
 /// Future providers (Monero, X402) register here without changing existing code.
 abstract class IPurchaseService {
+  /// Fires when an entitlement is granted outside the normal purchase flow
+  /// (e.g. orphaned purchase recovery, subscription reconciliation).
+  Stream<void> get onEntitlementGranted;
+
   /// Register a purchase provider for its rail type.
   void registerProvider(IDigitalPurchaseRepository provider);
 

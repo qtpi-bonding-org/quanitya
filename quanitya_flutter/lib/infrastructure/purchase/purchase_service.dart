@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
@@ -22,6 +24,13 @@ class PurchaseService implements IPurchaseService {
   final EntitlementRepository _entitlementRepo;
   final LlmProviderConfigRepository _llmConfigRepo;
   final Map<PurchaseRail, IDigitalPurchaseRepository> _providers = {};
+  final List<StreamSubscription<void>> _entitlementSubscriptions = [];
+
+  final StreamController<void> _entitlementGrantedController =
+      StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get onEntitlementGranted => _entitlementGrantedController.stream;
 
   PurchaseService(
     this._submissionService,
@@ -34,6 +43,11 @@ class PurchaseService implements IPurchaseService {
   @override
   void registerProvider(IDigitalPurchaseRepository provider) {
     _providers[provider.rail] = provider;
+    _entitlementSubscriptions.add(
+      provider.onEntitlementGranted.listen((_) {
+        _entitlementGrantedController.add(null);
+      }),
+    );
     debugPrint('PurchaseService: Registered provider for ${provider.rail}');
   }
 
@@ -176,6 +190,11 @@ class PurchaseService implements IPurchaseService {
 
   @override
   Future<void> dispose() async {
+    for (final sub in _entitlementSubscriptions) {
+      await sub.cancel();
+    }
+    _entitlementSubscriptions.clear();
+    await _entitlementGrantedController.close();
     for (final provider in _providers.values) {
       await provider.dispose();
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cubit_ui_flow/cubit_ui_flow.dart' show UiFlowStatus;
 import 'package:get_it/get_it.dart';
 
 import '../../../support/extensions/context_extensions.dart';
@@ -8,6 +9,8 @@ import '../../errors/cubits/errors_cubit.dart';
 import '../../notices/cubits/notices_cubit.dart';
 import '../../purchase/cubits/entitlement_cubit.dart';
 import '../../purchase/cubits/entitlement_state.dart';
+import '../../purchase/cubits/purchase_cubit.dart';
+import '../../purchase/cubits/purchase_state.dart';
 import '../../postage/pages/postage_page.dart';
 import '../../guided_tour/guided_tour_service.dart';
 import '../../postage/widgets/folder_tab_bar.dart';
@@ -52,22 +55,37 @@ class _NotebookShellState extends State<NotebookShell>
       providers: [
         BlocProvider.value(value: GetIt.instance<AppSyncingCubit>()),
         BlocProvider.value(value: GetIt.instance<EntitlementCubit>()),
+        BlocProvider.value(value: GetIt.instance<PurchaseCubit>()),
         BlocProvider(
           create: (_) =>
               GetIt.instance<NoticesCubit>()..loadNotifications(),
         ),
         BlocProvider.value(value: GetIt.instance<ErrorsCubit>()),
       ],
-      child: BlocListener<EntitlementCubit, EntitlementState>(
-        listenWhen: (prev, curr) => prev.hasSyncAccess != curr.hasSyncAccess,
-        listener: (context, state) {
-          final syncCubit = context.read<AppSyncingCubit>();
-          if (state.hasSyncAccess) {
-            syncCubit.switchToCloud(emitLoading: false);
-          } else {
-            syncCubit.switchToLocal(emitLoading: false);
-          }
-        },
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<EntitlementCubit, EntitlementState>(
+            listenWhen: (prev, curr) => prev.hasSyncAccess != curr.hasSyncAccess,
+            listener: (context, state) {
+              final syncCubit = context.read<AppSyncingCubit>();
+              if (state.hasSyncAccess) {
+                syncCubit.switchToCloud(emitLoading: false);
+              } else {
+                syncCubit.switchToLocal(emitLoading: false);
+              }
+            },
+          ),
+          BlocListener<PurchaseCubit, PurchaseState>(
+            listenWhen: (prev, curr) =>
+                (curr.lastOperation == PurchaseOperation.purchase ||
+                 curr.lastOperation == PurchaseOperation.recoverPurchases) &&
+                curr.status == UiFlowStatus.success &&
+                prev.status != curr.status,
+            listener: (context, _) {
+              context.read<EntitlementCubit>().loadEntitlements();
+            },
+          ),
+        ],
         child: Builder(
           builder: (context) {
             final hasNotifications = context.select<NoticesCubit, bool>(

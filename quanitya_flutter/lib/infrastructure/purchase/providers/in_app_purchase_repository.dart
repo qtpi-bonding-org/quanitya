@@ -41,8 +41,11 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
   final iap.InAppPurchase _iapInstance = iap.InAppPurchase.instance;
   StreamSubscription<List<iap.PurchaseDetails>>? _purchaseSubscription;
 
-  /// Cached product IDs fetched from server. Null until first fetch.
-  Set<String>? _cachedProductIds;
+  final StreamController<void> _entitlementGrantedController =
+      StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get onEntitlementGranted => _entitlementGrantedController.stream;
 
   /// Pending purchase completers keyed by product ID.
   final Map<String, Completer<PurchaseResult>> _pendingCompleters = {};
@@ -132,9 +135,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
           .where((r) => r.rail == railName && r.status == RailStatus.active)
           .firstOrNull;
 
-      final ids = matchingRail?.productIds.toSet() ?? <String>{};
-      _cachedProductIds = ids;
-      return ids;
+      return matchingRail?.productIds.toSet() ?? <String>{};
     }, PurchaseException.new, '_getProductIds');
   }
 
@@ -432,7 +433,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
     _purchaseSubscription = null;
     _pendingCompleters.clear();
     _rawPurchaseDetails.clear();
-    _cachedProductIds = null;
+    await _entitlementGrantedController.close();
   }
 
   /// Detect product type from platform-specific store metadata.
@@ -539,6 +540,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
           'transactionId=${result.transactionId}');
       await validateWithServer(result);
       debugPrint('_recoverOrphanedPurchase: recovered ${result.productId}');
+      _entitlementGrantedController.add(null);
     } catch (e) {
       debugPrint('_recoverOrphanedPurchase: failed for '
           '${result.productId}: $e');

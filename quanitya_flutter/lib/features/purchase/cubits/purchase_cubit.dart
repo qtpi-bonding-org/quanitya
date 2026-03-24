@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
@@ -11,8 +13,15 @@ import 'purchase_state.dart';
 @lazySingleton
 class PurchaseCubit extends QuanityaCubit<PurchaseState> {
   final IPurchaseService _purchaseService;
+  StreamSubscription<void>? _entitlementSubscription;
 
   PurchaseCubit(this._purchaseService) : super(const PurchaseState()) {
+    _entitlementSubscription = _purchaseService.onEntitlementGranted.listen((_) {
+      emit(state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: PurchaseOperation.recoverPurchases,
+      ));
+    });
     _initialize();
   }
 
@@ -24,6 +33,12 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
     } catch (e) {
       debugPrint('PurchaseCubit: Initialization failed (non-critical): $e');
     }
+  }
+
+  @override
+  Future<void> close() {
+    _entitlementSubscription?.cancel();
+    return super.close();
   }
 
   Future<void> loadProducts() async {
