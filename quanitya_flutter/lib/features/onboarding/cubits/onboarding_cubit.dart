@@ -40,16 +40,22 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
   ) : super(const OnboardingState());
 
   /// Check if user already has keys (skip onboarding)
-  Future<bool> checkExistingAccount() async {
+  Future<void> checkExistingAccount() => tryOperation(() async {
     final status = await _keyRepository.getKeyStatus();
-    return status == CryptoKeyStatus.ready;
-  }
+    return state.copyWith(
+      status: UiFlowStatus.success,
+      hasExistingAccount: status == CryptoKeyStatus.ready,
+    );
+  }, emitLoading: false);
 
   /// Initialize backup page - check device authentication availability
-  Future<void> initBackupPage() async {
+  Future<void> initBackupPage() => tryOperation(() async {
     final deviceAuthAvailable = await _localAuthService.isDeviceAuthAvailable();
-    emit(state.copyWith(deviceAuthAvailable: deviceAuthAvailable));
-  }
+    return state.copyWith(
+      status: UiFlowStatus.success,
+      deviceAuthAvailable: deviceAuthAvailable,
+    );
+  }, emitLoading: false);
 
   /// Create account with server registration and all encryption keys.
   /// 

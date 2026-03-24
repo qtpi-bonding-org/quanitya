@@ -354,9 +354,11 @@ class AccountService {
   ///
   /// If not yet registered, performs server registration now.
   /// Safe to call multiple times — it's a no-op when already registered.
-  Future<void> ensureRegistered({required String deviceLabel}) async {
-    if (await _authRepo.isRegisteredWithServer) return;
-    await registerAccountWithServer(deviceLabel: deviceLabel);
+  Future<void> ensureRegistered({required String deviceLabel}) {
+    return tryMethod(() async {
+      if (await _authRepo.isRegisteredWithServer) return;
+      await registerAccountWithServer(deviceLabel: deviceLabel);
+    }, (msg, [cause]) => AccountCreationException(msg, cause: cause), 'ensureRegistered');
   }
 
   /// Recover account using ultimate private key (from user's offline backup).
@@ -651,6 +653,7 @@ class AccountService {
         );
         final callerKeyHex =
             await _keyRepository.getDeviceSigningPublicKeyHex();
+        if (callerKeyHex == null) throw const AccountRecoveryException('Device public key not available after generation');
         final regDevSignPayload =
             '${regDevChallenge.challenge}:registerDeviceForAccount:$callerKeyHex';
         final regDevSignature =
@@ -658,7 +661,7 @@ class AccountService {
         await _client.modules.anonaccount.deviceManagement.registerDeviceForAccount(
           challenge: regDevChallenge.challenge,
           proofOfWork: regDevPow,
-          publicKeyHex: callerKeyHex!,
+          publicKeyHex: callerKeyHex,
           signature: regDevSignature,
           newDeviceSigningPublicKeyHex: localKeyHex,
           newDeviceEncryptedDataKey: localBlob,
@@ -712,6 +715,7 @@ class AccountService {
         );
         final cdCallerKeyHex =
             await _keyRepository.getDeviceSigningPublicKeyHex();
+        if (cdCallerKeyHex == null) throw const AuthException('Device signing key not available');
         final cdSignPayload =
             '${cdChallenge.challenge}:registerDeviceForAccount:$cdCallerKeyHex';
         final cdSignature =
@@ -719,7 +723,7 @@ class AccountService {
         await _client.modules.anonaccount.deviceManagement.registerDeviceForAccount(
           challenge: cdChallenge.challenge,
           proofOfWork: cdPow,
-          publicKeyHex: cdCallerKeyHex!,
+          publicKeyHex: cdCallerKeyHex,
           signature: cdSignature,
           newDeviceSigningPublicKeyHex: crossDeviceKeyHex,
           newDeviceEncryptedDataKey: crossDeviceBlob,
@@ -765,13 +769,14 @@ class AccountService {
         );
         final pubKeyHex =
             await _keyRepository.getDeviceSigningPublicKeyHex();
+        if (pubKeyHex == null) throw const AuthException('Device public key not available');
         final signPayload =
             '${challenge.challenge}:listDevices:$pubKeyHex';
         final sig = await _encryption.signWithDeviceKey(signPayload);
         return await _client.modules.anonaccount.deviceManagement.listDevices(
           challenge: challenge.challenge,
           proofOfWork: pow,
-          publicKeyHex: pubKeyHex!,
+          publicKeyHex: pubKeyHex,
           signature: sig,
         );
       },
@@ -794,13 +799,14 @@ class AccountService {
         );
         final pubKeyHex =
             await _keyRepository.getDeviceSigningPublicKeyHex();
+        if (pubKeyHex == null) throw const AuthException('Device public key not available');
         final signPayload =
             '${challenge.challenge}:revokeDevice:$pubKeyHex';
         final sig = await _encryption.signWithDeviceKey(signPayload);
         await _client.modules.anonaccount.deviceManagement.revokeDevice(
           challenge: challenge.challenge,
           proofOfWork: pow,
-          publicKeyHex: pubKeyHex!,
+          publicKeyHex: pubKeyHex,
           signature: sig,
           deviceId: deviceId,
         );

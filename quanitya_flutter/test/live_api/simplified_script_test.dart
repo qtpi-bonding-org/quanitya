@@ -5,6 +5,7 @@ import 'package:quanitya_flutter/infrastructure/llm/services/schema_translator.d
 
 import 'live_api_test_helper.dart';
 
+@Tags(['live_api'])
 void main() {
   group('Simplified Script: Schema Translation → Gemini API', () {
     String? geminiApiKey;

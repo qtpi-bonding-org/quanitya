@@ -98,12 +98,12 @@ AuthException _wrapAuthError(String message, [Object? cause]) {
 /// Serverpod's built-in JWT auth header management and token refresh.
 Future<void> storeAuthSession(Client client, AuthenticationResult result) async {
   final details = result.details;
-  if (details == null) return;
+  if (details == null) throw const DeviceAuthenticationException('Authentication response missing session details');
 
   final token = details['token'];
   final authUserIdStr = details['authUserId'];
   final authStrategy = details['authStrategy'] ?? 'jwt';
-  if (token == null || authUserIdStr == null) return;
+  if (token == null || authUserIdStr == null) throw const DeviceAuthenticationException('Authentication response missing session details');
 
   final tokenExpiresAtStr = details['tokenExpiresAt'];
   final refreshToken = details['refreshToken'];

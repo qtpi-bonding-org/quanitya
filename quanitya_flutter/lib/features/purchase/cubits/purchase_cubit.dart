@@ -31,7 +31,11 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
       await _purchaseService.reconcileSubscriptionEntitlements();
       debugPrint('PurchaseCubit: Initialization complete');
     } catch (e) {
-      debugPrint('PurchaseCubit: Initialization failed (non-critical): $e');
+      debugPrint('PurchaseCubit: Initialization failed: $e');
+      emit(state.copyWith(
+        status: UiFlowStatus.failure,
+        error: e,
+      ));
     }
   }
 

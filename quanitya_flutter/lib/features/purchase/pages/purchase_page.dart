@@ -52,20 +52,21 @@ class PurchaseTabContent extends StatelessWidget {
              curr.lastOperation == PurchaseOperation.recoverPurchases) &&
             curr.status == UiFlowStatus.success &&
             prev.status != curr.status,
-        listener: (context, state) {
+        listener: (context, state) async {
           // PurchaseService already handled side effects (cache, markPurchased, LLM).
           // Refresh entitlement cubit for UI display.
-          context.read<EntitlementCubit>()
-            ..loadEntitlements()
-            ..loadStorageUsage();
+          final entitlementCubit = context.read<EntitlementCubit>();
+          await entitlementCubit.loadEntitlements();
+          await entitlementCubit.loadStorageUsage();
         },
         child: RefreshIndicator(
         onRefresh: () async {
-          context.read<PurchaseCubit>().loadProducts();
-          if (context.read<EntitlementCubit>().hasPurchased) {
-            context.read<EntitlementCubit>()
-              ..loadEntitlements()
-              ..loadStorageUsage();
+          final purchaseCubit = context.read<PurchaseCubit>();
+          final entitlementCubit = context.read<EntitlementCubit>();
+          await purchaseCubit.loadProducts();
+          if (entitlementCubit.hasPurchased) {
+            await entitlementCubit.loadEntitlements();
+            await entitlementCubit.loadStorageUsage();
           }
         },
         child: ListView(

@@ -113,13 +113,14 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
   /// Load local device info for the recovery flow.
   ///
   /// Populates [deviceName] and [hasExistingKeys] in state.
-  Future<void> loadLocalDeviceInfo() async {
+  Future<void> loadLocalDeviceInfo() => tryOperation(() async {
     final deviceName = await _deviceInfoService.getDeviceName();
     final hasKeys = await _keyRepository.hasExistingKeys();
-    emit(state.copyWith(
+    return state.copyWith(
+      status: UiFlowStatus.success,
       deviceName: deviceName,
       hasExistingKeys: hasKeys,
-    ));
-  }
+    );
+  }, emitLoading: false);
 
 }

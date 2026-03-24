@@ -7,6 +7,7 @@ import 'live_api_test_helper.dart';
 
 /// Tests for Schema Translator with Real Production Schema.
 /// Skipped automatically if GEMINI_API_KEY is not found in .env
+@Tags(['live_api'])
 void main() {
   group('Schema Translator with Real Production Schema', () {
     String? geminiApiKey;

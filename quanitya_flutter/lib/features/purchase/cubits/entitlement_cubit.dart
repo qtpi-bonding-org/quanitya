@@ -45,7 +45,11 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
       }
       debugPrint('EntitlementCubit: Initialization complete (hasPurchased=${state.hasPurchased})');
     } catch (e) {
-      debugPrint('EntitlementCubit: Initialization failed (non-critical): $e');
+      debugPrint('EntitlementCubit: Initialization failed: $e');
+      emit(state.copyWith(
+        status: UiFlowStatus.failure,
+        error: e,
+      ));
     }
   }
 
@@ -120,8 +124,8 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
     if (!state.hasPurchased || _isRefreshing) return;
 
     final now = DateTime.now();
-    if (_lastRefresh != null &&
-        now.difference(_lastRefresh!).inSeconds < 60) {
+    final lastRefresh = _lastRefresh;
+    if (lastRefresh != null && now.difference(lastRefresh).inSeconds < 60) {
       return;
     }
 

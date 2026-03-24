@@ -145,8 +145,11 @@ class PowerSyncRepository implements IPowerSyncRepository {
       // and fully testable without path_provider. The recovery logic is equivalent.
       // `deleteEncryptedAtRestKey()` IS defined as a public method in DatabaseKeyService.
       try {
-        await _powerSyncDb!.initialize();
+        final db0 = _powerSyncDb;
+        if (db0 == null) throw PowerSyncException('PowerSync not initialized');
+        await db0.initialize();
       } catch (e) {
+        if (e is PowerSyncException) rethrow;
         await _keyService.deleteEncryptedAtRestKey();
         if (!kIsWeb && await File(path).exists()) await File(path).delete();
         final freshKey = (await _keyService.getOrCreateEncryptedAtRestKey()).key;
@@ -156,11 +159,15 @@ class PowerSyncRepository implements IPowerSyncRepository {
           schema: powerSyncSchema,
           logger: DevConfig.getPowerSyncLogger(),
         );
-        await _powerSyncDb!.initialize();
+        final db1 = _powerSyncDb;
+        if (db1 == null) throw PowerSyncException('PowerSync not initialized');
+        await db1.initialize();
       }
 
       // Connect Drift to the same database file via SqliteAsyncDriftConnection
-      _driftDb = AppDatabase(_powerSyncDb!);
+      final dbForDrift = _powerSyncDb;
+      if (dbForDrift == null) throw PowerSyncException('PowerSync not initialized');
+      _driftDb = AppDatabase(dbForDrift);
     } catch (e, stack) {
       debugPrintStack(stackTrace: stack, label: 'PowerSync initialization failed: $e');
       rethrow; // Re-throw so service locator knows it failed
@@ -172,16 +179,17 @@ class PowerSyncRepository implements IPowerSyncRepository {
   Future<void> connect(Client serverpodClient, AppSyncingMode mode) {
     return tryMethod(() async {
       if (_isConnected) return;
-      if (_powerSyncDb == null) return;
+      final db = _powerSyncDb;
+      if (db == null) throw PowerSyncException('PowerSync not initialized — call initialize() first');
 
       // Disconnect first to avoid "Stream already listened to" on hot restart
-      await _powerSyncDb!.disconnect();
+      await db.disconnect();
 
       final connector = _ServerpodConnector(
         serverpodClient,
         mode,
       );
-      await _powerSyncDb!.connect(connector: connector);
+      await db.connect(connector: connector);
       _isConnected = true;
     }, PowerSyncException.new, 'connect');
   }
@@ -191,15 +199,18 @@ class PowerSyncRepository implements IPowerSyncRepository {
   Future<void> disconnect() {
     return tryMethod(() async {
       if (!_isConnected) return;
-      await _powerSyncDb!.disconnect();
+      final db = _powerSyncDb;
+      if (db == null) throw PowerSyncException('PowerSync not initialized — call initialize() first');
+      await db.disconnect();
       _isConnected = false;
     }, PowerSyncException.new, 'disconnect');
   }
 
   @override
   Stream<SyncStatus> get statusStream {
-    if (_powerSyncDb == null) return const Stream.empty();
-    return _powerSyncDb!.statusStream;
+    final db = _powerSyncDb;
+    if (db == null) return const Stream.empty();
+    return db.statusStream;
   }
 
 }

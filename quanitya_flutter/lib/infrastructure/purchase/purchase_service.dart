@@ -107,12 +107,11 @@ class PurchaseService implements IPurchaseService {
 
         final validationResult = await provider.validateWithServer(result);
 
-        if (validationResult.tag != null && validationResult.amount != null) {
+        final tag = validationResult.tag;
+        final amount = validationResult.amount;
+        if (tag != null && amount != null) {
           try {
-            await _entitlementRepo.updateBalance(
-              validationResult.tag!,
-              validationResult.amount!,
-            );
+            await _entitlementRepo.updateBalance(tag, amount);
             await _entitlementRepo.markPurchased();
             if (validationResult.tag == 'llm_calls') {
               await _llmConfigRepo.saveQuanityaSelection();

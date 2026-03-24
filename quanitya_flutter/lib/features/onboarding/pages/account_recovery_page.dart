@@ -331,7 +331,7 @@ class _RecoverButton extends StatelessWidget {
             ? () async {
                 if (formKey.currentState?.validate() ?? false) {
                   final deviceName = context.read<DeviceManagementCubit>().state.deviceName ?? '';
-                  context.read<RecoveryKeyCubit>().recoverAccount(
+                  await context.read<RecoveryKeyCubit>().recoverAccount(
                     jwk: recoveryKeyController.text.trim(),
                     deviceLabel: deviceName,
                     eraseExisting: hasExistingKeys,

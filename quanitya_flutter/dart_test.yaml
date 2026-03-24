@@ -1,7 +1,14 @@
 # Test configuration for Quanitya Flutter
 # See: https://github.com/dart-lang/test/blob/master/pkgs/test/doc/configuration.md
 
+# Exclude live API tests by default — they need real API keys and are flaky.
+# Run them explicitly: flutter test --tags live_api
+exclude_tags: live_api
+
 tags:
   contract:
     # Lightweight contract tests that verify Serverpod client ↔ Flutter compatibility
     # Run with: flutter test --tags contract
+  live_api:
+    # Tests that hit real LLM APIs (OpenRouter, Gemini, etc.)
+    # Run with: flutter test --tags live_api

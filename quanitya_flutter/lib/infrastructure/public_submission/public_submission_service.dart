@@ -177,7 +177,7 @@ class PublicSubmissionService implements IPublicSubmissionService {
     try {
       return await _client.modules.anonaccount.entrypoint.getChallenge();
     } catch (e) {
-      throw PublicSubmissionException('Failed to get challenge: $e');
+      throw PublicSubmissionException('getChallenge failed', e);
     }
   }
   
@@ -194,7 +194,7 @@ class PublicSubmissionService implements IPublicSubmissionService {
       
       return stamp;
     } catch (e) {
-      throw PublicSubmissionException('Failed to mine proof-of-work: $e');
+      throw PublicSubmissionException('mineProofOfWork failed', e);
     }
   }
   
@@ -234,7 +234,7 @@ class PublicSubmissionService implements IPublicSubmissionService {
       
       return signature;
     } catch (e) {
-      throw PublicSubmissionException('Failed to sign payload: $e');
+      throw PublicSubmissionException('signPayload failed', e);
     }
   }
 }

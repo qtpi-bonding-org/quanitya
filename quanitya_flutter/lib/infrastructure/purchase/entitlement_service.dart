@@ -35,17 +35,17 @@ class EntitlementService implements IEntitlementService {
         for (final e in entitlements) {
           debugPrint('📦   tag=${e.entitlement?.tag} balance=${e.balance} type=${e.entitlement?.type.name}');
         }
-        final cached = entitlements
-            .where((e) => e.entitlement?.tag != null)
-            .map(
-              (e) => CachedEntitlement(
-                tag: e.entitlement!.tag,
-                balance: e.balance,
-                type: e.entitlement!.type.name,
-                name: e.entitlement?.name,
-              ),
-            )
-            .toList();
+        final cached = <CachedEntitlement>[];
+        for (final e in entitlements) {
+          final ent = e.entitlement;
+          if (ent == null || ent.tag.isEmpty) continue;
+          cached.add(CachedEntitlement(
+            tag: ent.tag,
+            balance: e.balance,
+            type: ent.type.name,
+            name: ent.name,
+          ));
+        }
         debugPrint('📦 EntitlementService: cached ${cached.length} entitlements');
         await _cache.store(cached);
         return entitlements;
@@ -70,7 +70,13 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<bool> hasSyncAccess() => _cache.hasSyncAccess();
+  Future<bool> hasSyncAccess() {
+    return tryMethod(
+      () async => await _cache.hasSyncAccess(),
+      EntitlementException.new,
+      'hasSyncAccess',
+    );
+  }
 
   @override
   Future<void> consumeEntitlement(String tag, double quantity) {

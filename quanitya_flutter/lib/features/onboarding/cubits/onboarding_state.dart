@@ -34,6 +34,8 @@ class OnboardingState with _$OnboardingState, UiFlowStateMixin implements IUiFlo
     @Default({}) Set<BackupMethod> completedBackupMethods,
     /// Whether device-level authentication is available (biometrics, PIN, pattern, password)
     @Default(false) bool deviceAuthAvailable,
+    /// Whether the user already has an existing account (keys are ready)
+    @Default(false) bool hasExistingAccount,
   }) = _OnboardingState;
 
   /// Whether account has been created (recovery key is available)

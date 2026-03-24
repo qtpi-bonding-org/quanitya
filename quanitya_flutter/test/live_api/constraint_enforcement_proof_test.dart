@@ -9,6 +9,7 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 import 'live_api_test_helper.dart';
 
+@Tags(['live_api'])
 void main() {
   group('Constraint Enforcement Proof Tests', () {
     late GetIt testGetIt;

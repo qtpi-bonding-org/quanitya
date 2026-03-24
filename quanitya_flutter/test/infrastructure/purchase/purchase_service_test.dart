@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' show Client;
@@ -60,7 +62,9 @@ void main() {
     mockEntitlementRepo = MockEntitlementRepository();
     mockLlmConfigRepo = MockLlmProviderConfigRepository();
 
-    // Default stubs for entitlement repo methods called during purchase flow
+    // Default stubs
+    when(() => mockProvider.onEntitlementGranted)
+        .thenAnswer((_) => const Stream<void>.empty());
     when(() => mockEntitlementRepo.updateBalance(any(), any()))
         .thenAnswer((_) async {});
     when(() => mockEntitlementRepo.markPurchased())

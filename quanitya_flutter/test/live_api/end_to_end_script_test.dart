@@ -11,6 +11,7 @@ import 'live_api_test_helper.dart';
 
 /// End-to-End Script Test.
 /// Skipped automatically if GEMINI_API_KEY is not found in .env
+@Tags(['live_api'])
 void main() {
   group('End-to-End Script Test', () {
     String? geminiApiKey;

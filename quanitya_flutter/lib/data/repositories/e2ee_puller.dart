@@ -7,7 +7,9 @@ import 'package:injectable/injectable.dart';
 import '../db/app_database.dart';
 import '../dao/dual_dao.dart';
 import '../dao/table_pairs.dart';
+import '../../infrastructure/core/try_operation.dart';
 import '../../infrastructure/crypto/data_encryption_service.dart';
+import '../../infrastructure/sync/sync_service.dart';
 import '../../logic/analysis/enums/analysis_output_mode.dart';
 import '../../logic/analysis/models/analysis_enums.dart';
 import '../../logic/templates/models/shared/template_aesthetics.dart';
@@ -465,9 +467,12 @@ class E2EEPuller implements IE2EEPuller {
 
   /// Reset all checkpoints, forcing a full re-process on next stream emission.
   /// Call this when PowerSync performs a full re-sync.
-  Future<void> resetCheckpoints() async {
-    await _db.delete(_db.pullerCheckpoints).go();
-    debugPrint('E2EEPuller: All checkpoints reset');
+  @override
+  Future<void> resetCheckpoints() {
+    return tryMethod(() async {
+      await _db.delete(_db.pullerCheckpoints).go();
+      debugPrint('E2EEPuller: All checkpoints reset');
+    }, SyncException.new, 'resetCheckpoints');
   }
 
   /// Start watching an encrypted table with checkpoint filtering.
@@ -536,83 +541,89 @@ class E2EEPuller implements IE2EEPuller {
   }
 
   @override
-  Future<void> initialize() async {
-    if (_isListening) return;
-    debugPrint('E2EEPuller: Initializing streams with checkpoints...');
+  Future<void> initialize() {
+    return tryMethod(() async {
+      if (_isListening) return;
+      debugPrint('E2EEPuller: Initializing streams with checkpoints...');
 
-    await _startWatching(
-      tableName: 'encrypted_templates',
-      queryBuilder: () => _db.select(_db.encryptedTemplates),
-      whereClause: (cp) => _db.encryptedTemplates.updatedAt.isBiggerThanValue(cp),
-      processor: _templateProcessor,
-    );
+      await _startWatching(
+        tableName: 'encrypted_templates',
+        queryBuilder: () => _db.select(_db.encryptedTemplates),
+        whereClause: (cp) => _db.encryptedTemplates.updatedAt.isBiggerThanValue(cp),
+        processor: _templateProcessor,
+      );
 
-    await _startWatching(
-      tableName: 'encrypted_entries',
-      queryBuilder: () => _db.select(_db.encryptedEntries),
-      whereClause: (cp) => _db.encryptedEntries.updatedAt.isBiggerThanValue(cp),
-      processor: _entryProcessor,
-    );
+      await _startWatching(
+        tableName: 'encrypted_entries',
+        queryBuilder: () => _db.select(_db.encryptedEntries),
+        whereClause: (cp) => _db.encryptedEntries.updatedAt.isBiggerThanValue(cp),
+        processor: _entryProcessor,
+      );
 
-    await _startWatching(
-      tableName: 'encrypted_schedules',
-      queryBuilder: () => _db.select(_db.encryptedSchedules),
-      whereClause: (cp) => _db.encryptedSchedules.updatedAt.isBiggerThanValue(cp),
-      processor: _scheduleProcessor,
-    );
+      await _startWatching(
+        tableName: 'encrypted_schedules',
+        queryBuilder: () => _db.select(_db.encryptedSchedules),
+        whereClause: (cp) => _db.encryptedSchedules.updatedAt.isBiggerThanValue(cp),
+        processor: _scheduleProcessor,
+      );
 
-    await _startWatching(
-      tableName: 'encrypted_analysis_scripts',
-      queryBuilder: () => _db.select(_db.encryptedAnalysisScripts),
-      whereClause: (cp) => _db.encryptedAnalysisScripts.updatedAt.isBiggerThanValue(cp),
-      processor: _pipelineProcessor,
-    );
+      await _startWatching(
+        tableName: 'encrypted_analysis_scripts',
+        queryBuilder: () => _db.select(_db.encryptedAnalysisScripts),
+        whereClause: (cp) => _db.encryptedAnalysisScripts.updatedAt.isBiggerThanValue(cp),
+        processor: _pipelineProcessor,
+      );
 
-    await _startWatching(
-      tableName: 'encrypted_template_aesthetics',
-      queryBuilder: () => _db.select(_db.encryptedTemplateAesthetics),
-      whereClause: (cp) => _db.encryptedTemplateAesthetics.updatedAt.isBiggerThanValue(cp),
-      processor: _aestheticsProcessor,
-    );
+      await _startWatching(
+        tableName: 'encrypted_template_aesthetics',
+        queryBuilder: () => _db.select(_db.encryptedTemplateAesthetics),
+        whereClause: (cp) => _db.encryptedTemplateAesthetics.updatedAt.isBiggerThanValue(cp),
+        processor: _aestheticsProcessor,
+      );
 
-    _isListening = true;
-    _lastSyncTime = DateTime.now();
-    debugPrint('E2EEPuller: Streams initialized with checkpoint filtering');
+      _isListening = true;
+      _lastSyncTime = DateTime.now();
+      debugPrint('E2EEPuller: Streams initialized with checkpoint filtering');
+    }, SyncException.new, 'initialize');
   }
 
   @override
-  Future<void> dispose() async {
-    for (final sub in _subscriptions.values) {
-      await sub.cancel();
-    }
-    _subscriptions.clear();
-    _isListening = false;
+  Future<void> dispose() {
+    return tryMethod(() async {
+      for (final sub in _subscriptions.values) {
+        await sub.cancel();
+      }
+      _subscriptions.clear();
+      _isListening = false;
+    }, SyncException.new, 'dispose');
   }
 
   @override
   bool get isListening => _isListening;
 
   @override
-  Future<SyncStatus> getSyncStatus() async {
-    Future<int> count(String table) async {
-      final result = await _db.customSelect(
-        'SELECT COUNT(*) AS cnt FROM $table',
-      ).getSingle();
-      return result.read<int>('cnt');
-    }
+  Future<SyncStatus> getSyncStatus() {
+    return tryMethod(() async {
+      Future<int> count(String table) async {
+        final result = await _db.customSelect(
+          'SELECT COUNT(*) AS cnt FROM $table',
+        ).getSingle();
+        return result.read<int>('cnt');
+      }
 
-    final templateCount = await count('encrypted_templates');
-    final entryCount = await count('encrypted_entries');
-    final scheduleCount = await count('encrypted_schedules');
-    final pipelineCount = await count('encrypted_analysis_scripts');
+      final templateCount = await count('encrypted_templates');
+      final entryCount = await count('encrypted_entries');
+      final scheduleCount = await count('encrypted_schedules');
+      final pipelineCount = await count('encrypted_analysis_scripts');
 
-    return SyncStatus(
-      lastSyncTime: _lastSyncTime ?? DateTime.now(),
-      pendingTemplates: templateCount,
-      pendingEntries: entryCount,
-      pendingSchedules: scheduleCount,
-      pendingPipelines: pipelineCount,
-      isActive: _isListening,
-    );
+      return SyncStatus(
+        lastSyncTime: _lastSyncTime ?? DateTime.now(),
+        pendingTemplates: templateCount,
+        pendingEntries: entryCount,
+        pendingSchedules: scheduleCount,
+        pendingPipelines: pipelineCount,
+        isActive: _isListening,
+      );
+    }, SyncException.new, 'getSyncStatus');
   }
 }

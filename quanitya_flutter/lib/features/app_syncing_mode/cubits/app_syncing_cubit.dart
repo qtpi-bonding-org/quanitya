@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'dart:async';
@@ -46,7 +47,11 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
         await _syncService.connect(settings.mode);
       }
     } catch (e) {
-      // Initialization failure is non-fatal — app works in default state
+      debugPrint('AppSyncingCubit: Initialization failed: $e');
+      emit(state.copyWith(
+        status: UiFlowStatus.failure,
+        error: e,
+      ));
     }
   }
 

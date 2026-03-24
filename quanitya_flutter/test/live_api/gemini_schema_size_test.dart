@@ -7,6 +7,7 @@ import 'live_api_test_helper.dart';
 
 /// Test to find optimal schema size for Gemini by measuring actual schema complexity
 /// rather than theoretical combinations.
+@Tags(['live_api'])
 void main() {
   group('Gemini Schema Size Tests', () {
     String? geminiApiKey;
