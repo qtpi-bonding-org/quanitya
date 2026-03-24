@@ -12,6 +12,7 @@ import '../../purchase/cubits/entitlement_cubit.dart';
 import '../../purchase/cubits/entitlement_state.dart';
 import '../../purchase/cubits/purchase_cubit.dart';
 import '../../purchase/cubits/purchase_state.dart';
+import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../postage/pages/postage_page.dart';
 import '../../guided_tour/guided_tour_service.dart';
 import '../../postage/widgets/folder_tab_bar.dart';
@@ -77,6 +78,17 @@ class _NotebookShellState extends State<NotebookShell>
                 }
               } catch (e, stack) {
                 await ErrorPrivserver.captureError(e, stack, source: 'NotebookShell.entitlementListener');
+              }
+            },
+          ),
+          BlocListener<EntitlementCubit, EntitlementState>(
+            listenWhen: (prev, curr) =>
+                !prev.hasLlmAccess && curr.hasLlmAccess,
+            listener: (context, state) async {
+              try {
+                await GetIt.instance<LlmProviderCubit>().selectQuanitya();
+              } catch (e, stack) {
+                await ErrorPrivserver.captureError(e, stack, source: 'NotebookShell.llmEntitlementListener');
               }
             },
           ),

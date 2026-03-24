@@ -58,6 +58,18 @@ class EntitlementRepository {
     );
   }
 
+  Future<bool> hasLlmAccess() {
+    return tryMethod(
+      () async {
+        final entitlements = await load();
+        return entitlements
+            .any((e) => e.tag == 'llm_calls' && e.balance > 0);
+      },
+      EntitlementException.new,
+      'hasLlmAccess',
+    );
+  }
+
   Future<void> clear() {
     return tryMethod(
       () async {

@@ -7,7 +7,6 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     show Client, RailCatalogEntry;
 
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
-import '../../features/settings/repositories/llm_provider_config_repository.dart';
 import '../core/try_operation.dart';
 import '../platform/platform_capability_service.dart';
 import '../public_submission/public_submission_service.dart';
@@ -23,7 +22,6 @@ class PurchaseService implements IPurchaseService {
   final Client _client;
   final PlatformCapabilityService _platformCaps;
   final EntitlementRepository _entitlementRepo;
-  final LlmProviderConfigRepository _llmConfigRepo;
   final Map<PurchaseRail, IDigitalPurchaseRepository> _providers = {};
   final List<StreamSubscription<void>> _entitlementSubscriptions = [];
 
@@ -38,7 +36,6 @@ class PurchaseService implements IPurchaseService {
     this._client,
     this._platformCaps,
     this._entitlementRepo,
-    this._llmConfigRepo,
   );
 
   @override
@@ -120,9 +117,6 @@ class PurchaseService implements IPurchaseService {
           try {
             await _entitlementRepo.updateBalance(tag, amount);
             await _entitlementRepo.markPurchased();
-            if (validationResult.tag == 'llm_calls') {
-              await _llmConfigRepo.saveQuanityaSelection();
-            }
           } catch (e, stack) {
             // Best-effort: server already granted the entitlement, so the
             // next getEntitlements() call will refresh the cache. Don't

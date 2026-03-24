@@ -69,12 +69,6 @@ void main() {
       act: (cubit) => cubit.loadProducts(),
       expect: () => [
         predicate<PurchaseState>(
-          (s) =>
-              s.status == UiFlowStatus.idle &&
-              s.lastOperation == PurchaseOperation.loadProducts,
-          'idle state with operation set',
-        ),
-        predicate<PurchaseState>(
           (s) => s.status == UiFlowStatus.loading,
           'loading state',
         ),

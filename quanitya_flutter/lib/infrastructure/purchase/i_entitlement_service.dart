@@ -12,6 +12,9 @@ abstract class IEntitlementService {
   /// Check if the account has sync access (sync-day credits > 0).
   Future<bool> hasSyncAccess();
 
+  /// Check if the account has LLM access (llm_calls credits > 0).
+  Future<bool> hasLlmAccess();
+
   /// Consume entitlement credits for a specific tag.
   Future<void> consumeEntitlement(String tag, double quantity);
 }

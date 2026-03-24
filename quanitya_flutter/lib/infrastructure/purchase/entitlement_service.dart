@@ -79,6 +79,15 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
+  Future<bool> hasLlmAccess() {
+    return tryMethod(
+      () async => await _cache.hasLlmAccess(),
+      EntitlementException.new,
+      'hasLlmAccess',
+    );
+  }
+
+  @override
   Future<void> consumeEntitlement(String tag, double quantity) {
     return tryMethod(
       () async {
