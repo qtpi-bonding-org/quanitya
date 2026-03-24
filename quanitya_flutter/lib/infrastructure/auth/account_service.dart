@@ -486,28 +486,34 @@ class AccountService {
   /// Delete account on server using proof-of-work + ECDSA signature.
   ///
   /// Caller is responsible for local cleanup (clearing keys, navigating away).
-  Future<void> deleteAccount() async {
-    final devicePublicKeyHex =
-        await _keyRepository.getDeviceSigningPublicKeyHex();
-    if (devicePublicKeyHex == null) {
-      throw const AccountCreationException('Device public key not found');
-    }
+  Future<void> deleteAccount() {
+    return tryMethod(
+      () async {
+        final devicePublicKeyHex =
+            await _keyRepository.getDeviceSigningPublicKeyHex();
+        if (devicePublicKeyHex == null) {
+          throw const AccountCreationException('Device public key not found');
+        }
 
-    final challengeResponse =
-        await _client.modules.anonaccount.entrypoint.getChallenge();
-    final proofOfWork = await _computeProofOfWork(
-      challengeResponse.challenge,
-      challengeResponse.difficulty,
-    );
-    final signPayload =
-        '${challengeResponse.challenge}:deleteAccount:$devicePublicKeyHex';
-    final signature = await _encryption.signWithDeviceKey(signPayload);
+        final challengeResponse =
+            await _client.modules.anonaccount.entrypoint.getChallenge();
+        final proofOfWork = await _computeProofOfWork(
+          challengeResponse.challenge,
+          challengeResponse.difficulty,
+        );
+        final signPayload =
+            '${challengeResponse.challenge}:deleteAccount:$devicePublicKeyHex';
+        final signature = await _encryption.signWithDeviceKey(signPayload);
 
-    await _client.accountDeletion.deleteAccount(
-      challenge: challengeResponse.challenge,
-      proofOfWork: proofOfWork,
-      publicKeyHex: devicePublicKeyHex,
-      signature: signature,
+        await _client.accountDeletion.deleteAccount(
+          challenge: challengeResponse.challenge,
+          proofOfWork: proofOfWork,
+          publicKeyHex: devicePublicKeyHex,
+          signature: signature,
+        );
+      },
+      (message, [cause]) => AccountCreationException(message, cause: cause),
+      'deleteAccount',
     );
   }
 
