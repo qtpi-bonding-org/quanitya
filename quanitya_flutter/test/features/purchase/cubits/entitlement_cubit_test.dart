@@ -134,15 +134,45 @@ void main() {
       await cubit.close();
     });
 
-    test('initialization skips server calls when not purchased', () async {
+    test('initialization fetches entitlements even when not marked as purchased', () async {
       stubInitDefaults(hasPurchased: false);
 
       final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
       await waitForInit();
 
+      // Server returned empty entitlements, so hasPurchased stays false
       expect(cubit.state.hasPurchased, isFalse);
       expect(cubit.state.entitlements, isEmpty);
-      verifyNever(() => mockService.getEntitlements());
+      // But the server call was still made (handles reinstall recovery)
+      verify(() => mockService.getEntitlements()).called(1);
+
+      await cubit.close();
+    });
+
+    test('initialization recovers hasPurchased when server has entitlements', () async {
+      stubInitDefaults(hasPurchased: false);
+      // Server knows about the purchase even though local cache was wiped
+      when(() => mockService.getEntitlements()).thenAnswer(
+        (_) async => [
+          AccountEntitlement(
+            accountUuid: UuidValue.fromString(
+                '00000000-0000-0000-0000-000000000001'),
+            entitlementId: 1,
+            balance: 30.0,
+          ),
+        ],
+      );
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => true);
+      when(() => mockRepo.markPurchased()).thenAnswer((_) async {});
+
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      await waitForInit();
+
+      expect(cubit.state.hasPurchased, isTrue);
+      expect(cubit.state.entitlements.length, 1);
+      expect(cubit.state.hasSyncAccess, isTrue);
+      verify(() => mockRepo.markPurchased()).called(1);
 
       await cubit.close();
     });
@@ -186,11 +216,11 @@ void main() {
       final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
       await waitForInit();
 
+      // Init called getEntitlements once (reinstall recovery).
+      // refreshIfStale should NOT call it again since hasPurchased is still false.
       await cubit.refreshIfStale();
 
-      // getEntitlements should not have been called (init skips it, refresh skips it)
-      verifyNever(() => mockService.getEntitlements());
-
+      verify(() => mockService.getEntitlements()).called(1); // only from init
       await cubit.close();
     });
   });

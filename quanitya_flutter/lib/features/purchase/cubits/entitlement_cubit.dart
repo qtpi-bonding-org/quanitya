@@ -28,11 +28,21 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
       final purchased = await _repo.hasEverPurchased();
       emit(state.copyWith(hasPurchased: purchased));
 
-      if (purchased) {
-        await loadEntitlements();
+      // Always try to fetch entitlements from server, even if local cache
+      // says "never purchased". Handles app reinstall where SecurePreferences
+      // is wiped but the server still has the user's entitlements.
+      await loadEntitlements();
+
+      // If server returned entitlements but local flag was wiped, fix it.
+      if (!purchased && state.entitlements.isNotEmpty) {
+        await _repo.markPurchased();
+        emit(state.copyWith(hasPurchased: true));
+      }
+
+      if (state.hasPurchased) {
         await loadStorageUsage();
       }
-      debugPrint('EntitlementCubit: Initialization complete (hasPurchased=$purchased)');
+      debugPrint('EntitlementCubit: Initialization complete (hasPurchased=${state.hasPurchased})');
     } catch (e) {
       debugPrint('EntitlementCubit: Initialization failed (non-critical): $e');
     }
