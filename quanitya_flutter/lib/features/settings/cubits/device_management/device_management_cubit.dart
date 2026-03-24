@@ -5,6 +5,7 @@ import '../../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../../infrastructure/auth/account_service.dart';
 import '../../../../infrastructure/auth/auth_service.dart' show AuthException;
 import '../../../../infrastructure/crypto/crypto_key_repository.dart';
+import '../../../../infrastructure/device/device_info_service.dart';
 import 'device_management_state.dart';
 
 /// Cubit for managing registered devices
@@ -14,12 +15,14 @@ import 'device_management_state.dart';
 /// - Identify current device
 /// - Revoke other devices
 /// - Manage cross-device key (iCloud / Google Block Store)
+/// - Check/clear local keys (for recovery flow)
 @injectable
 class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
   final AccountService _accountService;
   final ICryptoKeyRepository _keyRepository;
+  final DeviceInfoService _deviceInfoService;
 
-  DeviceManagementCubit(this._accountService, this._keyRepository)
+  DeviceManagementCubit(this._accountService, this._keyRepository, this._deviceInfoService)
       : super(const DeviceManagementState());
 
   /// Load all devices for the current account
@@ -106,4 +109,17 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
 
   /// Refresh the device list
   Future<void> refresh() => loadDevices();
+
+  /// Load local device info for the recovery flow.
+  ///
+  /// Populates [deviceName] and [hasExistingKeys] in state.
+  Future<void> loadLocalDeviceInfo() async {
+    final deviceName = await _deviceInfoService.getDeviceName();
+    final hasKeys = await _keyRepository.hasExistingKeys();
+    emit(state.copyWith(
+      deviceName: deviceName,
+      hasExistingKeys: hasKeys,
+    ));
+  }
+
 }

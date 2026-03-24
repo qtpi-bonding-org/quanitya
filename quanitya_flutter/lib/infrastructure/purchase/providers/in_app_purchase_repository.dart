@@ -86,16 +86,12 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
     );
   }
 
-  /// Fetch active product IDs from the server, or return cached values.
+  /// Fetch active product IDs from the server, updating the cache.
   ///
-  /// Uses the HashCash-protected productCatalog endpoint (no IP tracking).
-  /// Calls getCatalog with the platform name, then extracts product IDs
-  /// for this provider's rail from the response.
+  /// Always fetches fresh data from the server so that disabled products
+  /// are removed. Uses the HashCash-protected productCatalog endpoint.
   Future<Set<String>> _getProductIds() {
     return tryMethod(() async {
-      final cached = _cachedProductIds;
-      if (cached != null) return cached;
-
       final platformName = _getPlatformName();
 
       // 1. Get challenge from server

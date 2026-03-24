@@ -377,9 +377,15 @@ class AccountService {
   Future<void> recoverAccount({
     required String ultimatePrivateKey,
     required String deviceLabel,
+    bool eraseExisting = false,
   }) {
     return tryMethod(
       () async {
+        // 0. Clear existing keys if requested (recovery over existing account)
+        if (eraseExisting) {
+          await _keyRepository.clearKeys();
+        }
+
         // 1. Import and validate ultimate JWK
         final ultimateKeyDuo = await _keyRepository.importUltimateKeyJwk(
           ultimatePrivateKey,

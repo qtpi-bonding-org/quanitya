@@ -36,11 +36,13 @@ class RecoveryKeyCubit extends QuanityaCubit<RecoveryKeyState> {
   Future<void> recoverAccount({
     required String jwk,
     required String deviceLabel,
+    bool eraseExisting = false,
   }) async {
     await tryOperation(() async {
       await _accountService.recoverAccount(
         ultimatePrivateKey: jwk,
         deviceLabel: deviceLabel,
+        eraseExisting: eraseExisting,
       );
       analytics?.trackRecoveryKeyViewed();
       return state.copyWith(

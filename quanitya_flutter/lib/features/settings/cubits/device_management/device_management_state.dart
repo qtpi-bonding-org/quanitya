@@ -20,6 +20,8 @@ class DeviceManagementState with _$DeviceManagementState, UiFlowStateMixin imple
     @Default([]) List<AccountDevice> devices,
     String? currentDevicePublicKey,
     int? revokingDeviceId,
+    String? deviceName,
+    @Default(false) bool hasExistingKeys,
     Object? error,
     DeviceManagementOperation? lastOperation,
   }) = _DeviceManagementState;
