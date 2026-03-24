@@ -27,4 +27,3 @@ class AppSyncingMessageMapper implements IStateMessageMapper<AppSyncingState> {
 }
 
 /// Typedef for backward compatibility
-typedef AppOperatingMessageMapper = AppSyncingMessageMapper;

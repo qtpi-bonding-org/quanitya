@@ -37,5 +37,4 @@ extension AppSyncingModeExtension on AppSyncingMode {
 }
 
 /// Typedef for backward compatibility with Drift table column type
-typedef AppOperatingMode = AppSyncingMode;
 

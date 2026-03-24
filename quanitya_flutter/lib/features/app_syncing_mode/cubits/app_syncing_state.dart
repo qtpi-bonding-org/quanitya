@@ -13,7 +13,6 @@ enum AppSyncingOperation {
 }
 
 /// Typedef for backward compatibility
-typedef AppOperatingOperation = AppSyncingOperation;
 
 @freezed
 class AppSyncingState with _$AppSyncingState, UiFlowStateMixin implements IUiFlowState {
@@ -40,7 +39,6 @@ class AppSyncingState with _$AppSyncingState, UiFlowStateMixin implements IUiFlo
 }
 
 /// Typedef for backward compatibility
-typedef AppOperatingState = AppSyncingState;
 
 extension AppSyncingStateExtension on AppSyncingState {
   /// Current server URL based on mode and connection status

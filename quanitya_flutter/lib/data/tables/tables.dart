@@ -349,7 +349,7 @@ class AppOperatingSettings extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   /// Operating mode: 'local', 'selfHosted', 'cloud'
-  TextColumn get mode => textEnum<AppOperatingMode>()();
+  TextColumn get mode => textEnum<AppSyncingMode>()();
 
   /// Self-hosted server URL (null for local/cloud modes)
   TextColumn get selfHostedUrl => text().named('self_hosted_url').nullable()();

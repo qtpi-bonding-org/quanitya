@@ -155,4 +155,3 @@ class AppSyncingRepository {
 }
 
 /// Typedef for backward compatibility
-typedef AppOperatingRepository = AppSyncingRepository;

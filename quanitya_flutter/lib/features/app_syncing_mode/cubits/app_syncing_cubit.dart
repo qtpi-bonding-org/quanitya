@@ -209,4 +209,3 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
 }
 
 /// Typedef for backward compatibility
-typedef AppOperatingCubit = AppSyncingCubit;
