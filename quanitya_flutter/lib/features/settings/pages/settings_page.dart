@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
-import '../../../../infrastructure/auth/delete_service.dart';
+import '../../../../infrastructure/auth/delete_orchestrator.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
@@ -760,9 +760,9 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
 
         try {
           // Delete server-side account and clean up all local state
-          await GetIt.instance<DeleteService>().deleteAccount();
+          await GetIt.instance<DeleteOrchestrator>().deleteAccount();
 
-          // Switch back to local mode (UI state — not owned by DeleteService)
+          // Switch back to local mode (UI state — not owned by DeleteOrchestrator)
           if (GetIt.instance.isRegistered<AppSyncingCubit>()) {
             await GetIt.instance<AppSyncingCubit>().switchToLocal();
           }

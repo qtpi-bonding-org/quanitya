@@ -30,7 +30,7 @@ class DeleteException implements Exception {
 /// Callers are still responsible for UI concerns such as navigation
 /// (e.g. routing to onboarding) and cubit updates (e.g. switchToLocal).
 @lazySingleton
-class DeleteService {
+class DeleteOrchestrator {
   final AccountService _accountService;
   final AuthRepository _authRepo;
   final ICryptoKeyRepository _keyRepository;
@@ -39,7 +39,7 @@ class DeleteService {
   final IE2EEPuller _e2eePuller;
   final GuidedTourService _guidedTourService;
 
-  DeleteService(
+  DeleteOrchestrator(
     this._accountService,
     this._authRepo,
     this._keyRepository,
@@ -74,7 +74,7 @@ class DeleteService {
         } catch (e, stack) {
           // Non-critical — key may not exist
           debugPrint('Cross-device key deletion skipped: ${e.runtimeType}');
-          await ErrorPrivserver.captureError(e, stack, source: 'DeleteService');
+          await ErrorPrivserver.captureError(e, stack, source: 'DeleteOrchestrator');
         }
 
         // 3. Clear registration flag so the app knows it's no longer registered

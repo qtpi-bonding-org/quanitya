@@ -126,7 +126,7 @@ Future<void> storeAuthSession(Client client, AuthenticationResult result) async 
 ///
 /// Handles device authentication (PoW + sign-in → JWT) and session storage.
 /// Account lifecycle operations (create, register, recover, delete) live in
-/// [AccountService] and [DeleteService].
+/// [AccountService] and [DeleteOrchestrator].
 ///
 /// Throws [DeviceAuthenticationException] on failure — callers handle retry.
 @lazySingleton

@@ -17,7 +17,7 @@ import '../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../support/extensions/context_extensions.dart';
 import '../../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../infrastructure/auth/account_service.dart';
-import '../../infrastructure/auth/delete_service.dart';
+import '../../infrastructure/auth/delete_orchestrator.dart';
 import '../../data/dao/template_query_dao.dart';
 import '../../data/interfaces/log_entry_interface.dart';
 import '../../infrastructure/notifications/notification_service.dart';
@@ -537,7 +537,7 @@ class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
           await seeder.clearAll();
 
           // 2. Factory reset (PowerSync, E2EE puller, tours, entitlements, keys, registration flag)
-          await GetIt.instance<DeleteService>().factoryReset();
+          await GetIt.instance<DeleteOrchestrator>().factoryReset();
 
           // 3. Reset router key check and navigate to onboarding
           AppRouter.resetKeyCheck();
