@@ -23,8 +23,7 @@ import '../../infrastructure/notifications/notification_service.dart';
 import '../../logic/log_entries/models/log_entry.dart';
 import '../../logic/schedules/services/schedule_generator_service.dart';
 import '../../features/guided_tour/guided_tour_service.dart';
-import '../../features/purchase/cubits/paid_account_cubit.dart';
-import '../../infrastructure/purchase/entitlement_cache.dart';
+import '../../infrastructure/purchase/entitlement_repository.dart';
 import '../../data/repositories/e2ee_puller.dart';
 import '../services/dev_seeder_service.dart';
 
@@ -154,7 +153,7 @@ class DevToolsSheet extends StatelessWidget {
                 child: _DevActionButton(
                   text: 'Sync',
                   onPressed: () async {
-                    final powerSync = GetIt.instance<IPowerSyncService>();
+                    final powerSync = GetIt.instance<IPowerSyncRepository>();
                     final client = GetIt.instance<Client>();
                     final mode = GetIt.instance<AppSyncingCubit>().state.mode;
                     await powerSync.connect(client, mode);
@@ -536,8 +535,8 @@ class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
         setState(() => _isLoading = true);
         try {
           // 1. Disconnect PowerSync (keep DB file — singletons still reference it)
-          if (GetIt.instance.isRegistered<IPowerSyncService>()) {
-            await GetIt.instance<IPowerSyncService>().disconnect();
+          if (GetIt.instance.isRegistered<IPowerSyncRepository>()) {
+            await GetIt.instance<IPowerSyncRepository>().disconnect();
           }
 
           // 2. Clear all Drift database tables and E2EE puller checkpoints
@@ -553,14 +552,9 @@ class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
           final tourService = GetIt.instance<GuidedTourService>();
           await tourService.resetAllTours();
 
-          // 3b. Reset paid account flag
-          if (GetIt.instance.isRegistered<PaidAccountCubit>()) {
-            await GetIt.instance<PaidAccountCubit>().reset();
-          }
-
-          // 3c. Clear entitlement cache
-          if (GetIt.instance.isRegistered<EntitlementCache>()) {
-            await GetIt.instance<EntitlementCache>().clear();
+          // 3b. Clear entitlement data (cache + paid flag)
+          if (GetIt.instance.isRegistered<EntitlementRepository>()) {
+            await GetIt.instance<EntitlementRepository>().clear();
           }
 
           // 4. Sign out (clears all crypto keys including iCloud Keychain)

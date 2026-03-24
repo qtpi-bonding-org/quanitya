@@ -7,7 +7,7 @@ import 'package:injectable/injectable.dart';
 ///
 /// [key] is the hex-encoded 32-byte SQLCipher encryption key.
 /// [wasCreated] is true if the key was freshly generated (not previously stored).
-/// PowerSyncService uses [wasCreated] to detect a Keychain wipe and delete any
+/// PowerSyncRepository uses [wasCreated] to detect a Keychain wipe and delete any
 /// stale unreadable database file before opening a fresh one.
 typedef EncryptedAtRestKeyResult = ({String key, bool wasCreated});
 
@@ -41,7 +41,7 @@ class DatabaseKeyService {
   /// Returns the stored encryptedAtRestKey, or generates and stores a new one.
   ///
   /// [wasCreated] is true if the key did not exist and was freshly generated.
-  /// Use this flag in PowerSyncService to delete a stale DB file (Keychain wipe
+  /// Use this flag in PowerSyncRepository to delete a stale DB file (Keychain wipe
   /// recovery — key absent but old encrypted DB still on disk).
   Future<EncryptedAtRestKeyResult> getOrCreateEncryptedAtRestKey() async {
     final existing = await _storage.read(
@@ -63,7 +63,7 @@ class DatabaseKeyService {
 
   /// Deletes the encryptedAtRestKey from secure storage.
   ///
-  /// Called by PowerSyncService when a SQLCipher open failure indicates the
+  /// Called by PowerSyncRepository when a SQLCipher open failure indicates the
   /// stored key does not match the database (wrong-key recovery path).
   Future<void> deleteEncryptedAtRestKey() async {
     await _storage.delete(

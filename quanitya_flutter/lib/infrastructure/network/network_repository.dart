@@ -2,25 +2,23 @@ import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:http/http.dart' as http;
 import 'package:quanitya_flutter/infrastructure/core/try_operation.dart';
-import '../exceptions/app_syncing_exceptions.dart';
+import '../../features/app_syncing_mode/exceptions/app_syncing_exceptions.dart';
 
-abstract class INetworkService {
+abstract class INetworkRepository {
   Future<bool> testConnection(String url);
 }
 
-@Injectable(as: INetworkService)
+@Injectable(as: INetworkRepository)
 @lazySingleton
-class NetworkService implements INetworkService {
+class NetworkRepository implements INetworkRepository {
   final http.Client _client;
 
-  NetworkService(this._client);
+  NetworkRepository(this._client);
 
   @override
   Future<bool> testConnection(String url) {
     return tryMethod(
       () async {
-        debugPrint('Testing connection to: $url/health');
-
         final response = await _client
             .get(
               Uri.parse('$url/health'),
@@ -28,16 +26,7 @@ class NetworkService implements INetworkService {
             )
             .timeout(const Duration(seconds: 5));
 
-        debugPrint('Cloud response status: ${response.statusCode}');
-        debugPrint('Cloud response headers: ${response.headers}');
-        debugPrint('Cloud response body: ${response.body}');
-
-        final isConnected = response.statusCode == 200;
-        debugPrint(
-          'Connection result: ${isConnected ? "SUCCESS" : "FAILED"}',
-        );
-
-        return isConnected;
+        return response.statusCode == 200;
       },
       NetworkException.new,
       'testConnection',

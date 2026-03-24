@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:get_it/get_it.dart';
 import 'package:powersync_sqlcipher/powersync.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -15,9 +14,6 @@ import '../db/app_database.dart';
 import '../../infrastructure/config/dev_config.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../infrastructure/security/database_key_service.dart';
-import '../../features/sync_status/cubits/sync_status_cubit.dart';
-import '../../infrastructure/purchase/entitlement_cache.dart';
-import '../../infrastructure/purchase/entitlement_service.dart' show syncEntitlementTags;
 
 /// Resolve localhost for Android emulator loopback
 String _resolveUrl(String url) {
@@ -30,7 +26,7 @@ String _resolveUrl(String url) {
 }
 
 /// Interface for PowerSync service
-abstract class IPowerSyncService {
+abstract class IPowerSyncRepository {
   PowerSyncDatabase get powerSyncDb;
   AppDatabase get driftDb;
   Future<void> initialize();
@@ -59,11 +55,11 @@ abstract class IPowerSyncService {
 /// - PowerSync handles sync to PostgreSQL backend
 /// - Drift provides ORM interface for app logic
 /// - Automatic change propagation between both APIs
-@Singleton(as: IPowerSyncService)
-class PowerSyncService implements IPowerSyncService {
+@Singleton(as: IPowerSyncRepository)
+class PowerSyncRepository implements IPowerSyncRepository {
   final DatabaseKeyService _keyService;
 
-  PowerSyncService(this._keyService);
+  PowerSyncRepository(this._keyService);
 
   PowerSyncDatabase? _powerSyncDb;
   AppDatabase? _driftDb;
@@ -80,7 +76,7 @@ class PowerSyncService implements IPowerSyncService {
     final db = _powerSyncDb;
     if (db == null) {
       throw StateError(
-        'PowerSyncService not initialized. Call initialize() before accessing powerSyncDb.',
+        'PowerSyncRepository not initialized. Call initialize() before accessing powerSyncDb.',
       );
     }
     return db;
@@ -91,7 +87,7 @@ class PowerSyncService implements IPowerSyncService {
     final db = _driftDb;
     if (db == null) {
       throw StateError(
-        'PowerSyncService not initialized. Call initialize() before accessing driftDb.',
+        'PowerSyncRepository not initialized. Call initialize() before accessing driftDb.',
       );
     }
     return db;
@@ -136,7 +132,7 @@ class PowerSyncService implements IPowerSyncService {
 
       // Open DB; catch SQLCipher failures (wrong key) and recover once.
       // Note: the spec names this `deleteKeyAndStaleDatabase()` on DatabaseKeyService,
-      // but this plan intentionally keeps file deletion in PowerSyncService (which
+      // but this plan intentionally keeps file deletion in PowerSyncRepository (which
       // already owns the path) and exposes only `deleteEncryptedAtRestKey()` on
       // DatabaseKeyService. This keeps DatabaseKeyService free of filesystem concerns
       // and fully testable without path_provider. The recovery logic is equivalent.
@@ -177,7 +173,6 @@ class PowerSyncService implements IPowerSyncService {
       final connector = _ServerpodConnector(
         serverpodClient,
         mode,
-        GetIt.instance<EntitlementCache>(),
       );
       await _powerSyncDb!.connect(connector: connector);
       _isConnected = true;
@@ -248,10 +243,9 @@ class PowerSyncService implements IPowerSyncService {
 class _ServerpodConnector extends PowerSyncBackendConnector {
   final Client _client;
   final AppSyncingMode _mode;
-  final EntitlementCache? _entitlementCache;
   String? _cachedEndpoint;
 
-  _ServerpodConnector(this._client, this._mode, [this._entitlementCache]);
+  _ServerpodConnector(this._client, this._mode);
 
   @override
   Future<PowerSyncCredentials?> fetchCredentials() async {
@@ -284,34 +278,6 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
       );
     } catch (e) {
       debugPrint('🔴 PowerSyncConnector: fetchCredentials failed: $e');
-
-      // If server says no sync credits, zero out cache so next bootstrap won't reconnect
-      final cache = _entitlementCache;
-      if (e.toString().contains('insufficientCredits') && cache != null) {
-        debugPrint('🔴 PowerSyncConnector: Sync entitlement expired — zeroing cache');
-        try {
-          final cached = await cache.load();
-          final updated = cached.map((entry) {
-            if (syncEntitlementTags.contains(entry.tag)) {
-              return CachedEntitlement(
-                tag: entry.tag,
-                balance: 0.0,
-                type: entry.type,
-                name: entry.name,
-              );
-            }
-            return entry;
-          }).toList();
-          await cache.store(updated);
-
-          // Notify SyncStatusCubit singleton so UI updates
-          if (GetIt.instance.isRegistered<SyncStatusCubit>()) {
-            GetIt.instance<SyncStatusCubit>().onSyncExpired();
-          }
-        } catch (_) {
-          // Cache update is best-effort
-        }
-      }
 
       return null;
     }

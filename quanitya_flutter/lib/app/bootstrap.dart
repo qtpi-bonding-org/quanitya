@@ -13,26 +13,18 @@ import '../features/app_syncing_mode/repositories/app_syncing_repository.dart';
 import '../data/dao/fts_search_dao.dart';
 import '../data/dao/template_aesthetics_dual_dao.dart';
 import '../data/db/app_database.dart';
-import '../data/repositories/e2ee_puller.dart';
-import '../data/sync/powersync_service.dart';
 import '../infrastructure/auth/auth_service.dart';
 import '../infrastructure/config/dev_config.dart';
 import '../infrastructure/platform/platform_capability_service.dart';
-import '../infrastructure/purchase/entitlement_cache.dart';
 import '../infrastructure/purchase/i_entitlement_service.dart';
-import '../infrastructure/purchase/i_purchase_provider.dart';
+import '../infrastructure/purchase/i_digital_purchase_repository.dart';
 import '../infrastructure/purchase/i_purchase_service.dart';
-import '../infrastructure/purchase/purchase_models.dart';
 import '../infrastructure/error_reporting/error_reporter_service.dart';
-import '../infrastructure/feedback/exception_mapper.dart';
 import '../infrastructure/fonts/font_preloader_service.dart';
 import '../infrastructure/notifications/notification_service.dart';
 import '../logic/schedules/services/schedule_generator_service.dart';
 import '../features/settings/services/tested_models_service.dart';
-import '../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../features/purchase/cubits/paid_account_cubit.dart';
-import '../features/sync_status/cubits/sync_status_cubit.dart';
-import '../features/app_syncing_mode/models/app_syncing_mode.dart';
+import '../infrastructure/purchase/entitlement_repository.dart';
 import '../integrations/flutter/health/health_sync_service.dart';
 import 'bootstrap.config.dart';
 
@@ -80,29 +72,20 @@ Future<void> bootstrap() async {
     _configureErrorPrivserver();
     debugPrint('Bootstrap: ErrorPrivserver configured');
 
-    // 3. Initialize App Operating Mode (must be early for AuthService)
-    debugPrint('Bootstrap: Initializing App Operating Mode...');
-    await _initializeAppSyncingMode();
-    debugPrint('Bootstrap: App Operating Mode initialized');
+    // 3. AppSyncingCubit self-hydrates from DB in constructor (no init needed)
 
-    // 4. Initialize E2EE Puller
-    if (getIt.isRegistered<IE2EEPuller>()) {
-      debugPrint('Bootstrap: Initializing E2EE Puller...');
-      final e2eePuller = getIt<IE2EEPuller>();
-      await e2eePuller.initialize();
-      debugPrint('Bootstrap: E2EE Puller initialized');
+    // 4. E2EE Puller managed by SyncService (starts with PowerSync connection)
 
-      // 4.1. Initialize FTS search index (rebuild only if empty)
-      if (getIt.isRegistered<FtsSearchDao>()) {
-        final ftsDao = getIt<FtsSearchDao>();
-        await ftsDao.ensureTable();
-        await ftsDao.rebuildIfEmpty();
-        debugPrint('Bootstrap: FTS search index ready');
-      }
-
-      // 4.2. One-time migration: encrypt existing plaintext aesthetics
-      await _migrateAestheticsToE2EE();
+    // 4.1. Initialize FTS search index (rebuild only if empty)
+    if (getIt.isRegistered<FtsSearchDao>()) {
+      final ftsDao = getIt<FtsSearchDao>();
+      await ftsDao.ensureTable();
+      await ftsDao.rebuildIfEmpty();
+      debugPrint('Bootstrap: FTS search index ready');
     }
+
+    // 4.2. One-time migration: encrypt existing plaintext aesthetics
+    await _migrateAestheticsToE2EE();
 
     // 4. Initialize Serverpod client auth
     debugPrint('Bootstrap: Initializing Serverpod client auth...');
@@ -138,8 +121,8 @@ Future<void> bootstrap() async {
 
       if (supportedRails.isNotEmpty &&
           !kIsWeb &&
-          getIt.isRegistered<IPurchaseProvider>()) {
-        final provider = getIt<IPurchaseProvider>();
+          getIt.isRegistered<IDigitalPurchaseRepository>()) {
+        final provider = getIt<IDigitalPurchaseRepository>();
         if (supportedRails.contains(provider.rail) &&
             await provider.isAvailable()) {
           await provider.initialize();
@@ -161,15 +144,9 @@ Future<void> bootstrap() async {
       }
     }
 
-    // 5.6. Initialize PaidAccountCubit — check if user has ever purchased
-    if (getIt.isRegistered<PaidAccountCubit>()) {
-      final paidAccountCubit = getIt<PaidAccountCubit>();
-      await paidAccountCubit.initialize();
-    }
-
     // 5.7. Refresh entitlement cache (best-effort, stale cache is fine)
-    if (getIt.isRegistered<PaidAccountCubit>() &&
-        getIt<PaidAccountCubit>().hasPurchased &&
+    if (getIt.isRegistered<EntitlementRepository>() &&
+        await getIt<EntitlementRepository>().hasEverPurchased() &&
         getIt.isRegistered<IEntitlementService>()) {
       try {
         final entitlementService = getIt<IEntitlementService>();
@@ -180,42 +157,8 @@ Future<void> bootstrap() async {
       }
     }
 
-    // 6. Connect PowerSync — only if sync entitlement is active in cache
-    if (getIt.isRegistered<IPowerSyncService>()) {
-      final entitlementCache = getIt<EntitlementCache>();
-      final hasSyncAccess = await entitlementCache.hasSyncAccess();
-      final authService = getIt.isRegistered<AuthService>()
-          ? getIt<AuthService>()
-          : null;
-      final isAuthenticated = authService != null
-          ? await authService.isAuthenticated()
-          : false;
-
-      if (hasSyncAccess && isAuthenticated) {
-        final syncCubit = getIt<AppSyncingCubit>();
-
-        // Auto-switch to cloud if still in local mode
-        if (syncCubit.state.mode == AppSyncingMode.local) {
-          await syncCubit.switchToCloud();
-        }
-
-        if (syncCubit.state.mode.supportsSync) {
-          final ps = getIt<IPowerSyncService>();
-          await ps.connect(getIt<Client>(), syncCubit.state.mode);
-          debugPrint('Bootstrap: PowerSync connected = ${ps.isConnected}');
-        }
-      } else {
-        debugPrint(
-          'Bootstrap: Skipping PowerSync (${!hasSyncAccess ? "no sync entitlement" : "not authenticated"})',
-        );
-      }
-    }
-
-    // 6.5. Initialize SyncStatusCubit — start listening to PowerSync status
-    if (getIt.isRegistered<SyncStatusCubit>()) {
-      final syncCubit = getIt<AppSyncingCubit>();
-      getIt<SyncStatusCubit>().startListening(syncCubit.state.mode);
-    }
+    // 6. PowerSync + E2EE Puller managed by AppSyncingCubit → SyncService
+    // (auto-connects on hydration if mode=cloud/selfHosted)
 
     // 7-11. Parallel initialization of independent services
     // These have no dependencies on each other — run concurrently.
@@ -310,15 +253,7 @@ void _initializeClientAuth() {
   c.auth.initialize();
 }
 
-Future<void> _initializeAppSyncingMode() async {
-  if (getIt.isRegistered<AppSyncingCubit>()) {
-    final appOperatingCubit = getIt<AppSyncingCubit>();
-    await appOperatingCubit.initialize();
-    debugPrint(
-      'Bootstrap: App Operating Mode loaded - current mode: ${appOperatingCubit.state.mode.name}',
-    );
-  }
-}
+// AppSyncingCubit self-hydrates in constructor — no init function needed
 
 /// Auto-send analytics events if the user has opted in.
 /// Runs in the background — never blocks startup.

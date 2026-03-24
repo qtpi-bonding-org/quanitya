@@ -45,7 +45,7 @@ abstract class AppModule {
 
   @preResolve
   @singleton
-  Future<AppDatabase> getDatabase(IPowerSyncService powerSync) async {
+  Future<AppDatabase> getDatabase(IPowerSyncRepository powerSync) async {
     debugPrint('AppModule: Initializing PowerSync...');
     await powerSync.initialize();
     debugPrint('AppModule: PowerSync initialized, returning driftDb');

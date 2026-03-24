@@ -9,7 +9,7 @@ import 'package:quanitya_flutter/data/repositories/e2ee_puller.dart';
 import 'package:quanitya_flutter/infrastructure/crypto/data_encryption_service.dart';
 
 /// Fake encryption that just base64-encodes/decodes (no real crypto).
-class FakeEncryptionService implements IDataEncryptionService {
+class FakeEncryptionService implements IDataEncryption {
   @override
   Future<Uint8List> encryptData(String plaintext) async =>
       Uint8List.fromList(utf8.encode(plaintext));

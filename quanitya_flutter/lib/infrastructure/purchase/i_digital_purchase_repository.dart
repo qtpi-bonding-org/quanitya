@@ -1,23 +1,23 @@
 import 'purchase_models.dart';
 
-/// Interface for purchase providers (Apple IAP, Google IAP, Monero, X402, etc.)
+/// Repository interface for digital purchases (Apple IAP, Google IAP, Monero, X402, etc.)
 ///
-/// Each provider handles a specific payment rail. The orchestrator
-/// (IPurchaseService) delegates to the appropriate provider based on the rail.
+/// Each repository handles a specific payment rail. The orchestrator
+/// (IPurchaseService) delegates to the appropriate repository based on the rail.
 abstract class IDigitalPurchaseRepository {
-  /// Which payment rail this provider handles.
+  /// Which payment rail this repository handles.
   PurchaseRail get rail;
 
   /// Whether the store manages the purchase UI (IAP) or the app does (Monero/X402).
   PurchaseUiMode get uiMode;
 
-  /// Check if this provider is available on the current platform.
+  /// Check if this repository is available on the current platform.
   Future<bool> isAvailable();
 
-  /// Initialize the provider (e.g., subscribe to purchase streams).
+  /// Initialize the repository (e.g., subscribe to purchase streams).
   Future<void> initialize();
 
-  /// Get products available for purchase via this provider.
+  /// Get products available for purchase via this repository.
   Future<List<PurchaseProduct>> getAvailableProducts();
 
   /// Initiate a purchase through the store/payment system.
@@ -28,7 +28,7 @@ abstract class IDigitalPurchaseRepository {
 
   /// Recover any pending/unfinished purchases.
   ///
-  /// For stream-based providers (Apple/Google IAP), this triggers re-delivery
+  /// For stream-based repositories (Apple/Google IAP), this triggers re-delivery
   /// of pending transactions via the purchase stream. Orphaned transactions
   /// are validated and completed automatically by the stream handler.
   Future<void> recoverPendingPurchases();

@@ -4,10 +4,12 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     show Client, RailCatalogEntry;
 
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
+import '../../features/settings/repositories/llm_provider_config_repository.dart';
 import '../core/try_operation.dart';
 import '../platform/platform_capability_service.dart';
 import '../public_submission/public_submission_service.dart';
-import 'i_purchase_provider.dart';
+import 'entitlement_repository.dart';
+import 'i_digital_purchase_repository.dart';
 import 'i_purchase_service.dart';
 import 'purchase_exception.dart';
 import 'purchase_models.dart';
@@ -17,16 +19,20 @@ class PurchaseService implements IPurchaseService {
   final PublicSubmissionService _submissionService;
   final Client _client;
   final PlatformCapabilityService _platformCaps;
-  final Map<PurchaseRail, IPurchaseProvider> _providers = {};
+  final EntitlementRepository _entitlementRepo;
+  final LlmProviderConfigRepository _llmConfigRepo;
+  final Map<PurchaseRail, IDigitalPurchaseRepository> _providers = {};
 
   PurchaseService(
     this._submissionService,
     this._client,
     this._platformCaps,
+    this._entitlementRepo,
+    this._llmConfigRepo,
   );
 
   @override
-  void registerProvider(IPurchaseProvider provider) {
+  void registerProvider(IDigitalPurchaseRepository provider) {
     _providers[provider.rail] = provider;
     debugPrint('PurchaseService: Registered provider for ${provider.rail}');
   }
@@ -54,7 +60,7 @@ class PurchaseService implements IPurchaseService {
   }
 
   @override
-  Future<IPurchaseProvider?> getDefaultProvider() {
+  Future<IDigitalPurchaseRepository?> getDefaultProvider() {
     return tryMethod(
       () async {
         for (final provider in _providers.values) {
@@ -85,7 +91,20 @@ class PurchaseService implements IPurchaseService {
           );
         }
 
-        return await provider.validateWithServer(result);
+        final validationResult = await provider.validateWithServer(result);
+
+        if (validationResult.tag != null && validationResult.amount != null) {
+          await _entitlementRepo.updateBalance(
+            validationResult.tag!,
+            validationResult.amount!,
+          );
+          await _entitlementRepo.markPurchased();
+          if (validationResult.tag == 'llm_calls') {
+            await _llmConfigRepo.saveQuanityaSelection();
+          }
+        }
+
+        return validationResult;
       },
       PurchaseException.new,
       'purchase',
