@@ -187,5 +187,52 @@ void main() {
 
       await cubit.close();
     });
+
+    test('refreshIfStale fetches entitlements and updates sync access', () async {
+      // Start with no sync access
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => false);
+
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      await waitForInit();
+      expect(cubit.state.hasSyncAccess, isFalse);
+
+      // Now simulate a purchase happened — server has sync entitlement
+      when(() => mockService.getEntitlements()).thenAnswer(
+        (_) async => [
+          AccountEntitlement(
+            accountUuid: UuidValue.fromString(
+                '00000000-0000-0000-0000-000000000001'),
+            entitlementId: 1,
+            balance: 30.0,
+          ),
+        ],
+      );
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => true);
+
+      await cubit.refreshIfStale();
+
+      expect(cubit.state.hasSyncAccess, isTrue);
+      expect(cubit.state.entitlements.length, 1);
+      expect(cubit.state.lastOperation, EntitlementOperation.refreshIfStale);
+      verify(() => mockService.getEntitlements()).called(greaterThanOrEqualTo(2)); // init + refresh
+
+      await cubit.close();
+    });
+
+    test('refreshIfStale skips when not purchased', () async {
+      stubInitDefaults(hasPurchased: false);
+
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      await waitForInit();
+
+      await cubit.refreshIfStale();
+
+      // getEntitlements should not have been called (init skips it, refresh skips it)
+      verifyNever(() => mockService.getEntitlements());
+
+      await cubit.close();
+    });
   });
 }

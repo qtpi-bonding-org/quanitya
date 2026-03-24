@@ -14,6 +14,8 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
   final EntitlementRepository _repo;
   final AppDatabase _db;
 
+  DateTime? _lastRefresh;
+
   EntitlementCubit(this._entitlementService, this._repo, this._db)
       : super(const EntitlementState()) {
     _initialize();
@@ -107,4 +109,31 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
       lastOperation: EntitlementOperation.reset,
     );
   });
+
+  /// Refresh entitlements from server and re-check sync access.
+  ///
+  /// Called on app resume and by the reactive sync listener.
+  /// No-op if the user has never purchased or if refreshed within the last 60s
+  /// (debounce to avoid spamming server on rapid app switches).
+  Future<void> refreshIfStale() async {
+    if (!state.hasPurchased) return;
+
+    final now = DateTime.now();
+    if (_lastRefresh != null &&
+        now.difference(_lastRefresh!).inSeconds < 60) {
+      return;
+    }
+
+    await tryOperation(() async {
+      final entitlements = await _entitlementService.getEntitlements();
+      final hasAccess = await _entitlementService.hasSyncAccess();
+      _lastRefresh = now;
+      return state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: EntitlementOperation.refreshIfStale,
+        entitlements: entitlements,
+        hasSyncAccess: hasAccess,
+      );
+    }, emitLoading: false);
+  }
 }
