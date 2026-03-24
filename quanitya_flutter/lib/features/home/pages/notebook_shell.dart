@@ -24,8 +24,28 @@ class NotebookShell extends StatefulWidget {
   State<NotebookShell> createState() => _NotebookShellState();
 }
 
-class _NotebookShellState extends State<NotebookShell> {
+class _NotebookShellState extends State<NotebookShell>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      GetIt.instance<EntitlementCubit>().refreshIfStale();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
