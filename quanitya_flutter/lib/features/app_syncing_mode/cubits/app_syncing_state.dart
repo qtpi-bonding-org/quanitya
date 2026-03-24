@@ -15,6 +15,11 @@ enum AppSyncingOperation {
 
 /// Typedef for backward compatibility
 
+/// Sync mode preference state.
+///
+/// Sync requires BOTH `mode.supportsSync` (user chose cloud/selfHosted)
+/// AND `EntitlementState.hasSyncAccess` (server grants sync entitlement).
+/// Live connection status comes from PowerSync's status stream, not this state.
 @freezed
 class AppSyncingState with _$AppSyncingState, UiFlowStateMixin implements IUiFlowState {
   const factory AppSyncingState({

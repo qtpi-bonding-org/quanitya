@@ -184,6 +184,7 @@ class AccountService {
             );
           } catch (e) {
             // Cross-device key is non-critical — continue
+            debugPrint('\u26a0\ufe0f Cross-device key setup failed (non-critical): $e');
           }
         }
 
@@ -819,20 +820,20 @@ class AccountService {
     );
   }
 
-  /// Wraps an error as an [AuthException], detecting network errors from the cause.
-  static AuthException _wrapAccountError(String message, [Object? cause]) {
-    final causeStr = cause?.toString() ?? '';
-    final isNetwork = causeStr.contains('SocketException') ||
-        causeStr.contains('Connection refused');
-    return AuthException(
-      message,
-      kind: isNetwork ? AuthFailure.networkError : AuthFailure.general,
-      cause: cause,
-    );
-  }
-
   /// Compute hashcash proof-of-work for spam prevention.
   Future<String> _computeProofOfWork(String challenge, int difficulty) async {
     return Hashcash.mint(challenge, difficulty: difficulty);
   }
+}
+
+/// Wraps an error as an [AuthException], detecting network errors from the cause.
+AuthException _wrapAccountError(String message, [Object? cause]) {
+  final causeStr = cause?.toString() ?? '';
+  final isNetwork = causeStr.contains('SocketException') ||
+      causeStr.contains('Connection refused');
+  return AuthException(
+    message,
+    kind: isNetwork ? AuthFailure.networkError : AuthFailure.general,
+    cause: cause,
+  );
 }

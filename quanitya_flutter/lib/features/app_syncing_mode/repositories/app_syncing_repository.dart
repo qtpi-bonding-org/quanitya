@@ -38,10 +38,8 @@ class AppSyncingRepository {
   /// Automatically initializes if needed
   Stream<AppOperatingSetting> watchSettings() {
     return _db.select(_db.appOperatingSettings).watchSingle().asyncMap((setting) async {
-      // Ensure initialized before returning any data
       await _ensureInitialized();
-      // Re-fetch after initialization to get the actual data
-      return await _db.select(_db.appOperatingSettings).getSingle();
+      return setting;
     });
   }
 
