@@ -6,7 +6,7 @@ import 'package:anonaccred_client/anonaccred_client.dart'
 part 'entitlement_state.freezed.dart';
 
 /// Operations tracked by the EntitlementCubit.
-enum EntitlementOperation { loadEntitlements, checkSyncAccess, loadStorageUsage }
+enum EntitlementOperation { loadEntitlements, checkSyncAccess, loadStorageUsage, markPurchased, reset }
 
 @freezed
 class EntitlementState with _$EntitlementState, UiFlowStateMixin implements IUiFlowState {
@@ -18,6 +18,7 @@ class EntitlementState with _$EntitlementState, UiFlowStateMixin implements IUiF
     EntitlementOperation? lastOperation,
     @Default([]) List<AccountEntitlement> entitlements,
     @Default(false) bool hasSyncAccess,
+    @Default(false) bool hasPurchased,
     /// Estimated storage used in bytes (encrypted blobs × 2 for oplog).
     int? storageBytes,
     /// Total encrypted entry count.

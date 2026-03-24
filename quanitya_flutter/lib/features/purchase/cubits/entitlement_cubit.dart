@@ -4,25 +4,34 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
+import '../../../infrastructure/purchase/entitlement_repository.dart';
 import '../../../infrastructure/purchase/i_entitlement_service.dart';
 import 'entitlement_state.dart';
 
 @lazySingleton
 class EntitlementCubit extends QuanityaCubit<EntitlementState> {
   final IEntitlementService _entitlementService;
+  final EntitlementRepository _repo;
   final AppDatabase _db;
 
-  EntitlementCubit(this._entitlementService, this._db)
+  EntitlementCubit(this._entitlementService, this._repo, this._db)
       : super(const EntitlementState()) {
     _initialize();
   }
 
+  bool get hasPurchased => state.hasPurchased;
+
   Future<void> _initialize() async {
     try {
-      await loadEntitlements();
-      await checkSyncAccess();
-      await loadStorageUsage();
-      debugPrint('EntitlementCubit: Initialization complete');
+      final purchased = await _repo.hasEverPurchased();
+      emit(state.copyWith(hasPurchased: purchased));
+
+      if (purchased) {
+        await loadEntitlements();
+        await checkSyncAccess();
+        await loadStorageUsage();
+      }
+      debugPrint('EntitlementCubit: Initialization complete (hasPurchased=$purchased)');
     } catch (e) {
       debugPrint('EntitlementCubit: Initialization failed (non-critical): $e');
     }
@@ -31,10 +40,12 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
   Future<void> loadEntitlements() async {
     await tryOperation(() async {
       final entitlements = await _entitlementService.getEntitlements();
+      final purchased = await _repo.hasEverPurchased();
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: EntitlementOperation.loadEntitlements,
         entitlements: entitlements,
+        hasPurchased: purchased,
       );
     }, emitLoading: true);
   }
@@ -73,4 +84,27 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
       );
     }, emitLoading: false);
   }
+
+  Future<void> markPurchased() => tryOperation(() async {
+    if (state.hasPurchased) return state;
+    await _repo.markPurchased();
+    return state.copyWith(
+      hasPurchased: true,
+      status: UiFlowStatus.success,
+      lastOperation: EntitlementOperation.markPurchased,
+    );
+  });
+
+  Future<void> reset() => tryOperation(() async {
+    await _repo.clear();
+    return state.copyWith(
+      hasPurchased: false,
+      entitlements: [],
+      hasSyncAccess: false,
+      storageBytes: null,
+      entryCount: null,
+      status: UiFlowStatus.success,
+      lastOperation: EntitlementOperation.reset,
+    );
+  });
 }

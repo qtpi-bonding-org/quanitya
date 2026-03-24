@@ -1,7 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quanitya_flutter/infrastructure/platform/secure_preferences.dart';
-import 'package:quanitya_flutter/infrastructure/purchase/entitlement_cache.dart'
-    show CachedEntitlement;
 import 'package:quanitya_flutter/infrastructure/purchase/entitlement_repository.dart';
 
 import '../../helpers/fake_secure_storage.dart';

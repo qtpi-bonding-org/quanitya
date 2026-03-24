@@ -15,7 +15,7 @@ import '../../../support/extensions/context_extensions.dart';
 /// - **onetime**: same as subscription — boolean active/inactive
 /// - **consumable**: numeric balance (e.g. "20", "0")
 ///
-/// Shown only when [PaidAccountCubit.hasPurchased] is true.
+/// Shown only when [EntitlementCubit.hasPurchased] is true.
 class EntitlementDisplay extends StatelessWidget {
   const EntitlementDisplay({
     super.key,

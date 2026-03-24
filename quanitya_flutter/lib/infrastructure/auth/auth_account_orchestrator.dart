@@ -1,0 +1,51 @@
+import 'package:flutter/foundation.dart';
+import 'package:injectable/injectable.dart';
+
+import '../core/try_operation.dart';
+import 'account_service.dart';
+import 'auth_service.dart' show AuthService, DeviceAuthenticationException;
+
+/// Coordinates JWT authentication with automatic device re-registration.
+///
+/// This is the single place that handles the "device not found on server"
+/// recovery flow. Services call [ensureAuthenticated] instead of calling
+/// [AuthService] and [AccountService] independently.
+///
+/// Auth layers that do NOT go through this orchestrator:
+/// - **PoW only** (hashcash challenges) — public, no identity needed
+/// - **Signed PoW** (account creation, recovery) — explicit user actions
+///   handled by their own cubits
+///
+/// Only **JWT session auth** needs this automatic retry because it can fail
+/// silently when a device is revoked from another device.
+@lazySingleton
+class AuthAccountOrchestrator {
+  final AuthService _authService;
+  final AccountService _accountService;
+
+  AuthAccountOrchestrator(this._authService, this._accountService);
+
+  /// Ensure the device has a valid JWT session, re-registering if needed.
+  ///
+  /// Flow:
+  /// 1. If already authenticated, return immediately.
+  /// 2. Try [AuthService.ensureAuthenticated].
+  /// 3. If device was revoked ([DeviceAuthenticationException]),
+  ///    re-register via [AccountService.ensureRegistered] and retry once.
+  /// 4. If retry also fails, the exception propagates to the caller.
+  Future<void> ensureAuthenticated() {
+    return tryMethod(() async {
+      if (await _authService.isAuthenticated()) return;
+
+      try {
+        await _authService.ensureAuthenticated();
+      } on DeviceAuthenticationException {
+        debugPrint('AuthAccountOrchestrator: device auth failed — re-registering');
+        await _accountService.ensureRegistered(deviceLabel: 'auto');
+        await _authService.ensureAuthenticated();
+      }
+    }, (message, [cause]) => DeviceAuthenticationException(message, cause: cause),
+        'ensureAuthenticated',
+    );
+  }
+}

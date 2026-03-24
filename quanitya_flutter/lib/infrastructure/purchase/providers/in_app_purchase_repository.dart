@@ -10,13 +10,11 @@ import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
-import '../../auth/account_service.dart';
-import '../../auth/auth_service.dart';
+import '../../auth/auth_account_orchestrator.dart';
 import '../../core/try_operation.dart';
 import '../../crypto/crypto_key_repository.dart';
 import '../../crypto/data_encryption_service.dart';
 import '../../crypto/utils/hashcash.dart';
-import '../../device/device_info_service.dart';
 import '../i_digital_purchase_repository.dart';
 import '../purchase_exception.dart';
 import '../purchase_models.dart';
@@ -31,17 +29,13 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
   final Client _client;
   final ICryptoKeyRepository _keyRepository;
   final IDataEncryption _encryption;
-  final AuthService _authService;
-  final AccountService _accountService;
-  final DeviceInfoService _deviceInfoService;
+  final AuthAccountOrchestrator _authOrchestrator;
 
   InAppPurchaseRepository(
     this._client,
     this._keyRepository,
     this._encryption,
-    this._authService,
-    this._accountService,
-    this._deviceInfoService,
+    this._authOrchestrator,
   );
 
   final iap.InAppPurchase _iapInstance = iap.InAppPurchase.instance;
@@ -97,11 +91,11 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
   /// Uses the HashCash-protected productCatalog endpoint (no IP tracking).
   /// Calls getCatalog with the platform name, then extracts product IDs
   /// for this provider's rail from the response.
-  Future<Set<String>> _getProductIds() async {
-    final cached = _cachedProductIds;
-    if (cached != null) return cached;
+  Future<Set<String>> _getProductIds() {
+    return tryMethod(() async {
+      final cached = _cachedProductIds;
+      if (cached != null) return cached;
 
-    try {
       final platformName = _getPlatformName();
 
       // 1. Get challenge from server
@@ -145,13 +139,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
       final ids = matchingRail?.productIds.toSet() ?? <String>{};
       _cachedProductIds = ids;
       return ids;
-    } on ServerException catch (e) {
-      throw PurchaseException('Product catalog: ${e.message}');
-    } on PurchaseException {
-      rethrow;
-    } catch (e) {
-      throw PurchaseException('Failed to fetch product catalog: $e');
-    }
+    }, PurchaseException.new, '_getProductIds');
   }
 
   /// Get platform name for the catalog endpoint.
@@ -240,7 +228,18 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
           );
         }
 
-        return await completer.future;
+        return await completer.future.timeout(
+          const Duration(minutes: 2),
+          onTimeout: () {
+            _pendingCompleters.remove(request.productId);
+            return PurchaseResult(
+              status: PurchaseStatus.failed,
+              rail: rail,
+              productId: request.productId,
+              errorMessage: 'Purchase timed out',
+            );
+          },
+        );
       },
       PurchaseException.new,
       'initiatePurchase',
@@ -259,10 +258,8 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
             'transactionId=${purchase.transactionId}, '
             'status=${purchase.status}');
 
-        // Ensure server registration and JWT session before validating.
-        final deviceLabel = await _deviceInfoService.getDeviceName();
-        await _accountService.ensureRegistered(deviceLabel: deviceLabel);
-        await _authService.ensureAuthenticated();
+        // Ensure JWT session (orchestrator handles re-registration if needed).
+        await _authOrchestrator.ensureAuthenticated();
 
         debugPrint('validateWithServer: authenticated, validating...');
         final result;
@@ -343,59 +340,94 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
   Future<void> reconcileSubscriptionEntitlements() {
     return tryMethod(
       () async {
-        // Only run on iOS/macOS — StoreKit 2 transactions API.
-        if (kIsWeb || !(Platform.isIOS || Platform.isMacOS)) {
-          debugPrint(
-            'reconcileSubscriptionEntitlements: skipping (not iOS/macOS)',
-          );
-          return;
-        }
+        if (kIsWeb) return;
 
-        debugPrint('reconcileSubscriptionEntitlements: querying SK2 transactions...');
-        final allTransactions = await SK2Transaction.transactions();
-        // Only reconcile subscriptions — consumables are one-time and already
-        // handled by the purchase stream. subscriptionGroupID is non-null for
-        // auto-renewable and non-renewable subscriptions.
-        final transactions = allTransactions.where(
-          (tx) => tx.subscriptionGroupID != null,
-        ).toList();
-        debugPrint(
-          'reconcileSubscriptionEntitlements: found ${transactions.length} subscription transactions (${allTransactions.length} total)',
-        );
-
-        for (final transaction in transactions) {
-          try {
-            final productId = transaction.productId;
-            debugPrint(
-              'reconcileSubscriptionEntitlements: submitting '
-              'productId=$productId, '
-              'transactionId=${transaction.id}',
-            );
-
-            final result = PurchaseResult(
-              status: PurchaseStatus.success,
-              rail: PurchaseRail.appleIap,
-              productId: productId,
-              transactionId: transaction.id,
-            );
-
-            final validation = await validateWithServer(result);
-            debugPrint(
-              'reconcileSubscriptionEntitlements: '
-              'productId=$productId → '
-              'success=${validation.success}',
-            );
-          } catch (e) {
-            debugPrint(
-              'reconcileSubscriptionEntitlements: failed for '
-              '${transaction.productId}: $e',
-            );
-          }
+        if (Platform.isIOS || Platform.isMacOS) {
+          await _reconcileAppleSubscriptions();
+        } else if (Platform.isAndroid) {
+          await _reconcileGoogleSubscriptions();
         }
       },
       PurchaseException.new,
       'reconcileSubscriptionEntitlements',
     );
+  }
+
+  /// iOS/macOS: query StoreKit 2 active transactions and re-validate
+  /// subscriptions with the server.
+  Future<void> _reconcileAppleSubscriptions() async {
+    debugPrint('reconcileSubscriptionEntitlements: querying SK2 transactions...');
+    final allTransactions = await SK2Transaction.transactions();
+    final transactions = allTransactions.where(
+      (tx) => tx.subscriptionGroupID != null,
+    ).toList();
+    debugPrint(
+      'reconcileSubscriptionEntitlements: found ${transactions.length} subscription transactions (${allTransactions.length} total)',
+    );
+
+    for (final transaction in transactions) {
+      try {
+        final result = PurchaseResult(
+          status: PurchaseStatus.success,
+          rail: PurchaseRail.appleIap,
+          productId: transaction.productId,
+          transactionId: transaction.id,
+        );
+
+        final validation = await validateWithServer(result);
+        debugPrint(
+          'reconcileSubscriptionEntitlements: '
+          '${transaction.productId} → success=${validation.success}',
+        );
+      } catch (e) {
+        debugPrint(
+          'reconcileSubscriptionEntitlements: failed for '
+          '${transaction.productId}: $e',
+        );
+      }
+    }
+  }
+
+  /// Android: query active subscriptions via Google Play Billing and
+  /// re-validate each with the server.
+  Future<void> _reconcileGoogleSubscriptions() async {
+    debugPrint('reconcileSubscriptionEntitlements: querying Google Play subscriptions...');
+    final androidAddition = _iapInstance
+        .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
+
+    final response = await androidAddition.queryPastPurchases();
+    // Filter to subscription-type purchases only.
+    final subscriptions = response.pastPurchases.where(
+      (p) => p.productID.contains('_month') || p.productID.contains('_year'),
+    ).toList();
+    debugPrint(
+      'reconcileSubscriptionEntitlements: found ${subscriptions.length} subscriptions (${response.pastPurchases.length} total)',
+    );
+
+    for (final purchase in subscriptions) {
+      try {
+        final googleDetails = purchase as GooglePlayPurchaseDetails;
+        final result = PurchaseResult(
+          status: PurchaseStatus.success,
+          rail: PurchaseRail.googleIap,
+          productId: purchase.productID,
+          transactionId: purchase.purchaseID,
+          purchaseToken: googleDetails.billingClientPurchase.purchaseToken,
+          packageName: googleDetails.billingClientPurchase.packageName,
+        );
+
+        final validation = await validateWithServer(result);
+        debugPrint(
+          'reconcileSubscriptionEntitlements: '
+          '${purchase.productID} → success=${validation.success}',
+        );
+      } catch (e) {
+        debugPrint(
+          'reconcileSubscriptionEntitlements: failed for '
+          '${purchase.productID}: $e',
+        );
+      }
+    }
   }
 
   @override
@@ -414,63 +446,55 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
   /// iOS has two subclasses: `AppStoreProduct2Details` (StoreKit 2, has type)
   /// and `AppStoreProductDetails` (StoreKit 1, no type field).
   StoreProductType _detectProductType(iap.ProductDetails detail) {
-    try {
-      if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
-        if (detail is AppStoreProduct2Details) {
-          return switch (detail.sk2Product.type) {
-            SK2ProductType.autoRenewable ||
-            SK2ProductType.nonRenewable =>
-              StoreProductType.subscription,
-            SK2ProductType.consumable ||
-            SK2ProductType.nonConsumable =>
-              StoreProductType.consumable,
-          };
-        }
-        // SK1 (AppStoreProductDetails) doesn't expose product type
-        return StoreProductType.unknown;
-      } else if (!kIsWeb && Platform.isAndroid) {
-        if (detail is GooglePlayProductDetails) {
-          return switch (detail.productDetails.productType) {
-            ProductType.subs => StoreProductType.subscription,
-            ProductType.inapp => StoreProductType.consumable,
-          };
-        }
+    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+      if (detail is AppStoreProduct2Details) {
+        return switch (detail.sk2Product.type) {
+          SK2ProductType.autoRenewable ||
+          SK2ProductType.nonRenewable =>
+            StoreProductType.subscription,
+          SK2ProductType.consumable ||
+          SK2ProductType.nonConsumable =>
+            StoreProductType.consumable,
+        };
       }
-    } catch (e) {
-      debugPrint('InAppPurchaseProvider: Failed to detect product type: $e');
+      // SK1 (AppStoreProductDetails) doesn't expose product type
+      return StoreProductType.unknown;
+    } else if (!kIsWeb && Platform.isAndroid) {
+      if (detail is GooglePlayProductDetails) {
+        return switch (detail.productDetails.productType) {
+          ProductType.subs => StoreProductType.subscription,
+          ProductType.inapp => StoreProductType.consumable,
+        };
+      }
     }
     return StoreProductType.unknown;
   }
 
   /// Detect subscription billing period from platform-specific metadata.
   SubscriptionPeriod? _detectSubscriptionPeriod(iap.ProductDetails detail) {
-    try {
-      if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
-        if (detail is AppStoreProduct2Details) {
-          final period = detail.sk2Product.subscription?.subscriptionPeriod;
-          if (period == null) return null;
-          return switch (period.unit) {
-            SK2SubscriptionPeriodUnit.month => SubscriptionPeriod.monthly,
-            SK2SubscriptionPeriodUnit.year => SubscriptionPeriod.yearly,
-            _ => null,
-          };
-        }
-      } else if (!kIsWeb && Platform.isAndroid) {
-        if (detail is GooglePlayProductDetails) {
-          final offers = detail.productDetails.subscriptionOfferDetails;
-          if (offers != null && offers.isNotEmpty) {
-            final phases = offers.first.pricingPhases;
-            if (phases.isNotEmpty) {
-              final billingPeriod = phases.first.billingPeriod;
-              if (billingPeriod.contains('Y')) return SubscriptionPeriod.yearly;
-              if (billingPeriod.contains('M')) return SubscriptionPeriod.monthly;
-              return null;
-            }
+    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+      if (detail is AppStoreProduct2Details) {
+        final period = detail.sk2Product.subscription?.subscriptionPeriod;
+        if (period == null) return null;
+        return switch (period.unit) {
+          SK2SubscriptionPeriodUnit.month => SubscriptionPeriod.monthly,
+          SK2SubscriptionPeriodUnit.year => SubscriptionPeriod.yearly,
+          _ => null,
+        };
+      }
+    } else if (!kIsWeb && Platform.isAndroid) {
+      if (detail is GooglePlayProductDetails) {
+        final offers = detail.productDetails.subscriptionOfferDetails;
+        if (offers != null && offers.isNotEmpty) {
+          final phases = offers.first.pricingPhases;
+          if (phases.isNotEmpty) {
+            final billingPeriod = phases.first.billingPeriod;
+            if (billingPeriod.contains('Y')) return SubscriptionPeriod.yearly;
+            if (billingPeriod.contains('M')) return SubscriptionPeriod.monthly;
+            return null;
           }
         }
       }
-    } catch (e) {
-      debugPrint('InAppPurchaseProvider: Failed to detect subscription period: $e');
     }
     return null;
   }

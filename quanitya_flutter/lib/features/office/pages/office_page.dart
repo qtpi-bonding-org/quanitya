@@ -38,7 +38,6 @@ import '../../purchase/cubits/purchase_message_mapper.dart';
 import '../../purchase/cubits/entitlement_cubit.dart';
 import '../../purchase/cubits/entitlement_state.dart';
 import '../../purchase/cubits/entitlement_message_mapper.dart';
-import '../../purchase/cubits/paid_account_cubit.dart';
 import '../../purchase/pages/purchase_page.dart';
 // App info
 import '../../settings/pages/app_info_page.dart';
@@ -60,7 +59,7 @@ class _OfficePageState extends State<OfficePage> {
     if (index == 1 && !_purchasesLoaded) {
       _purchasesLoaded = true;
       context.read<PurchaseCubit>().loadProducts();
-      if (context.read<PaidAccountCubit>().hasPurchased) {
+      if (context.read<EntitlementCubit>().hasPurchased) {
         context.read<EntitlementCubit>()
           ..loadEntitlements()
           ..checkSyncAccess()
@@ -95,7 +94,6 @@ class _OfficePageState extends State<OfficePage> {
         BlocProvider.value(value: GetIt.instance<SyncStatusCubit>()),
         BlocProvider.value(value: GetIt.instance<PurchaseCubit>()),
         BlocProvider.value(value: GetIt.instance<EntitlementCubit>()),
-        BlocProvider.value(value: GetIt.instance<PaidAccountCubit>()),
       ],
       child: MultiUiFlowListener(
           listeners: [

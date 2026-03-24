@@ -4,9 +4,8 @@ import 'package:injectable/injectable.dart';
 
 import '../core/try_operation.dart';
 import '../platform/secure_preferences.dart';
-import 'entitlement_cache.dart' show CachedEntitlement;
 import 'entitlement_exception.dart';
-import 'entitlement_service.dart' show syncEntitlementTags;
+import 'entitlement_service.dart' show isSyncEntitlementTag;
 
 @lazySingleton
 class EntitlementRepository {
@@ -52,7 +51,7 @@ class EntitlementRepository {
       () async {
         final entitlements = await load();
         return entitlements
-            .any((e) => syncEntitlementTags.contains(e.tag) && e.balance > 0);
+            .any((e) => isSyncEntitlementTag(e.tag) && e.balance > 0);
       },
       EntitlementException.new,
       'hasSyncAccess',
@@ -70,7 +69,7 @@ class EntitlementRepository {
   }
 
   // ---------------------------------------------------------------------------
-  // Purchase flag methods (absorbed from PaidAccountCubit)
+  // Purchase flag methods
   // ---------------------------------------------------------------------------
 
   Future<bool> hasEverPurchased() {
@@ -133,4 +132,33 @@ class EntitlementRepository {
       'updateBalance',
     );
   }
+}
+
+class CachedEntitlement {
+  final String tag;
+  final double balance;
+  final String type;
+  final String? name;
+
+  const CachedEntitlement({
+    required this.tag,
+    required this.balance,
+    required this.type,
+    this.name,
+  });
+
+  factory CachedEntitlement.fromJson(Map<String, dynamic> json) =>
+      CachedEntitlement(
+        tag: json['tag'] as String,
+        balance: (json['balance'] as num).toDouble(),
+        type: json['type'] as String,
+        name: json['name'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'tag': tag,
+        'balance': balance,
+        'type': type,
+        if (name != null) 'name': name,
+      };
 }

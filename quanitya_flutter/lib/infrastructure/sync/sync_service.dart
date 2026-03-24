@@ -7,13 +7,11 @@ import '../../data/sync/powersync_service.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../features/app_syncing_mode/repositories/app_syncing_repository.dart';
 import '../network/network_repository.dart';
-import '../auth/account_service.dart';
-import '../auth/auth_service.dart' show AuthService, DeviceAuthenticationException;
+import '../auth/auth_account_orchestrator.dart';
 import '../config/app_config.dart';
 import '../core/try_operation.dart';
 import '../purchase/entitlement_repository.dart';
-import '../purchase/entitlement_cache.dart' show CachedEntitlement;
-import '../purchase/entitlement_service.dart' show syncEntitlementTags;
+import '../purchase/entitlement_service.dart' show isSyncEntitlementTag;
 
 /// Exception thrown when sync lifecycle operations fail.
 class SyncException implements Exception {
@@ -37,8 +35,7 @@ class SyncService {
   final IPowerSyncRepository _powerSync;
   final AppSyncingRepository _syncRepo;
   final EntitlementRepository _entitlementRepo;
-  final AuthService _authService;
-  final AccountService _accountService;
+  final AuthAccountOrchestrator _authOrchestrator;
   final IE2EEPuller _puller;
   final INetworkRepository _networkService;
   final AppConfig _config;
@@ -48,8 +45,7 @@ class SyncService {
     this._powerSync,
     this._syncRepo,
     this._entitlementRepo,
-    this._authService,
-    this._accountService,
+    this._authOrchestrator,
     this._puller,
     this._networkService,
     this._config,
@@ -72,24 +68,14 @@ class SyncService {
       }
 
       // Ensure the Serverpod client session is active.
-      final authenticated = await _authService.isAuthenticated();
-      if (!authenticated) {
-        debugPrint('SyncService.connect: not authenticated — calling ensureAuthenticated');
-        try {
-          await _authService.ensureAuthenticated();
-        } on DeviceAuthenticationException {
-          // Device not found on server — re-register and retry once
-          debugPrint('SyncService.connect: device auth failed — re-registering');
-          await _accountService.ensureRegistered(deviceLabel: 'auto');
-          await _authService.ensureAuthenticated();
-        }
-      }
+      // AuthAccountOrchestrator handles device re-registration if needed.
+      await _authOrchestrator.ensureAuthenticated();
 
       // Gate on sync entitlement.
       final hasSyncAccess = await _entitlementRepo.hasSyncAccess();
       if (!hasSyncAccess) {
-        debugPrint('SyncService.connect: no sync entitlement — skipping');
-        return;
+        debugPrint('SyncService.connect: no sync entitlement');
+        throw const SyncException('No sync access — purchase a sync plan to enable cloud sync');
       }
 
       await _powerSync.connect(_client, mode);
@@ -166,25 +152,20 @@ class SyncService {
   Future<void> handleCredentialError() {
     return tryMethod(() async {
       debugPrint('SyncService.handleCredentialError: zeroing sync entitlements');
-      try {
-        final cached = await _entitlementRepo.load();
-        final updated = cached.map((entry) {
-          if (syncEntitlementTags.contains(entry.tag)) {
-            return CachedEntitlement(
-              tag: entry.tag,
-              balance: 0.0,
-              type: entry.type,
-              name: entry.name,
-            );
-          }
-          return entry;
-        }).toList();
-        await _entitlementRepo.store(updated);
-        debugPrint('SyncService.handleCredentialError: entitlement cache zeroed');
-      } catch (e) {
-        // Cache update is best-effort — do not propagate.
-        debugPrint('SyncService.handleCredentialError: cache update failed (non-fatal): $e');
-      }
+      final cached = await _entitlementRepo.load();
+      final updated = cached.map((entry) {
+        if (isSyncEntitlementTag(entry.tag)) {
+          return CachedEntitlement(
+            tag: entry.tag,
+            balance: 0.0,
+            type: entry.type,
+            name: entry.name,
+          );
+        }
+        return entry;
+      }).toList();
+      await _entitlementRepo.store(updated);
+      debugPrint('SyncService.handleCredentialError: entitlement cache zeroed');
     }, SyncException.new, 'handleCredentialError');
   }
 }

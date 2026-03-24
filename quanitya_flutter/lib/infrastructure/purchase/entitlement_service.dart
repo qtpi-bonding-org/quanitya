@@ -4,31 +4,31 @@ import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
-import '../auth/auth_service.dart';
+import '../auth/auth_account_orchestrator.dart';
 import '../core/try_operation.dart';
-import 'entitlement_cache.dart';
+import 'entitlement_repository.dart';
 import 'entitlement_exception.dart';
 import 'i_entitlement_service.dart';
 
-/// Entitlement tags for cloud sync access (one per storage tier).
-const List<String> syncEntitlementTags = [
-  'sync_500mb_days',
-  'sync_1gb_days',
-];
+/// Whether an entitlement tag grants sync access.
+///
+/// Convention: all sync-tier tags start with `sync_`. New tiers
+/// (e.g. `sync_5gb_days`) are recognised automatically.
+bool isSyncEntitlementTag(String tag) => tag.startsWith('sync_');
 
 @LazySingleton(as: IEntitlementService)
 class EntitlementService implements IEntitlementService {
   final Client _client;
-  final AuthService _authService;
-  final EntitlementCache _cache;
+  final AuthAccountOrchestrator _authOrchestrator;
+  final EntitlementRepository _cache;
 
-  EntitlementService(this._client, this._authService, this._cache);
+  EntitlementService(this._client, this._authOrchestrator, this._cache);
 
   @override
   Future<List<AccountEntitlement>> getEntitlements() {
     return tryMethod(
       () async {
-        await _authService.ensureAuthenticated();
+        await _authOrchestrator.ensureAuthenticated();
         final entitlements =
             await _client.modules.anonaccred.commerce.getEntitlements();
         debugPrint('📦 EntitlementService: server returned ${entitlements.length} entitlements');
@@ -59,7 +59,7 @@ class EntitlementService implements IEntitlementService {
   Future<double> getEntitlementBalance(String tag) {
     return tryMethod(
       () async {
-        await _authService.ensureAuthenticated();
+        await _authOrchestrator.ensureAuthenticated();
         return await _client.modules.anonaccred.commerce.getEntitlementBalance(
           tag,
         );
@@ -76,7 +76,7 @@ class EntitlementService implements IEntitlementService {
   Future<void> consumeEntitlement(String tag, double quantity) {
     return tryMethod(
       () async {
-        await _authService.ensureAuthenticated();
+        await _authOrchestrator.ensureAuthenticated();
         await _client.modules.anonaccred.commerce.consumeEntitlement(
           tag,
           quantity,

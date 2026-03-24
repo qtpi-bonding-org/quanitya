@@ -18,6 +18,7 @@ import '../location/location_service.dart' show LocationException;
 import '../notifications/exceptions/notification_exception.dart' show NotificationException;
 import '../public_submission/exceptions/public_submission_exceptions.dart';
 import '../purchase/purchase_exception.dart';
+import '../sync/sync_service.dart' show SyncException;
 import '../purchase/purchase_models.dart' show PurchaseStatus;
 import '../purchase/entitlement_exception.dart';
 import '../user_feedback/exceptions/feedback_exceptions.dart';
@@ -81,8 +82,9 @@ class QuanityaExceptionKeyMapper implements IExceptionKeyMapper {
       StorageException() => const MessageKey.error(L10nKeys.errorStorageFailed),
       DatabaseException() => const MessageKey.error(L10nKeys.errorDatabaseFailed),
 
-      // PowerSync exceptions
+      // Sync exceptions
       PowerSyncException() => const MessageKey.error(L10nKeys.errorSyncFailed),
+      SyncException() => const MessageKey.error(L10nKeys.errorSyncFailed),
 
       // Server exceptions (typed from quanitya_cloud_client)
       ServerException e => _mapServerException(e),

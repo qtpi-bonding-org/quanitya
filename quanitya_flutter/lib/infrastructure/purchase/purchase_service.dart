@@ -94,13 +94,20 @@ class PurchaseService implements IPurchaseService {
         final validationResult = await provider.validateWithServer(result);
 
         if (validationResult.tag != null && validationResult.amount != null) {
-          await _entitlementRepo.updateBalance(
-            validationResult.tag!,
-            validationResult.amount!,
-          );
-          await _entitlementRepo.markPurchased();
-          if (validationResult.tag == 'llm_calls') {
-            await _llmConfigRepo.saveQuanityaSelection();
+          try {
+            await _entitlementRepo.updateBalance(
+              validationResult.tag!,
+              validationResult.amount!,
+            );
+            await _entitlementRepo.markPurchased();
+            if (validationResult.tag == 'llm_calls') {
+              await _llmConfigRepo.saveQuanityaSelection();
+            }
+          } catch (e) {
+            // Best-effort: server already granted the entitlement, so the
+            // next getEntitlements() call will refresh the cache. Don't
+            // fail the purchase over a local cache write error.
+            debugPrint('PurchaseService.purchase: cache update failed (non-fatal): $e');
           }
         }
 
