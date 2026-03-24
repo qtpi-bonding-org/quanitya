@@ -63,7 +63,6 @@ class EntitlementRepository {
     return tryMethod(
       () async {
         await _prefs.remove(_cacheKey);
-        await _prefs.remove(_purchasedKey);
       },
       EntitlementException.new,
       'clear',

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
@@ -7,11 +8,23 @@ import '../../../infrastructure/purchase/purchase_models.dart';
 import '../../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import 'purchase_state.dart';
 
-@injectable
+@lazySingleton
 class PurchaseCubit extends QuanityaCubit<PurchaseState> {
   final IPurchaseService _purchaseService;
 
-  PurchaseCubit(this._purchaseService) : super(const PurchaseState());
+  PurchaseCubit(this._purchaseService) : super(const PurchaseState()) {
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      await _purchaseService.recoverPendingPurchases();
+      await _purchaseService.reconcileSubscriptionEntitlements();
+      debugPrint('PurchaseCubit: Initialization complete');
+    } catch (e) {
+      debugPrint('PurchaseCubit: Initialization failed (non-critical): $e');
+    }
+  }
 
   Future<void> loadProducts() async {
     emit(state.copyWith(lastOperation: PurchaseOperation.loadProducts));

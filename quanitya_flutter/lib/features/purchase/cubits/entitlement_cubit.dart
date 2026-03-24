@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
@@ -6,13 +7,26 @@ import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../infrastructure/purchase/i_entitlement_service.dart';
 import 'entitlement_state.dart';
 
-@injectable
+@lazySingleton
 class EntitlementCubit extends QuanityaCubit<EntitlementState> {
   final IEntitlementService _entitlementService;
   final AppDatabase _db;
 
   EntitlementCubit(this._entitlementService, this._db)
-      : super(const EntitlementState());
+      : super(const EntitlementState()) {
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      await loadEntitlements();
+      await checkSyncAccess();
+      await loadStorageUsage();
+      debugPrint('EntitlementCubit: Initialization complete');
+    } catch (e) {
+      debugPrint('EntitlementCubit: Initialization failed (non-critical): $e');
+    }
+  }
 
   Future<void> loadEntitlements() async {
     await tryOperation(() async {

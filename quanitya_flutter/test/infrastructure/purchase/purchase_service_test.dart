@@ -32,6 +32,8 @@ void main() {
   late MockPublicSubmissionService mockSubmissionService;
   late MockClient mockClient;
   late MockPlatformCapabilityService mockPlatformCaps;
+  late MockEntitlementRepository mockEntitlementRepo;
+  late MockLlmProviderConfigRepository mockLlmConfigRepo;
 
   setUpAll(() {
     registerFallbackValue(
@@ -55,12 +57,21 @@ void main() {
     mockSubmissionService = MockPublicSubmissionService();
     mockClient = MockClient();
     mockPlatformCaps = MockPlatformCapabilityService();
+    mockEntitlementRepo = MockEntitlementRepository();
+    mockLlmConfigRepo = MockLlmProviderConfigRepository();
+
+    // Default stubs for entitlement repo methods called during purchase flow
+    when(() => mockEntitlementRepo.updateBalance(any(), any()))
+        .thenAnswer((_) async {});
+    when(() => mockEntitlementRepo.markPurchased())
+        .thenAnswer((_) async {});
+
     purchaseService = PurchaseService(
       mockSubmissionService,
       mockClient,
       mockPlatformCaps,
-      MockEntitlementRepository(),
-      MockLlmProviderConfigRepository(),
+      mockEntitlementRepo,
+      mockLlmConfigRepo,
     );
   });
 

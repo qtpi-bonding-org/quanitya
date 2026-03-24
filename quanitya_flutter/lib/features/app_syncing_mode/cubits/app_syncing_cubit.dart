@@ -12,7 +12,7 @@ import 'app_syncing_state.dart';
 
 /// Manages sync mode state (local/cloud/selfHosted).
 ///
-/// Self-hydrates from AppSyncingRepository stream in constructor.
+/// Self-initializes from AppSyncingRepository stream in constructor.
 /// Delegates mode changes and PowerSync connection to SyncService.
 @lazySingleton
 class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
@@ -25,11 +25,11 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
   AppSyncingCubit(this._repository, this._syncService)
       : super(const AppSyncingState()) {
     _initializeStreaming();
-    _hydrate();
+    _initialize();
   }
 
   /// Load initial state from database
-  Future<void> _hydrate() async {
+  Future<void> _initialize() async {
     try {
       final settings = await _repository.getSettings();
       emit(state.copyWith(
@@ -46,7 +46,7 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
         await _syncService.connect(settings.mode);
       }
     } catch (e) {
-      // Hydration failure is non-fatal — app works in default state
+      // Initialization failure is non-fatal — app works in default state
     }
   }
 

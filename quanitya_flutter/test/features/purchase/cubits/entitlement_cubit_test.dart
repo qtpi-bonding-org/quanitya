@@ -1,5 +1,5 @@
+import 'package:drift/drift.dart' show QueryRow, Selectable;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
@@ -15,140 +15,154 @@ class MockEntitlementService extends Mock implements IEntitlementService {}
 
 class MockAppDatabase extends Mock implements AppDatabase {}
 
+class MockSelectable extends Mock implements Selectable<QueryRow> {}
+
+class MockQueryRow extends Mock implements QueryRow {}
+
 void main() {
   late MockEntitlementService mockService;
   late MockAppDatabase mockDb;
 
+  /// Stubs the three methods that [EntitlementCubit._initialize] calls so that
+  /// construction does not crash.  Individual tests may override these stubs
+  /// before building the cubit.
+  void stubInitDefaults() {
+    when(() => mockService.getEntitlements()).thenAnswer((_) async => []);
+    when(() => mockService.hasSyncAccess()).thenAnswer((_) async => false);
+
+    final mockRow = MockQueryRow();
+    when(() => mockRow.read<int>('cnt')).thenReturn(0);
+    when(() => mockRow.read<int>('total_bytes')).thenReturn(0);
+
+    final mockSelectable = MockSelectable();
+    when(() => mockSelectable.getSingle()).thenAnswer((_) async => mockRow);
+
+    when(() => mockDb.customSelect(any())).thenReturn(mockSelectable);
+  }
+
+  /// Wait long enough for [_initialize] to complete.
+  Future<void> waitForInit() => Future.delayed(const Duration(milliseconds: 150));
+
   setUp(() {
     mockService = MockEntitlementService();
     mockDb = MockAppDatabase();
+    stubInitDefaults();
   });
 
   group('EntitlementCubit', () {
-    test('initial state is idle with no entitlements', () {
+    test('loadEntitlements populates state with entitlements', () async {
+      when(() => mockService.getEntitlements()).thenAnswer(
+        (_) async => [
+          AccountEntitlement(
+            accountUuid: UuidValue.fromString(
+                '00000000-0000-0000-0000-000000000001'),
+            entitlementId: 1,
+            balance: 25.0,
+          ),
+        ],
+      );
+
       final cubit = EntitlementCubit(mockService, mockDb);
-      expect(cubit.state.status, UiFlowStatus.idle);
-      expect(cubit.state.entitlements, isEmpty);
-      expect(cubit.state.hasSyncAccess, isFalse);
-      cubit.close();
+      await waitForInit();
+
+      // Init already called loadEntitlements; verify the result.
+      expect(cubit.state.status, UiFlowStatus.success);
+      expect(cubit.state.entitlements.length, 1);
+      expect(cubit.state.entitlements.first.balance, 25.0);
+
+      // Calling it again should still work.
+      await cubit.loadEntitlements();
+      expect(cubit.state.status, UiFlowStatus.success);
+      expect(cubit.state.lastOperation, EntitlementOperation.loadEntitlements);
+      expect(cubit.state.entitlements.length, 1);
+      expect(cubit.state.entitlements.first.balance, 25.0);
+
+      await cubit.close();
     });
 
-    blocTest<EntitlementCubit, EntitlementState>(
-      'loadEntitlements emits loading then success with entitlements',
-      build: () {
-        when(() => mockService.getEntitlements()).thenAnswer(
-          (_) async => [
-            AccountEntitlement(
-              accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
-              entitlementId: 1,
-              balance: 25.0,
-            ),
-          ],
-        );
-        return EntitlementCubit(mockService, mockDb);
-      },
-      act: (cubit) => cubit.loadEntitlements(),
-      expect: () => [
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.loading,
-          'loading state',
-        ),
-        predicate<EntitlementState>(
-          (s) =>
-              s.status == UiFlowStatus.success &&
-              s.lastOperation == EntitlementOperation.loadEntitlements &&
-              s.entitlements.length == 1 &&
-              s.entitlements.first.balance == 25.0,
-          'success state with entitlements',
-        ),
-      ],
-    );
+    test('checkSyncAccess emits true when service says yes', () async {
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => true);
 
-    blocTest<EntitlementCubit, EntitlementState>(
-      'checkSyncAccess emits true when service says yes',
-      build: () {
-        when(() => mockService.hasSyncAccess())
-            .thenAnswer((_) async => true);
-        return EntitlementCubit(mockService, mockDb);
-      },
-      act: (cubit) => cubit.checkSyncAccess(),
-      expect: () => [
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.loading,
-          'loading state',
-        ),
-        predicate<EntitlementState>(
-          (s) =>
-              s.status == UiFlowStatus.success &&
-              s.lastOperation == EntitlementOperation.checkSyncAccess &&
-              s.hasSyncAccess == true,
-          'success state with sync access',
-        ),
-      ],
-    );
+      final cubit = EntitlementCubit(mockService, mockDb);
+      await waitForInit();
 
-    blocTest<EntitlementCubit, EntitlementState>(
-      'checkSyncAccess emits false when no credits',
-      build: () {
-        when(() => mockService.hasSyncAccess())
-            .thenAnswer((_) async => false);
-        return EntitlementCubit(mockService, mockDb);
-      },
-      act: (cubit) => cubit.checkSyncAccess(),
-      expect: () => [
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.loading,
-          'loading state',
-        ),
-        predicate<EntitlementState>(
-          (s) =>
-              s.status == UiFlowStatus.success &&
-              s.hasSyncAccess == false,
-          'success state without sync access',
-        ),
-      ],
-    );
+      await cubit.checkSyncAccess();
+      expect(cubit.state.status, UiFlowStatus.success);
+      expect(cubit.state.lastOperation, EntitlementOperation.checkSyncAccess);
+      expect(cubit.state.hasSyncAccess, isTrue);
 
-    blocTest<EntitlementCubit, EntitlementState>(
-      'checkSyncAccess emits failure when service throws',
-      build: () {
-        when(() => mockService.hasSyncAccess())
-            .thenThrow(Exception('Network error'));
-        return EntitlementCubit(mockService, mockDb);
-      },
-      act: (cubit) => cubit.checkSyncAccess(),
-      expect: () => [
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.loading,
-          'loading state',
-        ),
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.failure && s.error != null,
-          'failure state with error',
-        ),
-      ],
-    );
+      await cubit.close();
+    });
 
-    blocTest<EntitlementCubit, EntitlementState>(
-      'loadEntitlements returns empty list when service returns none',
-      build: () {
-        when(() => mockService.getEntitlements())
-            .thenAnswer((_) async => []);
-        return EntitlementCubit(mockService, mockDb);
-      },
-      act: (cubit) => cubit.loadEntitlements(),
-      expect: () => [
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.loading,
-          'loading state',
-        ),
-        predicate<EntitlementState>(
-          (s) =>
-              s.status == UiFlowStatus.success &&
-              s.entitlements.isEmpty,
-          'success state with empty entitlements',
-        ),
-      ],
-    );
+    test('checkSyncAccess emits false when no credits', () async {
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => false);
+
+      final cubit = EntitlementCubit(mockService, mockDb);
+      await waitForInit();
+
+      await cubit.checkSyncAccess();
+      expect(cubit.state.status, UiFlowStatus.success);
+      expect(cubit.state.hasSyncAccess, isFalse);
+
+      await cubit.close();
+    });
+
+    test('checkSyncAccess emits failure when service throws', () async {
+      final cubit = EntitlementCubit(mockService, mockDb);
+      await waitForInit();
+
+      // Override stub AFTER init completes so only the next call fails.
+      when(() => mockService.hasSyncAccess())
+          .thenThrow(Exception('Network error'));
+
+      await cubit.checkSyncAccess();
+      expect(cubit.state.status, UiFlowStatus.failure);
+      expect(cubit.state.error, isNotNull);
+
+      await cubit.close();
+    });
+
+    test('loadEntitlements returns empty list when service returns none',
+        () async {
+      when(() => mockService.getEntitlements())
+          .thenAnswer((_) async => []);
+
+      final cubit = EntitlementCubit(mockService, mockDb);
+      await waitForInit();
+
+      await cubit.loadEntitlements();
+      expect(cubit.state.status, UiFlowStatus.success);
+      expect(cubit.state.entitlements, isEmpty);
+
+      await cubit.close();
+    });
+
+    test('initialization loads entitlements, sync access, and storage',
+        () async {
+      when(() => mockService.getEntitlements()).thenAnswer(
+        (_) async => [
+          AccountEntitlement(
+            accountUuid: UuidValue.fromString(
+                '00000000-0000-0000-0000-000000000001'),
+            entitlementId: 1,
+            balance: 10.0,
+          ),
+        ],
+      );
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => true);
+
+      final cubit = EntitlementCubit(mockService, mockDb);
+      await waitForInit();
+
+      expect(cubit.state.entitlements.length, 1);
+      expect(cubit.state.hasSyncAccess, isTrue);
+      expect(cubit.state.storageBytes, 0);
+      expect(cubit.state.entryCount, 0);
+
+      await cubit.close();
+    });
   });
 }

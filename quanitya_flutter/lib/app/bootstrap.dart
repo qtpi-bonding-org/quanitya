@@ -16,7 +16,6 @@ import '../data/db/app_database.dart';
 import '../infrastructure/auth/auth_service.dart';
 import '../infrastructure/config/dev_config.dart';
 import '../infrastructure/platform/platform_capability_service.dart';
-import '../infrastructure/purchase/i_entitlement_service.dart';
 import '../infrastructure/purchase/i_digital_purchase_repository.dart';
 import '../infrastructure/purchase/i_purchase_service.dart';
 import '../infrastructure/error_reporting/error_reporter_service.dart';
@@ -24,7 +23,6 @@ import '../infrastructure/fonts/font_preloader_service.dart';
 import '../infrastructure/notifications/notification_service.dart';
 import '../logic/schedules/services/schedule_generator_service.dart';
 import '../features/settings/services/tested_models_service.dart';
-import '../infrastructure/purchase/entitlement_repository.dart';
 import '../integrations/flutter/health/health_sync_service.dart';
 import 'bootstrap.config.dart';
 
@@ -99,16 +97,6 @@ Future<void> bootstrap() async {
       await authService.initialize();
       debugPrint('Bootstrap: AuthService initialized');
 
-      // Auto sign-in for registered users (restores JWT session).
-      // Free users (never registered) skip this entirely.
-      if (await authService.isRegisteredWithServer) {
-        try {
-          await authService.ensureAuthenticated();
-          debugPrint('Bootstrap: JWT session restored');
-        } catch (e) {
-          debugPrint('Bootstrap: Auto sign-in failed (will retry on purchase): $e');
-        }
-      }
     }
 
     // 5.5. Initialize PurchaseService — register providers for supported rails
@@ -127,8 +115,6 @@ Future<void> bootstrap() async {
             await provider.isAvailable()) {
           await provider.initialize();
           purchaseService.registerProvider(provider);
-          await purchaseService.recoverPendingPurchases();
-          await purchaseService.reconcileSubscriptionEntitlements();
           debugPrint(
             'Bootstrap: Registered ${provider.rail.name} purchase provider',
           );
@@ -141,19 +127,6 @@ Future<void> bootstrap() async {
         debugPrint(
           'Bootstrap: No purchase providers to register for this platform',
         );
-      }
-    }
-
-    // 5.7. Refresh entitlement cache (best-effort, stale cache is fine)
-    if (getIt.isRegistered<EntitlementRepository>() &&
-        await getIt<EntitlementRepository>().hasEverPurchased() &&
-        getIt.isRegistered<IEntitlementService>()) {
-      try {
-        final entitlementService = getIt<IEntitlementService>();
-        await entitlementService.getEntitlements(); // refreshes cache as side effect
-        debugPrint('Bootstrap: Entitlement cache refreshed');
-      } catch (e) {
-        debugPrint('Bootstrap: Entitlement cache refresh failed (using stale cache): $e');
       }
     }
 

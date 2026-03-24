@@ -33,9 +33,7 @@ class _NotebookShellState extends State<NotebookShell> {
           create: (_) =>
               GetIt.instance<NoticesCubit>()..loadNotifications(),
         ),
-        BlocProvider(
-          create: (_) => GetIt.instance<ErrorsCubit>()..load(),
-        ),
+        BlocProvider.value(value: GetIt.instance<ErrorsCubit>()),
       ],
       child: Builder(
         builder: (context) {

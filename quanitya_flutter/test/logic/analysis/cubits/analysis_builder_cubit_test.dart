@@ -151,7 +151,7 @@ void main() {
               .having((s) => s.status, 'status', UiFlowStatus.loading),
           isA<AnalysisBuilderState>()
               .having((s) => s.status, 'status', UiFlowStatus.success)
-              .having((s) => s.snippet, 'snippet', '')
+              .having((s) => s.snippet, 'snippet', analysisHintSnippet)
               .having((s) => s.selectedScriptId, 'selectedScriptId', isNull)
               .having((s) => s.availableScripts, 'availableScripts', isEmpty),
         ],
@@ -210,7 +210,7 @@ void main() {
         cubit.newScript();
 
         expect(cubit.state.selectedScriptId, isNull);
-        expect(cubit.state.snippet, '');
+        expect(cubit.state.snippet, analysisHintSnippet);
         expect(cubit.state.reasoning, '');
         expect(cubit.state.outputMode, AnalysisOutputMode.scalar);
         expect(cubit.state.previewResult, isNull);
