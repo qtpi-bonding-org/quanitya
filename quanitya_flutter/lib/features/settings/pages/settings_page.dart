@@ -23,7 +23,6 @@ import '../../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../../infrastructure/webhooks/models/webhook_model.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../../data/sync/powersync_service.dart';
-import '../../../../infrastructure/purchase/entitlement_cache.dart';
 import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../../infrastructure/purchase/entitlement_repository.dart';
