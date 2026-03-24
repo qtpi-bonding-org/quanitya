@@ -262,6 +262,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
         await _authOrchestrator.ensureAuthenticated();
 
         debugPrint('validateWithServer: authenticated, validating...');
+        // ignore: prefer_typing_uninitialized_variables
         final result;
 
         if (purchase.rail == PurchaseRail.appleIap) {
@@ -398,7 +399,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
     final response = await androidAddition.queryPastPurchases();
     // Filter to subscription-type purchases only.
     final subscriptions = response.pastPurchases.where(
-      (p) => p.productID.contains('_month') || p.productID.contains('_year'),
+      (p) => p.productID.endsWith('_month') || p.productID.endsWith('_year'),
     ).toList();
     debugPrint(
       'reconcileSubscriptionEntitlements: found ${subscriptions.length} subscriptions (${response.pastPurchases.length} total)',
@@ -406,14 +407,13 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
 
     for (final purchase in subscriptions) {
       try {
-        final googleDetails = purchase as GooglePlayPurchaseDetails;
         final result = PurchaseResult(
           status: PurchaseStatus.success,
           rail: PurchaseRail.googleIap,
           productId: purchase.productID,
           transactionId: purchase.purchaseID,
-          purchaseToken: googleDetails.billingClientPurchase.purchaseToken,
-          packageName: googleDetails.billingClientPurchase.packageName,
+          purchaseToken: purchase.billingClientPurchase.purchaseToken,
+          packageName: purchase.billingClientPurchase.packageName,
         );
 
         final validation = await validateWithServer(result);
@@ -577,12 +577,23 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
         status = PurchaseStatus.failed;
     }
 
+    // Extract Google Play-specific fields for server validation.
+    String? packageName;
+    String? purchaseToken;
+    if (details is GooglePlayPurchaseDetails) {
+      packageName = details.billingClientPurchase.packageName;
+      purchaseToken = details.billingClientPurchase.purchaseToken;
+    } else {
+      purchaseToken = details.verificationData.serverVerificationData;
+    }
+
     return PurchaseResult(
       status: status,
       rail: rail,
       productId: details.productID,
       transactionId: details.purchaseID,
-      purchaseToken: details.verificationData.serverVerificationData,
+      purchaseToken: purchaseToken,
+      packageName: packageName,
       errorMessage: details.error?.message,
     );
   }
