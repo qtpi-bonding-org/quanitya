@@ -501,7 +501,8 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
           _templateLoadFailed = false;
         });
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('SettingsPage: Failed to load templates: $e');
       if (mounted) {
         setState(() => _templateLoadFailed = true);
       }
@@ -773,7 +774,8 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
               type: PostItType.info,
             );
           }
-        } catch (e) {
+        } catch (e, stack) {
+          await ErrorPrivserver.captureError(e, stack, source: 'SettingsPage.deleteAccount');
           if (mounted) {
             PostItToast.show(
               context,

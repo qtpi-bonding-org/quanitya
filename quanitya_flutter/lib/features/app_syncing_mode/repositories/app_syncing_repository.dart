@@ -12,6 +12,8 @@ class AppSyncingRepository {
   final AppDatabase _db;
   final AppConfig _config;
 
+  bool _initialized = false;
+
   AppSyncingRepository(this._db, this._config);
 
   /// Get current syncing mode - always from database
@@ -121,6 +123,8 @@ class AppSyncingRepository {
   /// Ensure database has initial settings (local mode)
   /// Called on every app startup - idempotent
   Future<void> _ensureInitialized() async {
+    if (_initialized) return;
+
     final count = await _db.select(_db.appOperatingSettings).get().then((rows) => rows.length);
 
     if (count == 0) {
@@ -131,6 +135,8 @@ class AppSyncingRepository {
         ),
       );
     }
+
+    _initialized = true;
   }
 }
 

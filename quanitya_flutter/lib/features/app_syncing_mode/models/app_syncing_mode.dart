@@ -32,6 +32,8 @@ extension AppSyncingModeExtension on AppSyncingMode {
     AppSyncingMode.cloud => L10nKeys.operatingModeCloudDescription,
   });
 
+  // Uses GetIt directly because this is a display-only helper called from UI layer.
+  // Alternative: pass localization as parameter, but that complicates every call site.
   String _translate(String key) =>
       GetIt.I<cubit_ui_flow.ILocalizationService>().translate(key);
 }

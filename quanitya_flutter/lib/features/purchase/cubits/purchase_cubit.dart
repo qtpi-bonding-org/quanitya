@@ -39,7 +39,6 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
   }
 
   Future<void> loadProducts() async {
-    emit(state.copyWith(lastOperation: PurchaseOperation.loadProducts));
     await tryOperation(() async {
       final products = await _purchaseService.getProducts();
       return state.copyWith(
