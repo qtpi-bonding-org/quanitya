@@ -28,8 +28,9 @@ class SyncException implements Exception {
 /// Owns the sync lifecycle: connecting/disconnecting PowerSync, managing the
 /// E2EE puller, and handling credential errors.
 ///
-/// This service centralises logic previously scattered across bootstrap,
-/// AppSyncingCubit, and UI pages. It does NOT call any cubits.
+/// Persists mode via [AppSyncingRepository] and manages the runtime
+/// connection. Cubits call this service — they do not call the repo directly
+/// for sync concerns.
 @lazySingleton
 class SyncService {
   final IPowerSyncRepository _powerSync;
@@ -103,8 +104,8 @@ class SyncService {
 
   /// Persist [newMode] and connect or disconnect accordingly.
   ///
-  /// Tests network reachability before switching, then delegates to
-  /// [connect] or [disconnect].
+  /// Tests network reachability before switching, then persists the mode
+  /// and delegates to [connect] or [disconnect].
   Future<void> switchMode(AppSyncingMode newMode) {
     return tryMethod(() async {
       await _networkService.testConnection(_config.baseUrl);
@@ -118,6 +119,19 @@ class SyncService {
 
       debugPrint('SyncService.switchMode: mode set to ${newMode.name}');
     }, SyncException.new, 'switchMode');
+  }
+
+  /// Disconnect and reconnect for the current persisted mode.
+  ///
+  /// Used by [SyncStatusCubit] retry — goes through full auth + entitlement
+  /// checks unlike a raw PowerSync retry.
+  Future<void> reconnect() {
+    return tryMethod(() async {
+      final mode = await _syncRepo.getCurrentMode();
+      await disconnect();
+      await connect(mode);
+      debugPrint('SyncService.reconnect: reconnected in ${mode.name} mode');
+    }, SyncException.new, 'reconnect');
   }
 
   /// Reconnect everything after account recovery changes the symmetric key.

@@ -70,23 +70,6 @@ class AppSyncingRepository {
     }, AppSyncingException.new, 'updateMode');
   }
 
-  /// Update connection status
-  Future<void> updateConnectionStatus(bool isConnected) {
-    return tryMethod(() async {
-      final updated = await _db.update(_db.appOperatingSettings).write(
-        AppOperatingSettingsCompanion(
-          isConnected: Value(isConnected),
-          lastConnectionTest: Value(DateTime.now()),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-
-      if (updated == 0) {
-        throw const AppSyncingException('Failed to update connection status');
-      }
-    }, AppSyncingException.new, 'updateConnectionStatus');
-  }
-
   /// Get whether analytics auto-send is enabled
   Future<bool> getAnalyticsAutoSend() {
     return tryMethod(() async {

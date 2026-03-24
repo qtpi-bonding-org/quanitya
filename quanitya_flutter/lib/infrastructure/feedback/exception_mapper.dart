@@ -4,6 +4,7 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' show ServerExc
 import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
 import '../../data/repositories/analytics_inbox_repository.dart' show AnalyticsInboxException;
+import '../../data/sync/powersync_service.dart' show PowerSyncException;
 import '../../data/repositories/data_export_repository.dart' show ImportFailedException, ImportCancelledException;
 import '../../data/repositories/log_entry_repository.dart';
 import '../../data/repositories/fts_search_repository.dart' show SearchException;
@@ -522,10 +523,6 @@ class DatabaseException implements Exception {
   const DatabaseException(this.message);
 }
 
-class PowerSyncException implements Exception {
-  final String message;
-  const PowerSyncException(this.message);
-}
 
 class EncryptionException implements Exception {
   final String message;

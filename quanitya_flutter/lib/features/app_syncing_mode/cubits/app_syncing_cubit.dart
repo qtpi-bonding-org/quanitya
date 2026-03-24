@@ -12,8 +12,10 @@ import 'app_syncing_state.dart';
 
 /// Manages sync mode state (local/cloud/selfHosted).
 ///
-/// Self-initializes from AppSyncingRepository stream in constructor.
-/// Delegates mode changes and PowerSync connection to SyncService.
+/// Self-initializes from [AppSyncingRepository] stream in constructor.
+/// Delegates mode persistence and connection lifecycle to [SyncService].
+///
+/// Pattern: cubit → service → repository.
 @lazySingleton
 class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
   final AppSyncingRepository _repository;
@@ -28,7 +30,7 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     _initialize();
   }
 
-  /// Load initial state from database
+  /// Load initial state from database and auto-connect if needed.
   Future<void> _initialize() async {
     try {
       final settings = await _repository.getSettings();
@@ -41,7 +43,6 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
         status: UiFlowStatus.success,
       ));
 
-      // Auto-connect if mode supports sync
       if (settings.mode.supportsSync) {
         await _syncService.connect(settings.mode);
       }
@@ -50,7 +51,7 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     }
   }
 
-  /// Stream DB changes for external updates
+  /// Stream DB changes for external updates (e.g. another isolate).
   void _initializeStreaming() {
     _settingsSubscription?.cancel();
     _settingsSubscription = _repository.watchSettings().listen((settings) {
@@ -102,13 +103,16 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     return super.close();
   }
 
-  /// Switch to local-only mode
+  // ---------------------------------------------------------------------------
+  // Mode switching — all delegate to SyncService (service owns persist + connect)
+  // ---------------------------------------------------------------------------
+
+  /// Switch to local-only mode.
   Future<void> switchToLocal() async {
     _isUpdatingFromSelf = true;
     try {
       await tryOperation(() async {
-        await _syncService.disconnect();
-        await _repository.updateMode(AppSyncingMode.local);
+        await _syncService.switchMode(AppSyncingMode.local);
         analytics?.trackSyncModeChanged();
         return state.copyWith(
           mode: AppSyncingMode.local,
@@ -122,7 +126,29 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     }
   }
 
-  /// Switch to self-hosted mode and test connection
+  /// Switch to cloud mode.
+  Future<void> switchToCloud() async {
+    _isUpdatingFromSelf = true;
+    try {
+      await tryOperation(() async {
+        await _syncService.switchMode(AppSyncingMode.cloud);
+        analytics?.trackSyncModeChanged();
+        return state.copyWith(
+          mode: AppSyncingMode.cloud,
+          isConnected: true,
+          hasTriedConnection: true,
+          lastTestedUrl: state.serverpodUrl,
+          lastConnectionTest: DateTime.now(),
+          status: UiFlowStatus.success,
+          lastOperation: AppSyncingOperation.switchMode,
+        );
+      }, emitLoading: true);
+    } finally {
+      _isUpdatingFromSelf = false;
+    }
+  }
+
+  /// Switch to self-hosted mode.
   Future<void> switchToSelfHosted(String serverUrl) async {
     _isUpdatingFromSelf = true;
     try {
@@ -148,29 +174,7 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     }
   }
 
-  /// Switch to cloud mode
-  Future<void> switchToCloud() async {
-    _isUpdatingFromSelf = true;
-    try {
-      await tryOperation(() async {
-        await _syncService.switchMode(AppSyncingMode.cloud);
-        analytics?.trackSyncModeChanged();
-        return state.copyWith(
-          mode: AppSyncingMode.cloud,
-          isConnected: true,
-          hasTriedConnection: true,
-          lastTestedUrl: state.serverpodUrl,
-          lastConnectionTest: DateTime.now(),
-          status: UiFlowStatus.success,
-          lastOperation: AppSyncingOperation.switchMode,
-        );
-      }, emitLoading: true);
-    } finally {
-      _isUpdatingFromSelf = false;
-    }
-  }
-
-  /// Configure self-hosted URL without switching modes
+  /// Configure self-hosted URL without switching modes.
   Future<void> configureSelfHostedUrl(String serverUrl) => tryOperation(() async {
     if (!_isValidUrl(serverUrl)) {
       throw const AppSyncingException('Invalid server URL format');
@@ -182,7 +186,7 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     );
   });
 
-  /// Retry connection for current mode
+  /// Retry connection for current mode.
   Future<void> retryConnection() async {
     if (state.mode.supportsSync) {
       await tryOperation(() async {
@@ -207,5 +211,3 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     }
   }
 }
-
-/// Typedef for backward compatibility

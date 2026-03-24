@@ -5,20 +5,22 @@ import 'package:injectable/injectable.dart';
 import 'package:powersync_sqlcipher/powersync.dart' show SyncStatus;
 
 import '../../../data/sync/powersync_service.dart';
+import '../../../infrastructure/sync/sync_service.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import 'sync_status_state.dart';
 
 /// Observes PowerSync status stream and emits UI-friendly sync state.
 ///
 /// Auto-subscribes in constructor — no explicit startListening() needed.
-/// If PowerSync isn't connected yet, starts as disconnected and updates
-/// when the stream emits.
+/// Retry goes through [SyncService] so auth and entitlement checks run.
 @lazySingleton
 class SyncStatusCubit extends QuanityaCubit<SyncStatusState> {
   final IPowerSyncRepository _powerSync;
+  final SyncService _syncService;
   StreamSubscription<SyncStatus>? _statusSubscription;
 
-  SyncStatusCubit(this._powerSync) : super(const SyncStatusState()) {
+  SyncStatusCubit(this._powerSync, this._syncService)
+      : super(const SyncStatusState()) {
     _subscribe();
   }
 
@@ -33,9 +35,10 @@ class SyncStatusCubit extends QuanityaCubit<SyncStatusState> {
     );
   }
 
+  /// Retry sync connection through [SyncService] (checks auth + entitlements).
   Future<void> retrySync() => tryOperation(() async {
     emit(state.copyWith(isRetrying: true));
-    await _powerSync.retrySync();
+    await _syncService.reconnect();
     return state.copyWith(
       isRetrying: false,
       status: UiFlowStatus.success,

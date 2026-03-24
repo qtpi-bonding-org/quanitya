@@ -12,8 +12,21 @@ import 'package:injectable/injectable.dart';
 import 'powersync_schema.dart';
 import '../db/app_database.dart';
 import '../../infrastructure/config/dev_config.dart';
+import '../../infrastructure/core/try_operation.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../infrastructure/security/database_key_service.dart';
+
+/// Exception thrown when PowerSync operations fail.
+class PowerSyncException implements Exception {
+  final String message;
+  final Object? cause;
+
+  const PowerSyncException(this.message, [this.cause]);
+
+  @override
+  String toString() =>
+      'PowerSyncException: $message${cause != null ? ' (caused by: $cause)' : ''}';
+}
 
 /// Resolve localhost for Android emulator loopback
 String _resolveUrl(String url) {
@@ -37,9 +50,6 @@ abstract class IPowerSyncRepository {
   /// The resolved filesystem path to the database file.
   /// Null until initialize() has been called.
   String? get dbPath;
-
-  /// Connect PowerSync if mode supports sync, disconnect if local mode
-  Future<void> handleModeChange(AppSyncingMode mode, Client serverpodClient);
 
   /// Stream of real-time sync status from PowerSync.
   Stream<SyncStatus> get statusStream;
@@ -162,11 +172,11 @@ class PowerSyncRepository implements IPowerSyncRepository {
 
   /// Connect to sync with Serverpod backend
   @override
-  Future<void> connect(Client serverpodClient, AppSyncingMode mode) async {
-    if (_isConnected) return;
-    if (_powerSyncDb == null) return;
+  Future<void> connect(Client serverpodClient, AppSyncingMode mode) {
+    return tryMethod(() async {
+      if (_isConnected) return;
+      if (_powerSyncDb == null) return;
 
-    try {
       // Disconnect first to avoid "Stream already listened to" on hot restart
       await _powerSyncDb!.disconnect();
 
@@ -178,10 +188,7 @@ class PowerSyncRepository implements IPowerSyncRepository {
       _isConnected = true;
       _currentMode = mode;
       _currentClient = serverpodClient;
-    } catch (e, stack) {
-      debugPrintStack(stackTrace: stack, label: 'PowerSync connection failed: $e');
-      // Don't rethrow - app can work offline
-    }
+    }, PowerSyncException.new, 'connect');
   }
 
   /// Disconnect from sync
@@ -208,31 +215,6 @@ class PowerSyncRepository implements IPowerSyncRepository {
     await connect(client, mode);
   }
 
-  /// Handle app operating mode changes - connect/disconnect PowerSync as needed
-  ///
-  /// Force reconnects when switching between sync modes (e.g. selfHosted → cloud)
-  /// because the connector routes token fetches to different endpoints per mode.
-  @override
-  Future<void> handleModeChange(
-    AppSyncingMode mode,
-    Client serverpodClient,
-  ) async {
-    if (mode.supportsSync) {
-      if (_isConnected && _currentMode != mode) {
-        // Switching between sync modes — force reconnect with new connector
-        await disconnect();
-      }
-      if (!_isConnected) {
-        await connect(serverpodClient, mode);
-      }
-    } else {
-      // Local mode - ensure PowerSync is disconnected
-      if (_isConnected) {
-        await disconnect();
-      }
-      _currentMode = mode;
-    }
-  }
 }
 
 /// Serverpod backend connector for PowerSync

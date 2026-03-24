@@ -594,22 +594,17 @@ class E2EEPuller implements IE2EEPuller {
 
   @override
   Future<SyncStatus> getSyncStatus() async {
-    final templateCount = await _db
-        .select(_db.encryptedTemplates)
-        .get()
-        .then((list) => list.length);
-    final entryCount = await _db
-        .select(_db.encryptedEntries)
-        .get()
-        .then((list) => list.length);
-    final scheduleCount = await _db
-        .select(_db.encryptedSchedules)
-        .get()
-        .then((list) => list.length);
-    final pipelineCount = await _db
-        .select(_db.encryptedAnalysisScripts)
-        .get()
-        .then((list) => list.length);
+    Future<int> count(String table) async {
+      final result = await _db.customSelect(
+        'SELECT COUNT(*) AS cnt FROM $table',
+      ).getSingle();
+      return result.read<int>('cnt');
+    }
+
+    final templateCount = await count('encrypted_templates');
+    final entryCount = await count('encrypted_entries');
+    final scheduleCount = await count('encrypted_schedules');
+    final pipelineCount = await count('encrypted_analysis_scripts');
 
     return SyncStatus(
       lastSyncTime: _lastSyncTime ?? DateTime.now(),
