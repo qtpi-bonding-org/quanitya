@@ -233,9 +233,11 @@ class AuthService {
   /// Ensure the device has a valid JWT session.
   /// If not authenticated, performs device authentication.
   /// Throws [DeviceAuthenticationException] on failure — caller handles retry.
-  Future<void> ensureAuthenticated() async {
-    if (_client.auth.isAuthenticated) return;
-    await authenticateDevice();
+  Future<void> ensureAuthenticated() {
+    return tryMethod(() async {
+      if (_client.auth.isAuthenticated) return;
+      await authenticateDevice();
+    }, _wrapAuthError, 'ensureAuthenticated');
   }
 
   Future<void> _storeAuthSession(AuthenticationResult result) =>

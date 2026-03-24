@@ -125,11 +125,12 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
 
   /// Export recovery key to iCloud Keychain (iOS only)
   Future<void> exportToICloud() async {
-    if (state.recoveryKeyJwk == null) return;
+    final jwk = state.recoveryKeyJwk;
+    if (jwk == null) return;
 
     await tryOperation(() async {
       final result = await _keyExportService.saveToICloudKeychain(
-        jwk: state.recoveryKeyJwk!,
+        jwk: jwk,
       );
 
       if (result == KeyExportResult.unavailable) {
@@ -149,11 +150,12 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
 
   /// Export recovery key via share sheet as file
   Future<void> exportToFile() async {
-    if (state.recoveryKeyJwk == null) return;
+    final jwk = state.recoveryKeyJwk;
+    if (jwk == null) return;
 
     await tryOperation(() async {
       final result = await _keyExportService.shareAsFile(
-        jwk: state.recoveryKeyJwk!,
+        jwk: jwk,
       );
 
       if (result == KeyExportResult.cancelled) {
@@ -174,10 +176,11 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
 
   /// Copy recovery key to clipboard
   Future<void> copyToClipboard() async {
-    if (state.recoveryKeyJwk == null) return;
+    final jwk = state.recoveryKeyJwk;
+    if (jwk == null) return;
 
     await tryOperation(() async {
-      await _keyExportService.copyToClipboard(jwk: state.recoveryKeyJwk!);
+      await _keyExportService.copyToClipboard(jwk: jwk);
 
       return state.copyWith(
         status: UiFlowStatus.success,
@@ -189,7 +192,8 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
 
   /// Store recovery key on device with biometric protection
   Future<void> storeWithBiometrics() async {
-    if (state.recoveryKeyJwk == null) return;
+    final jwk = state.recoveryKeyJwk;
+    if (jwk == null) return;
 
     await tryOperation(() async {
       // Authenticate first
@@ -202,7 +206,7 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
       }
 
       // Store in secure storage (already encrypted by platform)
-      await _keyExportService.storeInSecureStorage(jwk: state.recoveryKeyJwk!);
+      await _keyExportService.storeInSecureStorage(jwk: jwk);
 
       return state.copyWith(
         status: UiFlowStatus.success,

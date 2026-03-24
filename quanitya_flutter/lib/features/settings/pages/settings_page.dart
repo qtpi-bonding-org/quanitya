@@ -309,7 +309,7 @@ class _DataSection extends StatelessWidget {
     );
 
     if (selected == null || !context.mounted) return;
-    cubit.exportData(selected);
+    await cubit.exportData(selected);
   }
 
   Future<void> _startImport(BuildContext context) async {
@@ -342,7 +342,7 @@ class _DataSection extends StatelessWidget {
     if (confirmed != true || !context.mounted) return;
 
     // 4. Execute import.
-    cubit.importData(selected);
+    await cubit.importData(selected);
   }
 
 }
@@ -734,7 +734,7 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
-    QuanityaConfirmationDialog.show(
+    await QuanityaConfirmationDialog.show(
       context: context,
       title: context.l10n.deleteAccountTitle,
       message: context.l10n.deleteAccountMessage,

@@ -363,7 +363,7 @@ class _FooterSection extends StatelessWidget {
           const QuanityaEmptyState(),
           QuanityaTextButton(
             text: context.l10n.createAccount,
-            onPressed: () => context.read<OnboardingCubit>().createAccount(),
+            onPressed: () async => await context.read<OnboardingCubit>().createAccount(),
           ),
         ],
       ),

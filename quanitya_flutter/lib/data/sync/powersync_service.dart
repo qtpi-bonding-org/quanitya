@@ -105,8 +105,8 @@ class PowerSyncRepository implements IPowerSyncRepository {
 
   /// Initialize PowerSync database and connect Drift to it
   @override
-  Future<void> initialize() async {
-    try {
+  Future<void> initialize() {
+    return tryMethod(() async {
       String path;
       if (kIsWeb) {
         // On Web, use a simple filename (stored in IndexedDB/OPFS)
@@ -168,10 +168,7 @@ class PowerSyncRepository implements IPowerSyncRepository {
       final dbForDrift = _powerSyncDb;
       if (dbForDrift == null) throw PowerSyncException('PowerSync not initialized');
       _driftDb = AppDatabase(dbForDrift);
-    } catch (e, stack) {
-      debugPrintStack(stackTrace: stack, label: 'PowerSync initialization failed: $e');
-      rethrow; // Re-throw so service locator knows it failed
-    }
+    }, PowerSyncException.new, 'initialize');
   }
 
   /// Connect to sync with Serverpod backend
@@ -250,9 +247,10 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
     }
 
     _cachedEndpoint ??= endpoint;
+    final resolvedEndpoint = _cachedEndpoint ?? endpoint;
 
     return PowerSyncCredentials(
-      endpoint: _cachedEndpoint!,
+      endpoint: resolvedEndpoint,
       token: token,
     );
   }

@@ -84,8 +84,8 @@ class PurchaseTabContent extends StatelessWidget {
                   storageBytes: state.storageBytes,
                   entryCount: state.entryCount,
                   hasError: state.hasError,
-                  onRetry: () {
-                    context.read<EntitlementCubit>().loadEntitlements();
+                  onRetry: () async {
+                    await context.read<EntitlementCubit>().loadEntitlements();
                   },
                 );
               },
@@ -127,8 +127,8 @@ class PurchaseTabContent extends StatelessWidget {
                           VSpace.x2,
                           QuanityaTextButton(
                             text: context.l10n.actionRetry,
-                            onPressed: () =>
-                                context.read<PurchaseCubit>().loadProducts(),
+                            onPressed: () async =>
+                                await context.read<PurchaseCubit>().loadProducts(),
                           ),
                         ],
                       ),
@@ -158,8 +158,8 @@ class PurchaseTabContent extends StatelessWidget {
             Center(
               child: QuanityaTextButton(
                 text: context.l10n.restorePurchases,
-                onPressed: () =>
-                    context.read<PurchaseCubit>().recoverPurchases(),
+                onPressed: () async =>
+                    await context.read<PurchaseCubit>().recoverPurchases(),
               ),
             ),
             VSpace.x3,
@@ -170,9 +170,9 @@ class PurchaseTabContent extends StatelessWidget {
     );
   }
 
-  void _onBuy(BuildContext context, PurchaseProduct product) {
+  Future<void> _onBuy(BuildContext context, PurchaseProduct product) async {
     final mode = context.read<AppSyncingCubit>().state.mode;
-    context.read<PurchaseCubit>().purchase(
+    await context.read<PurchaseCubit>().purchase(
           PurchaseRequest(
             productId: product.productId,
             rail: product.rail,
