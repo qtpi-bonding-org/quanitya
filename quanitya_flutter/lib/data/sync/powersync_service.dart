@@ -54,8 +54,6 @@ abstract class IPowerSyncRepository {
   /// Stream of real-time sync status from PowerSync.
   Stream<SyncStatus> get statusStream;
 
-  /// Force disconnect and reconnect PowerSync.
-  Future<void> retrySync();
 }
 
 /// PowerSync service with integrated Drift database
@@ -75,8 +73,7 @@ class PowerSyncRepository implements IPowerSyncRepository {
   AppDatabase? _driftDb;
   bool _isConnected = false;
   String? _dbPath;
-  AppSyncingMode? _currentMode;
-  Client? _currentClient;
+
 
   @override
   String? get dbPath => _dbPath;
@@ -186,33 +183,23 @@ class PowerSyncRepository implements IPowerSyncRepository {
       );
       await _powerSyncDb!.connect(connector: connector);
       _isConnected = true;
-      _currentMode = mode;
-      _currentClient = serverpodClient;
     }, PowerSyncException.new, 'connect');
   }
 
   /// Disconnect from sync
   @override
-  Future<void> disconnect() async {
-    if (!_isConnected) return;
-    await _powerSyncDb!.disconnect();
-    _isConnected = false;
+  Future<void> disconnect() {
+    return tryMethod(() async {
+      if (!_isConnected) return;
+      await _powerSyncDb!.disconnect();
+      _isConnected = false;
+    }, PowerSyncException.new, 'disconnect');
   }
 
   @override
   Stream<SyncStatus> get statusStream {
     if (_powerSyncDb == null) return const Stream.empty();
     return _powerSyncDb!.statusStream;
-  }
-
-  @override
-  Future<void> retrySync() async {
-    final client = _currentClient;
-    final mode = _currentMode;
-    if (_powerSyncDb == null || client == null || mode == null) return;
-    if (!mode.supportsSync) return;
-    await disconnect();
-    await connect(client, mode);
   }
 
 }
@@ -231,38 +218,32 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
 
   @override
   Future<PowerSyncCredentials?> fetchCredentials() async {
-    try {
-      if (!_client.auth.isAuthenticated) return null;
+    if (!_client.auth.isAuthenticated) return null;
 
-      final String token;
-      final String endpoint;
+    final String token;
+    final String endpoint;
 
-      switch (_mode) {
-        case AppSyncingMode.cloud:
-          // Cloud: SyncAccessEndpoint — JWT user_id = 128-char hex public key
-          final response = await _client.cloudPowerSync.getToken();
-          token = response.token;
-          endpoint = _resolveUrl(response.endpoint);
-        case AppSyncingMode.selfHosted:
-          // Self-hosted: community module — JWT user_id = integer account ID
-          final response = await _client.modules.community.powerSync.getToken();
-          token = response.token;
-          endpoint = _resolveUrl(response.endpoint);
-        case AppSyncingMode.local:
-          return null; // Should never be called in local mode
-      }
-
-      _cachedEndpoint ??= endpoint;
-
-      return PowerSyncCredentials(
-        endpoint: _cachedEndpoint!,
-        token: token,
-      );
-    } catch (e) {
-      debugPrint('🔴 PowerSyncConnector: fetchCredentials failed: $e');
-
-      return null;
+    switch (_mode) {
+      case AppSyncingMode.cloud:
+        // Cloud: SyncAccessEndpoint — JWT user_id = 128-char hex public key
+        final response = await _client.cloudPowerSync.getToken();
+        token = response.token;
+        endpoint = _resolveUrl(response.endpoint);
+      case AppSyncingMode.selfHosted:
+        // Self-hosted: community module — JWT user_id = integer account ID
+        final response = await _client.modules.community.powerSync.getToken();
+        token = response.token;
+        endpoint = _resolveUrl(response.endpoint);
+      case AppSyncingMode.local:
+        return null; // Should never be called in local mode
     }
+
+    _cachedEndpoint ??= endpoint;
+
+    return PowerSyncCredentials(
+      endpoint: _cachedEndpoint!,
+      token: token,
+    );
   }
 
   @override

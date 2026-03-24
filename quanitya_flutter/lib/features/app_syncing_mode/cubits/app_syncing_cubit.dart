@@ -38,7 +38,6 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
         mode: settings.mode,
         serverpodUrl: _repository.serverpodUrl,
         selfHostedUrl: settings.selfHostedUrl,
-        isConnected: settings.isConnected,
         lastConnectionTest: settings.lastConnectionTest,
         status: UiFlowStatus.success,
       ));
@@ -59,10 +58,8 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
         _handleExternalModeChange(settings);
       }
       if (!_isUpdatingFromSelf &&
-          (settings.isConnected != state.isConnected ||
-           settings.lastConnectionTest != state.lastConnectionTest)) {
+          settings.lastConnectionTest != state.lastConnectionTest) {
         emit(state.copyWith(
-          isConnected: settings.isConnected,
           lastConnectionTest: settings.lastConnectionTest,
         ));
       }
@@ -78,7 +75,6 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
       }
       emit(state.copyWith(
         mode: settings.mode,
-        isConnected: settings.isConnected,
         selfHostedUrl: settings.selfHostedUrl,
         lastConnectionTest: settings.lastConnectionTest,
         status: UiFlowStatus.success,
@@ -87,7 +83,6 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     } catch (e) {
       emit(state.copyWith(
         mode: settings.mode,
-        isConnected: settings.isConnected,
         selfHostedUrl: settings.selfHostedUrl,
         lastConnectionTest: settings.lastConnectionTest,
         status: UiFlowStatus.failure,
@@ -116,7 +111,6 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
         analytics?.trackSyncModeChanged();
         return state.copyWith(
           mode: AppSyncingMode.local,
-          isConnected: false,
           status: UiFlowStatus.success,
           lastOperation: AppSyncingOperation.switchMode,
         );
@@ -135,7 +129,6 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
         analytics?.trackSyncModeChanged();
         return state.copyWith(
           mode: AppSyncingMode.cloud,
-          isConnected: true,
           hasTriedConnection: true,
           lastTestedUrl: state.serverpodUrl,
           lastConnectionTest: DateTime.now(),
@@ -161,7 +154,6 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
         return state.copyWith(
           mode: AppSyncingMode.selfHosted,
           selfHostedUrl: serverUrl,
-          isConnected: true,
           hasTriedConnection: true,
           lastTestedUrl: serverUrl,
           lastConnectionTest: DateTime.now(),
@@ -192,7 +184,6 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
       await tryOperation(() async {
         await _syncService.connect(state.mode);
         return state.copyWith(
-          isConnected: true,
           hasTriedConnection: true,
           lastConnectionTest: DateTime.now(),
           status: UiFlowStatus.success,
@@ -201,6 +192,18 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
       }, emitLoading: true);
     }
   }
+
+  /// Reconnect sync with new encryption keys after account recovery.
+  ///
+  /// Called when the symmetric key has changed (recovery key import).
+  /// Non-fatal — app works offline if this fails.
+  Future<void> recoverFromCloudSync() => tryOperation(() async {
+    await _syncService.reconnectWithNewKeys();
+    return state.copyWith(
+      status: UiFlowStatus.success,
+      lastOperation: AppSyncingOperation.recoverFromCloudSync,
+    );
+  }, emitLoading: false);
 
   bool _isValidUrl(String url) {
     try {

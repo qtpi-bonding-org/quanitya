@@ -5,9 +5,8 @@ import 'package:get_it/get_it.dart';
 
 import '../../../app_router.dart';
 import '../../../app/bootstrap.dart';
-import '../../../infrastructure/purchase/entitlement_repository.dart';
-import '../../../infrastructure/purchase/i_entitlement_service.dart';
-import '../../../infrastructure/sync/sync_service.dart';
+import '../../purchase/cubits/entitlement_cubit.dart';
+import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
@@ -136,24 +135,13 @@ class _RecoveryForm extends StatelessWidget {
         listener: (context, state) async {
           AppRouter.resetKeyCheck();
 
-          // Post-recovery: mark purchased + refresh entitlements
-          final entitlementRepo = GetIt.instance<EntitlementRepository>();
-          await entitlementRepo.markPurchased();
+          // Post-recovery: mark purchased + refresh entitlements via cubit
+          final entitlementCubit = GetIt.instance<EntitlementCubit>();
+          await entitlementCubit.markPurchased();
+          await entitlementCubit.loadEntitlements();
 
-          try {
-            final entitlementService = GetIt.instance<IEntitlementService>();
-            await entitlementService.getEntitlements();
-          } catch (_) {
-            // Best-effort — sync will work on next restart
-          }
-
-          // Connect sync if entitlements support it
-          final syncService = GetIt.instance<SyncService>();
-          try {
-            await syncService.reconnectWithNewKeys();
-          } catch (_) {
-            // Non-fatal — app works offline
-          }
+          // Reconnect sync with new keys (symmetric key changed)
+          await GetIt.instance<AppSyncingCubit>().recoverFromCloudSync();
 
           if (context.mounted) {
             AppNavigation.toHome(context);

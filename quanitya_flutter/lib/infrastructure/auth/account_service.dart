@@ -4,9 +4,7 @@ import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
-import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
-    show AuthSuccess, FlutterAuthSessionManagerExtension;
-import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
+
 import 'package:anonaccount_client/anonaccount_client.dart'
     show
         AccountDevice,
@@ -22,7 +20,7 @@ import '../crypto/interfaces/i_secure_storage.dart';
 import '../crypto/utils/hashcash.dart';
 import 'auth_repository.dart';
 import 'auth_service.dart'
-    show AccountCreationException, AccountCreationResult, AccountRecoveryException, AuthException, AuthFailure;
+    show AccountCreationException, AccountCreationResult, AccountDeletionException, AccountRecoveryException, AuthException, AuthFailure, storeAuthSession;
 import 'registration_payload.dart';
 
 /// Account lifecycle service — create, register, recover, delete accounts.
@@ -264,9 +262,8 @@ class AccountService {
         }
 
         // 3. Register account with server
-        try {
-          // Account creation + first device registration (atomic, single PoW)
-          final challengeResponse =
+        // Account creation + first device registration (atomic, single PoW)
+        final challengeResponse =
               await _client.modules.anonaccount.entrypoint.getChallenge();
           final proofOfWork = await _computeProofOfWork(
             challengeResponse.challenge,
@@ -344,11 +341,8 @@ class AccountService {
                 '\u26a0\ufe0f Cross-device key registration failed (non-critical): $e');
           }
 
-          // 5. Mark device as registered with server
-          await _authRepo.setRegistered();
-        } catch (serverError) {
-          rethrow;
-        }
+        // 5. Mark device as registered with server
+        await _authRepo.setRegistered();
       },
       (message, [cause]) => AccountCreationException(message, cause: cause),
       'registerAccountWithServer',
@@ -500,7 +494,7 @@ class AccountService {
         final devicePublicKeyHex =
             await _keyRepository.getDeviceSigningPublicKeyHex();
         if (devicePublicKeyHex == null) {
-          throw const AccountCreationException('Device public key not found');
+          throw const AccountDeletionException('Device public key not found');
         }
 
         final challengeResponse =
@@ -520,7 +514,7 @@ class AccountService {
           signature: signature,
         );
       },
-      (message, [cause]) => AccountCreationException(message, cause: cause),
+      (message, [cause]) => AccountDeletionException(message, cause: cause),
       'deleteAccount',
     );
   }
@@ -730,36 +724,8 @@ class AccountService {
     );
   }
 
-  /// Store authentication result as a Serverpod auth session.
-  ///
-  /// Constructs an [AuthSuccess] from the [AuthenticationResult.details] map
-  /// and stores it via the [FlutterAuthSessionManager]. This enables
-  /// Serverpod's built-in JWT auth header management and token refresh.
-  Future<void> _storeAuthSession(AuthenticationResult result) async {
-    final details = result.details;
-    if (details == null) return;
-
-    final token = details['token'];
-    final authUserIdStr = details['authUserId'];
-    final authStrategy = details['authStrategy'] ?? 'jwt';
-    if (token == null || authUserIdStr == null) return;
-
-    final tokenExpiresAtStr = details['tokenExpiresAt'];
-    final refreshToken = details['refreshToken'];
-
-    final authSuccess = AuthSuccess(
-      authStrategy: authStrategy,
-      token: token,
-      tokenExpiresAt: tokenExpiresAtStr != null
-          ? DateTime.tryParse(tokenExpiresAtStr)
-          : null,
-      refreshToken: refreshToken,
-      authUserId: UuidValue.fromString(authUserIdStr),
-      scopeNames: {},
-    );
-
-    await _client.auth.updateSignedInUser(authSuccess);
-  }
+  Future<void> _storeAuthSession(AuthenticationResult result) =>
+      storeAuthSession(_client, result);
 
   /// Import ultimate key and hold for follow-up operations (e.g., revoke devices).
   /// Call [clearUltimateKeySession] when navigating away.

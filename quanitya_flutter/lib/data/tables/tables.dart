@@ -343,7 +343,7 @@ class EncryptedTemplateAesthetics extends Table {
 /// AppOperatingSettings table - stores app operating mode configuration
 ///
 /// LOCAL-ONLY - never synced. Single row table for app-wide settings.
-/// Stores user's choice of local/self-hosted/cloud mode and connection status.
+/// Stores user's choice of local/self-hosted/cloud mode.
 class AppOperatingSettings extends Table {
   /// Primary key - auto-increment (single row table)
   IntColumn get id => integer().autoIncrement()();
@@ -353,10 +353,6 @@ class AppOperatingSettings extends Table {
 
   /// Self-hosted server URL (null for local/cloud modes)
   TextColumn get selfHostedUrl => text().named('self_hosted_url').nullable()();
-
-  /// Whether currently connected to server (false for local mode)
-  BoolColumn get isConnected =>
-      boolean().named('is_connected').withDefault(const Constant(false))();
 
   /// Last time connection was tested (null if never tested)
   DateTimeColumn get lastConnectionTest =>

@@ -99,6 +99,7 @@ class EntitlementRepository {
   // Balance update helper
   // ---------------------------------------------------------------------------
 
+  /// Set the cached balance for [tag] to [amount] (absolute value, not delta).
   Future<void> updateBalance(String tag, double amount) {
     return tryMethod(
       () async {

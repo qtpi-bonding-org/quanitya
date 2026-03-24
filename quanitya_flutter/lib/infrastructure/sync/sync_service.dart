@@ -11,7 +11,6 @@ import '../auth/auth_account_orchestrator.dart';
 import '../config/app_config.dart';
 import '../core/try_operation.dart';
 import '../purchase/entitlement_repository.dart';
-import '../purchase/entitlement_service.dart' show isSyncEntitlementTag;
 
 /// Exception thrown when sync lifecycle operations fail.
 class SyncException implements Exception {
@@ -25,8 +24,8 @@ class SyncException implements Exception {
       'SyncException: $message${cause != null ? ' (caused by: $cause)' : ''}';
 }
 
-/// Owns the sync lifecycle: connecting/disconnecting PowerSync, managing the
-/// E2EE puller, and handling credential errors.
+/// Owns the sync lifecycle: connecting/disconnecting PowerSync and managing
+/// the E2EE puller.
 ///
 /// Persists mode via [AppSyncingRepository] and manages the runtime
 /// connection. Cubits call this service — they do not call the repo directly
@@ -157,29 +156,5 @@ class SyncService {
       await _puller.initialize();
       debugPrint('SyncService.reconnectWithNewKeys: complete');
     }, SyncException.new, 'reconnectWithNewKeys');
-  }
-
-  /// React to an `insufficientCredits` error from the PowerSync connector.
-  ///
-  /// Zeroes all sync entitlement balances in the local cache so that the
-  /// next bootstrap does not attempt to reconnect.
-  Future<void> handleCredentialError() {
-    return tryMethod(() async {
-      debugPrint('SyncService.handleCredentialError: zeroing sync entitlements');
-      final cached = await _entitlementRepo.load();
-      final updated = cached.map((entry) {
-        if (isSyncEntitlementTag(entry.tag)) {
-          return CachedEntitlement(
-            tag: entry.tag,
-            balance: 0.0,
-            type: entry.type,
-            name: entry.name,
-          );
-        }
-        return entry;
-      }).toList();
-      await _entitlementRepo.store(updated);
-      debugPrint('SyncService.handleCredentialError: entitlement cache zeroed');
-    }, SyncException.new, 'handleCredentialError');
   }
 }

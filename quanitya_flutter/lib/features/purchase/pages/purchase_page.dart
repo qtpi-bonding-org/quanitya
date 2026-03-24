@@ -48,7 +48,8 @@ class PurchaseTabContent extends StatelessWidget {
       ],
       child: BlocListener<PurchaseCubit, PurchaseState>(
         listenWhen: (prev, curr) =>
-            curr.lastOperation == PurchaseOperation.purchase &&
+            (curr.lastOperation == PurchaseOperation.purchase ||
+             curr.lastOperation == PurchaseOperation.recoverPurchases) &&
             curr.status == UiFlowStatus.success &&
             prev.status != curr.status,
         listener: (context, state) {

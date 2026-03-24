@@ -52,6 +52,15 @@ class AccountCreationException extends AuthException {
       'AccountCreationException: $message${cause != null ? ' (caused by: $cause)' : ''}';
 }
 
+/// Exception thrown when account deletion fails
+class AccountDeletionException extends AuthException {
+  const AccountDeletionException(super.message, {super.kind, super.cause});
+
+  @override
+  String toString() =>
+      'AccountDeletionException: $message${cause != null ? ' (caused by: $cause)' : ''}';
+}
+
 /// Exception thrown when account recovery fails
 class AccountRecoveryException extends AuthException {
   const AccountRecoveryException(super.message, {super.kind, super.cause});
@@ -80,6 +89,37 @@ AuthException _wrapAuthError(String message, [Object? cause]) {
     kind: isNetwork ? AuthFailure.networkError : AuthFailure.general,
     cause: cause,
   );
+}
+
+/// Store authentication result as a Serverpod auth session.
+///
+/// Constructs an [AuthSuccess] from the [AuthenticationResult.details] map
+/// and stores it via the [FlutterAuthSessionManager]. This enables
+/// Serverpod's built-in JWT auth header management and token refresh.
+Future<void> storeAuthSession(Client client, AuthenticationResult result) async {
+  final details = result.details;
+  if (details == null) return;
+
+  final token = details['token'];
+  final authUserIdStr = details['authUserId'];
+  final authStrategy = details['authStrategy'] ?? 'jwt';
+  if (token == null || authUserIdStr == null) return;
+
+  final tokenExpiresAtStr = details['tokenExpiresAt'];
+  final refreshToken = details['refreshToken'];
+
+  final authSuccess = AuthSuccess(
+    authStrategy: authStrategy,
+    token: token,
+    tokenExpiresAt: tokenExpiresAtStr != null
+        ? DateTime.tryParse(tokenExpiresAtStr)
+        : null,
+    refreshToken: refreshToken,
+    authUserId: UuidValue.fromString(authUserIdStr),
+    scopeNames: {},
+  );
+
+  await client.auth.updateSignedInUser(authSuccess);
 }
 
 /// Pure JWT session management for the Serverpod anonaccred backend.
@@ -198,36 +238,8 @@ class AuthService {
     await authenticateDevice();
   }
 
-  /// Store authentication result as a Serverpod auth session.
-  ///
-  /// Constructs an [AuthSuccess] from the [AuthenticationResult.details] map
-  /// and stores it via the [FlutterAuthSessionManager]. This enables
-  /// Serverpod's built-in JWT auth header management and token refresh.
-  Future<void> _storeAuthSession(AuthenticationResult result) async {
-    final details = result.details;
-    if (details == null) return;
-
-    final token = details['token'];
-    final authUserIdStr = details['authUserId'];
-    final authStrategy = details['authStrategy'] ?? 'jwt';
-    if (token == null || authUserIdStr == null) return;
-
-    final tokenExpiresAtStr = details['tokenExpiresAt'];
-    final refreshToken = details['refreshToken'];
-
-    final authSuccess = AuthSuccess(
-      authStrategy: authStrategy,
-      token: token,
-      tokenExpiresAt: tokenExpiresAtStr != null
-          ? DateTime.tryParse(tokenExpiresAtStr)
-          : null,
-      refreshToken: refreshToken,
-      authUserId: UuidValue.fromString(authUserIdStr),
-      scopeNames: {},
-    );
-
-    await _client.auth.updateSignedInUser(authSuccess);
-  }
+  Future<void> _storeAuthSession(AuthenticationResult result) =>
+      storeAuthSession(_client, result);
 
   /// Compute hashcash proof-of-work for spam prevention.
   Future<String> _computeProofOfWork(String challenge, int difficulty) async {

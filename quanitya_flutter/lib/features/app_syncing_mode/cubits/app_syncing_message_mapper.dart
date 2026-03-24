@@ -15,10 +15,10 @@ class AppSyncingMessageMapper implements IStateMessageMapper<AppSyncingState> {
     if (state.status.isSuccess && state.lastOperation != null) {
       return switch (state.lastOperation!) {
         AppSyncingOperation.switchMode => MessageKey.success(L10nKeys.appOperatingModeSwitched),
-        AppSyncingOperation.testConnection => state.isConnected
-          ? MessageKey.success(L10nKeys.appOperatingConnectionSuccess)
-          : MessageKey.error(L10nKeys.appOperatingConnectionFailed),
+        AppSyncingOperation.testConnection =>
+          MessageKey.success(L10nKeys.appOperatingConnectionSuccess),
         AppSyncingOperation.configure => MessageKey.success(L10nKeys.appOperatingConfigured),
+        AppSyncingOperation.recoverFromCloudSync => null, // No specific message
         AppSyncingOperation.externalChange => null, // No message for external changes
       };
     }

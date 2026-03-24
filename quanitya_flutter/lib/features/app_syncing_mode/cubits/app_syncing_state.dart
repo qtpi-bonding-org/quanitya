@@ -9,6 +9,7 @@ enum AppSyncingOperation {
   testConnection,
   switchMode,
   configure,
+  recoverFromCloudSync, // Reconnect with new keys after account recovery
   externalChange, // Mode changed by external source (e.g., AuthService)
 }
 
@@ -23,7 +24,6 @@ class AppSyncingState with _$AppSyncingState, UiFlowStateMixin implements IUiFlo
 
     // Core state
     @Default(AppSyncingMode.local) AppSyncingMode mode,
-    @Default(false) bool isConnected,
     @Default(false) bool hasTriedConnection,
 
     // Server URLs
@@ -41,10 +41,8 @@ class AppSyncingState with _$AppSyncingState, UiFlowStateMixin implements IUiFlo
 /// Typedef for backward compatibility
 
 extension AppSyncingStateExtension on AppSyncingState {
-  /// Current server URL based on mode and connection status
+  /// Current server URL based on mode
   String? get currentServerUrl {
-    if (!isConnected) return null;
-
     return switch (mode) {
       AppSyncingMode.local => null,
       AppSyncingMode.selfHosted => selfHostedUrl,
@@ -59,20 +57,20 @@ extension AppSyncingStateExtension on AppSyncingState {
     return '${uri.scheme}://${uri.host}${uri.hasPort ? ':${uri.port}' : ''}';
   }
 
-  /// Can create accounts (requires server connection or local mode)
+  /// Can create accounts (requires server mode or local mode)
   bool get canCreateAccount => switch (mode) {
     AppSyncingMode.local => true, // Always can create locally
-    AppSyncingMode.selfHosted || AppSyncingMode.cloud => isConnected,
+    AppSyncingMode.selfHosted || AppSyncingMode.cloud => true,
   };
 
   /// Should show sync features in UI
-  bool get showSyncFeatures => mode.supportsSync && isConnected;
+  bool get showSyncFeatures => mode.supportsSync;
 
-  /// Needs configuration (server modes without connection)
+  /// Needs configuration (self-hosted mode without URL)
   bool get needsConfiguration => switch (mode) {
     AppSyncingMode.local => false,
-    AppSyncingMode.selfHosted => selfHostedUrl == null || !isConnected,
-    AppSyncingMode.cloud => !isConnected,
+    AppSyncingMode.selfHosted => selfHostedUrl == null,
+    AppSyncingMode.cloud => false,
   };
 }
 

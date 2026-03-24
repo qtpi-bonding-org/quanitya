@@ -29,7 +29,7 @@ class AppSyncingRepository {
     return tryMethod(() async {
       await _ensureInitialized();
       final settings = await _db.select(_db.appOperatingSettings).getSingle();
-      debugPrint('📋 AppSyncingRepository: getSettings() → mode=${settings.mode.name}, connected=${settings.isConnected}');
+      debugPrint('📋 AppSyncingRepository: getSettings() → mode=${settings.mode.name}');
       return settings;
     }, AppSyncingException.new, 'getSettings');
   }
@@ -130,7 +130,6 @@ class AppSyncingRepository {
       await _db.into(_db.appOperatingSettings).insert(
         AppOperatingSettingsCompanion.insert(
           mode: AppSyncingMode.local,
-          isConnected: const Value(false),
         ),
       );
     }
