@@ -108,8 +108,8 @@ class _RecoveryForm extends StatelessWidget {
           await entitlementCubit.markPurchased();
           await entitlementCubit.loadEntitlements();
 
-          // Reconnect sync with new keys (symmetric key changed)
-          await GetIt.instance<AppSyncingCubit>().recoverFromCloudSync();
+          // Bootstrap sync for this device (recovery restores same key, not rotation)
+          await GetIt.instance<AppSyncingCubit>().startSyncAfterRecovery();
 
           if (context.mounted) {
             AppNavigation.toHome(context);

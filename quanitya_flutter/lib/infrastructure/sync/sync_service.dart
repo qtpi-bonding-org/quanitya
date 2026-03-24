@@ -101,14 +101,13 @@ class SyncService {
     }, SyncException.new, 'disconnect');
   }
 
-  /// Persist [newMode] and connect or disconnect accordingly.
+  /// Connect or disconnect, then persist [newMode] on success.
   ///
-  /// Tests network reachability before switching, then persists the mode
-  /// and delegates to [connect] or [disconnect].
+  /// Tests network reachability first. Mode is persisted only after the
+  /// connection succeeds, so a failed connect never leaves stale mode in DB.
   Future<void> switchMode(AppSyncingMode newMode) {
     return tryMethod(() async {
       await _networkService.testConnection(_config.baseUrl);
-      await _syncRepo.updateMode(newMode);
 
       if (newMode.supportsSync) {
         await connect(newMode);
@@ -116,6 +115,7 @@ class SyncService {
         await disconnect();
       }
 
+      await _syncRepo.updateMode(newMode);
       debugPrint('SyncService.switchMode: mode set to ${newMode.name}');
     }, SyncException.new, 'switchMode');
   }
@@ -133,28 +133,24 @@ class SyncService {
     }, SyncException.new, 'reconnect');
   }
 
-  /// Reconnect everything after account recovery changes the symmetric key.
+  /// Bootstrap sync after account recovery.
   ///
-  /// The symmetric key changes after recovery, so the E2EE puller must
-  /// restart from its checkpoints rather than resuming mid-stream.
-  Future<void> reconnectWithNewKeys() {
+  /// Recovery restores the same symmetric key (not a rotation), but this
+  /// device has never synced with this account's data. Checkpoints are
+  /// reset so the E2EE puller processes everything from scratch.
+  ///
+  /// Goes through the full [connect] gate (auth + entitlement checks).
+  Future<void> reconnectAfterRecovery() {
     return tryMethod(() async {
-      debugPrint('SyncService.reconnectWithNewKeys: starting key-rotation reconnect');
+      debugPrint('SyncService.reconnectAfterRecovery: starting post-recovery sync');
 
-      if (_puller.isListening) {
-        await _puller.dispose();
-      }
+      await disconnect();
       await _puller.resetCheckpoints();
 
-      if (_powerSync.isConnected) {
-        await _powerSync.disconnect();
-      }
-
       final mode = await _syncRepo.getCurrentMode();
-      await _powerSync.connect(_client, mode);
+      await connect(mode);
 
-      await _puller.initialize();
-      debugPrint('SyncService.reconnectWithNewKeys: complete');
-    }, SyncException.new, 'reconnectWithNewKeys');
+      debugPrint('SyncService.reconnectAfterRecovery: complete');
+    }, SyncException.new, 'reconnectAfterRecovery');
   }
 }

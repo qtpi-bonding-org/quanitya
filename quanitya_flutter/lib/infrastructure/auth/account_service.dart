@@ -446,13 +446,21 @@ class AccountService {
           );
         }
 
-        // 6. Create device blob (symmetric key encrypted with new device public key)
+        // 6. Store symmetric key locally BEFORE registering with server.
+        // If the app crashes after registration but before this write, the
+        // device would be registered without a local key — unrecoverable
+        // without re-entering the recovery phrase. Storing first means a
+        // crash before registration leaves us with a key but unregistered,
+        // which ensureRegistered() can recover from automatically.
+        await _keyRepository.storeSymmetricDataKeyJwk(symmetricKeyJwk);
+
+        // 7. Create device blob (symmetric key encrypted with new device public key)
         final deviceBlob = await _encryption.createEncryptedBlob(
           symmetricKeyJwk,
           deviceKey.encryption.publicKey,
         );
 
-        // 7. Register new device with account (uses ultimate key, not int id)
+        // 8. Register new device with account (uses ultimate key, not int id)
         // Generate attestation: ultimate key signs device public key
         final recoveryAttestation = await _encryption.signWithKeyDuo(
           devicePublicKeyHex,
@@ -480,9 +488,6 @@ class AccountService {
           encryptedDataKey: deviceBlob,
           label: deviceLabel,
         );
-
-        // 8. Store symmetric key locally
-        await _keyRepository.storeSymmetricDataKeyJwk(symmetricKeyJwk);
 
         // 9. Mark device as registered with server
         await _authRepo.setRegistered();

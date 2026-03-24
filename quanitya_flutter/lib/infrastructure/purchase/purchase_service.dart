@@ -107,6 +107,12 @@ class PurchaseService implements IPurchaseService {
 
         final validationResult = await provider.validateWithServer(result);
 
+        if (!validationResult.success) {
+          throw PurchaseException(
+            validationResult.errorMessage ?? 'Server validation failed',
+          );
+        }
+
         final tag = validationResult.tag;
         final amount = validationResult.amount;
         if (tag != null && amount != null) {

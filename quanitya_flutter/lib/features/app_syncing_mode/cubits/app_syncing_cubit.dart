@@ -198,15 +198,15 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     }
   }
 
-  /// Reconnect sync with new encryption keys after account recovery.
+  /// Bootstrap sync after account recovery.
   ///
-  /// Called when the symmetric key has changed (recovery key import).
-  /// Non-fatal — app works offline if this fails.
-  Future<void> recoverFromCloudSync() => tryOperation(() async {
-    await _syncService.reconnectWithNewKeys();
+  /// Resets E2EE puller checkpoints and connects through the full
+  /// auth + entitlement gate. Non-fatal — app works offline if this fails.
+  Future<void> startSyncAfterRecovery() => tryOperation(() async {
+    await _syncService.reconnectAfterRecovery();
     return state.copyWith(
       status: UiFlowStatus.success,
-      lastOperation: AppSyncingOperation.recoverFromCloudSync,
+      lastOperation: AppSyncingOperation.startSyncAfterRecovery,
     );
   }, emitLoading: false);
 

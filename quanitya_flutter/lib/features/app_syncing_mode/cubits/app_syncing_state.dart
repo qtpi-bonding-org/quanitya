@@ -9,7 +9,7 @@ enum AppSyncingOperation {
   testConnection,
   switchMode,
   configure,
-  recoverFromCloudSync, // Reconnect with new keys after account recovery
+  startSyncAfterRecovery, // Bootstrap sync after account recovery
   externalChange, // Mode changed by external source (e.g., AuthService)
 }
 
