@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb, visibleForTesting;
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:health/health.dart';
 import 'package:injectable/injectable.dart';
 
@@ -100,8 +101,9 @@ class HealthSyncService {
       if (!await isEnabled()) return;
       if (!await hasPermissions(types)) return;
       await sync(types);
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('HealthSyncService: syncIfEnabled failed: $e');
+      await ErrorPrivserver.captureError(e, stack, source: 'HealthSyncService');
     }
   }
 

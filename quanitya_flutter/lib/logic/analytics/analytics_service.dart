@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
@@ -140,8 +141,9 @@ class AnalyticsService {
         );
 
         totalSent += batch.length;
-      } catch (e) {
+      } catch (e, stack) {
         debugPrint('Analytics batch send error: $e');
+        await ErrorPrivserver.captureError(e, stack, source: 'AnalyticsService');
         break;
       }
     }

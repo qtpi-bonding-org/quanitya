@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
@@ -182,9 +183,10 @@ class AccountService {
                 'attestation': crossDeviceKeyAttestation,
               }),
             );
-          } catch (e) {
+          } catch (e, stack) {
             // Cross-device key is non-critical — continue
             debugPrint('\u26a0\ufe0f Cross-device key setup failed (non-critical): $e');
+            await ErrorPrivserver.captureError(e, stack, source: 'AccountService');
           }
         }
 
@@ -336,10 +338,11 @@ class AccountService {
               await _secureStorage
                   .deleteSecureData(_crossDeviceRegistrationBlobKey);
             }
-          } catch (e) {
+          } catch (e, stack) {
             // Cross-device registration is non-critical — log and continue
             debugPrint(
                 '\u26a0\ufe0f Cross-device key registration failed (non-critical): $e');
+            await ErrorPrivserver.captureError(e, stack, source: 'AccountService');
           }
 
         // 5. Mark device as registered with server

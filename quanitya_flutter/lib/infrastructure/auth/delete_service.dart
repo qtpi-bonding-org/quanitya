@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../data/repositories/e2ee_puller.dart';
@@ -70,9 +71,10 @@ class DeleteService {
         // 2. Delete cross-device key (orphaned — server registration is gone)
         try {
           await _keyRepository.deleteCrossDeviceKey();
-        } catch (e) {
+        } catch (e, stack) {
           // Non-critical — key may not exist
           debugPrint('Cross-device key deletion skipped: ${e.runtimeType}');
+          await ErrorPrivserver.captureError(e, stack, source: 'DeleteService');
         }
 
         // 3. Clear registration flag so the app knows it's no longer registered

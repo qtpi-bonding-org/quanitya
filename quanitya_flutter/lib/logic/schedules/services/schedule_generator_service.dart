@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../data/repositories/schedule_repository.dart';
@@ -119,8 +120,9 @@ class ScheduleGeneratorService {
             final result = await _generateForSchedule(schedule, horizon);
             totalCreated += result.created;
             totalSkipped += result.skipped;
-          } catch (e) {
+          } catch (e, stack) {
             debugPrint('ScheduleGeneratorService: Failed for ${schedule.id}: $e');
+            await ErrorPrivserver.captureError(e, stack, source: 'ScheduleGeneratorService');
             failedIds.add(schedule.id);
           }
         }

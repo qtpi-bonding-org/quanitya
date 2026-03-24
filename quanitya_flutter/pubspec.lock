@@ -682,8 +682,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "387f27214876840071d3c6173c52cf9317503bfe"
-      resolved-ref: "387f27214876840071d3c6173c52cf9317503bfe"
+      ref: e0e100dbc869a8a3ea7b1ea7be50c9d952f95858
+      resolved-ref: e0e100dbc869a8a3ea7b1ea7be50c9d952f95858
       url: "https://github.com/qtpi-bonding-org/flutter_error_privserver.git"
     source: git
     version: "0.1.0"

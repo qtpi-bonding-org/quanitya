@@ -61,7 +61,7 @@ dependencies:
   flutter_error_privserver:
     git:
       url: https://github.com/qtpi-bonding-org/flutter_error_privserver.git
-      ref: 387f27214876840071d3c6173c52cf9317503bfe
+      ref: e0e100dbc869a8a3ea7b1ea7be50c9d952f95858
   
   # Code Generation
   freezed_annotation: ^2.4.1

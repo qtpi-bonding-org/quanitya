@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:in_app_purchase/in_app_purchase.dart' as iap;
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
@@ -377,11 +378,12 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
           'reconcileSubscriptionEntitlements: '
           '${transaction.productId} → success=${validation.success}',
         );
-      } catch (e) {
+      } catch (e, stack) {
         debugPrint(
           'reconcileSubscriptionEntitlements: failed for '
           '${transaction.productId}: $e',
         );
+        await ErrorPrivserver.captureError(e, stack, source: 'InAppPurchaseRepository');
       }
     }
   }
@@ -418,11 +420,12 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
           'reconcileSubscriptionEntitlements: '
           '${purchase.productID} → success=${validation.success}',
         );
-      } catch (e) {
+      } catch (e, stack) {
         debugPrint(
           'reconcileSubscriptionEntitlements: failed for '
           '${purchase.productID}: $e',
         );
+        await ErrorPrivserver.captureError(e, stack, source: 'InAppPurchaseRepository');
       }
     }
   }
@@ -541,9 +544,10 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
       await validateWithServer(result);
       debugPrint('_recoverOrphanedPurchase: recovered ${result.productId}');
       _entitlementGrantedController.add(null);
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('_recoverOrphanedPurchase: failed for '
           '${result.productId}: $e');
+      await ErrorPrivserver.captureError(e, stack, source: 'InAppPurchaseRepository');
       // Still try to complete the purchase to clear the queue
       final rawDetails = _rawPurchaseDetails.remove(result.productId);
       if (rawDetails != null) {
@@ -551,9 +555,10 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
           await _iapInstance.completePurchase(rawDetails);
           debugPrint('_recoverOrphanedPurchase: '
               'completePurchase called for ${result.productId}');
-        } catch (e2) {
+        } catch (e2, stack2) {
           debugPrint('_recoverOrphanedPurchase: '
               'completePurchase also failed: $e2');
+          await ErrorPrivserver.captureError(e2, stack2, source: 'InAppPurchaseRepository');
         }
       }
     } finally {

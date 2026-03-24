@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
 
@@ -59,8 +61,9 @@ class WebhookService {
         // Fire each webhook independently - don't let one failure stop others
         unawaited(_fireWebhookSafe(webhook));
       }
-    } catch (_) {
-      // Silent fail - fire-and-forget
+    } catch (e, stack) {
+      debugPrint('WebhookService: triggerForTemplateAsync failed: $e');
+      await ErrorPrivserver.captureError(e, stack, source: 'WebhookService');
     }
   }
 
@@ -68,8 +71,9 @@ class WebhookService {
   Future<void> _fireWebhookSafe(WebhookModel webhook) async {
     try {
       await _fireWebhook(webhook);
-    } catch (_) {
-      // Silent fail - user can retry manually
+    } catch (e, stack) {
+      debugPrint('WebhookService: _fireWebhookSafe failed: $e');
+      await ErrorPrivserver.captureError(e, stack, source: 'WebhookService');
     }
   }
 

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:injectable/injectable.dart';
 
 import '../db/app_database.dart';
@@ -84,12 +85,13 @@ abstract class EncryptedTableProcessor<
     for (final encrypted in encryptedRecords) {
       try {
         await _processEncryptedRecord(encrypted);
-      } catch (e) {
+      } catch (e, stack) {
         // Log error but continue processing other records
         debugPrint(
           'E2EEPuller: Error processing encrypted record '
           '${(encrypted as dynamic).id}: $e',
         );
+        await ErrorPrivserver.captureError(e, stack, source: 'E2EEPuller');
       }
     }
   }

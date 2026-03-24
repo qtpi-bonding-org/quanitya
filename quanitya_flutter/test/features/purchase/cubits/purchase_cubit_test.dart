@@ -34,12 +34,13 @@ void main() {
   });
 
   group('PurchaseCubit', () {
-    test('initial state is idle with empty products', () {
+    test('initial state is idle with empty products', () async {
       final cubit = PurchaseCubit(mockService);
       expect(cubit.state.status, UiFlowStatus.idle);
       expect(cubit.state.products, isEmpty);
       expect(cubit.state.lastOperation, isNull);
-      cubit.close();
+      await Future<void>.delayed(Duration.zero); // let _initialize complete
+      await cubit.close();
     });
 
     blocTest<PurchaseCubit, PurchaseState>(
