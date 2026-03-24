@@ -25,19 +25,12 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
     _initialize();
   }
 
-  Future<void> _initialize() async {
-    try {
-      await _purchaseService.recoverPendingPurchases();
-      await _purchaseService.reconcileSubscriptionEntitlements();
-      debugPrint('PurchaseCubit: Initialization complete');
-    } catch (e) {
-      debugPrint('PurchaseCubit: Initialization failed: $e');
-      emit(state.copyWith(
-        status: UiFlowStatus.failure,
-        error: e,
-      ));
-    }
-  }
+  Future<void> _initialize() => tryOperation(() async {
+    await _purchaseService.recoverPendingPurchases();
+    await _purchaseService.reconcileSubscriptionEntitlements();
+    debugPrint('PurchaseCubit: Initialization complete');
+    return state;
+  }, emitLoading: false);
 
   @override
   Future<void> close() {

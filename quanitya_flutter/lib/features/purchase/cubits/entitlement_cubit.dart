@@ -24,34 +24,27 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
 
   bool get hasPurchased => state.hasPurchased;
 
-  Future<void> _initialize() async {
-    try {
-      final purchased = await _repo.hasEverPurchased();
-      emit(state.copyWith(hasPurchased: purchased));
+  Future<void> _initialize() => tryOperation(() async {
+    final purchased = await _repo.hasEverPurchased();
+    emit(state.copyWith(hasPurchased: purchased));
 
-      // Always try to fetch entitlements from server, even if local cache
-      // says "never purchased". Handles app reinstall where SecurePreferences
-      // is wiped but the server still has the user's entitlements.
-      await loadEntitlements();
+    // Always try to fetch entitlements from server, even if local cache
+    // says "never purchased". Handles app reinstall where SecurePreferences
+    // is wiped but the server still has the user's entitlements.
+    await loadEntitlements();
 
-      // If server returned entitlements but local flag was wiped, fix it.
-      if (!purchased && state.entitlements.isNotEmpty) {
-        await _repo.markPurchased();
-        emit(state.copyWith(hasPurchased: true));
-      }
-
-      if (state.hasPurchased) {
-        await loadStorageUsage();
-      }
-      debugPrint('EntitlementCubit: Initialization complete (hasPurchased=${state.hasPurchased})');
-    } catch (e) {
-      debugPrint('EntitlementCubit: Initialization failed: $e');
-      emit(state.copyWith(
-        status: UiFlowStatus.failure,
-        error: e,
-      ));
+    // If server returned entitlements but local flag was wiped, fix it.
+    if (!purchased && state.entitlements.isNotEmpty) {
+      await _repo.markPurchased();
+      emit(state.copyWith(hasPurchased: true));
     }
-  }
+
+    if (state.hasPurchased) {
+      await loadStorageUsage();
+    }
+    debugPrint('EntitlementCubit: Initialization complete (hasPurchased=${state.hasPurchased})');
+    return state;
+  }, emitLoading: false);
 
   Future<void> loadEntitlements() async {
     await tryOperation(() async {
