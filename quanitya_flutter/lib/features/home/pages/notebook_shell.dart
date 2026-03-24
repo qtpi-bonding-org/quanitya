@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' show UiFlowStatus;
 import 'package:get_it/get_it.dart';
 
@@ -66,12 +67,16 @@ class _NotebookShellState extends State<NotebookShell>
         listeners: [
           BlocListener<EntitlementCubit, EntitlementState>(
             listenWhen: (prev, curr) => prev.hasSyncAccess != curr.hasSyncAccess,
-            listener: (context, state) {
-              final syncCubit = context.read<AppSyncingCubit>();
-              if (state.hasSyncAccess) {
-                syncCubit.switchToCloud(emitLoading: false);
-              } else {
-                syncCubit.switchToLocal(emitLoading: false);
+            listener: (context, state) async {
+              try {
+                final syncCubit = context.read<AppSyncingCubit>();
+                if (state.hasSyncAccess) {
+                  await syncCubit.switchToCloud(emitLoading: false);
+                } else {
+                  await syncCubit.switchToLocal(emitLoading: false);
+                }
+              } catch (e, stack) {
+                await ErrorPrivserver.captureError(e, stack, source: 'NotebookShell.entitlementListener');
               }
             },
           ),
@@ -81,8 +86,12 @@ class _NotebookShellState extends State<NotebookShell>
                  curr.lastOperation == PurchaseOperation.recoverPurchases) &&
                 curr.status == UiFlowStatus.success &&
                 prev.status != curr.status,
-            listener: (context, _) {
-              context.read<EntitlementCubit>().loadEntitlements();
+            listener: (context, _) async {
+              try {
+                await context.read<EntitlementCubit>().loadEntitlements();
+              } catch (e, stack) {
+                await ErrorPrivserver.captureError(e, stack, source: 'NotebookShell.purchaseListener');
+              }
             },
           ),
         ],

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     show Client, RailCatalogEntry;
@@ -122,11 +123,12 @@ class PurchaseService implements IPurchaseService {
             if (validationResult.tag == 'llm_calls') {
               await _llmConfigRepo.saveQuanityaSelection();
             }
-          } catch (e) {
+          } catch (e, stack) {
             // Best-effort: server already granted the entitlement, so the
             // next getEntitlements() call will refresh the cache. Don't
             // fail the purchase over a local cache write error.
             debugPrint('PurchaseService.purchase: cache update failed (non-fatal): $e');
+            await ErrorPrivserver.captureError(e, stack, source: 'PurchaseService.purchase');
           }
         } else {
           debugPrint('PurchaseService.purchase: server returned incomplete entitlement '
