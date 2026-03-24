@@ -39,7 +39,7 @@ void main() {
 
   group('PurchaseCubit', () {
     test('initial state is idle with empty products', () {
-      final cubit = PurchaseCubit(mockService, mockAuthService, mockDeviceInfoService);
+      final cubit = PurchaseCubit(mockService);
       expect(cubit.state.status, UiFlowStatus.idle);
       expect(cubit.state.products, isEmpty);
       expect(cubit.state.lastOperation, isNull);
@@ -67,7 +67,7 @@ void main() {
             ),
           ],
         );
-        return PurchaseCubit(mockService, mockAuthService, mockDeviceInfoService);
+        return PurchaseCubit(mockService);
       },
       act: (cubit) => cubit.loadProducts(),
       expect: () => [
@@ -101,7 +101,7 @@ void main() {
             amount: 30,
           ),
         );
-        return PurchaseCubit(mockService, mockAuthService, mockDeviceInfoService);
+        return PurchaseCubit(mockService);
       },
       act: (cubit) => cubit.purchase(
         const PurchaseRequest(
@@ -129,7 +129,7 @@ void main() {
       build: () {
         when(() => mockService.purchase(any(), mode: any(named: 'mode')))
             .thenThrow(Exception('Network error'));
-        return PurchaseCubit(mockService, mockAuthService, mockDeviceInfoService);
+        return PurchaseCubit(mockService);
       },
       act: (cubit) => cubit.purchase(
         const PurchaseRequest(
@@ -155,7 +155,7 @@ void main() {
       build: () {
         when(() => mockService.recoverPendingPurchases())
             .thenAnswer((_) async {});
-        return PurchaseCubit(mockService, mockAuthService, mockDeviceInfoService);
+        return PurchaseCubit(mockService);
       },
       act: (cubit) => cubit.recoverPurchases(),
       expect: () => [

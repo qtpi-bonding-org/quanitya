@@ -8,7 +8,7 @@ import 'package:quanitya_flutter/infrastructure/crypto/crypto_key_repository.dar
 import 'package:quanitya_flutter/infrastructure/crypto/data_encryption_service.dart';
 import 'package:quanitya_flutter/infrastructure/crypto/exceptions/crypto_exceptions.dart';
 
-@GenerateMocks([ICryptoKeyRepository, IDataEncryptionService])
+@GenerateMocks([ICryptoKeyRepository, IDataEncryption])
 import 'auth_service_test.mocks.dart';
 
 class _FakeKeyDuo extends Fake implements KeyDuo {}
@@ -21,11 +21,11 @@ class _FakeKeyDuo extends Fake implements KeyDuo {}
 void main() {
   group('AuthService', () {
     late MockICryptoKeyRepository mockKeyRepo;
-    late MockIDataEncryptionService mockEncryption;
+    late MockIDataEncryption mockEncryption;
 
     setUp(() {
       mockKeyRepo = MockICryptoKeyRepository();
-      mockEncryption = MockIDataEncryptionService();
+      mockEncryption = MockIDataEncryption();
     });
 
     group('isAuthenticated (via key status)', () {

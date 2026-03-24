@@ -28,8 +28,8 @@ bool _skipIfNoWebcrypto() {
 void main() {
   const int testIterations = 5;
 
-  group('DataEncryptionService', () {
-    late DataEncryptionService dataEncryptionService;
+  group('DataEncryption', () {
+    late DataEncryption dataEncryptionService;
     late MockICryptoKeyRepository mockKeyRepository;
     late Faker faker;
     AesGcmSecretKey? testSymmetricKey;
@@ -44,7 +44,7 @@ void main() {
 
     setUp(() async {
       mockKeyRepository = MockICryptoKeyRepository();
-      dataEncryptionService = DataEncryptionService(mockKeyRepository);
+      dataEncryptionService = DataEncryption(mockKeyRepository);
       faker = Faker();
 
       if (_webcryptoAvailable) {

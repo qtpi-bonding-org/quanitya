@@ -4,13 +4,15 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' show Client;
 
 import 'package:quanitya_flutter/infrastructure/platform/platform_capability_service.dart';
 import 'package:quanitya_flutter/infrastructure/public_submission/public_submission_service.dart';
-import 'package:quanitya_flutter/infrastructure/purchase/i_purchase_provider.dart';
+import 'package:quanitya_flutter/infrastructure/purchase/i_digital_purchase_repository.dart';
+import 'package:quanitya_flutter/infrastructure/purchase/entitlement_repository.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_exception.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_models.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_service.dart';
 import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
+import 'package:quanitya_flutter/features/settings/repositories/llm_provider_config_repository.dart';
 
-class MockPurchaseProvider extends Mock implements IPurchaseProvider {}
+class MockPurchaseProvider extends Mock implements IDigitalPurchaseRepository {}
 
 class MockPublicSubmissionService extends Mock
     implements PublicSubmissionService {}
@@ -19,6 +21,10 @@ class MockClient extends Mock implements Client {}
 
 class MockPlatformCapabilityService extends Mock
     implements PlatformCapabilityService {}
+
+class MockEntitlementRepository extends Mock implements EntitlementRepository {}
+
+class MockLlmProviderConfigRepository extends Mock implements LlmProviderConfigRepository {}
 
 void main() {
   late PurchaseService purchaseService;
@@ -53,6 +59,8 @@ void main() {
       mockSubmissionService,
       mockClient,
       mockPlatformCaps,
+      MockEntitlementRepository(),
+      MockLlmProviderConfigRepository(),
     );
   });
 
