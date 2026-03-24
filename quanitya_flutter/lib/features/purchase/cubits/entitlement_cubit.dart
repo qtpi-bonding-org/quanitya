@@ -30,7 +30,6 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
 
       if (purchased) {
         await loadEntitlements();
-        await checkSyncAccess();
         await loadStorageUsage();
       }
       debugPrint('EntitlementCubit: Initialization complete (hasPurchased=$purchased)');
@@ -43,11 +42,13 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
     await tryOperation(() async {
       final entitlements = await _entitlementService.getEntitlements();
       final purchased = await _repo.hasEverPurchased();
+      final hasAccess = await _entitlementService.hasSyncAccess();
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: EntitlementOperation.loadEntitlements,
         entitlements: entitlements,
         hasPurchased: purchased,
+        hasSyncAccess: hasAccess,
       );
     }, emitLoading: true);
   }

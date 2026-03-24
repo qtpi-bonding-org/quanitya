@@ -221,6 +221,20 @@ void main() {
       await cubit.close();
     });
 
+    test('loadEntitlements also updates hasSyncAccess', () async {
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => true);
+
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      await waitForInit();
+
+      // Init already ran loadEntitlements which now includes hasSyncAccess
+      expect(cubit.state.hasSyncAccess, isTrue);
+      expect(cubit.state.lastOperation, isNotNull);
+
+      await cubit.close();
+    });
+
     test('refreshIfStale skips when not purchased', () async {
       stubInitDefaults(hasPurchased: false);
 

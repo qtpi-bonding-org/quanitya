@@ -62,7 +62,6 @@ class _OfficePageState extends State<OfficePage> {
       if (context.read<EntitlementCubit>().hasPurchased) {
         context.read<EntitlementCubit>()
           ..loadEntitlements()
-          ..checkSyncAccess()
           ..loadStorageUsage();
       }
     }

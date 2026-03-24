@@ -56,7 +56,6 @@ class PurchaseTabContent extends StatelessWidget {
           // Refresh entitlement cubit for UI display.
           context.read<EntitlementCubit>()
             ..loadEntitlements()
-            ..checkSyncAccess()
             ..loadStorageUsage();
         },
         child: RefreshIndicator(
@@ -65,7 +64,6 @@ class PurchaseTabContent extends StatelessWidget {
           if (context.read<EntitlementCubit>().hasPurchased) {
             context.read<EntitlementCubit>()
               ..loadEntitlements()
-              ..checkSyncAccess()
               ..loadStorageUsage();
           }
         },
