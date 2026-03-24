@@ -93,7 +93,6 @@ class _OfficePageState extends State<OfficePage> {
         BlocProvider.value(value: GetIt.instance<AppSyncingCubit>()),
         BlocProvider.value(value: GetIt.instance<SyncStatusCubit>()),
         BlocProvider.value(value: GetIt.instance<PurchaseCubit>()),
-        BlocProvider.value(value: GetIt.instance<EntitlementCubit>()),
       ],
       child: MultiUiFlowListener(
           listeners: [
