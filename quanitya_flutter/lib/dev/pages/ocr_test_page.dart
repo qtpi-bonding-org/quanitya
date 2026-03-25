@@ -32,9 +32,10 @@ class _OcrTestPageState extends State<OcrTestPage> {
     updatedAt: DateTime.now(),
   );
 
-  // Services
+  // Services — LLM service is static to survive hot restarts
+  // (Metal buffers can't be double-allocated)
+  static final _llmService = LocalLlmService();
   final _ocrService = OcrService();
-  final _llmService = LocalLlmService();
   final _picker = ImagePicker();
 
   // Extraction schema
@@ -82,18 +83,20 @@ class _OcrTestPageState extends State<OcrTestPage> {
   void dispose() {
     _editController.dispose();
     _ocrService.dispose();
-    _llmService.dispose();
+    // Don't dispose _llmService — it's static, survives hot restarts
     super.dispose();
   }
 
   Future<void> _loadModel() async {
+    // Already loaded (survives hot restart via static)
+    if (_llmService.isReady) {
+      setState(() { _modelReady = true; _modelLoading = false; });
+      return;
+    }
     setState(() { _modelLoading = true; _modelError = null; });
     final sw = Stopwatch()..start();
     try {
       await _llmService.loadModel();
-      sw.stop();
-      setState(() { _modelReady = true; _modelLoading = false; _modelLoadDuration = sw.elapsed; });
-    } on StateError {
       sw.stop();
       setState(() { _modelReady = true; _modelLoading = false; _modelLoadDuration = sw.elapsed; });
     } catch (e) {
