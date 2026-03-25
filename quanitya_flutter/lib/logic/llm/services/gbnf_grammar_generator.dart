@@ -92,11 +92,12 @@ class GbnfGrammarGenerator {
           }
         case GbnfFieldType.enumerated:
           // Each enumerated field gets its own named rule.
-          // Values are emitted as GBNF string literals, e.g.:
-          //   enum_0 ::= ("food" | "drink" | "snack") ws
-          // This constrains the LLM to output exactly one of these tokens.
+          // Values are wrapped in escaped quotes so the LLM outputs
+          // JSON-valid quoted strings, e.g.:
+          //   enum_0 ::= ("\"food\"" | "\"drink\"" | "\"snack\"") ws
+          //   → LLM outputs: "food" or "drink" or "snack" (with quotes)
           final values = field.enumValues!
-              .map((v) => '"${_escapeGbnfString(v)}"')
+              .map((v) => '"\\\"${_escapeGbnfString(v)}\\\""')
               .join(' | ');
           buf.writeln('$ruleName ::= ($values) ws');
       }

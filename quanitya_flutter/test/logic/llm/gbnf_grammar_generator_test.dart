@@ -43,7 +43,7 @@ void main() {
       expect(grammar, contains('"false"'));
     });
 
-    test('generates grammar with enumerated field', () {
+    test('generates grammar with enumerated field (JSON-quoted values)', () {
       final grammar = GbnfGrammarGenerator.generate(
         fields: [
           GbnfField(
@@ -55,9 +55,10 @@ void main() {
         asList: false,
       );
       expect(grammar, contains('"category"'));
-      expect(grammar, contains('"food"'));
-      expect(grammar, contains('"drink"'));
-      expect(grammar, contains('"snack"'));
+      // Enum values must be JSON-quoted in GBNF: "\"food\"" → LLM outputs "food"
+      expect(grammar, contains(r'"\"food\""'));
+      expect(grammar, contains(r'"\"drink\""'));
+      expect(grammar, contains(r'"\"snack\""'));
     });
 
     test('generates grammar with multiple fields', () {
