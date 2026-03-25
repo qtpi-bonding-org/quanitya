@@ -8,9 +8,9 @@ import 'dart:io';
 
 /// Manages the on-device LLM engine for structured extraction.
 ///
-/// Handles model lifecycle (load/unload), inference with timeout
-/// and cancellation support. The model is loaded once and reused
-/// for multiple extractions.
+/// Each [generate] call creates a fresh engine+context to avoid
+/// stale state between extractions. The model file is cached on disk
+/// so reloads are fast (~400ms with Metal/OS caching).
 ///
 /// Uses llamadart (llama.cpp Dart bindings) with Metal GPU
 /// acceleration on iOS physical devices.
@@ -23,24 +23,24 @@ class LocalLlmService {
   static const _contextSize = 2048;
   static const _maxTokens = 512;
 
-  LlamaEngine? _engine;
+  String? _modelPath;
 
-  /// Whether the model is loaded and ready for inference.
-  bool get isReady => _engine != null;
+  /// Whether the model file is ready (copied to app support dir).
+  bool get isReady => _modelPath != null;
 
-  /// Loads the LLM model from app assets.
+  /// Prepares the model file for use.
   ///
-  /// On first call, copies the model file (469MB) from Flutter assets
-  /// to the app support directory. Subsequent calls use the cached copy.
+  /// Copies the model from Flutter assets to the app support directory
+  /// on first call. Subsequent calls are a no-op (file already exists).
   ///
-  /// Throws [TimeoutException] if loading exceeds 60 seconds.
-  /// Throws [StateError] if the model is already loaded.
+  /// Throws [TimeoutException] if the initial copy takes too long.
+  /// Throws [StateError] if already prepared.
   Future<void> loadModel() async {
-    if (_engine != null) {
-      throw StateError('Model is already loaded. Call unloadModel() first.');
+    if (_modelPath != null) {
+      throw StateError('Model already prepared. Path: $_modelPath');
     }
 
-    debugPrint('=== LocalLlmService: starting model load ===');
+    debugPrint('=== LocalLlmService: preparing model ===');
 
     final dir = await getApplicationSupportDirectory();
     final modelPath = '${dir.path}/$_modelFileName';
@@ -53,9 +53,9 @@ class LocalLlmService {
       debugPrint('=== LocalLlmService: model copied ===');
     }
 
+    // Verify the model loads correctly by doing a test load
     final sw = Stopwatch()..start();
     final engine = LlamaEngine(LlamaBackend());
-
     await engine
         .loadModel(
           modelPath,
@@ -70,77 +70,93 @@ class LocalLlmService {
         'On-device inference may not be supported on this device.',
       );
     });
-
+    await engine.dispose();
     sw.stop();
-    debugPrint('=== LocalLlmService: model loaded in ${sw.elapsedMilliseconds}ms ===');
 
-    _engine = engine;
+    debugPrint('=== LocalLlmService: model verified in ${sw.elapsedMilliseconds}ms ===');
+    _modelPath = modelPath;
   }
 
   /// Runs inference with the given prompt and GBNF grammar constraint.
   ///
-  /// Returns the raw output string (typically JSON when grammar-constrained).
+  /// Creates a fresh engine+context per call to guarantee clean state.
+  /// The model file is on disk and Metal weights are OS-cached, so
+  /// reload overhead is ~400ms.
   ///
   /// [isCancelled] is polled between each generated token. Return `true`
   /// to stop inference early. Partial output up to cancellation is returned.
   ///
-  /// Throws [StateError] if the model is not loaded.
+  /// Throws [StateError] if the model is not prepared.
   /// Throws [TimeoutException] if inference exceeds 30 seconds.
   Future<String> generate({
     required String prompt,
     required String grammar,
     bool Function()? isCancelled,
   }) async {
-    if (_engine == null) {
-      throw StateError('Model not loaded. Call loadModel() first.');
+    if (_modelPath == null) {
+      throw StateError('Model not prepared. Call loadModel() first.');
     }
 
-    debugPrint('=== LocalLlmService: starting inference ===');
+    debugPrint('=== LocalLlmService: loading fresh engine ===');
 
-    final sw = Stopwatch()..start();
-    final buffer = StringBuffer();
-    final deadline = DateTime.now().add(_inferenceTimeout);
+    // Fresh engine per call — guarantees no stale context/sampler state.
+    final engine = LlamaEngine(LlamaBackend());
+    try {
+      await engine.loadModel(
+        _modelPath!,
+        modelParams: const ModelParams(
+          contextSize: _contextSize,
+          gpuLayers: ModelParams.maxGpuLayers,
+        ),
+      );
 
-    await for (final token in _engine!.generate(
-      prompt,
-      params: GenerationParams(
-        temp: 0.0,
-        maxTokens: _maxTokens,
-        grammar: grammar,
-        reusePromptPrefix: false, // 1-shot extraction, clear context each call
-      ),
-    )) {
-      if (isCancelled?.call() == true) {
-        debugPrint('=== LocalLlmService: cancelled after ${sw.elapsedMilliseconds}ms ===');
-        sw.stop();
-        return buffer.toString().trim();
+      debugPrint('=== LocalLlmService: starting inference ===');
+
+      final sw = Stopwatch()..start();
+      final buffer = StringBuffer();
+      final deadline = DateTime.now().add(_inferenceTimeout);
+
+      await for (final token in engine.generate(
+        prompt,
+        params: GenerationParams(
+          temp: 0.0,
+          maxTokens: _maxTokens,
+          grammar: grammar,
+        ),
+      )) {
+        if (isCancelled?.call() == true) {
+          debugPrint('=== LocalLlmService: cancelled after ${sw.elapsedMilliseconds}ms ===');
+          sw.stop();
+          return buffer.toString().trim();
+        }
+
+        if (DateTime.now().isAfter(deadline)) {
+          debugPrint('=== LocalLlmService: timed out after ${_inferenceTimeout.inSeconds}s ===');
+          sw.stop();
+          throw TimeoutException(
+            'Inference timed out after ${_inferenceTimeout.inSeconds}s '
+            '(${buffer.length} chars generated). '
+            'On-device inference may be too slow for this device.',
+          );
+        }
+
+        buffer.write(token);
       }
 
-      if (DateTime.now().isAfter(deadline)) {
-        debugPrint('=== LocalLlmService: timed out after ${_inferenceTimeout.inSeconds}s ===');
-        sw.stop();
-        throw TimeoutException(
-          'Inference timed out after ${_inferenceTimeout.inSeconds}s '
-          '(${buffer.length} chars generated). '
-          'On-device inference may be too slow for this device.',
-        );
-      }
+      sw.stop();
+      debugPrint('=== LocalLlmService: done in ${sw.elapsedMilliseconds}ms, '
+          '${buffer.length} chars ===');
 
-      buffer.write(token);
+      return buffer.toString().trim();
+    } finally {
+      await engine.dispose();
     }
-
-    sw.stop();
-    debugPrint('=== LocalLlmService: done in ${sw.elapsedMilliseconds}ms, '
-        '${buffer.length} chars ===');
-
-    return buffer.toString().trim();
   }
 
-  /// Unloads the model and frees memory.
+  /// Resets the service state.
   void unloadModel() {
-    debugPrint('=== LocalLlmService: unloading model ===');
-    _engine?.dispose();
-    _engine = null;
+    debugPrint('=== LocalLlmService: unloading ===');
+    _modelPath = null;
   }
 
   /// Disposes all resources.
