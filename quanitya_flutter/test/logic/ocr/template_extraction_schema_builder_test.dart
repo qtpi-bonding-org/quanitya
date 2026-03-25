@@ -100,7 +100,7 @@ void main() {
         ];
         final grammar = TemplateExtractionSchemaBuilder.buildGrammar(fields);
         expect(grammar, isNotEmpty);
-        expect(grammar, contains('"Name"'));
+        expect(grammar, contains(r'"\"Name\""'));
         expect(grammar, contains('root'));
       });
 

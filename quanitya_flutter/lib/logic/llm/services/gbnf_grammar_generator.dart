@@ -53,7 +53,8 @@ class GbnfGrammarGenerator {
       final valueRule = _valueRuleName(i, field);
 
       if (i > 0) buf.write(' "," ws ');
-      buf.write('"$escapedKey" ":" ws $valueRule');
+      // Keys must be JSON-quoted: "\"Item Name\"" → LLM outputs "Item Name"
+      buf.write('"\\\"$escapedKey\\\"" ":" ws $valueRule');
     }
     buf.writeln(' "}" ws');
     buf.writeln();

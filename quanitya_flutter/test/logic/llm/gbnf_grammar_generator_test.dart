@@ -11,7 +11,8 @@ void main() {
         asList: false,
       );
       expect(grammar, contains('root'));
-      expect(grammar, contains('"name"'));
+      // Key must be JSON-quoted in GBNF: "\"name\"" → LLM outputs "name"
+      expect(grammar, contains(r'"\"name\""'));
       expect(grammar, contains('string'));
     });
 
@@ -20,7 +21,7 @@ void main() {
         fields: [GbnfField(key: 'count', type: GbnfFieldType.integer)],
         asList: false,
       );
-      expect(grammar, contains('"count"'));
+      expect(grammar, contains(r'"\"count\""'));
       expect(grammar, contains('integer'));
     });
 
@@ -29,7 +30,7 @@ void main() {
         fields: [GbnfField(key: 'price', type: GbnfFieldType.number)],
         asList: false,
       );
-      expect(grammar, contains('"price"'));
+      expect(grammar, contains(r'"\"price\""'));
       expect(grammar, contains('number'));
     });
 
@@ -38,7 +39,7 @@ void main() {
         fields: [GbnfField(key: 'organic', type: GbnfFieldType.boolean)],
         asList: false,
       );
-      expect(grammar, contains('"organic"'));
+      expect(grammar, contains(r'"\"organic\""'));
       expect(grammar, contains('"true"'));
       expect(grammar, contains('"false"'));
     });
@@ -54,7 +55,7 @@ void main() {
         ],
         asList: false,
       );
-      expect(grammar, contains('"category"'));
+      expect(grammar, contains(r'"\"category\""'));
       // Enum values must be JSON-quoted in GBNF: "\"food\"" → LLM outputs "food"
       expect(grammar, contains(r'"\"food\""'));
       expect(grammar, contains(r'"\"drink\""'));
@@ -70,9 +71,9 @@ void main() {
         ],
         asList: false,
       );
-      expect(grammar, contains('"Item Name"'));
-      expect(grammar, contains('"Price"'));
-      expect(grammar, contains('"Quantity"'));
+      expect(grammar, contains(r'"\"Item Name\""'));
+      expect(grammar, contains(r'"\"Price\""'));
+      expect(grammar, contains(r'"\"Quantity\""'));
     });
 
     test('asList=true wraps in array production', () {
@@ -93,8 +94,8 @@ void main() {
         fields: [GbnfField(key: 'name', type: GbnfFieldType.string)],
         asList: false,
       );
-      expect(grammarList, contains('"name"'));
-      expect(grammarSingle, contains('"name"'));
+      expect(grammarList, contains(r'"\"name\""'));
+      expect(grammarSingle, contains(r'"\"name\""'));
       expect(grammarList, isNot(equals(grammarSingle)));
     });
 
