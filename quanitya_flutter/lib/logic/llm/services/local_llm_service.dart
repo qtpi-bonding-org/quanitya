@@ -107,6 +107,7 @@ class LocalLlmService {
         temp: 0.0,
         maxTokens: _maxTokens,
         grammar: grammar,
+        reusePromptPrefix: false, // 1-shot extraction, clear context each call
       ),
     )) {
       if (isCancelled?.call() == true) {
