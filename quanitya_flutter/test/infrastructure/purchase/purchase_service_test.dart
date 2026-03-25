@@ -12,8 +12,6 @@ import 'package:quanitya_flutter/infrastructure/purchase/purchase_exception.dart
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_models.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_service.dart';
 import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
-import 'package:quanitya_flutter/features/settings/repositories/llm_provider_config_repository.dart';
-
 class MockPurchaseProvider extends Mock implements IDigitalPurchaseRepository {}
 
 class MockPublicSubmissionService extends Mock
@@ -26,8 +24,6 @@ class MockPlatformCapabilityService extends Mock
 
 class MockEntitlementRepository extends Mock implements EntitlementRepository {}
 
-class MockLlmProviderConfigRepository extends Mock implements LlmProviderConfigRepository {}
-
 void main() {
   late PurchaseService purchaseService;
   late MockPurchaseProvider mockProvider;
@@ -35,8 +31,6 @@ void main() {
   late MockClient mockClient;
   late MockPlatformCapabilityService mockPlatformCaps;
   late MockEntitlementRepository mockEntitlementRepo;
-  late MockLlmProviderConfigRepository mockLlmConfigRepo;
-
   setUpAll(() {
     registerFallbackValue(
       const PurchaseRequest(
@@ -60,7 +54,6 @@ void main() {
     mockClient = MockClient();
     mockPlatformCaps = MockPlatformCapabilityService();
     mockEntitlementRepo = MockEntitlementRepository();
-    mockLlmConfigRepo = MockLlmProviderConfigRepository();
 
     // Default stubs
     when(() => mockProvider.onEntitlementGranted)
@@ -75,7 +68,6 @@ void main() {
       mockClient,
       mockPlatformCaps,
       mockEntitlementRepo,
-      mockLlmConfigRepo,
     );
   });
 

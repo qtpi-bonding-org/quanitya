@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:anonaccred_client/anonaccred_client.dart'
-    show AccountEntitlement, EntitlementType;
+import 'package:anonaccred_client/anonaccred_client.dart' show EntitlementType;
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
+    show AccountFeatureEntitlement;
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
@@ -26,7 +27,7 @@ class EntitlementDisplay extends StatelessWidget {
     this.onRetry,
   });
 
-  final List<AccountEntitlement> entitlements;
+  final List<AccountFeatureEntitlement> entitlements;
   final int? storageBytes;
   final int? entryCount;
   final bool hasError;
@@ -85,11 +86,11 @@ class EntitlementDisplay extends StatelessWidget {
     );
   }
 
-  Widget _buildEntitlementRow(BuildContext context, AccountEntitlement e) {
+  Widget _buildEntitlementRow(
+      BuildContext context, AccountFeatureEntitlement e) {
     final palette = QuanityaPalette.primary;
-    final name = e.entitlement?.name ??
-        context.l10n.entitlementLabel(e.entitlementId);
-    final type = e.entitlement?.type;
+    final name = e.tag;
+    final type = e.type;
 
     // Subscription / onetime → boolean active/inactive
     // Consumable → numeric balance
@@ -98,7 +99,7 @@ class EntitlementDisplay extends StatelessWidget {
         e.balance > 0
             ? (context.l10n.entitlementActive, palette.stateOnColor)
             : (context.l10n.entitlementInactive, palette.textSecondary),
-      EntitlementType.consumable || null => (
+      EntitlementType.consumable => (
         e.balance.truncateToDouble() == e.balance
             ? e.balance.toInt().toString()
             : e.balance.toStringAsFixed(1),

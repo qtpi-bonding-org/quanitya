@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:injectable/injectable.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' show Feature;
 
 import '../core/try_operation.dart';
 import '../platform/secure_preferences.dart';
 import 'entitlement_exception.dart';
-import 'entitlement_service.dart' show isSyncEntitlementTag;
 
 @lazySingleton
 class EntitlementRepository {
@@ -51,7 +51,7 @@ class EntitlementRepository {
       () async {
         final entitlements = await load();
         return entitlements
-            .any((e) => isSyncEntitlementTag(e.tag) && e.balance > 0);
+            .any((e) => e.feature == Feature.cloudSync.name && e.balance > 0);
       },
       EntitlementException.new,
       'hasSyncAccess',
@@ -63,10 +63,21 @@ class EntitlementRepository {
       () async {
         final entitlements = await load();
         return entitlements
-            .any((e) => e.tag == 'llm_calls' && e.balance > 0);
+            .any((e) => e.feature == Feature.llm.name && e.balance > 0);
       },
       EntitlementException.new,
       'hasLlmAccess',
+    );
+  }
+
+  Future<bool> hasFeature(String featureName) {
+    return tryMethod(
+      () async {
+        final entitlements = await load();
+        return entitlements.any((e) => e.feature == featureName && e.balance > 0);
+      },
+      EntitlementException.new,
+      'hasFeature',
     );
   }
 
@@ -126,6 +137,7 @@ class EntitlementRepository {
                 CachedEntitlement(
                   tag: entitlements[i].tag,
                   balance: amount,
+                  feature: entitlements[i].feature,
                   type: entitlements[i].type,
                   name: entitlements[i].name,
                 )
@@ -135,7 +147,12 @@ class EntitlementRepository {
         } else {
           updated = [
             ...entitlements,
-            CachedEntitlement(tag: tag, balance: amount, type: 'unknown'),
+            CachedEntitlement(
+              tag: tag,
+              balance: amount,
+              feature: '',
+              type: 'unknown',
+            ),
           ];
         }
 
@@ -150,12 +167,14 @@ class EntitlementRepository {
 class CachedEntitlement {
   final String tag;
   final double balance;
+  final String feature; // Feature enum name: 'cloudSync', 'llm'
   final String type;
   final String? name;
 
   const CachedEntitlement({
     required this.tag,
     required this.balance,
+    required this.feature,
     required this.type,
     this.name,
   });
@@ -164,6 +183,7 @@ class CachedEntitlement {
       CachedEntitlement(
         tag: json['tag'] as String,
         balance: (json['balance'] as num).toDouble(),
+        feature: json['feature'] as String? ?? '', // backwards compat for old cached data
         type: json['type'] as String,
         name: json['name'] as String?,
       );
@@ -171,6 +191,7 @@ class CachedEntitlement {
   Map<String, dynamic> toJson() => {
         'tag': tag,
         'balance': balance,
+        'feature': feature,
         'type': type,
         if (name != null) 'name': name,
       };

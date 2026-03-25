@@ -1,10 +1,10 @@
-import 'package:anonaccred_client/anonaccred_client.dart'
-    show AccountEntitlement;
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
+    show AccountFeatureEntitlement;
 
 /// Interface for querying entitlement balances and feature access.
 abstract class IEntitlementService {
   /// Get all entitlements for the current account.
-  Future<List<AccountEntitlement>> getEntitlements();
+  Future<List<AccountFeatureEntitlement>> getEntitlements();
 
   /// Get the balance for a specific entitlement tag.
   Future<double> getEntitlementBalance(String tag);

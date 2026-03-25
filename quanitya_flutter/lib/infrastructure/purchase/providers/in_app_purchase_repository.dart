@@ -136,7 +136,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
           .where((r) => r.rail == railName && r.status == RailStatus.active)
           .firstOrNull;
 
-      return matchingRail?.productIds.toSet() ?? <String>{};
+      return matchingRail?.products.map((p) => p.storeProductId).toSet() ?? <String>{};
     }, PurchaseException.new, '_getProductIds');
   }
 

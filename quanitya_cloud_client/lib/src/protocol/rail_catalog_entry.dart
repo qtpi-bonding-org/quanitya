@@ -12,27 +12,28 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'rail_status.dart' as _i2;
-import 'package:quanitya_cloud_client/src/protocol/protocol.dart' as _i3;
+import 'catalog_product.dart' as _i3;
+import 'package:quanitya_cloud_client/src/protocol/protocol.dart' as _i4;
 
 abstract class RailCatalogEntry implements _i1.SerializableModel {
   RailCatalogEntry._({
     required this.rail,
     required this.status,
-    required this.productIds,
+    required this.products,
   });
 
   factory RailCatalogEntry({
     required String rail,
     required _i2.RailStatus status,
-    required List<String> productIds,
+    required List<_i3.CatalogProduct> products,
   }) = _RailCatalogEntryImpl;
 
   factory RailCatalogEntry.fromJson(Map<String, dynamic> jsonSerialization) {
     return RailCatalogEntry(
       rail: jsonSerialization['rail'] as String,
       status: _i2.RailStatus.fromJson((jsonSerialization['status'] as String)),
-      productIds: _i3.Protocol().deserialize<List<String>>(
-        jsonSerialization['productIds'],
+      products: _i4.Protocol().deserialize<List<_i3.CatalogProduct>>(
+        jsonSerialization['products'],
       ),
     );
   }
@@ -41,7 +42,7 @@ abstract class RailCatalogEntry implements _i1.SerializableModel {
 
   _i2.RailStatus status;
 
-  List<String> productIds;
+  List<_i3.CatalogProduct> products;
 
   /// Returns a shallow copy of this [RailCatalogEntry]
   /// with some or all fields replaced by the given arguments.
@@ -49,7 +50,7 @@ abstract class RailCatalogEntry implements _i1.SerializableModel {
   RailCatalogEntry copyWith({
     String? rail,
     _i2.RailStatus? status,
-    List<String>? productIds,
+    List<_i3.CatalogProduct>? products,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -57,7 +58,7 @@ abstract class RailCatalogEntry implements _i1.SerializableModel {
       '__className__': 'RailCatalogEntry',
       'rail': rail,
       'status': status.toJson(),
-      'productIds': productIds.toJson(),
+      'products': products.toJson(valueToJson: (v) => v.toJson()),
     };
   }
 
@@ -71,11 +72,11 @@ class _RailCatalogEntryImpl extends RailCatalogEntry {
   _RailCatalogEntryImpl({
     required String rail,
     required _i2.RailStatus status,
-    required List<String> productIds,
+    required List<_i3.CatalogProduct> products,
   }) : super._(
          rail: rail,
          status: status,
-         productIds: productIds,
+         products: products,
        );
 
   /// Returns a shallow copy of this [RailCatalogEntry]
@@ -85,12 +86,12 @@ class _RailCatalogEntryImpl extends RailCatalogEntry {
   RailCatalogEntry copyWith({
     String? rail,
     _i2.RailStatus? status,
-    List<String>? productIds,
+    List<_i3.CatalogProduct>? products,
   }) {
     return RailCatalogEntry(
       rail: rail ?? this.rail,
       status: status ?? this.status,
-      productIds: productIds ?? this.productIds.map((e0) => e0).toList(),
+      products: products ?? this.products.map((e0) => e0.copyWith()).toList(),
     );
   }
 }

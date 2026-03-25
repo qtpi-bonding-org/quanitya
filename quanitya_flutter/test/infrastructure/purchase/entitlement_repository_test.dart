@@ -30,12 +30,14 @@ void main() {
         const CachedEntitlement(
           tag: 'sync_500mb_days',
           balance: 10.0,
+          feature: 'cloudSync',
           type: 'time_balance',
           name: '500 MB Sync Days',
         ),
         const CachedEntitlement(
           tag: 'premium_feature',
           balance: 1.0,
+          feature: '',
           type: 'feature_flag',
         ),
       ];
@@ -46,10 +48,12 @@ void main() {
       expect(loaded.length, 2);
       expect(loaded[0].tag, 'sync_500mb_days');
       expect(loaded[0].balance, 10.0);
+      expect(loaded[0].feature, 'cloudSync');
       expect(loaded[0].type, 'time_balance');
       expect(loaded[0].name, '500 MB Sync Days');
       expect(loaded[1].tag, 'premium_feature');
       expect(loaded[1].balance, 1.0);
+      expect(loaded[1].feature, '');
       expect(loaded[1].type, 'feature_flag');
       expect(loaded[1].name, isNull);
     });
@@ -59,6 +63,7 @@ void main() {
         const CachedEntitlement(
           tag: 'sync_500mb_days',
           balance: 10.0,
+          feature: 'cloudSync',
           type: 'time_balance',
         ),
       ]);
@@ -66,6 +71,7 @@ void main() {
         const CachedEntitlement(
           tag: 'sync_1gb_days',
           balance: 2.0,
+          feature: 'cloudSync',
           type: 'time_balance',
         ),
       ]);
@@ -74,6 +80,17 @@ void main() {
       expect(loaded.length, 1);
       expect(loaded[0].tag, 'sync_1gb_days');
     });
+
+    test('fromJson handles missing feature field for backwards compat',
+        () async {
+      // Simulate old cached data without the feature field
+      final cached = CachedEntitlement.fromJson({
+        'tag': 'sync_500mb_days',
+        'balance': 10.0,
+        'type': 'time_balance',
+      });
+      expect(cached.feature, '');
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -81,44 +98,48 @@ void main() {
   // -------------------------------------------------------------------------
 
   group('hasSyncAccess', () {
-    test('returns true when sync_500mb_days balance > 0', () async {
+    test('returns true when cloudSync feature has balance > 0', () async {
       await repo.store([
         const CachedEntitlement(
           tag: 'sync_500mb_days',
           balance: 5.0,
+          feature: 'cloudSync',
           type: 'time_balance',
         ),
       ]);
       expect(await repo.hasSyncAccess(), isTrue);
     });
 
-    test('returns true for sync_1gb_days tag', () async {
+    test('returns true for any tag with cloudSync feature', () async {
       await repo.store([
         const CachedEntitlement(
           tag: 'sync_1gb_days',
           balance: 3.0,
+          feature: 'cloudSync',
           type: 'time_balance',
         ),
       ]);
       expect(await repo.hasSyncAccess(), isTrue);
     });
 
-    test('returns false when no sync entitlements present', () async {
+    test('returns false when no cloudSync entitlements present', () async {
       await repo.store([
         const CachedEntitlement(
           tag: 'premium_feature',
           balance: 1.0,
+          feature: '',
           type: 'feature_flag',
         ),
       ]);
       expect(await repo.hasSyncAccess(), isFalse);
     });
 
-    test('returns false when sync balance is 0', () async {
+    test('returns false when cloudSync balance is 0', () async {
       await repo.store([
         const CachedEntitlement(
           tag: 'sync_500mb_days',
           balance: 0.0,
+          feature: 'cloudSync',
           type: 'time_balance',
         ),
       ]);
@@ -127,6 +148,90 @@ void main() {
 
     test('returns false when cache is empty', () async {
       expect(await repo.hasSyncAccess(), isFalse);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // hasLlmAccess
+  // -------------------------------------------------------------------------
+
+  group('hasLlmAccess', () {
+    test('returns true when llm feature has balance > 0', () async {
+      await repo.store([
+        const CachedEntitlement(
+          tag: 'llm_calls',
+          balance: 10.0,
+          feature: 'llm',
+          type: 'consumable',
+        ),
+      ]);
+      expect(await repo.hasLlmAccess(), isTrue);
+    });
+
+    test('returns false when llm feature balance is 0', () async {
+      await repo.store([
+        const CachedEntitlement(
+          tag: 'llm_calls',
+          balance: 0.0,
+          feature: 'llm',
+          type: 'consumable',
+        ),
+      ]);
+      expect(await repo.hasLlmAccess(), isFalse);
+    });
+
+    test('returns false when no llm entitlements present', () async {
+      await repo.store([
+        const CachedEntitlement(
+          tag: 'sync_500mb_days',
+          balance: 5.0,
+          feature: 'cloudSync',
+          type: 'time_balance',
+        ),
+      ]);
+      expect(await repo.hasLlmAccess(), isFalse);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // hasFeature
+  // -------------------------------------------------------------------------
+
+  group('hasFeature', () {
+    test('returns true for matching feature with balance > 0', () async {
+      await repo.store([
+        const CachedEntitlement(
+          tag: 'sync_500mb_days',
+          balance: 5.0,
+          feature: 'cloudSync',
+          type: 'time_balance',
+        ),
+      ]);
+      expect(await repo.hasFeature('cloudSync'), isTrue);
+    });
+
+    test('returns false for non-matching feature', () async {
+      await repo.store([
+        const CachedEntitlement(
+          tag: 'sync_500mb_days',
+          balance: 5.0,
+          feature: 'cloudSync',
+          type: 'time_balance',
+        ),
+      ]);
+      expect(await repo.hasFeature('llm'), isFalse);
+    });
+
+    test('returns false when feature balance is 0', () async {
+      await repo.store([
+        const CachedEntitlement(
+          tag: 'llm_calls',
+          balance: 0.0,
+          feature: 'llm',
+          type: 'consumable',
+        ),
+      ]);
+      expect(await repo.hasFeature('llm'), isFalse);
     });
   });
 
@@ -140,6 +245,7 @@ void main() {
         const CachedEntitlement(
           tag: 'sync_500mb_days',
           balance: 5.0,
+          feature: 'cloudSync',
           type: 'time_balance',
         ),
       ]);
@@ -192,6 +298,7 @@ void main() {
       expect(loaded.length, 1);
       expect(loaded[0].tag, 'sync_500mb_days');
       expect(loaded[0].balance, 7.0);
+      expect(loaded[0].feature, ''); // unknown tag gets empty feature
     });
 
     test('updates existing entry balance', () async {
@@ -199,6 +306,7 @@ void main() {
         const CachedEntitlement(
           tag: 'sync_500mb_days',
           balance: 10.0,
+          feature: 'cloudSync',
           type: 'time_balance',
           name: '500 MB',
         ),
@@ -210,6 +318,7 @@ void main() {
       expect(loaded.length, 1);
       expect(loaded[0].balance, 3.0);
       // Preserves existing metadata
+      expect(loaded[0].feature, 'cloudSync');
       expect(loaded[0].type, 'time_balance');
       expect(loaded[0].name, '500 MB');
     });
@@ -219,11 +328,13 @@ void main() {
         const CachedEntitlement(
           tag: 'sync_500mb_days',
           balance: 10.0,
+          feature: 'cloudSync',
           type: 'time_balance',
         ),
         const CachedEntitlement(
           tag: 'sync_1gb_days',
           balance: 5.0,
+          feature: 'cloudSync',
           type: 'time_balance',
         ),
       ]);
@@ -243,6 +354,7 @@ void main() {
         const CachedEntitlement(
           tag: 'sync_500mb_days',
           balance: 10.0,
+          feature: 'cloudSync',
           type: 'time_balance',
         ),
       ]);

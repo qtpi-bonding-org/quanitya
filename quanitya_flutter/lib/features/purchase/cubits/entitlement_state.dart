@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:anonaccred_client/anonaccred_client.dart'
-    show AccountEntitlement;
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
+    show AccountFeatureEntitlement;
 
 part 'entitlement_state.freezed.dart';
 
@@ -16,7 +16,7 @@ class EntitlementState with _$EntitlementState, UiFlowStateMixin implements IUiF
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,
     EntitlementOperation? lastOperation,
-    @Default([]) List<AccountEntitlement> entitlements,
+    @Default([]) List<AccountFeatureEntitlement> entitlements,
     @Default(false) bool hasSyncAccess,
     @Default(false) bool hasLlmAccess,
     @Default(false) bool hasPurchased,

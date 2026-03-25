@@ -1,10 +1,10 @@
+import 'package:anonaccred_client/anonaccred_client.dart' show EntitlementType;
 import 'package:drift/drift.dart' show QueryRow, Selectable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
-import 'package:anonaccred_client/anonaccred_client.dart'
-    show AccountEntitlement;
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
+    show AccountFeatureEntitlement, Feature;
 
 import 'package:quanitya_flutter/data/db/app_database.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/entitlement_repository.dart';
@@ -62,10 +62,10 @@ void main() {
     test('loadEntitlements populates state with entitlements', () async {
       when(() => mockService.getEntitlements()).thenAnswer(
         (_) async => [
-          AccountEntitlement(
-            accountUuid: UuidValue.fromString(
-                '00000000-0000-0000-0000-000000000001'),
-            entitlementId: 1,
+          AccountFeatureEntitlement(
+            tag: 'sync_500mb_days',
+            feature: Feature.cloudSync,
+            type: EntitlementType.subscription,
             balance: 25.0,
           ),
         ],
@@ -114,10 +114,10 @@ void main() {
         () async {
       when(() => mockService.getEntitlements()).thenAnswer(
         (_) async => [
-          AccountEntitlement(
-            accountUuid: UuidValue.fromString(
-                '00000000-0000-0000-0000-000000000001'),
-            entitlementId: 1,
+          AccountFeatureEntitlement(
+            tag: 'sync_500mb_days',
+            feature: Feature.cloudSync,
+            type: EntitlementType.subscription,
             balance: 10.0,
           ),
         ],
@@ -159,10 +159,10 @@ void main() {
       // Server knows about the purchase even though local cache was wiped
       when(() => mockService.getEntitlements()).thenAnswer(
         (_) async => [
-          AccountEntitlement(
-            accountUuid: UuidValue.fromString(
-                '00000000-0000-0000-0000-000000000001'),
-            entitlementId: 1,
+          AccountFeatureEntitlement(
+            tag: 'sync_500mb_days',
+            feature: Feature.cloudSync,
+            type: EntitlementType.subscription,
             balance: 30.0,
           ),
         ],
@@ -196,10 +196,10 @@ void main() {
       // Now simulate a purchase happened — server has sync entitlement
       when(() => mockService.getEntitlements()).thenAnswer(
         (_) async => [
-          AccountEntitlement(
-            accountUuid: UuidValue.fromString(
-                '00000000-0000-0000-0000-000000000001'),
-            entitlementId: 1,
+          AccountFeatureEntitlement(
+            tag: 'sync_500mb_days',
+            feature: Feature.cloudSync,
+            type: EntitlementType.subscription,
             balance: 30.0,
           ),
         ],
