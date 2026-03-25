@@ -170,6 +170,9 @@ class _OcrTestPageState extends State<OcrTestPage> {
   Future<void> _extract() async {
     _finishEditing();
     final text = _table?.toText();
+    debugPrint('=== TABLE toText() START ===');
+    debugPrint(text);
+    debugPrint('=== TABLE toText() END (${text?.length} chars) ===');
     if (text == null || text.isEmpty) {
       setState(() => _error = 'No data to extract');
       return;
