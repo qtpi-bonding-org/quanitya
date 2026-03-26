@@ -158,6 +158,9 @@ class AuthService {
     );
   }
 
+  /// Whether the Serverpod client currently holds a valid JWT session.
+  bool get hasValidSession => _client.auth.isAuthenticated;
+
   /// Check if user is authenticated (has stored device keys)
   Future<bool> isAuthenticated() {
     return tryMethod(

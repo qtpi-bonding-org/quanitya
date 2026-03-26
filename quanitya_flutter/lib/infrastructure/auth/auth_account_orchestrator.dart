@@ -35,7 +35,7 @@ class AuthAccountOrchestrator {
   /// 4. If retry also fails, the exception propagates to the caller.
   Future<void> ensureAuthenticated() {
     return tryMethod(() async {
-      if (await _authService.isAuthenticated()) return;
+      if (_authService.hasValidSession) return;
 
       try {
         await _authService.ensureAuthenticated();
