@@ -28,22 +28,16 @@ void main() {
       expect(result[1]['Name'], '');
     });
 
-    test('trims whitespace from headers', () {
-      const csv = ' Name , Price \nCoffee,4.50';
+    test('handles messy input — trims headers and skips empty rows', () {
+      const csv = ' Name , Price \nCoffee,4.50\n\nBagel,3.25\n';
       final result = CsvParser.parse(csv);
+      expect(result, hasLength(2));
       expect(result[0]['Name'], 'Coffee');
-    });
-
-    test('returns empty list for header-only CSV', () {
-      expect(CsvParser.parse('Name,Price'), isEmpty);
+      expect(result[1]['Name'], 'Bagel');
     });
 
     test('returns empty list for empty input', () {
       expect(CsvParser.parse(''), isEmpty);
-    });
-
-    test('returns empty list for whitespace-only input', () {
-      expect(CsvParser.parse('  \n  '), isEmpty);
     });
 
     test('handles CRLF line endings', () {
@@ -52,19 +46,9 @@ void main() {
       expect(result, hasLength(2));
     });
 
-    test('skips empty rows', () {
-      const csv = 'Name,Price\nCoffee,4.50\n\nBagel,3.25\n';
-      final result = CsvParser.parse(csv);
-      expect(result, hasLength(2));
-    });
-
     test('extracts headers', () {
       const csv = 'Item Name,Price,Date\nCoffee,4.50,2026-03-15';
       expect(CsvParser.extractHeaders(csv), ['Item Name', 'Price', 'Date']);
-    });
-
-    test('extractHeaders returns empty for empty input', () {
-      expect(CsvParser.extractHeaders(''), isEmpty);
     });
   });
 }

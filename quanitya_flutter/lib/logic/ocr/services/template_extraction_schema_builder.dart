@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../import/services/value_coercer.dart';
 import '../../llm/models/gbnf_field.dart';
 import '../../llm/services/gbnf_grammar_generator.dart';
 import '../../templates/enums/field_enum.dart';
@@ -153,41 +154,10 @@ class TemplateExtractionSchemaBuilder {
       for (final entry in item.entries) {
         final field = labelToField[entry.key];
         if (field == null) continue;
-        remapped[field.fieldId] = _coerceValue(entry.value, field.type);
+        remapped[field.fieldId] = ValueCoercer.coerce(entry.value, field.type);
       }
       return remapped;
     }).toList();
   }
 
-  /// Coerces a string value to the target type.
-  /// Returns the original value if coercion fails.
-  static dynamic _coerceValue(dynamic value, GbnfFieldType targetType) {
-    if (value is! String) return value;
-    final trimmed = value.trim();
-    if (trimmed.isEmpty) return trimmed;
-
-    // Strip common prefixes like $, €, £ for numeric fields
-    final numericStr = _stripCurrencyPrefix(trimmed);
-
-    return switch (targetType) {
-      GbnfFieldType.integer => int.tryParse(numericStr) ?? value,
-      GbnfFieldType.number => double.tryParse(numericStr) ?? value,
-      GbnfFieldType.boolean => switch (trimmed.toLowerCase()) {
-          'true' => true,
-          'false' => false,
-          _ => value,
-        },
-      GbnfFieldType.string || GbnfFieldType.enumerated => value,
-    };
-  }
-
-  /// Strips leading currency symbols for numeric parsing.
-  static String _stripCurrencyPrefix(String s) {
-    if (s.isEmpty) return s;
-    const currencyPrefixes = ['\$', '€', '£', '¥', '₹'];
-    for (final prefix in currencyPrefixes) {
-      if (s.startsWith(prefix)) return s.substring(prefix.length).trim();
-    }
-    return s;
-  }
 }

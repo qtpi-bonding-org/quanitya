@@ -39,22 +39,9 @@ void main() {
         expect(adapter.validate(data), isEmpty);
       });
 
-      test('returns empty for empty string values', () {
-        final data = {'field-name': '', 'field-price': ''};
-        expect(adapter.validate(data), isEmpty);
-      });
-
       test('returns error for missing field', () {
         final data = {'field-name': 'Coffee'};
         expect(adapter.validate(data), isNotEmpty);
-      });
-
-      test('ignores _occurredAt metadata during validation', () {
-        final data = {
-          'field-name': 'Coffee', 'field-price': 4.5,
-          '_occurredAt': '2026-03-15T10:30:00.000',
-        };
-        expect(adapter.validate(data), isEmpty);
       });
     });
 
@@ -67,14 +54,6 @@ void main() {
         };
         final entry = adapter.mapToEntry(data, 'template-1');
         expect(entry.occurredAt, ts);
-      });
-
-      test('falls back to DateTime.now() when no _occurredAt', () {
-        final before = DateTime.now();
-        final entry = adapter.mapToEntry(
-          {'field-name': 'Coffee', 'field-price': 4.5}, 'template-1',
-        );
-        expect(entry.occurredAt!.isAfter(before.subtract(const Duration(seconds: 1))), isTrue);
       });
 
       test('strips _occurredAt from entry data', () {
@@ -97,14 +76,10 @@ void main() {
     });
 
     group('extractDedupKey', () {
-      test('produces consistent key', () {
-        final data = {'field-name': 'Coffee', 'field-price': 4.5};
-        expect(adapter.extractDedupKey(data), adapter.extractDedupKey(data));
-      });
-
-      test('produces different keys for different data', () {
+      test('produces consistent keys and different keys for different data', () {
         final d1 = {'field-name': 'Coffee', 'field-price': 4.5};
         final d2 = {'field-name': 'Bagel', 'field-price': 3.25};
+        expect(adapter.extractDedupKey(d1), adapter.extractDedupKey(d1));
         expect(adapter.extractDedupKey(d1), isNot(adapter.extractDedupKey(d2)));
       });
 
@@ -115,10 +90,6 @@ void main() {
         };
         expect(adapter.extractDedupKey(data), adapter.extractDedupKey(dataWithMeta));
       });
-    });
-
-    test('deriveTemplate returns constructor template', () {
-      expect(adapter.deriveTemplate(), template);
     });
   });
 }

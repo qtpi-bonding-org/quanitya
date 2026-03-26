@@ -1,5 +1,5 @@
-import '../../llm/models/gbnf_field.dart';
 import '../../ocr/models/extraction_field.dart';
+import 'value_coercer.dart';
 
 /// Maps source columns to template field IDs and coerces string values.
 /// Source-agnostic: works with any column mapping. Pure static utility.
@@ -27,36 +27,9 @@ class ColumnMapper {
         final fieldId = columnMapping[entry.key];
         if (fieldId == null) continue;
         final type = fieldTypes[fieldId];
-        mapped[fieldId] = type != null ? _coerceValue(entry.value, type) : entry.value;
+        mapped[fieldId] = type != null ? ValueCoercer.coerce(entry.value, type) : entry.value;
       }
       return mapped;
     }).toList();
-  }
-
-  static dynamic _coerceValue(dynamic value, GbnfFieldType targetType) {
-    if (value is! String) return value;
-    final trimmed = value.trim();
-    if (trimmed.isEmpty) return trimmed;
-    final numericStr = _stripCurrencyPrefix(trimmed);
-
-    return switch (targetType) {
-      GbnfFieldType.integer => int.tryParse(numericStr) ?? value,
-      GbnfFieldType.number => double.tryParse(numericStr) ?? value,
-      GbnfFieldType.boolean => switch (trimmed.toLowerCase()) {
-          'true' => true,
-          'false' => false,
-          _ => value,
-        },
-      GbnfFieldType.string || GbnfFieldType.enumerated => value,
-    };
-  }
-
-  static String _stripCurrencyPrefix(String s) {
-    if (s.isEmpty) return s;
-    const prefixes = ['\$', '€', '£', '¥', '₹'];
-    for (final prefix in prefixes) {
-      if (s.startsWith(prefix)) return s.substring(prefix.length).trim();
-    }
-    return s;
   }
 }

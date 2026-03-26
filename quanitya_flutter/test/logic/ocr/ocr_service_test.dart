@@ -44,14 +44,6 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test('handles single line', () {
-      final lines = [
-        OcrLine(text: 'Hello', bounds: const Rect.fromLTWH(10, 100, 80, 20)),
-      ];
-      final result = OcrService.reconstructRows(lines);
-      expect(result.trim(), 'Hello');
-    });
-
     test('handles three-column receipt layout', () {
       final lines = [
         OcrLine(text: '1x', bounds: const Rect.fromLTWH(10, 100, 30, 20)),

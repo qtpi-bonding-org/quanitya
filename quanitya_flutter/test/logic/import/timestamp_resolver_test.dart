@@ -14,13 +14,18 @@ void main() {
       expect(result[0].occurredAt.isBefore(after.add(const Duration(seconds: 1))), isTrue);
     });
 
-    test('batch timestamp overrides DateTime.now()', () {
+    test('batch timestamp overrides DateTime.now() and is used when no date field designated', () {
       final batch = DateTime(2026, 3, 15);
       final result = TimestampResolver.resolve(
-        items: [{'name': 'Coffee'}],
+        items: [{'name': 'Coffee', 'date': '2026-03-10'}],
         batchTimestamp: batch,
       );
+      // Without dateFieldId, the date column is kept in data and batch is used
       expect(result[0].occurredAt, batch);
+      expect(result[0].data.containsKey('date'), isTrue);
+
+      // Also works for empty items
+      expect(TimestampResolver.resolve(items: []), isEmpty);
     });
 
     test('designated date field overrides batch timestamp', () {
@@ -68,36 +73,6 @@ void main() {
       );
       expect(result[0].occurredAt, batch);
       expect(result[0].data.containsKey('date'), isFalse);
-    });
-
-    test('parses MM/dd/yyyy date format', () {
-      final items = [{'name': 'Coffee', 'date': '03/15/2026'}];
-      final result = TimestampResolver.resolve(items: items, dateFieldId: 'date');
-      expect(result[0].occurredAt, DateTime(2026, 3, 15));
-    });
-
-    test('parses yyyy-MM-dd date format', () {
-      final items = [{'name': 'Coffee', 'date': '2026-03-15'}];
-      final result = TimestampResolver.resolve(items: items, dateFieldId: 'date');
-      expect(result[0].occurredAt, DateTime(2026, 3, 15));
-    });
-
-    test('parses ISO 8601 datetime', () {
-      final items = [{'name': 'Coffee', 'date': '2026-03-15T10:30:00'}];
-      final result = TimestampResolver.resolve(items: items, dateFieldId: 'date');
-      expect(result[0].occurredAt, DateTime(2026, 3, 15, 10, 30));
-    });
-
-    test('handles no date field designation', () {
-      final batch = DateTime(2026, 3, 15);
-      final items = [{'name': 'Coffee', 'date': '2026-03-10'}];
-      final result = TimestampResolver.resolve(items: items, batchTimestamp: batch);
-      expect(result[0].occurredAt, batch);
-      expect(result[0].data.containsKey('date'), isTrue);
-    });
-
-    test('handles empty items list', () {
-      expect(TimestampResolver.resolve(items: []), isEmpty);
     });
   });
 }

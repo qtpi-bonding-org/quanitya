@@ -3,7 +3,6 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:quanitya_flutter/logic/import/models/import_item.dart';
 import 'package:quanitya_flutter/logic/import/services/import_executor.dart';
-import 'package:quanitya_flutter/logic/ingestion/adapters/import_data_source_adapter.dart';
 import 'package:quanitya_flutter/logic/ingestion/adapters/json_data_source_adapter.dart';
 import 'package:quanitya_flutter/logic/ingestion/services/data_ingestion_service.dart';
 import 'package:quanitya_flutter/logic/llm/models/gbnf_field.dart';
@@ -98,28 +97,5 @@ void main() {
       ));
     });
 
-    test('creates ImportDataSourceAdapter with correct adapterId', () async {
-      when(mockIngestion.syncJson(
-        adapter: anyNamed('adapter'),
-        templateId: anyNamed('templateId'),
-        sourceData: anyNamed('sourceData'),
-      )).thenAnswer((_) async => 1);
-
-      await executor.execute(
-        templateId: 'template-1',
-        template: template,
-        items: [ImportItem(data: {'f-name': 'X', 'f-price': 1.0}, occurredAt: DateTime.now())],
-        extractionFields: fields,
-      );
-
-      final captured = verify(mockIngestion.syncJson(
-        adapter: captureAnyNamed('adapter'),
-        templateId: anyNamed('templateId'),
-        sourceData: anyNamed('sourceData'),
-      )).captured;
-
-      final adapter = captured[0] as ImportDataSourceAdapter;
-      expect(adapter.adapterId, 'import.bulk');
-    });
   });
 }

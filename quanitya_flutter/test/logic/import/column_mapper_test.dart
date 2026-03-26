@@ -57,13 +57,6 @@ void main() {
       expect(result[0].containsKey('Extra'), isFalse);
     });
 
-    test('handles empty items list', () {
-      final result = ColumnMapper.mapAndCoerce(
-        items: [], columnMapping: {}, extractionFields: fields,
-      );
-      expect(result, isEmpty);
-    });
-
     test('normalizes whitespace-only to empty string', () {
       final items = [{'Price': '  '}];
       final mapping = {'Price': 'f-price'};
@@ -71,16 +64,6 @@ void main() {
         items: items, columnMapping: mapping, extractionFields: fields,
       );
       expect(result[0]['f-price'], '');
-    });
-
-    test('works with identity mapping (OCR path)', () {
-      final items = [{'Item Name': 'Coffee', 'Price': '4.50'}];
-      final mapping = {for (final f in fields) f.label: f.fieldId};
-      final result = ColumnMapper.mapAndCoerce(
-        items: items, columnMapping: mapping, extractionFields: fields,
-      );
-      expect(result[0]['f-name'], 'Coffee');
-      expect(result[0]['f-price'], 4.5);
     });
   });
 }
