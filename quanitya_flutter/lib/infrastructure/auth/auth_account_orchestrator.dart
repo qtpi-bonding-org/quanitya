@@ -41,7 +41,7 @@ class AuthAccountOrchestrator {
         await _authService.ensureAuthenticated();
       } on DeviceAuthenticationException {
         debugPrint('AuthAccountOrchestrator: device auth failed — re-registering');
-        await _accountService.ensureRegistered(deviceLabel: 'auto');
+        await _accountService.ensureRegistered(deviceLabel: 'auto', force: true);
         await _authService.ensureAuthenticated();
       }
     }, (message, [cause]) => DeviceAuthenticationException(message, cause: cause),

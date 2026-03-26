@@ -357,9 +357,16 @@ class AccountService {
   ///
   /// If not yet registered, performs server registration now.
   /// Safe to call multiple times — it's a no-op when already registered.
-  Future<void> ensureRegistered({required String deviceLabel}) {
+  ///
+  /// Set [force] to bypass the local registration flag (e.g. after a DB wipe
+  /// where the server no longer has the account but the local flag is stale).
+  Future<void> ensureRegistered({
+    required String deviceLabel,
+    bool force = false,
+  }) {
     return tryMethod(() async {
-      if (await _authRepo.isRegisteredWithServer) return;
+      if (!force && await _authRepo.isRegisteredWithServer) return;
+      if (force) await _authRepo.clearRegistrationFlag();
       await registerAccountWithServer(deviceLabel: deviceLabel);
     }, (msg, [cause]) => AccountCreationException(msg, cause: cause), 'ensureRegistered');
   }
