@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:injectable/injectable.dart';
@@ -6,42 +7,46 @@ import 'package:llamadart/llamadart.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
-/// Manages the on-device LLM engine for structured extraction.
+/// Manages the on-device LLM for structured extraction.
 ///
-/// Each [generate] call creates a fresh engine+context to avoid
-/// stale state between extractions. The model file is cached on disk
-/// so reloads are fast (~400ms with Metal/OS caching).
-///
-/// Uses llamadart (llama.cpp Dart bindings) with Metal GPU
-/// acceleration on iOS physical devices.
+/// Uses the llamadart backend directly (not LlamaEngine) so we can
+/// keep the model loaded while creating a fresh context per generate()
+/// call. This avoids stale KV cache / sampler state between extractions
+/// without the overhead of reloading the model each time.
 @lazySingleton
 class LocalLlmService {
   static const _modelAssetPath = 'assets/models/NuExtract-1.5-tiny-Q4_K_M.gguf';
   static const _modelFileName = 'NuExtract-1.5-tiny-Q4_K_M.gguf';
   static const _modelLoadTimeout = Duration(seconds: 60);
   static const _inferenceTimeout = Duration(seconds: 30);
-  static const _contextSize = 2048;
+  static const _modelParams = ModelParams(
+    contextSize: 2048,
+    gpuLayers: ModelParams.maxGpuLayers,
+  );
   static const _maxTokens = 512;
 
-  String? _modelPath;
+  LlamaBackend? _backend;
+  int? _modelHandle;
 
-  /// Whether the model file is ready (copied to app support dir).
-  bool get isReady => _modelPath != null;
+  /// Whether the model is loaded and ready for inference.
+  bool get isReady => _modelHandle != null;
 
-  /// Prepares the model file for use.
+  /// Loads the LLM model from app assets.
   ///
-  /// Copies the model from Flutter assets to the app support directory
-  /// on first call. Subsequent calls are a no-op (file already exists).
+  /// Copies the model file on first use, then loads it into the backend.
+  /// The model stays loaded across generate() calls — only the context
+  /// is created/destroyed per call.
   ///
-  /// Throws [TimeoutException] if the initial copy takes too long.
-  /// Throws [StateError] if already prepared.
+  /// Throws [TimeoutException] if loading exceeds 60 seconds.
+  /// Throws [StateError] if the model is already loaded.
   Future<void> loadModel() async {
-    if (_modelPath != null) {
-      throw StateError('Model already prepared. Path: $_modelPath');
+    if (_modelHandle != null) {
+      throw StateError('Model is already loaded. Call unloadModel() first.');
     }
 
-    debugPrint('=== LocalLlmService: preparing model ===');
+    debugPrint('=== LocalLlmService: starting model load ===');
 
+    // Copy model from assets to file system
     final dir = await getApplicationSupportDirectory();
     final modelPath = '${dir.path}/$_modelFileName';
     final modelFile = File(modelPath);
@@ -53,94 +58,84 @@ class LocalLlmService {
       debugPrint('=== LocalLlmService: model copied ===');
     }
 
-    // Verify the model loads correctly by doing a test load
     final sw = Stopwatch()..start();
-    final engine = LlamaEngine(LlamaBackend());
-    await engine
-        .loadModel(
-          modelPath,
-          modelParams: const ModelParams(
-            contextSize: _contextSize,
-            gpuLayers: ModelParams.maxGpuLayers,
-          ),
-        )
+    final backend = LlamaBackend();
+    final modelHandle = await backend
+        .modelLoad(modelPath, _modelParams)
         .timeout(_modelLoadTimeout, onTimeout: () {
       throw TimeoutException(
-        'Model loading timed out after ${_modelLoadTimeout.inSeconds}s. '
-        'On-device inference may not be supported on this device.',
+        'Model loading timed out after ${_modelLoadTimeout.inSeconds}s.',
       );
     });
-    await engine.dispose();
     sw.stop();
 
-    debugPrint('=== LocalLlmService: model verified in ${sw.elapsedMilliseconds}ms ===');
-    _modelPath = modelPath;
+    debugPrint('=== LocalLlmService: model loaded in ${sw.elapsedMilliseconds}ms ===');
+
+    _backend = backend;
+    _modelHandle = modelHandle;
   }
 
   /// Runs inference with the given prompt and GBNF grammar constraint.
   ///
-  /// Creates a fresh engine+context per call to guarantee clean state.
-  /// The model file is on disk and Metal weights are OS-cached, so
-  /// reload overhead is ~400ms.
+  /// Creates a fresh context for each call — no stale state between
+  /// extractions. The model stays loaded (no reload overhead).
   ///
   /// [isCancelled] is polled between each generated token. Return `true`
   /// to stop inference early. Partial output up to cancellation is returned.
   ///
-  /// Throws [StateError] if the model is not prepared.
+  /// Throws [StateError] if the model is not loaded.
   /// Throws [TimeoutException] if inference exceeds 30 seconds.
   Future<String> generate({
     required String prompt,
     required String grammar,
     bool Function()? isCancelled,
   }) async {
-    if (_modelPath == null) {
-      throw StateError('Model not prepared. Call loadModel() first.');
+    if (_backend == null || _modelHandle == null) {
+      throw StateError('Model not loaded. Call loadModel() first.');
     }
 
-    debugPrint('=== LocalLlmService: loading fresh engine ===');
+    // Create fresh context for this extraction
+    final contextHandle = await _backend!.contextCreate(
+      _modelHandle!,
+      _modelParams,
+    );
+    debugPrint('=== LocalLlmService: fresh context created, starting inference ===');
 
-    // Fresh engine per call — guarantees no stale context/sampler state.
-    final engine = LlamaEngine(LlamaBackend());
     try {
-      await engine.loadModel(
-        _modelPath!,
-        modelParams: const ModelParams(
-          contextSize: _contextSize,
-          gpuLayers: ModelParams.maxGpuLayers,
-        ),
-      );
-
-      debugPrint('=== LocalLlmService: starting inference ===');
-
       final sw = Stopwatch()..start();
       final buffer = StringBuffer();
       final deadline = DateTime.now().add(_inferenceTimeout);
 
-      await for (final token in engine.generate(
+      final stream = _backend!.generate(
+        contextHandle,
         prompt,
-        params: GenerationParams(
+        GenerationParams(
           temp: 0.0,
           maxTokens: _maxTokens,
           grammar: grammar,
         ),
-      )) {
+      );
+
+      // Backend stream emits List<int> (UTF-8 bytes), decode to string
+      await for (final bytes in stream) {
         if (isCancelled?.call() == true) {
           debugPrint('=== LocalLlmService: cancelled after ${sw.elapsedMilliseconds}ms ===');
+          _backend!.cancelGeneration();
           sw.stop();
           return buffer.toString().trim();
         }
 
         if (DateTime.now().isAfter(deadline)) {
           debugPrint('=== LocalLlmService: timed out after ${_inferenceTimeout.inSeconds}s ===');
+          _backend!.cancelGeneration();
           sw.stop();
           throw TimeoutException(
             'Inference timed out after ${_inferenceTimeout.inSeconds}s '
-            '(${buffer.length} chars generated). '
-            'On-device inference may be too slow for this device.',
+            '(${buffer.length} chars generated).',
           );
         }
 
-        buffer.write(token);
+        buffer.write(utf8.decode(bytes, allowMalformed: true));
       }
 
       sw.stop();
@@ -149,19 +144,29 @@ class LocalLlmService {
 
       return buffer.toString().trim();
     } finally {
-      await engine.dispose();
+      // Always free the context — model stays loaded
+      await _backend!.contextFree(contextHandle);
+      debugPrint('=== LocalLlmService: context freed ===');
     }
   }
 
-  /// Resets the service state.
-  void unloadModel() {
+  /// Unloads the model and frees all resources.
+  Future<void> unloadModel() async {
     debugPrint('=== LocalLlmService: unloading ===');
-    _modelPath = null;
+    if (_modelHandle != null && _backend != null) {
+      await _backend!.modelFree(_modelHandle!);
+    }
+    if (_backend != null) {
+      await _backend!.dispose();
+    }
+    _modelHandle = null;
+    _backend = null;
   }
 
   /// Disposes all resources.
   @disposeMethod
   void dispose() {
+    // Fire-and-forget since dispose is sync
     unloadModel();
   }
 }
