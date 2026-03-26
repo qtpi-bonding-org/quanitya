@@ -1,79 +1,41 @@
-import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quanitya_flutter/logic/llm/models/gbnf_field.dart';
 import 'package:quanitya_flutter/logic/llm/services/gbnf_grammar_generator.dart';
 
 void main() {
   group('GbnfGrammarGenerator', () {
-    test('generates grammar with string field', () {
+    test('generates grammar with all values as strings', () {
       final grammar = GbnfGrammarGenerator.generate(
-        fields: [GbnfField(key: 'name', type: GbnfFieldType.string)],
+        fields: [
+          GbnfField(key: 'name', type: GbnfFieldType.string),
+          GbnfField(key: 'count', type: GbnfFieldType.integer),
+          GbnfField(key: 'price', type: GbnfFieldType.number),
+          GbnfField(key: 'active', type: GbnfFieldType.boolean),
+        ],
+        asList: false,
+      );
+
+      // All keys must be JSON-quoted
+      expect(grammar, contains(r'"\"name\""'));
+      expect(grammar, contains(r'"\"count\""'));
+      expect(grammar, contains(r'"\"price\""'));
+      expect(grammar, contains(r'"\"active\""'));
+
+      // All values use the string rule (NuExtract outputs everything as strings)
+      expect(grammar, contains('string'));
+      // Should NOT contain integer/number/boolean rules
+      expect(grammar, isNot(contains('integer ::')));
+      expect(grammar, isNot(contains('number ::')));
+      expect(grammar, isNot(contains('boolean ::')));
+    });
+
+    test('generates grammar with JSON-quoted keys', () {
+      final grammar = GbnfGrammarGenerator.generate(
+        fields: [GbnfField(key: 'Item Name', type: GbnfFieldType.string)],
         asList: false,
       );
       expect(grammar, contains('root'));
-      // Key must be JSON-quoted in GBNF: "\"name\"" → LLM outputs "name"
-      expect(grammar, contains(r'"\"name\""'));
-      expect(grammar, contains('string'));
-    });
-
-    test('generates grammar with integer field', () {
-      final grammar = GbnfGrammarGenerator.generate(
-        fields: [GbnfField(key: 'count', type: GbnfFieldType.integer)],
-        asList: false,
-      );
-      expect(grammar, contains(r'"\"count\""'));
-      expect(grammar, contains('integer'));
-    });
-
-    test('generates grammar with number (float) field', () {
-      final grammar = GbnfGrammarGenerator.generate(
-        fields: [GbnfField(key: 'price', type: GbnfFieldType.number)],
-        asList: false,
-      );
-      expect(grammar, contains(r'"\"price\""'));
-      expect(grammar, contains('number'));
-    });
-
-    test('generates grammar with boolean field', () {
-      final grammar = GbnfGrammarGenerator.generate(
-        fields: [GbnfField(key: 'organic', type: GbnfFieldType.boolean)],
-        asList: false,
-      );
-      expect(grammar, contains(r'"\"organic\""'));
-      expect(grammar, contains('"true"'));
-      expect(grammar, contains('"false"'));
-    });
-
-    test('generates grammar with enumerated field (JSON-quoted values)', () {
-      final grammar = GbnfGrammarGenerator.generate(
-        fields: [
-          GbnfField(
-            key: 'category',
-            type: GbnfFieldType.enumerated,
-            enumValues: ['food', 'drink', 'snack'],
-          ),
-        ],
-        asList: false,
-      );
-      expect(grammar, contains(r'"\"category\""'));
-      // Enum values must be JSON-quoted in GBNF: "\"food\"" → LLM outputs "food"
-      expect(grammar, contains(r'"\"food\""'));
-      expect(grammar, contains(r'"\"drink\""'));
-      expect(grammar, contains(r'"\"snack\""'));
-    });
-
-    test('generates grammar with multiple fields', () {
-      final grammar = GbnfGrammarGenerator.generate(
-        fields: [
-          GbnfField(key: 'Item Name', type: GbnfFieldType.string),
-          GbnfField(key: 'Price', type: GbnfFieldType.number),
-          GbnfField(key: 'Quantity', type: GbnfFieldType.integer),
-        ],
-        asList: false,
-      );
       expect(grammar, contains(r'"\"Item Name\""'));
-      expect(grammar, contains(r'"\"Price\""'));
-      expect(grammar, contains(r'"\"Quantity\""'));
     });
 
     test('asList=true wraps in array production', () {
@@ -94,18 +56,7 @@ void main() {
         fields: [GbnfField(key: 'name', type: GbnfFieldType.string)],
         asList: false,
       );
-      expect(grammarList, contains(r'"\"name\""'));
-      expect(grammarSingle, contains(r'"\"name\""'));
       expect(grammarList, isNot(equals(grammarSingle)));
-    });
-
-    test('throws on enumerated field with no enumValues', () {
-      expect(
-        () => GbnfGrammarGenerator.generate(
-          fields: [GbnfField(key: 'bad', type: GbnfFieldType.enumerated)],
-        ),
-        throwsA(isA<ArgumentError>()),
-      );
     });
 
     test('throws on empty fields', () {

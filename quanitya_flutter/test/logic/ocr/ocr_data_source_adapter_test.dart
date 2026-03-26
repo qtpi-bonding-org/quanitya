@@ -16,15 +16,20 @@ void main() {
       id: 'template-1',
       name: 'Grocery Receipt',
       fields: [
-        TemplateField(id: 'field-name', label: 'Item Name', type: FieldEnum.text),
+        TemplateField(
+            id: 'field-name', label: 'Item Name', type: FieldEnum.text),
         TemplateField(id: 'field-price', label: 'Price', type: FieldEnum.float),
       ],
       updatedAt: DateTime(2026, 3, 25),
     );
 
     extractionFields = [
-      ExtractionField(fieldId: 'field-name', label: 'Item Name', type: GbnfFieldType.string),
-      ExtractionField(fieldId: 'field-price', label: 'Price', type: GbnfFieldType.number),
+      ExtractionField(
+          fieldId: 'field-name',
+          label: 'Item Name',
+          type: GbnfFieldType.string),
+      ExtractionField(
+          fieldId: 'field-price', label: 'Price', type: GbnfFieldType.number),
     ];
 
     adapter = OcrDataSourceAdapter(
@@ -43,9 +48,14 @@ void main() {
       expect(adapter.displayName, isNotEmpty);
     });
 
-    group('validate', () {
-      test('returns empty for valid data', () {
+    group('validate (after coercion)', () {
+      test('returns empty for valid coerced data', () {
         final data = {'field-name': 'Coffee', 'field-price': 4.5};
+        expect(adapter.validate(data), isEmpty);
+      });
+
+      test('returns empty for empty string values', () {
+        final data = {'field-name': '', 'field-price': ''};
         expect(adapter.validate(data), isEmpty);
       });
 
@@ -56,8 +66,8 @@ void main() {
         expect(errors.first, contains('field-price'));
       });
 
-      test('returns error for wrong type — expects string gets int', () {
-        final data = {'field-name': 123, 'field-price': 4.5};
+      test('returns error for wrong type after failed coercion', () {
+        final data = {'field-name': 'Coffee', 'field-price': 'not a number'};
         final errors = adapter.validate(data);
         expect(errors, isNotEmpty);
       });
@@ -105,15 +115,14 @@ void main() {
     group('extractDedupKey', () {
       test('produces consistent key for same data', () {
         final data = {'field-name': 'Coffee', 'field-price': 4.5};
-        final key1 = adapter.extractDedupKey(data);
-        final key2 = adapter.extractDedupKey(data);
-        expect(key1, key2);
+        expect(adapter.extractDedupKey(data), adapter.extractDedupKey(data));
       });
 
       test('produces different keys for different data', () {
         final data1 = {'field-name': 'Coffee', 'field-price': 4.5};
         final data2 = {'field-name': 'Bagel', 'field-price': 3.25};
-        expect(adapter.extractDedupKey(data1), isNot(adapter.extractDedupKey(data2)));
+        expect(adapter.extractDedupKey(data1),
+            isNot(adapter.extractDedupKey(data2)));
       });
 
       test('ignores metadata keys in dedup calculation', () {
@@ -124,7 +133,8 @@ void main() {
           '_sourceAdapter': 'ocr.on_device',
           '_dedupKey': 'old-key',
         };
-        expect(adapter.extractDedupKey(data), adapter.extractDedupKey(dataWithMeta));
+        expect(adapter.extractDedupKey(data),
+            adapter.extractDedupKey(dataWithMeta));
       });
     });
 

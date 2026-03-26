@@ -12,6 +12,9 @@ import 'json_data_source_adapter.dart';
 /// [DataIngestionService.syncJson] pipeline. Constructed per-extraction
 /// with the target template and extraction fields.
 ///
+/// Validates data AFTER type coercion (done by
+/// [TemplateExtractionSchemaBuilder.remapLabelsToIds]).
+///
 /// Dedup key is a SHA1 hash of sorted field values, so re-scanning
 /// the same document won't create duplicate entries.
 class OcrDataSourceAdapter extends JsonDataSourceAdapter {
@@ -54,6 +57,11 @@ class OcrDataSourceAdapter extends JsonDataSourceAdapter {
     };
   }
 
+  /// Validates coerced data against expected types.
+  ///
+  /// This runs AFTER [TemplateExtractionSchemaBuilder.remapLabelsToIds]
+  /// has coerced string values to target types. Values that failed
+  /// coercion remain as strings and will be flagged here.
   @override
   List<String> validate(Map<String, dynamic> json) {
     final errors = <String>[];
@@ -63,6 +71,10 @@ class OcrDataSourceAdapter extends JsonDataSourceAdapter {
         errors.add('Missing required field: ${field.fieldId}');
         continue;
       }
+
+      // Empty strings are valid (NuExtract outputs "" for missing data)
+      if (value is String && value.trim().isEmpty) continue;
+
       final valid = switch (field.type) {
         GbnfFieldType.string => value is String,
         GbnfFieldType.integer => value is int,
@@ -74,7 +86,7 @@ class OcrDataSourceAdapter extends JsonDataSourceAdapter {
       if (!valid) {
         errors.add(
           'Invalid type for field ${field.fieldId}: '
-          'expected ${field.type.name}, got ${value.runtimeType}',
+          'expected ${field.type.name}, got ${value.runtimeType} ($value)',
         );
       }
     }
