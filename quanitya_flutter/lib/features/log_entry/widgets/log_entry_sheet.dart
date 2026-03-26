@@ -2,15 +2,20 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../data/dao/log_entry_query_dao.dart';
 import '../../../data/repositories/template_with_aesthetics_repository.dart';
+import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/structures/row.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya_action_dialog.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
+import '../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../logic/ocr/services/template_extraction_schema_builder.dart';
 import '../../../logic/templates/models/shared/template_aesthetics.dart';
 import '../../../logic/templates/models/shared/tracker_template.dart';
 import '../../../support/extensions/context_extensions.dart';
@@ -18,6 +23,9 @@ import '../../templates/cubits/form/dynamic_template_cubit.dart';
 import '../../templates/cubits/form/dynamic_template_state.dart';
 import '../../templates/widgets/shared/template_preview.dart';
 import '../cubits/detail/entry_detail_cubit.dart';
+import '../cubits/import/import_cubit.dart';
+import '../cubits/import/import_state.dart';
+import 'import_review_content.dart';
 
 /// Mode for the unified log entry sheet.
 enum LogEntrySheetMode {
@@ -173,51 +181,97 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildCreateMode(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GetIt.I<DynamicTemplateCubit>()
-        ..loadTemplate(widget.template!),
-      child: BlocConsumer<DynamicTemplateCubit, DynamicTemplateState>(
-        listenWhen: (prev, curr) =>
-            prev.status != curr.status ||
-            prev.lastOperation != curr.lastOperation,
-        buildWhen: (prev, curr) =>
-            prev.template != curr.template ||
-            prev.status != curr.status ||
-            prev.fieldErrors != curr.fieldErrors,
-        listener: (context, state) {
-          if (state.lastOperation == DynamicTemplateOperation.submit &&
-              state.isSuccess) {
-            Navigator.of(context).pop();
-          }
-        },
-        builder: (context, state) {
-          if (state.template == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => GetIt.I<DynamicTemplateCubit>()
+            ..loadTemplate(widget.template!),
+        ),
+        BlocProvider(
+          create: (_) => GetIt.I<ImportCubit>(),
+        ),
+      ],
+      child: BlocListener<ImportCubit, ImportState>(
+        listener: _handleImportState,
+        child: BlocConsumer<DynamicTemplateCubit, DynamicTemplateState>(
+          listenWhen: (prev, curr) =>
+              prev.status != curr.status ||
+              prev.lastOperation != curr.lastOperation,
+          buildWhen: (prev, curr) =>
+              prev.template != curr.template ||
+              prev.status != curr.status ||
+              prev.fieldErrors != curr.fieldErrors,
+          listener: (context, state) {
+            if (state.lastOperation == DynamicTemplateOperation.submit &&
+                state.isSuccess) {
+              Navigator.of(context).pop();
+            }
+          },
+          builder: (context, state) {
+            if (state.template == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: TemplatePreview(
-                  template: widget.template!,
-                  aesthetics: widget.aesthetics,
-                  initialValues: state.values,
-                  fieldErrors: state.fieldErrors,
-                  onValuesChanged: (values) {
-                    for (final entry in values.entries) {
-                      context
-                          .read<DynamicTemplateCubit>()
-                          .updateField(entry.key, entry.value);
-                    }
-                  },
-                ),
-              ),
-              VSpace.x2,
-              _buildCreateActions(context, state),
-            ],
-          );
-        },
+            return BlocBuilder<ImportCubit, ImportState>(
+              buildWhen: (prev, curr) =>
+                  prev is ImportProcessing != (curr is ImportProcessing) ||
+                  prev is ImportImporting != (curr is ImportImporting),
+              builder: (context, importState) {
+                final isImportBusy = importState is ImportProcessing ||
+                    importState is ImportImporting;
+
+                return Stack(
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: QuanityaIconButtonSizes.small(
+                            icon: Icons.camera_alt_outlined,
+                            onPressed: isImportBusy
+                                ? null
+                                : () => _showSourcePicker(context),
+                          ),
+                        ),
+                        Flexible(
+                          child: TemplatePreview(
+                            template: widget.template!,
+                            aesthetics: widget.aesthetics,
+                            initialValues: state.values,
+                            fieldErrors: state.fieldErrors,
+                            onValuesChanged: (values) {
+                              for (final entry in values.entries) {
+                                context
+                                    .read<DynamicTemplateCubit>()
+                                    .updateField(entry.key, entry.value);
+                              }
+                            },
+                          ),
+                        ),
+                        VSpace.x2,
+                        _buildCreateActions(context, state),
+                      ],
+                    ),
+                    if (isImportBusy)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            borderRadius:
+                                BorderRadius.circular(AppSizes.radiusSmall),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -239,6 +293,115 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
             ? null
             : () => context.read<DynamicTemplateCubit>().submit(),
       ),
+    );
+  }
+
+  void _showSourcePicker(BuildContext context) {
+    final importCubit = context.read<ImportCubit>();
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Camera'),
+              onTap: () {
+                Navigator.of(context).pop();
+                importCubit.importFromImage(
+                  source: ImageSource.camera,
+                  template: widget.template!,
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Photo Library'),
+              onTap: () {
+                Navigator.of(context).pop();
+                importCubit.importFromImage(
+                  source: ImageSource.gallery,
+                  template: widget.template!,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleImportState(BuildContext context, ImportState importState) {
+    switch (importState) {
+      case ImportSingleResult(:final item):
+        final cubit = context.read<DynamicTemplateCubit>();
+        for (final entry in item.entries) {
+          cubit.updateField(entry.key, entry.value);
+        }
+        PostItToast.show(
+          context,
+          message: 'Values filled from image',
+          type: PostItType.success,
+        );
+        context.read<ImportCubit>().reset();
+
+      case ImportMultipleResults(:final items):
+        _showImportReview(context, items);
+
+      case ImportDone(:final count):
+        PostItToast.show(
+          context,
+          message: '$count entries imported',
+          type: PostItType.success,
+        );
+        Navigator.of(context).pop();
+
+      case ImportError(:final message):
+        PostItToast.show(
+          context,
+          message: message,
+          type: PostItType.error,
+        );
+        context.read<ImportCubit>().reset();
+
+      default:
+        break;
+    }
+  }
+
+  void _showImportReview(
+    BuildContext context,
+    List<Map<String, dynamic>> items,
+  ) {
+    final extractionFields =
+        TemplateExtractionSchemaBuilder.buildExtractionFields(
+      widget.template!.fields,
+    );
+
+    ImportReviewState? reviewState;
+
+    final importCubit = context.read<ImportCubit>();
+
+    QuanityaActionDialog.show(
+      context: context,
+      title: 'Review Import',
+      confirmText: 'Import All',
+      child: ImportReviewContent(
+        items: items,
+        fields: extractionFields,
+        onChanged: (state) => reviewState = state,
+      ),
+      onConfirm: () {
+        if (reviewState != null) {
+          importCubit.executeBulkImport(
+            templateId: widget.template!.id,
+            template: widget.template!,
+            items: reviewState!.items,
+            batchTimestamp: reviewState!.batchDate,
+          );
+        }
+      },
     );
   }
 
