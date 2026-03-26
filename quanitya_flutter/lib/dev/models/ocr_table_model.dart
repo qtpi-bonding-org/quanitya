@@ -51,12 +51,13 @@ class OcrTableModel {
 
   /// Reconstruct tab-separated text for the LLM.
   /// Skips rows where all cells are empty.
+  /// Preserves empty cells within non-empty rows to maintain column alignment.
   String toText() {
     final buf = StringBuffer();
     for (final row in _cells) {
-      final nonEmpty = row.where((c) => c.trim().isNotEmpty).toList();
-      if (nonEmpty.isEmpty) continue;
-      buf.writeln(row.where((c) => c.trim().isNotEmpty).join('\t'));
+      final hasContent = row.any((c) => c.trim().isNotEmpty);
+      if (!hasContent) continue;
+      buf.writeln(row.join('\t'));
     }
     return buf.toString().trimRight();
   }

@@ -110,6 +110,7 @@ class TemplateExtractionSchemaBuilder {
     Map<String, dynamic> entryData,
     List<ExtractionField> fields,
   ) {
+    var hasAnyValue = false;
     final example = <String, String>{};
     for (final field in fields) {
       final value = entryData[field.fieldId];
@@ -117,10 +118,15 @@ class TemplateExtractionSchemaBuilder {
         final str = value.toString();
         if (str.isNotEmpty) {
           example[field.label] = str;
+          hasAnyValue = true;
+          continue;
         }
       }
+      // Include all fields with empty string for missing values —
+      // NuExtract examples work better matching the template shape.
+      example[field.label] = '';
     }
-    return example.isEmpty ? null : example;
+    return hasAnyValue ? example : null;
   }
 
   /// Remaps LLM output from label-keyed to fieldId-keyed maps,
@@ -158,7 +164,7 @@ class TemplateExtractionSchemaBuilder {
   static dynamic _coerceValue(dynamic value, GbnfFieldType targetType) {
     if (value is! String) return value;
     final trimmed = value.trim();
-    if (trimmed.isEmpty) return value;
+    if (trimmed.isEmpty) return trimmed;
 
     // Strip common prefixes like $, €, £ for numeric fields
     final numericStr = _stripCurrencyPrefix(trimmed);

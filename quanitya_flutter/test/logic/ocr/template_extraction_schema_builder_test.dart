@@ -251,7 +251,7 @@ void main() {
         expect(example['Price'], '4.66');
       });
 
-      test('skips null values', () {
+      test('includes all fields — null values become empty strings', () {
         final entryData = {'uuid-1': 'Coffee', 'uuid-2': null};
         final fields = [
           ExtractionField(
@@ -266,11 +266,11 @@ void main() {
         final example = TemplateExtractionSchemaBuilder
             .buildExampleFromEntry(entryData, fields);
         expect(example, isNotNull);
-        expect(example!.containsKey('Item Name'), isTrue);
-        expect(example.containsKey('Price'), isFalse);
+        expect(example!['Item Name'], 'Coffee');
+        expect(example['Price'], '');
       });
 
-      test('skips empty string values', () {
+      test('includes all fields — empty values become empty strings', () {
         final entryData = {'uuid-1': '', 'uuid-2': 4.66};
         final fields = [
           ExtractionField(
@@ -285,7 +285,7 @@ void main() {
         final example = TemplateExtractionSchemaBuilder
             .buildExampleFromEntry(entryData, fields);
         expect(example, isNotNull);
-        expect(example!.containsKey('Item Name'), isFalse);
+        expect(example!['Item Name'], '');
         expect(example['Price'], '4.66');
       });
 

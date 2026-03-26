@@ -18,6 +18,7 @@ class LocalLlmService {
   static const _modelAssetPath = 'assets/models/NuExtract-1.5-tiny-Q4_K_M.gguf';
   static const _modelFileName = 'NuExtract-1.5-tiny-Q4_K_M.gguf';
   static const _modelLoadTimeout = Duration(seconds: 60);
+  static const _contextCreateTimeout = Duration(seconds: 10);
   static const _inferenceTimeout = Duration(seconds: 30);
   static const _modelParams = ModelParams(
     contextSize: 2048,
@@ -84,7 +85,8 @@ class LocalLlmService {
   /// to stop inference early. Partial output up to cancellation is returned.
   ///
   /// Throws [StateError] if the model is not loaded.
-  /// Throws [TimeoutException] if inference exceeds 30 seconds.
+  /// Throws [TimeoutException] if context creation exceeds 10s or
+  /// inference exceeds 30s.
   Future<String> generate({
     required String prompt,
     required String grammar,
@@ -94,11 +96,15 @@ class LocalLlmService {
       throw StateError('Model not loaded. Call loadModel() first.');
     }
 
-    // Create fresh context for this extraction
-    final contextHandle = await _backend!.contextCreate(
-      _modelHandle!,
-      _modelParams,
-    );
+    // Create fresh context for this extraction (with timeout for Metal alloc)
+    final contextHandle = await _backend!
+        .contextCreate(_modelHandle!, _modelParams)
+        .timeout(_contextCreateTimeout, onTimeout: () {
+      throw TimeoutException(
+        'Context creation timed out after ${_contextCreateTimeout.inSeconds}s. '
+        'Metal GPU allocation may have failed.',
+      );
+    });
     debugPrint('=== LocalLlmService: fresh context created, starting inference ===');
 
     try {
@@ -151,6 +157,9 @@ class LocalLlmService {
   }
 
   /// Unloads the model and frees all resources.
+  // TODO: Call explicitly before app exit / DI container reset —
+  // the @disposeMethod is sync so it fire-and-forgets this Future.
+  // In production, hook into app lifecycle to await this properly.
   Future<void> unloadModel() async {
     debugPrint('=== LocalLlmService: unloading ===');
     if (_modelHandle != null && _backend != null) {
@@ -163,10 +172,8 @@ class LocalLlmService {
     _backend = null;
   }
 
-  /// Disposes all resources.
   @disposeMethod
   void dispose() {
-    // Fire-and-forget since dispose is sync
     unloadModel();
   }
 }
