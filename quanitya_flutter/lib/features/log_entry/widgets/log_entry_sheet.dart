@@ -15,6 +15,9 @@ import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dar
 import '../../../design_system/widgets/quanitya_action_dialog.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../logic/import/services/import_executor.dart';
+import '../../../logic/llm/services/local_llm_service.dart';
+import '../../../logic/ocr/services/ocr_service.dart';
 import '../../../logic/ocr/services/template_extraction_schema_builder.dart';
 import '../../../logic/templates/models/shared/template_aesthetics.dart';
 import '../../../logic/templates/models/shared/tracker_template.dart';
@@ -128,6 +131,10 @@ class LogEntrySheet extends StatefulWidget {
 }
 
 class _LogEntrySheetState extends State<LogEntrySheet> {
+  // Shared services — survive across sheet opens, model stays loaded
+  static final _sharedOcrService = OcrService();
+  static final _sharedLlmService = LocalLlmService();
+
   late bool _isEditing;
   late Map<String, dynamic> _values;
   late Map<String, dynamic> _originalValues;
@@ -188,7 +195,11 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
             ..loadTemplate(widget.template!),
         ),
         BlocProvider(
-          create: (_) => GetIt.I<ImportCubit>(),
+          create: (_) => ImportCubit(
+            _sharedOcrService,
+            _sharedLlmService,
+            ImportExecutor(GetIt.I()),
+          ),
         ),
       ],
       child: BlocListener<ImportCubit, ImportState>(
