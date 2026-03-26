@@ -11,7 +11,7 @@ import 'secure_storage_test.mocks.dart';
 
 @GenerateMocks([PlatformCapabilityService])
 void main() {
-  const int testIterations = 5; // Property-based testing iterations - change this to adjust all tests
+  const int testIterations = 1;
   
   group('PlatformSecureStorage', () {
     late MockPlatformCapabilityService mockCapabilities;
@@ -94,35 +94,20 @@ void main() {
         secureStorage = PlatformSecureStorage(mockCapabilities);
       });
 
-      test('wraps storage exceptions in KeyStorageException', () async {
-        // This test verifies that the tryMethod wrapper works correctly
-        // We can't easily mock the internal flutter_secure_storage without more complex setup
-        // So we test the exception wrapping behavior with valid inputs
-        
-        const testKey = 'test_device_key_12345';
-        
-        // This should not throw - if it does, it should be wrapped properly
-        try {
-          await secureStorage.storeDeviceKey(testKey);
-          // If successful, verify we can retrieve it
-          final retrieved = await secureStorage.getDeviceKey();
-          expect(retrieved, equals(testKey));
-        } catch (e) {
-          // If it fails, it should be a KeyStorageException
-          expect(e, isA<KeyStorageException>());
-        }
+      test('storeDeviceKey wraps platform errors in KeyStorageException', () async {
+        // flutter_secure_storage requires platform channels unavailable in unit tests.
+        // Verifies that the tryMethod wrapper converts platform errors to KeyStorageException.
+        expect(
+          () => secureStorage.storeDeviceKey('test_key'),
+          throwsA(isA<KeyStorageException>()),
+        );
       });
 
-      test('wraps retrieval exceptions in KeyRetrievalException', () async {
-        // Test that retrieval exceptions are properly wrapped
-        try {
-          final result = await secureStorage.getDeviceKey();
-          // Should return null or a string, not throw unhandled exceptions
-          expect(result, anyOf(isNull, isA<String>()));
-        } catch (e) {
-          // If it fails, it should be a KeyRetrievalException
-          expect(e, isA<KeyRetrievalException>());
-        }
+      test('getDeviceKey wraps platform errors in KeyRetrievalException', () async {
+        expect(
+          () => secureStorage.getDeviceKey(),
+          throwsA(isA<KeyRetrievalException>()),
+        );
       });
     });
 

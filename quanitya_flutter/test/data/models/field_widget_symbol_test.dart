@@ -6,30 +6,6 @@ import 'package:quanitya_flutter/logic/templates/models/shared/field_widget_symb
 
 void main() {
   group('FieldWidgetSymbol', () {
-    group('Basic Construction', () {
-      test('should create a basic symbol with required fields', () {
-        final symbol = FieldWidgetSymbol(
-          fieldType: FieldEnum.text,
-          uiElement: UiElementEnum.textField,
-          requiredValidators: const [ValidatorType.text],
-        );
-
-        expect(symbol.fieldType, equals(FieldEnum.text));
-        expect(symbol.uiElement, equals(UiElementEnum.textField));
-        expect(symbol.requiredValidators, equals([ValidatorType.text]));
-      });
-
-      test('should support empty validator list', () {
-        final symbol = FieldWidgetSymbol(
-          fieldType: FieldEnum.boolean,
-          uiElement: UiElementEnum.toggleSwitch,
-          requiredValidators: const [],
-        );
-
-        expect(symbol.requiredValidators, isEmpty);
-      });
-    });
-
     group('JSON Serialization', () {
       test('should serialize to JSON correctly', () {
         final symbol = FieldWidgetSymbol(

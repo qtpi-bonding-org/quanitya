@@ -74,6 +74,15 @@ class AnalyticsService {
   // ── App lifecycle ──
   void trackAppOpened() => _track('app_opened');
 
+  // ── Feedback ──
+  void trackFeedbackSubmitted() => _track('feedback_submitted');
+
+  // ── Catalog ──
+  void trackCatalogTemplatesImported() => _track('catalog_templates_imported');
+
+  // ── Search ──
+  void trackSearchPerformed() => _track('search_performed');
+
   // ── Purchase ──
   void trackPurchaseCompleted({required String productId}) {
     _track('purchase_completed', props: {'product_id': productId});

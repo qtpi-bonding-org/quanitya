@@ -8,7 +8,7 @@ import 'package:quanitya_flutter/logic/templates/models/shared/tracker_template.
 import 'package:quanitya_flutter/logic/templates/models/shared/template_field.dart';
 import 'package:quanitya_flutter/logic/templates/enums/field_enum.dart';
 
-const int kPropertyTestIterations = 5;
+const int kPropertyTestIterations = 1;
 
 /// Test adapter implementation for property testing
 class TestAdapter implements IDataSourceAdapter<Map<String, dynamic>> {

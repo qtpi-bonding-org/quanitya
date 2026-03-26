@@ -98,79 +98,28 @@ void main() {
       ));
     });
 
-    test('validates feedback type (feature_request)', () async {
-      // Arrange
-      const feedbackText = 'This is a feature request with enough characters';
-      const feedbackType = 'feature_request';
+    test('accepts all valid feedback types', () async {
+      for (final feedbackType in ['feature_request', 'bug', 'general']) {
+        reset(mockSubmissionService);
+        const feedbackText = 'This is valid feedback with enough characters';
 
-      when(mockSubmissionService.submitWithVerification(
-        endpoint: anyNamed('endpoint'),
-        payload: anyNamed('payload'),
-        submitCallback: anyNamed('submitCallback'),
-      )).thenAnswer((_) async {});
+        when(mockSubmissionService.submitWithVerification(
+          endpoint: anyNamed('endpoint'),
+          payload: anyNamed('payload'),
+          submitCallback: anyNamed('submitCallback'),
+        )).thenAnswer((_) async {});
 
-      // Act
-      await service.submitFeedback(
-        feedbackText: feedbackText,
-        feedbackType: feedbackType,
-      );
+        await service.submitFeedback(
+          feedbackText: feedbackText,
+          feedbackType: feedbackType,
+        );
 
-      // Assert
-      verify(mockSubmissionService.submitWithVerification(
-        endpoint: 'feedback',
-        payload: 'feature_request:$feedbackText',
-        submitCallback: anyNamed('submitCallback'),
-      )).called(1);
-    });
-
-    test('validates feedback type (bug)', () async {
-      // Arrange
-      const feedbackText = 'This is a bug report with enough characters';
-      const feedbackType = 'bug';
-
-      when(mockSubmissionService.submitWithVerification(
-        endpoint: anyNamed('endpoint'),
-        payload: anyNamed('payload'),
-        submitCallback: anyNamed('submitCallback'),
-      )).thenAnswer((_) async {});
-
-      // Act
-      await service.submitFeedback(
-        feedbackText: feedbackText,
-        feedbackType: feedbackType,
-      );
-
-      // Assert
-      verify(mockSubmissionService.submitWithVerification(
-        endpoint: 'feedback',
-        payload: 'bug:$feedbackText',
-        submitCallback: anyNamed('submitCallback'),
-      )).called(1);
-    });
-
-    test('validates feedback type (general)', () async {
-      // Arrange
-      const feedbackText = 'This is general feedback with enough characters';
-      const feedbackType = 'general';
-
-      when(mockSubmissionService.submitWithVerification(
-        endpoint: anyNamed('endpoint'),
-        payload: anyNamed('payload'),
-        submitCallback: anyNamed('submitCallback'),
-      )).thenAnswer((_) async {});
-
-      // Act
-      await service.submitFeedback(
-        feedbackText: feedbackText,
-        feedbackType: feedbackType,
-      );
-
-      // Assert - no exception means success
-      verify(mockSubmissionService.submitWithVerification(
-        endpoint: 'feedback',
-        payload: anyNamed('payload'),
-        submitCallback: anyNamed('submitCallback'),
-      )).called(1);
+        verify(mockSubmissionService.submitWithVerification(
+          endpoint: 'feedback',
+          payload: '$feedbackType:$feedbackText',
+          submitCallback: anyNamed('submitCallback'),
+        )).called(1);
+      }
     });
 
     test('throws exception for invalid type', () async {

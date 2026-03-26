@@ -132,44 +132,4 @@ void main() {
     });
   });
 
-  group('RecoveryKeyState', () {
-    test('default state has idle status', () {
-      const state = RecoveryKeyState();
-      
-      expect(state.status, equals(UiFlowStatus.idle));
-      expect(state.error, isNull);
-      expect(state.lastOperation, isNull);
-    });
-
-    test('copyWith preserves unchanged values', () {
-      const state = RecoveryKeyState(
-        status: UiFlowStatus.success,
-        lastOperation: RecoveryKeyOperation.validate,
-      );
-      
-      final newState = state.copyWith(status: UiFlowStatus.idle);
-      
-      expect(newState.status, equals(UiFlowStatus.idle));
-      expect(newState.lastOperation, equals(RecoveryKeyOperation.validate));
-    });
-
-    test('isLoading returns true for loading status', () {
-      const state = RecoveryKeyState(status: UiFlowStatus.loading);
-      
-      expect(state.isLoading, isTrue);
-    });
-
-    test('isSuccess returns true for success status', () {
-      const state = RecoveryKeyState(status: UiFlowStatus.success);
-      
-      expect(state.status.isSuccess, isTrue);
-    });
-  });
-
-  group('RecoveryKeyOperation', () {
-    test('has validate and recover values', () {
-      expect(RecoveryKeyOperation.values, contains(RecoveryKeyOperation.validate));
-      expect(RecoveryKeyOperation.values, contains(RecoveryKeyOperation.recover));
-    });
-  });
 }

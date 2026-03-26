@@ -118,6 +118,7 @@ class TemplateGalleryCubit extends QuanityaCubit<TemplateGalleryState> {
           }
         }
         final allFailed = imported == 0 && failed > 0;
+        if (!allFailed) analytics?.trackCatalogTemplatesImported();
         return state.copyWith(
           status: allFailed ? UiFlowStatus.failure : UiFlowStatus.success,
           lastOperation: TemplateGalleryOperation.import_,

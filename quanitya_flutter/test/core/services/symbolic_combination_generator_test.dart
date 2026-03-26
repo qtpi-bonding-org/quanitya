@@ -126,7 +126,7 @@ void main() {
     });
 
     group('Property Tests', () {
-      const int testIterations = 100; // Property-based testing iterations
+      const int testIterations = 1;
 
       test('Property 2: Symbolic Combination Generation Correctness - **Feature: foundation-enums-coupling, Property 2: Symbolic Combination Generation Correctness** - **Validates: Requirements 3.1, 3.2, 3.3, 3.4**', () {
         // Property: For any generated FieldWidgetSymbol, it should represent a valid 

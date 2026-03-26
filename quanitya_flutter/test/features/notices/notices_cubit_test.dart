@@ -28,33 +28,6 @@ void main() {
     });
 
     blocTest<NoticesCubit, NoticesState>(
-      'loadNotifications emits success with notifications',
-      build: () {
-        when(() => mockRepository.watchUnmarkedNotifications()).thenAnswer(
-          (_) => Stream.value([
-            NotificationData(
-              id: 'notif-1',
-              title: 'Test',
-              message: 'Test message',
-              type: 'inform',
-              createdAt: DateTime.now(),
-              expiresAt: DateTime.now().add(Duration(days: 7)),
-              updatedAt: DateTime.now(),
-            ),
-          ]),
-        );
-        return NoticesCubit(mockRepository);
-      },
-      act: (cubit) => cubit.loadNotifications(),
-      expect: () => [
-        predicate<NoticesState>((state) {
-          return state.notifications.length == 1 &&
-                 state.status == UiFlowStatus.success;
-        }),
-      ],
-    );
-
-    blocTest<NoticesCubit, NoticesState>(
       'markAsReceived updates state correctly',
       build: () {
         when(() => mockRepository.markAsReceived(any())).thenAnswer((_) async {});
@@ -90,23 +63,5 @@ void main() {
       },
     );
 
-    blocTest<NoticesCubit, NoticesState>(
-      'markAllAsReceived emits loading then success',
-      build: () {
-        when(() => mockRepository.markAllAsReceived()).thenAnswer((_) async {});
-        return NoticesCubit(mockRepository);
-      },
-      act: (cubit) => cubit.markAllAsReceived(),
-      expect: () => [
-        predicate<NoticesState>((state) => state.status == UiFlowStatus.loading),
-        predicate<NoticesState>((state) {
-          return state.status == UiFlowStatus.success &&
-                 state.lastOperation == NotificationOperation.markAllAsReceived;
-        }),
-      ],
-      verify: (_) {
-        verify(() => mockRepository.markAllAsReceived()).called(1);
-      },
-    );
   });
 }

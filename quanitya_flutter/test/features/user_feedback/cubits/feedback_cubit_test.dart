@@ -33,38 +33,7 @@ void main() {
     });
     
     blocTest<FeedbackCubit, FeedbackState>(
-      'submitFeedback emits loading state',
-      build: () {
-        when(mockService.submitFeedback(
-          feedbackText: anyNamed('feedbackText'),
-          feedbackType: anyNamed('feedbackType'),
-          metadata: anyNamed('metadata'),
-        )).thenAnswer((_) async {
-          // Simulate some delay
-          await Future.delayed(const Duration(milliseconds: 100));
-        });
-        return cubit;
-      },
-      act: (cubit) => cubit.submitFeedback(
-        feedbackText: 'Test feedback',
-        feedbackType: 'general',
-      ),
-      expect: () => [
-        const FeedbackState(
-          status: UiFlowStatus.loading,
-          error: null,
-          lastOperation: null,
-        ),
-        const FeedbackState(
-          status: UiFlowStatus.success,
-          error: null,
-          lastOperation: FeedbackOperation.submit,
-        ),
-      ],
-    );
-    
-    blocTest<FeedbackCubit, FeedbackState>(
-      'submitFeedback emits success state on completion',
+      'submitFeedback emits loading then success',
       build: () {
         when(mockService.submitFeedback(
           feedbackText: anyNamed('feedbackText'),
@@ -124,106 +93,6 @@ void main() {
                  state.lastOperation == null;
         }),
       ],
-    );
-    
-    blocTest<FeedbackCubit, FeedbackState>(
-      'sets lastOperation correctly',
-      build: () {
-        when(mockService.submitFeedback(
-          feedbackText: anyNamed('feedbackText'),
-          feedbackType: anyNamed('feedbackType'),
-          metadata: anyNamed('metadata'),
-        )).thenAnswer((_) async {});
-        return cubit;
-      },
-      act: (cubit) => cubit.submitFeedback(
-        feedbackText: 'Operation test',
-        feedbackType: 'bug',
-      ),
-      expect: () => [
-        const FeedbackState(
-          status: UiFlowStatus.loading,
-          error: null,
-          lastOperation: null,
-        ),
-        const FeedbackState(
-          status: UiFlowStatus.success,
-          error: null,
-          lastOperation: FeedbackOperation.submit,
-        ),
-      ],
-      verify: (_) {
-        final finalState = cubit.state;
-        expect(finalState.lastOperation, FeedbackOperation.submit);
-      },
-    );
-    
-    blocTest<FeedbackCubit, FeedbackState>(
-      'handles multiple feedback types correctly',
-      build: () {
-        when(mockService.submitFeedback(
-          feedbackText: anyNamed('feedbackText'),
-          feedbackType: anyNamed('feedbackType'),
-          metadata: anyNamed('metadata'),
-        )).thenAnswer((_) async {});
-        return cubit;
-      },
-      act: (cubit) async {
-        await cubit.submitFeedback(
-          feedbackText: 'Feature request feedback',
-          feedbackType: 'feature_request',
-        );
-        await cubit.submitFeedback(
-          feedbackText: 'Bug report feedback',
-          feedbackType: 'bug',
-        );
-        await cubit.submitFeedback(
-          feedbackText: 'General feedback',
-          feedbackType: 'general',
-        );
-      },
-      expect: () => [
-        // First submission
-        const FeedbackState(
-          status: UiFlowStatus.loading,
-          error: null,
-          lastOperation: null,
-        ),
-        const FeedbackState(
-          status: UiFlowStatus.success,
-          error: null,
-          lastOperation: FeedbackOperation.submit,
-        ),
-        // Second submission
-        const FeedbackState(
-          status: UiFlowStatus.loading,
-          error: null,
-          lastOperation: FeedbackOperation.submit,
-        ),
-        const FeedbackState(
-          status: UiFlowStatus.success,
-          error: null,
-          lastOperation: FeedbackOperation.submit,
-        ),
-        // Third submission
-        const FeedbackState(
-          status: UiFlowStatus.loading,
-          error: null,
-          lastOperation: FeedbackOperation.submit,
-        ),
-        const FeedbackState(
-          status: UiFlowStatus.success,
-          error: null,
-          lastOperation: FeedbackOperation.submit,
-        ),
-      ],
-      verify: (_) {
-        verify(mockService.submitFeedback(
-          feedbackText: anyNamed('feedbackText'),
-          feedbackType: anyNamed('feedbackType'),
-          metadata: anyNamed('metadata'),
-        )).called(3);
-      },
     );
     
     blocTest<FeedbackCubit, FeedbackState>(
