@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:quanitya_flutter/dev/models/ocr_table_model.dart';
-import 'package:quanitya_flutter/logic/ingestion/adapters/ocr_data_source_adapter.dart';
+import 'package:quanitya_flutter/logic/ingestion/adapters/import_data_source_adapter.dart';
 import 'package:quanitya_flutter/logic/llm/services/local_llm_service.dart';
 import 'package:quanitya_flutter/logic/ocr/models/extraction_field.dart';
 import 'package:quanitya_flutter/logic/ocr/services/ocr_service.dart';
@@ -233,7 +233,7 @@ class _OcrTestPageState extends State<OcrTestPage> {
       final remapped = TemplateExtractionSchemaBuilder.remapLabelsToIds(parsedItems, _extractionFields);
 
       // Validate
-      final adapter = OcrDataSourceAdapter(_testTemplate, _extractionFields);
+      final adapter = ImportDataSourceAdapter(_testTemplate, _extractionFields);
       final allErrors = <String>[];
       for (var i = 0; i < remapped.length; i++) {
         final errors = adapter.validate(remapped[i]);
