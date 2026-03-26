@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:anonaccount_client/anonaccount_client.dart' show AccountDevice;
+import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
 
 part 'device_management_state.freezed.dart';
 
@@ -19,7 +20,7 @@ class DeviceManagementState with _$DeviceManagementState, UiFlowStateMixin imple
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     @Default([]) List<AccountDevice> devices,
     String? currentDevicePublicKey,
-    int? revokingDeviceId,
+    UuidValue? revokingDeviceId,
     String? deviceName,
     @Default(false) bool hasExistingKeys,
     Object? error,
