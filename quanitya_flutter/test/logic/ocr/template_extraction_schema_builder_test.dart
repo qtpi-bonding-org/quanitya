@@ -231,6 +231,122 @@ void main() {
       });
     });
 
+    group('buildExampleFromEntry', () {
+      test('converts entry data to label-keyed string map', () {
+        final entryData = {'uuid-1': 'Coffee', 'uuid-2': 4.66};
+        final fields = [
+          ExtractionField(
+              fieldId: 'uuid-1',
+              label: 'Item Name',
+              type: GbnfFieldType.string),
+          ExtractionField(
+              fieldId: 'uuid-2',
+              label: 'Price',
+              type: GbnfFieldType.number),
+        ];
+        final example = TemplateExtractionSchemaBuilder
+            .buildExampleFromEntry(entryData, fields);
+        expect(example, isNotNull);
+        expect(example!['Item Name'], 'Coffee');
+        expect(example['Price'], '4.66');
+      });
+
+      test('skips null values', () {
+        final entryData = {'uuid-1': 'Coffee', 'uuid-2': null};
+        final fields = [
+          ExtractionField(
+              fieldId: 'uuid-1',
+              label: 'Item Name',
+              type: GbnfFieldType.string),
+          ExtractionField(
+              fieldId: 'uuid-2',
+              label: 'Price',
+              type: GbnfFieldType.number),
+        ];
+        final example = TemplateExtractionSchemaBuilder
+            .buildExampleFromEntry(entryData, fields);
+        expect(example, isNotNull);
+        expect(example!.containsKey('Item Name'), isTrue);
+        expect(example.containsKey('Price'), isFalse);
+      });
+
+      test('skips empty string values', () {
+        final entryData = {'uuid-1': '', 'uuid-2': 4.66};
+        final fields = [
+          ExtractionField(
+              fieldId: 'uuid-1',
+              label: 'Item Name',
+              type: GbnfFieldType.string),
+          ExtractionField(
+              fieldId: 'uuid-2',
+              label: 'Price',
+              type: GbnfFieldType.number),
+        ];
+        final example = TemplateExtractionSchemaBuilder
+            .buildExampleFromEntry(entryData, fields);
+        expect(example, isNotNull);
+        expect(example!.containsKey('Item Name'), isFalse);
+        expect(example['Price'], '4.66');
+      });
+
+      test('returns null when no extractable values', () {
+        final entryData = <String, dynamic>{'other-field': 'value'};
+        final fields = [
+          ExtractionField(
+              fieldId: 'uuid-1',
+              label: 'Name',
+              type: GbnfFieldType.string),
+        ];
+        final example = TemplateExtractionSchemaBuilder
+            .buildExampleFromEntry(entryData, fields);
+        expect(example, isNull);
+      });
+
+      test('converts all types to strings', () {
+        final entryData = {
+          'f1': 'text',
+          'f2': 42,
+          'f3': 3.14,
+          'f4': true,
+        };
+        final fields = [
+          ExtractionField(
+              fieldId: 'f1', label: 'Text', type: GbnfFieldType.string),
+          ExtractionField(
+              fieldId: 'f2', label: 'Int', type: GbnfFieldType.integer),
+          ExtractionField(
+              fieldId: 'f3', label: 'Float', type: GbnfFieldType.number),
+          ExtractionField(
+              fieldId: 'f4', label: 'Bool', type: GbnfFieldType.boolean),
+        ];
+        final example = TemplateExtractionSchemaBuilder
+            .buildExampleFromEntry(entryData, fields);
+        expect(example!['Text'], 'text');
+        expect(example['Int'], '42');
+        expect(example['Float'], '3.14');
+        expect(example['Bool'], 'true');
+      });
+
+      test('ignores metadata keys in entry data', () {
+        final entryData = {
+          'uuid-1': 'Coffee',
+          '_sourceAdapter': 'ocr.on_device',
+          '_dedupKey': 'abc123',
+        };
+        final fields = [
+          ExtractionField(
+              fieldId: 'uuid-1',
+              label: 'Name',
+              type: GbnfFieldType.string),
+        ];
+        final example = TemplateExtractionSchemaBuilder
+            .buildExampleFromEntry(entryData, fields);
+        expect(example, isNotNull);
+        expect(example!.length, 1);
+        expect(example['Name'], 'Coffee');
+      });
+    });
+
     group('remapLabelsToIds', () {
       test('remaps label keys to field IDs', () {
         final items = [

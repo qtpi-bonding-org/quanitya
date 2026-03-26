@@ -100,6 +100,29 @@ class TemplateExtractionSchemaBuilder {
     return buf.toString();
   }
 
+  /// Builds a few-shot example from an existing LogEntry's data map.
+  ///
+  /// Reverses the field ID → label mapping and converts all values
+  /// to strings (NuExtract examples use string values).
+  ///
+  /// Returns null if the entry has no extractable field values.
+  static Map<String, String>? buildExampleFromEntry(
+    Map<String, dynamic> entryData,
+    List<ExtractionField> fields,
+  ) {
+    final example = <String, String>{};
+    for (final field in fields) {
+      final value = entryData[field.fieldId];
+      if (value != null) {
+        final str = value.toString();
+        if (str.isNotEmpty) {
+          example[field.label] = str;
+        }
+      }
+    }
+    return example.isEmpty ? null : example;
+  }
+
   /// Remaps LLM output from label-keyed to fieldId-keyed maps,
   /// coercing string values to their target types.
   ///
