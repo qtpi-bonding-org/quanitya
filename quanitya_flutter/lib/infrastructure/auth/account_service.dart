@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
+import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
 
 import 'package:anonaccount_client/anonaccount_client.dart'
     show
@@ -803,7 +804,7 @@ class AccountService {
   /// Revoke a device by ID.
   ///
   /// Throws [AuthException] on failure.
-  Future<void> revokeDevice(int deviceId) {
+  Future<void> revokeDevice(UuidValue deviceId) {
     return tryMethod(
       () async {
         final challenge =

@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
 
 import '../../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../../infrastructure/auth/account_service.dart';
@@ -46,7 +47,7 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
   /// Revoke a device by ID
   /// 
   /// Cannot revoke the current device - user must sign out instead.
-  Future<void> revokeDevice(int deviceId) async {
+  Future<void> revokeDevice(UuidValue deviceId) async {
     // Check if trying to revoke current device
     final device = state.devices.firstWhere(
       (d) => d.id == deviceId,
