@@ -238,7 +238,7 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
                       children: [
                         Align(
                           alignment: Alignment.centerRight,
-                          child: QuanityaIconButtonSizes.small(
+                          child: QuanityaIconButtonSizes.medium(
                             icon: Icons.camera_alt_outlined,
                             onPressed: isImportBusy
                                 ? null
