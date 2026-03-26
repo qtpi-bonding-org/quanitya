@@ -343,6 +343,12 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
     );
   }
 
+  void _showFeedback(String message, MessageType type) {
+    GetIt.I<IFeedbackService>().show(
+      FeedbackMessage(message: message, type: type),
+    );
+  }
+
   void _handleImportState(BuildContext context, ImportState importState) {
     switch (importState) {
       case ImportSingleResult(:final item):
@@ -350,30 +356,18 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
         for (final entry in item.entries) {
           cubit.updateField(entry.key, entry.value);
         }
-        PostItToast.show(
-          context,
-          message: 'Values filled from image',
-          type: PostItType.success,
-        );
+        _showFeedback('Values filled from image', MessageType.success);
         context.read<ImportCubit>().reset();
 
       case ImportMultipleResults(:final items):
         _showImportReview(context, items);
 
       case ImportDone(:final count):
-        PostItToast.show(
-          context,
-          message: '$count entries imported',
-          type: PostItType.success,
-        );
+        _showFeedback('$count entries imported', MessageType.success);
         Navigator.of(context).pop();
 
       case ImportError(:final message):
-        PostItToast.show(
-          context,
-          message: message,
-          type: PostItType.error,
-        );
+        _showFeedback(message, MessageType.error);
         context.read<ImportCubit>().reset();
 
       default:
