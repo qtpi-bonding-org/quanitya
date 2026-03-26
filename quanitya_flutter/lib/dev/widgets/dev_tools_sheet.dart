@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' as cubit_ui_flow;
-import 'package:uuid/uuid.dart';
 
 import '../../app_router.dart';
 import '../../data/db/app_database.dart';
@@ -13,11 +11,8 @@ import '../../design_system/primitives/quanitya_palette.dart';
 import '../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../support/extensions/context_extensions.dart';
-import '../../data/dao/tracker_template_dual_dao.dart';
 import '../../infrastructure/auth/delete_orchestrator.dart';
 import '../../infrastructure/notifications/notification_service.dart';
-import '../../logic/templates/enums/field_enum.dart';
-import '../../logic/templates/models/shared/template_field.dart';
 import '../services/dev_seeder_service.dart';
 
 /// Shows a bottom sheet with dev tools
@@ -145,32 +140,6 @@ class DevToolsSheet extends StatelessWidget {
               _DevToolRow(
                 label: 'Encrypted Entry Sizes',
                 child: _MeasureEntrySizesButton(),
-              ),
-              VSpace.x2,
-
-              // Create test receipt template for OCR testing
-              _DevToolRow(
-                label: 'Create Receipt Template',
-                child: _DevActionButton(
-                  text: 'Create',
-                  onPressed: () async {
-                    final templateDao = GetIt.instance<TrackerTemplateDualDao>();
-                    final id = const Uuid().v4();
-                    final fields = [
-                      TemplateField.create(label: 'Item Name', type: FieldEnum.text),
-                      TemplateField.create(label: 'Price', type: FieldEnum.float),
-                    ];
-                    await templateDao.upsert(TrackerTemplate(
-                      id: id,
-                      name: 'Grocery Receipt',
-                      fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
-                      updatedAt: DateTime.now(),
-                      isArchived: false,
-                      isHidden: false,
-                    ));
-                  },
-                  successMessage: 'Receipt template created',
-                ),
               ),
               VSpace.x2,
 

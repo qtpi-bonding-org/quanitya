@@ -95,6 +95,9 @@ class DevSeederService {
     
     final periodTemplateId = await _seedPeriodTemplate();
 
+    // Receipt template for OCR import testing
+    await _seedReceiptTemplate();
+
     // Create hidden templates (for testing hidden feature)
     final journalTemplateId = await _seedJournalTemplate(isHidden: true);
     final medicationTemplateId = await _seedMedicationTemplate(isHidden: true);
@@ -359,6 +362,27 @@ class DevSeederService {
     ));
 
     await _seedAesthetics(id, '💊', 'medication', color: '#E91E63'); // Pink
+    return _SeededTemplate(id, fields);
+  }
+
+  /// Receipt template for OCR import testing (no entries seeded)
+  Future<_SeededTemplate> _seedReceiptTemplate() async {
+    final id = _uuid.v4();
+    final fields = [
+      TemplateField.create(label: 'Item Name', type: FieldEnum.text),
+      TemplateField.create(label: 'Price', type: FieldEnum.float),
+    ];
+
+    await _templateDao.upsert(TrackerTemplate(
+      id: id,
+      name: 'Grocery Receipt',
+      fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
+      updatedAt: DateTime.now(),
+      isArchived: false,
+      isHidden: false,
+    ));
+
+    await _seedAesthetics(id, '🧾', 'receipt_long');
     return _SeededTemplate(id, fields);
   }
 
