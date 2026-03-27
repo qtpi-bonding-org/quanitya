@@ -807,7 +807,7 @@
       "fieldName": { "type": "String" }
     }
   },
-  "resultsAnalyzeFields": "Analyze Template",
+  "resultsAnalyzeFields": "Analyze",
   "resultsAnalyzeFieldsDescription": "Create or edit analysis scripts for this template",
   "resultsAnalysisResults": "Analysis Results",
   "resultsAnalysisResultsDescription": "Results from executed analysis scripts",

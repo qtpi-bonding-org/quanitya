@@ -121,24 +121,13 @@ class _AnalyzeFieldsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(Icons.functions,
-                size: AppSizes.iconMedium, color: palette.textPrimary),
-            HSpace.x1,
-            Text(
-              context.l10n.resultsAnalyzeFields,
-              style: context.text.titleLarge?.copyWith(
-                color: palette.textPrimary,
-              ),
+        Center(
+          child: Text(
+            context.l10n.resultsAnalyzeFields,
+            style: context.text.titleLarge?.copyWith(
+              color: palette.textSecondary,
             ),
-          ],
-        ),
-        VSpace.x1,
-        Text(
-          context.l10n.resultsAnalyzeFieldsDescription,
-          style:
-              context.text.bodyMedium?.copyWith(color: palette.textSecondary),
+          ),
         ),
         VSpace.x2,
         ...numericFields.map((fieldData) => _FieldAnalysisCard(
@@ -158,42 +147,14 @@ class _AnalysisResultsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.insights,
-              size: AppSizes.iconMedium,
-              color: palette.textPrimary,
-            ),
-            HSpace.x1,
-            Text(
-              context.l10n.resultsAnalysisResults,
-              style: context.text.titleLarge?.copyWith(
-                color: palette.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        VSpace.x1,
-        Text(
-          context.l10n.resultsAnalysisResultsDescription,
-          style: context.text.bodyMedium?.copyWith(
-            color: palette.textSecondary,
-          ),
-        ),
-        VSpace.x3,
-        ...analysisResults.entries.map((entry) {
-          return _AnalysisResultCard(
-            script: entry.value.script,
-            result: entry.value.result,
-          );
-        }),
-      ],
+      children: analysisResults.entries.map((entry) {
+        return _AnalysisResultCard(
+          script: entry.value.script,
+          result: entry.value.result,
+        );
+      }).toList(),
     );
   }
 }
