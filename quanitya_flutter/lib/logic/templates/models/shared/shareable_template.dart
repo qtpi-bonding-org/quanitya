@@ -138,6 +138,7 @@ abstract class ShareableTemplate with _$ShareableTemplate {
 /// Author attribution for shared templates.
 @freezed
 abstract class AuthorCredit with _$AuthorCredit {
+  const AuthorCredit._();
   const factory AuthorCredit({
     /// Author name or handle (e.g., "@PrivacyQueen", "John Doe")
     required String name,

@@ -12,6 +12,7 @@ enum TimelineDataOperation { load, filter, sort }
 /// Represents a flattened timeline item for optimized rendering
 @freezed
 abstract class TimelineItem with _$TimelineItem {
+  const TimelineItem._();
   const factory TimelineItem.entry({
     required LogEntryWithContext entryWithContext,
     required bool isFirst,
@@ -37,6 +38,7 @@ abstract class TimelineItem with _$TimelineItem {
 /// Filter configuration for timeline data
 @freezed
 abstract class TimelineFilters with _$TimelineFilters {
+  const TimelineFilters._();
   const factory TimelineFilters({
     @Default(TimelineTimeRange.all) TimelineTimeRange timeRange,
     String? templateId,
@@ -48,6 +50,7 @@ abstract class TimelineFilters with _$TimelineFilters {
 /// Sort configuration for timeline data
 @freezed
 abstract class TimelineSort with _$TimelineSort {
+  const TimelineSort._();
   const factory TimelineSort({
     @Default(TimelineSortType.date) TimelineSortType type,
     @Default(false) bool ascending, // Default: newest first for past

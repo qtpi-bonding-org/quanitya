@@ -31,6 +31,7 @@ enum ScanStatus {
 /// Pending device info parsed from QR code
 @freezed
 abstract class PendingDevice with _$PendingDevice {
+  const PendingDevice._();
   const factory PendingDevice({
     required String label,
     required String signingKeyHex,

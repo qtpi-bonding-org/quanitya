@@ -44,6 +44,7 @@ abstract class FontsConfig with _$FontsConfig {
 /// via ModelRuntimeConverter.
 @freezed
 abstract class PageTemplateConfig with _$PageTemplateConfig {
+  const PageTemplateConfig._();
   const factory PageTemplateConfig({
     /// Page title (from TrackerTemplateModel.name)
     required String title,
