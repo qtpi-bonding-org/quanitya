@@ -1,0 +1,7 @@
+CFBundleDisplayName = "Quanitya";
+NSCameraUsageDescription = "Este app precisa da câmera para escanear QR codes de pareamento.";
+NSPhotoLibraryUsageDescription = "Este app precisa da fototeca para escanear QR codes a partir de imagens.";
+NSFaceIDUsageDescription = "Autentique-se para acessar modelos ocultos e dados protegidos.";
+NSHealthShareUsageDescription = "Quanitya lê dados de saúde para registrar automaticamente seus rastreadores.";
+NSHealthUpdateUsageDescription = "Quanitya pode gravar dados de saúde a partir dos seus rastreadores.";
+NSLocationWhenInUseUsageDescription = "Quanitya registra sua localização quando você toca no botão de localização.";
