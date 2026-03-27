@@ -17,13 +17,11 @@ class LoadingService implements cubit_ui_flow.ILoadingService {
     Future.microtask(() {
       try {
         if (_overlayEntry != null) {
-          debugPrint('⚠️ LoadingService: Overlay already shown. Skipping.');
           return;
         }
 
         final overlayState = rootNavigatorKey.currentState?.overlay;
         if (overlayState == null) {
-          debugPrint('❌ LoadingService Error: Navigator overlay is null.');
           return;
         }
 
@@ -38,9 +36,8 @@ class LoadingService implements cubit_ui_flow.ILoadingService {
         _overlayEntry = entry;
 
         overlayState.insert(entry);
-        debugPrint('✅ LoadingService: Overlay inserted.');
       } catch (e, stackTrace) {
-        debugPrint('❌ LoadingService show() failed: $e\n$stackTrace');
+        debugPrint('LoadingService show() failed: $e\n$stackTrace');
         _overlayEntry = null;
       }
     });
@@ -54,7 +51,6 @@ class LoadingService implements cubit_ui_flow.ILoadingService {
         if (entry != null) {
           entry.remove();
           _overlayEntry = null;
-          debugPrint('✅ LoadingService: Overlay removed.');
         }
       } catch (e) {
         debugPrint('LoadingService hide() failed safely. Error: $e');

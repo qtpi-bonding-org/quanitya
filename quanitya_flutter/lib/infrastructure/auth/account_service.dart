@@ -108,6 +108,7 @@ class AccountService {
             'Ultimate public key hex not available',
           );
         }
+        debugPrint('🔑 createAccount: ultimatePublicKeyHex=$ultimatePublicKeyHex (${ultimatePublicKeyHex.length} chars)');
 
         // 3. Create encrypted blobs (while ultimate key is still available)
         final recoveryBlob = await _encryption.createEncryptedBlob(
@@ -407,6 +408,7 @@ class AccountService {
         // 2. Derive ultimate public key hex (128 chars)
         final ultimatePublicKeyHex =
             await ultimateKeyDuo.signingKeyPair.exportPublicKeyHex();
+        debugPrint('🔑 recoverAccount: derived ultimatePublicKeyHex=$ultimatePublicKeyHex (${ultimatePublicKeyHex.length} chars)');
 
         // 3. Recover encrypted data key from server (PoW-protected)
         final challengeResponse =
