@@ -153,6 +153,8 @@
   "pickIconTitle": "Pick Icon",
   "searchIconsHint": "Search icons...",
   "noResultsFound": "No results found",
+  "browseTemplatesTitle": "Browse Templates",
+  "importAction": "Import",
   "selectAction": "Select",
   "templateFieldsSection": "Template Fields",
   "fieldsCount": "{count} Fields",

@@ -32,7 +32,23 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   // Entry Points
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Load a template for editing (from AI, existing, or any source)
+  /// Populate the editor with template data without marking it as an existing template.
+  /// Used for AI generation, gallery import, and URL import — stays in "create" mode.
+  void populateFromTemplate(TemplateWithAesthetics templateWithAesthetics) {
+    emit(
+      state.copyWith(
+        template: null,
+        aesthetics: templateWithAesthetics.aesthetics,
+        templateName: templateWithAesthetics.template.name,
+        templateDescription: '',
+        fields: List.from(templateWithAesthetics.template.fields),
+        lastOperation: TemplateEditorOperation.load,
+        status: UiFlowStatus.idle,
+      ),
+    );
+  }
+
+  /// Load an existing template for editing (from saved templates)
   Future<void> loadTemplate(TemplateWithAesthetics templateWithAesthetics) async {
     emit(
       state.copyWith(

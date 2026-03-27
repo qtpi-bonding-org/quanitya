@@ -195,19 +195,15 @@ class TemplateImportService {
     }
   }
 
-  /// Import shareable template to local database.
-  Future<TemplateWithAesthetics> _importShareableTemplate(
+  /// Convert a shareable template to local format with new UUIDs.
+  /// Pure conversion — no database writes, no side effects.
+  TemplateWithAesthetics convertShareableTemplate(
     ShareableTemplate shareableTemplate,
-  ) async {
-    // Generate new IDs for local storage
+  ) {
     final templateId = const Uuid().v4();
 
-    // Convert template with new IDs, tracking old → new field ID mapping
-    final fieldIdMap = <String, String>{};
     final newFields = shareableTemplate.template.fields.map((field) {
-      final newId = const Uuid().v4();
-      fieldIdMap[field.id] = newId;
-      return field.copyWith(id: newId);
+      return field.copyWith(id: const Uuid().v4());
     }).toList();
 
     final localTemplate = shareableTemplate.template.copyWith(
@@ -218,7 +214,6 @@ class TemplateImportService {
       isHidden: false,
     );
 
-    // Convert aesthetics with new IDs if present
     TemplateAestheticsModel? localAesthetics;
     if (shareableTemplate.aesthetics != null) {
       localAesthetics = shareableTemplate.aesthetics!.copyWith(
@@ -228,13 +223,29 @@ class TemplateImportService {
       );
     }
 
-    // Create template with aesthetics
-    final templateWithAesthetics = TemplateWithAesthetics(
+    return TemplateWithAesthetics(
       template: localTemplate,
       aesthetics:
           localAesthetics ??
           TemplateAestheticsModel.defaults(templateId: templateId),
     );
+  }
+
+  /// Import shareable template to local database.
+  /// Converts, saves, and imports analysis scripts.
+  Future<TemplateWithAesthetics> _importShareableTemplate(
+    ShareableTemplate shareableTemplate,
+  ) async {
+    // Build field ID mapping for script remapping
+    final fieldIdMap = <String, String>{};
+    final templateWithAesthetics = convertShareableTemplate(shareableTemplate);
+
+    // Track old → new field ID mapping for scripts
+    final originalFields = shareableTemplate.template.fields;
+    final newFields = templateWithAesthetics.template.fields;
+    for (var i = 0; i < originalFields.length && i < newFields.length; i++) {
+      fieldIdMap[originalFields[i].id] = newFields[i].id;
+    }
 
     // Save template and aesthetics
     await _templateRepository.save(templateWithAesthetics);

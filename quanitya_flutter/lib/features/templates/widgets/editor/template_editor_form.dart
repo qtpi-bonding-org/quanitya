@@ -466,7 +466,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
 
       final preview = generatorCubit.state.preview;
       if (preview != null && mounted) {
-        editorCubit.loadTemplate(preview);
+        editorCubit.populateFromTemplate(preview);
       }
     } catch (e) {
       if (mounted) {

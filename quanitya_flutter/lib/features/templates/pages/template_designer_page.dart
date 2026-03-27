@@ -14,7 +14,7 @@ import '../cubits/sharing/template_sharing_export_cubit.dart';
 import '../../../logic/templates/models/shared/shareable_template.dart';
 import '../widgets/editor/template_editor_form.dart';
 import '../widgets/shared/template_preview.dart';
-import 'template_import_page.dart';
+import '../widgets/editor/template_browse_sheet.dart';
 
 /// Template designer page — create or edit tracker templates.
 ///
@@ -81,14 +81,14 @@ class TemplateDesignerPage extends StatelessWidget {
             if (state.template != null) {
               // Edit mode: show share
               return QuanityaIconButton(
-                icon: Icons.share,
+                icon: Icons.ios_share,
                 onPressed: () => _shareTemplate(context, state),
               );
             } else {
               // Create mode: show import
               return QuanityaIconButton(
                 icon: Icons.download,
-                onPressed: () => TemplateImportSheet.show(context),
+                onPressed: () => TemplateBrowseSheet.show(context),
               );
             }
           },
