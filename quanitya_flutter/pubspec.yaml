@@ -37,12 +37,12 @@ dependencies:
   anonaccount_client:
     git:
       url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
-      ref: 39f76813d243765478efdc35f8a8979dd6356f1e
+      ref: dce09352cf0e0d629b9418c63e48774572ee26cc
       path: anonaccount_client
   anonaccred_client:
     git:
       url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
-      ref: 39f76813d243765478efdc35f8a8979dd6356f1e
+      ref: dce09352cf0e0d629b9418c63e48774572ee26cc
       path: anonaccred_client
   flutter_color_palette:
     git: https://github.com/qtpi-bonding-org/flutter_color_palette.git
@@ -124,7 +124,7 @@ dependencies:
   flutter_colorable:
     git:
       url: https://github.com/qtpi-bonding-org/flutter_colorable.git
-      ref: aea1213da441aaf8bd5178d1cde9f7c3b17f431c
+      ref: 85626e6c5bfe47bb9560ec6af022b534f584fea5
   flutter_colorpicker: ^1.1.0
   flutter_iconpicker: ^4.0.3
   rrule: ^0.2.17
@@ -195,7 +195,7 @@ dev_dependencies:
   flutter_colorable_generator:
     git:
       url: https://github.com/qtpi-bonding-org/flutter_colorable.git
-      ref: aea1213da441aaf8bd5178d1cde9f7c3b17f431c
+      ref: 85626e6c5bfe47bb9560ec6af022b534f584fea5
       path: flutter_colorable_generator
   
   # L10n Key Resolver Generator
