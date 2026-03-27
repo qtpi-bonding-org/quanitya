@@ -81,7 +81,9 @@ class _AnalysisFoldBody extends StatelessWidget {
         final data = state.data;
         if (data == null) return const SizedBox.shrink();
 
-        if (state.analysisResults.isEmpty && data.numericFields.isEmpty) {
+        if (state.analysisResults.isEmpty &&
+            data.numericFields.isEmpty &&
+            data.groupFields.isEmpty) {
           return const QuanityaEmptyState();
         }
 
@@ -93,9 +95,11 @@ class _AnalysisFoldBody extends StatelessWidget {
                   analysisResults: state.analysisResults),
               VSpace.x4,
             ],
-            if (data.numericFields.isNotEmpty) ...[
+            if (data.numericFields.isNotEmpty ||
+                data.groupFields.isNotEmpty) ...[
               _AnalyzeFieldsSection(
                 numericFields: data.numericFields,
+                groupFields: data.groupFields,
                 templateId: data.template.id,
               ),
             ],
@@ -108,10 +112,12 @@ class _AnalysisFoldBody extends StatelessWidget {
 
 class _AnalyzeFieldsSection extends StatelessWidget {
   final List<NumericFieldData> numericFields;
+  final List<GroupFieldData> groupFields;
   final String templateId;
 
   const _AnalyzeFieldsSection({
     required this.numericFields,
+    required this.groupFields,
     required this.templateId,
   });
 
@@ -132,6 +138,10 @@ class _AnalyzeFieldsSection extends StatelessWidget {
         VSpace.x2,
         ...numericFields.map((fieldData) => _FieldAnalysisCard(
               fieldData: fieldData,
+              templateId: templateId,
+            )),
+        ...groupFields.map((groupData) => _GroupAnalysisCard(
+              groupData: groupData,
               templateId: templateId,
             )),
       ],
@@ -238,6 +248,93 @@ class _AnalysisResultCard extends StatelessWidget {
   Widget _buildMatrixDisplay(BuildContext context, List<dynamic> matrices) {
     return MatrixChart(
       matrices: matrices.cast<TimeSeriesMatrix>(),
+    );
+  }
+}
+
+/// Card for selecting a group field to run analysis on.
+///
+/// Groups are passed as whole objects to the WASM engine (e.g.
+/// `[{sleep: 7, mood: "ok"}, ...]`), so they appear as a single entry.
+class _GroupAnalysisCard extends StatelessWidget {
+  final GroupFieldData groupData;
+  final String templateId;
+
+  const _GroupAnalysisCard({
+    required this.groupData,
+    required this.templateId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    final subFieldLabels = groupData.field.subFields
+            ?.map((sf) => sf.label)
+            .join(', ') ??
+        '';
+
+    return Container(
+      margin: EdgeInsets.only(bottom: AppSizes.space),
+      child: Semantics(
+        button: true,
+        label: context.l10n.resultsAnalyzeField(groupData.field.label),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+            onTap: () {
+              AppNavigation.toAnalysisBuilder(
+                context,
+                fieldId: groupData.field.label,
+                templateId: templateId,
+              );
+            },
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: AppSizes.buttonHeight,
+              ),
+              child: Container(
+                padding: AppPadding.allDouble,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: palette.textSecondary.withValues(alpha: 0.2),
+                  ),
+                  borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            groupData.field.label,
+                            style: context.text.titleMedium?.copyWith(
+                              color: palette.textPrimary,
+                            ),
+                          ),
+                          VSpace.x05,
+                          Text(
+                            '${context.l10n.resultsDataPoints(groupData.entryCount)} · $subFieldLabels',
+                            style: context.text.bodyMedium?.copyWith(
+                              color: palette.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: palette.textSecondary,
+                      size: AppSizes.iconMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

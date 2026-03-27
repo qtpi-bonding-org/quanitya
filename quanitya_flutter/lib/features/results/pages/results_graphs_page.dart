@@ -85,14 +85,14 @@ class _GraphsFoldBody extends StatelessWidget {
               LayoutGroup.grid(
                 minItemWidth: 30,
                 children: [
-                  ...data.numericFields
+                  ...data.allNumericFields
                       .map((field) => _NumericChartSection(fieldData: field)),
-                  ...data.booleanFields
+                  ...data.allBooleanFields
                       .map((field) => _BooleanChartSection(fieldData: field)),
-                  ...data.categoricalFields
+                  ...data.allCategoricalFields
                       .map((field) =>
                           _CategoricalChartSection(fieldData: field)),
-                  ...data.locationFields
+                  ...data.allLocationFields
                       .map((field) =>
                           _LocationMapSection(fieldData: field)),
                 ],

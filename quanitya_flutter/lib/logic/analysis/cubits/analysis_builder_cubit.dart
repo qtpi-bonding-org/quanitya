@@ -34,6 +34,13 @@ const analysisHintSnippet = '''
 // data.getDates()  → [Date, Date, ...]
 // data.col()       → [{value, timestamp, date}, ...]
 //
+// ── groups ───────────────────────────────────
+// Each value is an object with subfield names as keys:
+//   data.values[0].sleep      → 7
+//   data.values[0].mood       → "ok"
+// Extract a subfield across all entries:
+//   data.values.map(v => v.sleep)  → [7, 8, 6, ...]
+//
 // ── libraries ────────────────────────────────
 // ss / simpleStatistics  (simple-statistics)
 // jstat                  (jStat)
@@ -88,7 +95,9 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         );
         if (templateWithAesthetics != null) {
           availableFields = templateWithAesthetics.template.fields
-              .where((field) => _isNumericField(field.type))
+              .where((field) =>
+                  _isNumericField(field.type) ||
+                  field.type == FieldEnum.group)
               .map((field) => field.label)
               .toList();
         }

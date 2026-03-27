@@ -59,13 +59,33 @@ class LocationFieldData {
   bool get isEmpty => points.isEmpty;
 }
 
+/// A group field available for analysis (passed as whole object to WASM).
+class GroupFieldData {
+  final TemplateField field;
+  final int entryCount;
+
+  const GroupFieldData({required this.field, required this.entryCount});
+}
+
 /// Aggregated data for a template, organized by field type.
 class TemplateAggregatedData {
   final TrackerTemplateModel template;
+
+  /// Top-level numeric fields only (used by analysis).
   final List<NumericFieldData> numericFields;
   final List<BooleanFieldData> booleanFields;
   final List<CategoricalFieldData> categoricalFields;
   final List<LocationFieldData> locationFields;
+
+  /// Decomposed group subfields (used by graphs, not analysis).
+  final List<NumericFieldData> groupNumericFields;
+  final List<BooleanFieldData> groupBooleanFields;
+  final List<CategoricalFieldData> groupCategoricalFields;
+  final List<LocationFieldData> groupLocationFields;
+
+  /// Whole group fields for analysis (each passed as one object to WASM).
+  final List<GroupFieldData> groupFields;
+
   final int totalEntries;
   final int completedEntries;
   final DateTime startDate;
@@ -78,6 +98,11 @@ class TemplateAggregatedData {
     required this.booleanFields,
     required this.categoricalFields,
     required this.locationFields,
+    this.groupNumericFields = const [],
+    this.groupBooleanFields = const [],
+    this.groupCategoricalFields = const [],
+    this.groupLocationFields = const [],
+    this.groupFields = const [],
     required this.totalEntries,
     required this.completedEntries,
     required this.startDate,
@@ -85,11 +110,21 @@ class TemplateAggregatedData {
     required this.loggedDates,
   });
 
+  /// All numeric fields including group subfields (for graphs).
+  List<NumericFieldData> get allNumericFields =>
+      [...numericFields, ...groupNumericFields];
+  List<BooleanFieldData> get allBooleanFields =>
+      [...booleanFields, ...groupBooleanFields];
+  List<CategoricalFieldData> get allCategoricalFields =>
+      [...categoricalFields, ...groupCategoricalFields];
+  List<LocationFieldData> get allLocationFields =>
+      [...locationFields, ...groupLocationFields];
+
   bool get hasGraphableFields =>
-      numericFields.isNotEmpty ||
-      booleanFields.isNotEmpty ||
-      categoricalFields.isNotEmpty ||
-      locationFields.isNotEmpty;
+      allNumericFields.isNotEmpty ||
+      allBooleanFields.isNotEmpty ||
+      allCategoricalFields.isNotEmpty ||
+      allLocationFields.isNotEmpty;
 }
 
 
@@ -277,6 +312,11 @@ class DataRetrievalService {
         final booleanFields = <BooleanFieldData>[];
         final categoricalFields = <CategoricalFieldData>[];
         final locationFields = <LocationFieldData>[];
+        final groupNumericFields = <NumericFieldData>[];
+        final groupBooleanFields = <BooleanFieldData>[];
+        final groupCategoricalFields = <CategoricalFieldData>[];
+        final groupLocationFields = <LocationFieldData>[];
+        final groupFields = <GroupFieldData>[];
 
         for (final field in template.fields) {
           switch (field.type) {
@@ -290,10 +330,27 @@ class DataRetrievalService {
               categoricalFields.add(_extractCategoricalData(field, entries));
             case FieldEnum.location:
               locationFields.add(_extractLocationData(field, entries));
+            case FieldEnum.group:
+              _extractGroupSubfields(
+                field,
+                entries,
+                groupNumericFields,
+                groupBooleanFields,
+                groupCategoricalFields,
+                groupLocationFields,
+              );
+              final groupEntryCount = entries
+                  .where((e) => e.entry.data[field.id] != null)
+                  .length;
+              if (groupEntryCount > 0) {
+                groupFields.add(GroupFieldData(
+                  field: field,
+                  entryCount: groupEntryCount,
+                ));
+              }
             case FieldEnum.text:
             case FieldEnum.datetime:
             case FieldEnum.reference:
-            case FieldEnum.group:
             case FieldEnum.multiEnum:
               break; // Not aggregatable
           }
@@ -314,6 +371,11 @@ class DataRetrievalService {
           booleanFields: booleanFields.where((f) => !f.isEmpty).toList(),
           categoricalFields: categoricalFields.where((f) => !f.isEmpty).toList(),
           locationFields: locationFields.where((f) => !f.isEmpty).toList(),
+          groupNumericFields: groupNumericFields.where((f) => !f.isEmpty).toList(),
+          groupBooleanFields: groupBooleanFields.where((f) => !f.isEmpty).toList(),
+          groupCategoricalFields: groupCategoricalFields.where((f) => !f.isEmpty).toList(),
+          groupLocationFields: groupLocationFields.where((f) => !f.isEmpty).toList(),
+          groupFields: groupFields,
           totalEntries: entries.length,
           completedEntries: entries.where((e) => e.entry.isCompleted).length,
           startDate: startDate,
@@ -398,6 +460,139 @@ class DataRetrievalService {
     }
     points.sort((a, b) => a.date.compareTo(b.date));
     return LocationFieldData(field: field, points: points);
+  }
+
+  /// Extracts visualizable subfields from a group field.
+  ///
+  /// Group data is stored as `entry.data[groupId] = {subFieldId: value, ...}`.
+  /// Each subfield is treated as a normal field for graphing, with its label
+  /// prefixed by the group name (e.g. "Workout · Reps").
+  void _extractGroupSubfields(
+    TemplateField groupField,
+    List<LogEntryWithContext> entries,
+    List<NumericFieldData> numericFields,
+    List<BooleanFieldData> booleanFields,
+    List<CategoricalFieldData> categoricalFields,
+    List<LocationFieldData> locationFields,
+  ) {
+    final subFields = groupField.subFields;
+    if (subFields == null) return;
+
+    for (final subField in subFields) {
+      // Create a labeled copy so charts show "Group · SubField"
+      final labeledField = subField.copyWith(
+        label: '${groupField.label} · ${subField.label}',
+      );
+
+      switch (subField.type) {
+        case FieldEnum.integer:
+        case FieldEnum.float:
+        case FieldEnum.dimension:
+          numericFields.add(_extractGroupSubfieldNumeric(
+            groupField.id, subField.id, labeledField, entries,
+          ));
+        case FieldEnum.boolean:
+          booleanFields.add(_extractGroupSubfieldBoolean(
+            groupField.id, subField.id, labeledField, entries,
+          ));
+        case FieldEnum.enumerated:
+          categoricalFields.add(_extractGroupSubfieldCategorical(
+            groupField.id, subField.id, labeledField, entries,
+          ));
+        case FieldEnum.location:
+          locationFields.add(_extractGroupSubfieldLocation(
+            groupField.id, subField.id, labeledField, entries,
+          ));
+        case FieldEnum.text:
+        case FieldEnum.datetime:
+        case FieldEnum.reference:
+        case FieldEnum.group:
+        case FieldEnum.multiEnum:
+          break;
+      }
+    }
+  }
+
+  /// Gets a subfield value from the nested group data in an entry.
+  dynamic _getGroupSubfieldValue(
+    LogEntryWithContext entry, String groupFieldId, String subFieldId,
+  ) {
+    final groupData = entry.entry.data[groupFieldId];
+    if (groupData is Map) return groupData[subFieldId];
+    return null;
+  }
+
+  NumericFieldData _extractGroupSubfieldNumeric(
+    String groupId, String subFieldId, TemplateField labeledField,
+    List<LogEntryWithContext> entries,
+  ) {
+    final points = <({DateTime date, num value})>[];
+    for (final entry in entries) {
+      final raw = _getGroupSubfieldValue(entry, groupId, subFieldId);
+      final value = _parseNumeric(raw);
+      if (value != null) {
+        points.add((date: entry.entry.displayTimestamp, value: value));
+      }
+    }
+    points.sort((a, b) => a.date.compareTo(b.date));
+    return NumericFieldData(field: labeledField, points: points);
+  }
+
+  BooleanFieldData _extractGroupSubfieldBoolean(
+    String groupId, String subFieldId, TemplateField labeledField,
+    List<LogEntryWithContext> entries,
+  ) {
+    final points = <({DateTime date, bool value})>[];
+    for (final entry in entries) {
+      final value = _getGroupSubfieldValue(entry, groupId, subFieldId);
+      if (value is bool) {
+        points.add((date: entry.entry.displayTimestamp, value: value));
+      }
+    }
+    points.sort((a, b) => a.date.compareTo(b.date));
+    return BooleanFieldData(field: labeledField, points: points);
+  }
+
+  CategoricalFieldData _extractGroupSubfieldCategorical(
+    String groupId, String subFieldId, TemplateField labeledField,
+    List<LogEntryWithContext> entries,
+  ) {
+    final points = <({DateTime date, String category})>[];
+    for (final entry in entries) {
+      final value = _getGroupSubfieldValue(entry, groupId, subFieldId);
+      if (value is String && value.isNotEmpty) {
+        points.add((date: entry.entry.displayTimestamp, category: value));
+      }
+    }
+    points.sort((a, b) => a.date.compareTo(b.date));
+    return CategoricalFieldData(
+      field: labeledField,
+      categories: labeledField.options ?? [],
+      points: points,
+    );
+  }
+
+  LocationFieldData _extractGroupSubfieldLocation(
+    String groupId, String subFieldId, TemplateField labeledField,
+    List<LogEntryWithContext> entries,
+  ) {
+    final points = <({DateTime date, double latitude, double longitude})>[];
+    for (final entry in entries) {
+      final value = _getGroupSubfieldValue(entry, groupId, subFieldId);
+      if (value is Map) {
+        final lat = value['latitude'];
+        final lng = value['longitude'];
+        if (lat is num && lng is num) {
+          points.add((
+            date: entry.entry.displayTimestamp,
+            latitude: lat.toDouble(),
+            longitude: lng.toDouble(),
+          ));
+        }
+      }
+    }
+    points.sort((a, b) => a.date.compareTo(b.date));
+    return LocationFieldData(field: labeledField, points: points);
   }
 
   num? _parseNumeric(dynamic value) {
