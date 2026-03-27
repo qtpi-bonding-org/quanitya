@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:serverpod_client/serverpod_client.dart' show ServerpodClientUnauthorized;
 
 import '../core/try_operation.dart';
 import 'account_service.dart';
@@ -37,15 +38,37 @@ class AuthAccountOrchestrator {
     return tryMethod(() async {
       if (_authService.hasValidSession) return;
 
-      try {
-        await _authService.ensureAuthenticated();
-      } on DeviceAuthenticationException {
-        debugPrint('AuthAccountOrchestrator: device auth failed — re-registering');
-        await _accountService.ensureRegistered(deviceLabel: 'auto', force: true);
-        await _authService.ensureAuthenticated();
-      }
+      await _authenticate();
     }, (message, [cause]) => DeviceAuthenticationException(message, cause: cause),
         'ensureAuthenticated',
     );
+  }
+
+  /// Execute [action] with automatic JWT refresh on 401.
+  ///
+  /// Use this to wrap any authenticated Serverpod call. If the call
+  /// returns 401 (e.g. server restarted and invalidated all JWTs),
+  /// the session is cleared, a fresh JWT is obtained, and the call
+  /// is retried once.
+  Future<T> withAuth<T>(Future<T> Function() action) async {
+    await ensureAuthenticated();
+    try {
+      return await action();
+    } on ServerpodClientUnauthorized {
+      debugPrint('AuthAccountOrchestrator: 401 on call — refreshing JWT');
+      await _authService.clearSession();
+      await _authenticate();
+      return await action();
+    }
+  }
+
+  Future<void> _authenticate() async {
+    try {
+      await _authService.ensureAuthenticated();
+    } on DeviceAuthenticationException {
+      debugPrint('AuthAccountOrchestrator: device auth failed — re-registering');
+      await _accountService.ensureRegistered(deviceLabel: 'auto', force: true);
+      await _authService.ensureAuthenticated();
+    }
   }
 }

@@ -10,6 +10,7 @@ import '../models/llm_types.dart';
 import 'schema_translator.dart';
 
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
+import '../../auth/auth_account_orchestrator.dart';
 
 /// Super lightweight LLM service with structured output support
 /// Compatible with OpenRouter and Ollama
@@ -17,8 +18,9 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 class LlmService {
   final http.Client _client;
   final Client _serverpodClient;
+  final AuthAccountOrchestrator _authOrchestrator;
 
-  LlmService(this._client, this._serverpodClient);
+  LlmService(this._client, this._serverpodClient, this._authOrchestrator);
 
   /// Execute structured LLM request with strict JSON schema enforcement
   Future<LlmResponse> execute(LlmConfig config, LlmRequest request) {
@@ -42,11 +44,13 @@ class LlmService {
             model: config.model,
           );
 
-          // Execute via Serverpod Endpoint (server-side OpenRouter timeout is 30s,
-          // so client needs ≥35s to avoid timing out before the server does)
-          final response = await _serverpodClient.cloudLlm
-              .generateStructured(cloudRequest)
-              .timeout(const Duration(seconds: 45));
+          // Execute via Serverpod Endpoint with automatic JWT refresh on 401.
+          // Server-side OpenRouter timeout is 30s, so client needs ≥35s.
+          final response = await _authOrchestrator.withAuth(
+            () => _serverpodClient.cloudLlm
+                .generateStructured(cloudRequest)
+                .timeout(const Duration(seconds: 45)),
+          );
 
           if (kDebugMode) {
              debugPrint('☁️☁️☁️ CLOUD PROXY SUCCESS (balance: ${response.balance}) ☁️☁️☁️\n');

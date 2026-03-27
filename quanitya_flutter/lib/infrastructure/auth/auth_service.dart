@@ -161,6 +161,12 @@ class AuthService {
   /// Whether the Serverpod client currently holds a valid JWT session.
   bool get hasValidSession => _client.auth.isAuthenticated;
 
+  /// Clear the in-memory JWT session (e.g. after a 401 from the server).
+  /// The next call to [ensureAuthenticated] will obtain a fresh JWT.
+  Future<void> clearSession() async {
+    await _client.auth.updateSignedInUser(null);
+  }
+
   /// Check if user is authenticated (has stored device keys)
   Future<bool> isAuthenticated() {
     return tryMethod(
