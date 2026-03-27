@@ -17,7 +17,7 @@ part 'template_aesthetics.g.dart';
 /// 
 /// NOT encrypted - contains only styling data, no sensitive information.
 @freezed
-class TemplateAestheticsModel with _$TemplateAestheticsModel {
+abstract class TemplateAestheticsModel with _$TemplateAestheticsModel {
   const TemplateAestheticsModel._();
   
   const factory TemplateAestheticsModel({
@@ -194,7 +194,7 @@ extension TemplateAestheticsConversion on TemplateAestheticsModel {
 /// Fixed app constants (Washi White background, Sumi Black text) are NOT stored
 /// here - they come from QuanityaPalette. This only stores customizable colors.
 @freezed
-class ColorPaletteData with _$ColorPaletteData {
+abstract class ColorPaletteData with _$ColorPaletteData {
   const ColorPaletteData._();
 
   const factory ColorPaletteData({
@@ -250,7 +250,7 @@ class ColorPaletteData with _$ColorPaletteData {
 
 /// Font configuration data
 @freezed
-class FontConfigData with _$FontConfigData {
+abstract class FontConfigData with _$FontConfigData {
   const FontConfigData._();
   
   const factory FontConfigData({

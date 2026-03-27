@@ -31,7 +31,7 @@ class ResultsTemplateItem {
 }
 
 @freezed
-class ResultsListState
+abstract class ResultsListState
     with _$ResultsListState, UiFlowStateMixin
     implements IUiFlowState {
   const ResultsListState._();

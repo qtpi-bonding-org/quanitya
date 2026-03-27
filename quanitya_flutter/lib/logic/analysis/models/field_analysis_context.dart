@@ -7,7 +7,8 @@ part 'field_analysis_context.g.dart';
 
 /// Context information about a field for AI analysis suggestions
 @freezed
-class FieldAnalysisContext with _$FieldAnalysisContext {
+abstract class FieldAnalysisContext with _$FieldAnalysisContext {
+  const FieldAnalysisContext._();
   const factory FieldAnalysisContext({
     required String fieldId,
     required String fieldName,
@@ -58,7 +59,8 @@ extension FieldAnalysisContextExt on FieldAnalysisContext {
 
 /// Context for AI pipeline suggestions
 @freezed
-class PipelineSuggestionContext with _$PipelineSuggestionContext {
+abstract class PipelineSuggestionContext with _$PipelineSuggestionContext {
+  const PipelineSuggestionContext._();
   const factory PipelineSuggestionContext({
     required FieldAnalysisContext fieldContext,
     required String userIntent,

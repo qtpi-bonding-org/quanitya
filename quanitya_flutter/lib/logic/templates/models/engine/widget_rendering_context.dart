@@ -14,7 +14,7 @@ part 'widget_rendering_context.freezed.dart';
 /// - WCAG AA compliance validation results
 /// - Current field value and change handlers
 @freezed
-class WidgetRenderingContext with _$WidgetRenderingContext {
+abstract class WidgetRenderingContext with _$WidgetRenderingContext {
   const factory WidgetRenderingContext({
     /// The template field containing atomic field decision data
     required TemplateField field,

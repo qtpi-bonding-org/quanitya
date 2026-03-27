@@ -19,7 +19,7 @@ enum TemplateShareResult {
 }
 
 @freezed
-class TemplateSharingExportState
+abstract class TemplateSharingExportState
     with _$TemplateSharingExportState, UiFlowStateMixin
     implements IUiFlowState {
   const TemplateSharingExportState._();

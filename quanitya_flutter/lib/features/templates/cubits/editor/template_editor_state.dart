@@ -26,7 +26,7 @@ enum TemplateEditorOperation {
 /// State for the unified template editor
 /// Agnostic to how the user entered - just edits templates
 @freezed
-class TemplateEditorState
+abstract class TemplateEditorState
     with _$TemplateEditorState, UiFlowStateMixin
     implements IUiFlowState {
   const TemplateEditorState._();

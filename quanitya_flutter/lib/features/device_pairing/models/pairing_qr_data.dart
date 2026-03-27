@@ -14,7 +14,8 @@ enum PairingAction {
 /// Device A scans this, encrypts the SDK with Device B's public key,
 /// and registers Device B with the server.
 @freezed
-class PairingQrData with _$PairingQrData {
+abstract class PairingQrData with _$PairingQrData {
+  const PairingQrData._();
   const factory PairingQrData({
     /// Action identifier - currently only "pair" supported
     required PairingAction action,

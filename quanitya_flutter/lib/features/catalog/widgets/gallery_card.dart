@@ -7,17 +7,16 @@ import '../../../support/extensions/context_extensions.dart';
 
 /// A read-only gallery card for community template browsing.
 ///
-/// Shows emoji + name, with a teal checkmark overlay when selected.
-/// Uses [InkWell] for proper 48dp touch targets and feedback.
+/// Shows a TemplateIcon + name, with a teal checkmark overlay when selected.
 class GalleryCard extends StatelessWidget {
-  final String emoji;
+  final Widget icon;
   final String name;
   final bool isSelected;
   final VoidCallback? onTap;
 
   const GalleryCard({
     super.key,
-    required this.emoji,
+    required this.icon,
     required this.name,
     this.isSelected = false,
     this.onTap,
@@ -39,15 +38,11 @@ class GalleryCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Emoji with optional selection overlay
               Center(
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    Text(
-                      emoji,
-                      style: TextStyle(fontSize: AppSizes.fontMassive),
-                    ),
+                    icon,
                     if (isSelected)
                       Positioned(
                         top: -2,
@@ -64,7 +59,6 @@ class GalleryCard extends StatelessWidget {
 
               VSpace.x05,
 
-              // Name
               Padding(
                 padding: AppPadding.horizontalSingle,
                 child: Text(

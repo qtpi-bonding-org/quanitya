@@ -11,7 +11,7 @@ enum TimelineDataOperation { load, filter, sort }
 
 /// Represents a flattened timeline item for optimized rendering
 @freezed
-class TimelineItem with _$TimelineItem {
+abstract class TimelineItem with _$TimelineItem {
   const factory TimelineItem.entry({
     required LogEntryWithContext entryWithContext,
     required bool isFirst,
@@ -36,7 +36,7 @@ class TimelineItem with _$TimelineItem {
 
 /// Filter configuration for timeline data
 @freezed
-class TimelineFilters with _$TimelineFilters {
+abstract class TimelineFilters with _$TimelineFilters {
   const factory TimelineFilters({
     @Default(TimelineTimeRange.all) TimelineTimeRange timeRange,
     String? templateId,
@@ -47,7 +47,7 @@ class TimelineFilters with _$TimelineFilters {
 
 /// Sort configuration for timeline data
 @freezed
-class TimelineSort with _$TimelineSort {
+abstract class TimelineSort with _$TimelineSort {
   const factory TimelineSort({
     @Default(TimelineSortType.date) TimelineSortType type,
     @Default(false) bool ascending, // Default: newest first for past
@@ -55,7 +55,7 @@ class TimelineSort with _$TimelineSort {
 }
 
 @freezed
-class TimelineDataState
+abstract class TimelineDataState
     with _$TimelineDataState, UiFlowStateMixin
     implements IUiFlowState {
   const TimelineDataState._();

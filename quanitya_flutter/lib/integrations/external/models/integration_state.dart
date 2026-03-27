@@ -11,7 +11,7 @@ part 'integration_state.g.dart';
 /// and metadata for an integration. Used by the registry to
 /// manage integration health and provide user feedback.
 @freezed
-class IntegrationState with _$IntegrationState {
+abstract class IntegrationState with _$IntegrationState {
   const factory IntegrationState({
     /// Current status of the integration
     required IntegrationStatus status,

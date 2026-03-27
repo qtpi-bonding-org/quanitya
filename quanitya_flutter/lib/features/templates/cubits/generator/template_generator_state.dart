@@ -8,7 +8,7 @@ part 'template_generator_state.freezed.dart';
 enum GeneratorOperation { generate, save, discard }
 
 @freezed
-class TemplateGeneratorState
+abstract class TemplateGeneratorState
     with _$TemplateGeneratorState, UiFlowStateMixin
     implements IUiFlowState {
   const TemplateGeneratorState._();

@@ -9,7 +9,7 @@ part 'entitlement_state.freezed.dart';
 enum EntitlementOperation { loadEntitlements, loadStorageUsage, markPurchased, reset, refreshIfStale }
 
 @freezed
-class EntitlementState with _$EntitlementState, UiFlowStateMixin implements IUiFlowState {
+abstract class EntitlementState with _$EntitlementState, UiFlowStateMixin implements IUiFlowState {
   const EntitlementState._();
 
   const factory EntitlementState({

@@ -9,7 +9,8 @@ part 'analysis_input.freezed.dart';
 /// This model encapsulates all the parameters needed for analysis script generation,
 /// providing type safety and clear structure for the orchestrator.
 @freezed
-class AnalysisInput with _$AnalysisInput {
+abstract class AnalysisInput with _$AnalysisInput {
+  const AnalysisInput._();
   const factory AnalysisInput({
     /// User's natural language description of what they want to analyze
     required String intent,

@@ -21,7 +21,7 @@ enum BackupMethod {
 }
 
 @freezed
-class OnboardingState with _$OnboardingState, UiFlowStateMixin implements IUiFlowState {
+abstract class OnboardingState with _$OnboardingState, UiFlowStateMixin implements IUiFlowState {
   const OnboardingState._();
 
   const factory OnboardingState({

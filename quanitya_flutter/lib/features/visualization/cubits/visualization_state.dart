@@ -18,7 +18,7 @@ class ScriptResult {
 }
 
 @freezed
-class VisualizationState
+abstract class VisualizationState
     with _$VisualizationState, UiFlowStateMixin
     implements IUiFlowState {
   const VisualizationState._();

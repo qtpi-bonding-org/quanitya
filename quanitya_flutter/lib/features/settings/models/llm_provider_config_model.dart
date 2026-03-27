@@ -5,7 +5,8 @@ import '../../../infrastructure/llm/models/llm_types.dart';
 part 'llm_provider_config_model.freezed.dart';
 
 @freezed
-class LlmProviderConfigModel with _$LlmProviderConfigModel {
+abstract class LlmProviderConfigModel with _$LlmProviderConfigModel {
+  const LlmProviderConfigModel._();
   const factory LlmProviderConfigModel({
     required String id,
     @Default(LlmProvider.openRouter) LlmProvider provider,

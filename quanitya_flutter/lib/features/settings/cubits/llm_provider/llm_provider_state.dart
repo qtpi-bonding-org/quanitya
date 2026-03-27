@@ -9,7 +9,7 @@ part 'llm_provider_state.freezed.dart';
 enum LlmProviderOperation { load, save, delete, testConnection, fetchModels }
 
 @freezed
-class LlmProviderState with _$LlmProviderState, UiFlowStateMixin implements IUiFlowState {
+abstract class LlmProviderState with _$LlmProviderState, UiFlowStateMixin implements IUiFlowState {
   const LlmProviderState._();
 
   const factory LlmProviderState({

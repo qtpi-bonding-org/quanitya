@@ -8,7 +8,7 @@ part 'template_list_state.freezed.dart';
 enum TemplateListOperation { load, archive, delete, instantLog, hide, unhide }
 
 @freezed
-class TemplateListState
+abstract class TemplateListState
     with _$TemplateListState, UiFlowStateMixin
     implements IUiFlowState {
   const TemplateListState._();

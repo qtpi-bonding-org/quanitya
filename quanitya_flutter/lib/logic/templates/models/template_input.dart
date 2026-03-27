@@ -7,7 +7,8 @@ part 'template_input.freezed.dart';
 /// This model encapsulates all the parameters needed for template generation,
 /// providing type safety and clear structure for the orchestrator.
 @freezed
-class TemplateInput with _$TemplateInput {
+abstract class TemplateInput with _$TemplateInput {
+  const TemplateInput._();
   const factory TemplateInput({
     /// User's natural language description of what they want to track
     required String description,

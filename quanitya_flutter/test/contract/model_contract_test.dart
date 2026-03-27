@@ -137,7 +137,7 @@ void main() {
 
     test('AccountDevice roundtrips through JSON', () {
       final original = AccountDevice(
-        id: UuidValue.fromString('00000000-0000-0000-0000-000000000004'),
+        id: UuidValue.fromString('a0000000-0000-4000-8000-000000000004'),
         anonAccountId: UuidValue.fromString('b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e'),
         deviceSigningPublicKeyHex: 'key',
         encryptedDataKey: 'blob',
@@ -156,7 +156,7 @@ void main() {
     test('AuthenticationResult roundtrips through JSON', () {
       final original = AuthenticationResult(
         success: true,
-        deviceId: UuidValue.fromString('00000000-0000-0000-0000-000000000005'),
+        deviceId: UuidValue.fromString('a0000000-0000-4000-8000-000000000005'),
       );
 
       final json = original.toJson();

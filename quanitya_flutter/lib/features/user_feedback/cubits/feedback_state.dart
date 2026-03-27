@@ -10,7 +10,7 @@ enum FeedbackOperation {
 
 /// State for feedback submission.
 @freezed
-class FeedbackState with _$FeedbackState, UiFlowStateMixin implements IUiFlowState {
+abstract class FeedbackState with _$FeedbackState, UiFlowStateMixin implements IUiFlowState {
   const factory FeedbackState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,

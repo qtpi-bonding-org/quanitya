@@ -62,7 +62,8 @@ abstract class IIntegratorAuth {
 /// Provides detailed information about the authentication outcome
 /// for proper error handling and user feedback.
 @freezed
-class IntegratorAuthResult with _$IntegratorAuthResult {
+abstract class IntegratorAuthResult with _$IntegratorAuthResult {
+  const IntegratorAuthResult._();
   /// Authentication completed successfully.
   const factory IntegratorAuthResult.success({
     /// Optional metadata about the authentication

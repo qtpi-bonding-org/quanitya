@@ -73,7 +73,7 @@ class NoticesCubit extends QuanityaCubit<NoticesState> {
 }
 
 @freezed
-class NoticesState with _$NoticesState, UiFlowStateMixin implements IUiFlowState {
+abstract class NoticesState with _$NoticesState, UiFlowStateMixin implements IUiFlowState {
   const factory NoticesState({
     @Default([]) List<NotificationData> notifications,
     @Default(UiFlowStatus.idle) UiFlowStatus status,

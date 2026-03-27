@@ -9,7 +9,8 @@ part 'timestamp_vector.g.dart';
 /// Represents temporal data extracted from time series matrices.
 /// Provides time-specific operations and pattern analysis.
 @freezed
-class TimestampVector with _$TimestampVector {
+abstract class TimestampVector with _$TimestampVector {
+  const TimestampVector._();
   const factory TimestampVector(List<DateTime> timestamps) = _TimestampVector;
   
   factory TimestampVector.fromJson(Map<String, dynamic> json) => 

@@ -9,7 +9,8 @@ part 'analysis_output.freezed.dart';
 /// A script MUST be configured to produce exactly one of these types.
 /// The content is always a LIST of that type (e.g. Multi-Scalar, Multi-Vector).
 @freezed
-class AnalysisOutput with _$AnalysisOutput {
+abstract class AnalysisOutput with _$AnalysisOutput {
+  const AnalysisOutput._();
   /// List of scalar values (e.g. Mean=10, Max=20)
   const factory AnalysisOutput.scalar(List<AnalysisScalar> scalars) =
       _ScalarOutput;
@@ -25,7 +26,8 @@ class AnalysisOutput with _$AnalysisOutput {
 
 /// Simple labeled scalar
 @freezed
-class AnalysisScalar with _$AnalysisScalar {
+abstract class AnalysisScalar with _$AnalysisScalar {
+  const AnalysisScalar._();
   const factory AnalysisScalar({
     required String label,
     required double value,
@@ -35,7 +37,8 @@ class AnalysisScalar with _$AnalysisScalar {
 
 /// Simple labeled vector (1D)
 @freezed
-class AnalysisVector with _$AnalysisVector {
+abstract class AnalysisVector with _$AnalysisVector {
+  const AnalysisVector._();
   const factory AnalysisVector({
     required String label,
     required List<double> values,

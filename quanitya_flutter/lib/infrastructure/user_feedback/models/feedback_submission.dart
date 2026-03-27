@@ -5,7 +5,8 @@ part 'feedback_submission.g.dart';
 
 /// Feedback submission result.
 @freezed
-class FeedbackSubmission with _$FeedbackSubmission {
+abstract class FeedbackSubmission with _$FeedbackSubmission {
+  const FeedbackSubmission._();
   const factory FeedbackSubmission({
     required int feedbackId,
     required DateTime timestamp,

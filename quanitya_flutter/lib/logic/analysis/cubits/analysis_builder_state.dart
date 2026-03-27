@@ -23,7 +23,7 @@ enum ScriptBuilderOperation {
 enum SlotPosition { leftBranch, rightBranch, combiner }
 
 @freezed
-class ScriptSlot with _$ScriptSlot {
+abstract class ScriptSlot with _$ScriptSlot {
   const factory ScriptSlot({
     required SlotPosition position,
     required int slotIndex, // 0, 1, 2 (which slot in that position)
@@ -34,7 +34,7 @@ class ScriptSlot with _$ScriptSlot {
 
 /// Represents a branch in the parallel analysis
 @freezed
-class ScriptBranch with _$ScriptBranch {
+abstract class ScriptBranch with _$ScriptBranch {
   const factory ScriptBranch({
     required SlotPosition position,
     required List<ScriptSlot> slots,
@@ -44,7 +44,7 @@ class ScriptBranch with _$ScriptBranch {
 }
 
 @freezed
-class AnalysisBuilderState
+abstract class AnalysisBuilderState
     with _$AnalysisBuilderState, UiFlowStateMixin
     implements IUiFlowState {
   const factory AnalysisBuilderState({

@@ -23,7 +23,7 @@ class ScheduleWithContext {
 enum ScheduleListOperation { load, create, pause, resume, delete, update }
 
 @freezed
-class ScheduleListState
+abstract class ScheduleListState
     with _$ScheduleListState, UiFlowStateMixin
     implements IUiFlowState {
   const ScheduleListState._();

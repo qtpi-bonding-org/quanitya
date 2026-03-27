@@ -14,7 +14,8 @@ part 'template_field.g.dart';
 /// for individual form fields in tracker templates. UI presentation
 /// is handled separately via TemplateTheme.
 @freezed
-class TemplateField with _$TemplateField {
+abstract class TemplateField with _$TemplateField {
+  const TemplateField._();
   const factory TemplateField({
     /// Unique identifier for this field (UUID format)
     required String id,

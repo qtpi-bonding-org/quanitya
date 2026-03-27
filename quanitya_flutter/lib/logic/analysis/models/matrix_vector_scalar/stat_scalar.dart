@@ -9,7 +9,8 @@ part 'stat_scalar.g.dart';
 /// Wraps a numeric value with convenience methods for formatting
 /// and type conversion.
 @freezed
-class StatScalar with _$StatScalar {
+abstract class StatScalar with _$StatScalar {
+  const StatScalar._();
   const factory StatScalar(Scalar value) = _StatScalar;
   
   factory StatScalar.fromJson(Map<String, dynamic> json) => 

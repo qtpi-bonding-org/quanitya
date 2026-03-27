@@ -7,13 +7,14 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import '../../../app_router.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/template_icon.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
-import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../templates/widgets/shared/template_preview.dart';
 import '../cubits/template_gallery_cubit.dart';
@@ -157,7 +158,12 @@ class _GalleryPageBody extends StatelessWidget {
             children: [
               for (final entry in templates)
                 GalleryCard(
-                  emoji: entry.emoji,
+                  icon: TemplateIcon(
+                    iconString: entry.icon,
+                    emoji: entry.emoji,
+                    size: AppSizes.fontMassive,
+                    color: QuanityaPalette.primary.interactableColor,
+                  ),
                   name: entry.name,
                   isSelected: cubit.isSelected(entry.slug),
                   onTap: () => _showPreview(context, entry),

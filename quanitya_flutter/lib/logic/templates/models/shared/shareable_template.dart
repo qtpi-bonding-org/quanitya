@@ -14,7 +14,7 @@ part 'shareable_template.g.dart';
 /// 
 /// All templates are MIT licensed by default.
 @freezed
-class ShareableTemplate with _$ShareableTemplate {
+abstract class ShareableTemplate with _$ShareableTemplate {
   const ShareableTemplate._();
 
   const factory ShareableTemplate({
@@ -137,7 +137,7 @@ class ShareableTemplate with _$ShareableTemplate {
 
 /// Author attribution for shared templates.
 @freezed
-class AuthorCredit with _$AuthorCredit {
+abstract class AuthorCredit with _$AuthorCredit {
   const factory AuthorCredit({
     /// Author name or handle (e.g., "@PrivacyQueen", "John Doe")
     required String name,

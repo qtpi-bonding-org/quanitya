@@ -5,7 +5,8 @@ part 'challenge_response.g.dart';
 
 /// Response from server's getChallenge() endpoint.
 @freezed
-class ChallengeResponse with _$ChallengeResponse {
+abstract class ChallengeResponse with _$ChallengeResponse {
+  const ChallengeResponse._();
   const factory ChallengeResponse({
     required String challenge,
     required int difficulty,

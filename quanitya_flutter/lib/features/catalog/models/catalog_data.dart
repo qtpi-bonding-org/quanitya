@@ -6,7 +6,8 @@ part 'catalog_data.freezed.dart';
 part 'catalog_data.g.dart';
 
 @freezed
-class CatalogData with _$CatalogData {
+abstract class CatalogData with _$CatalogData {
+  const CatalogData._();
   const factory CatalogData({
     required int version,
     required List<CatalogCategory> categories,
@@ -18,7 +19,8 @@ class CatalogData with _$CatalogData {
 }
 
 @freezed
-class CatalogCategory with _$CatalogCategory {
+abstract class CatalogCategory with _$CatalogCategory {
+  const CatalogCategory._();
   const factory CatalogCategory({
     required String id,
     required String name,
@@ -29,12 +31,14 @@ class CatalogCategory with _$CatalogCategory {
 }
 
 @freezed
-class CatalogEntry with _$CatalogEntry {
+abstract class CatalogEntry with _$CatalogEntry {
+  const CatalogEntry._();
   const factory CatalogEntry({
     required String slug,
     required String name,
     required String description,
     required String emoji,
+    String? icon,
     required String category,
     required List<String> tags,
     @JsonKey(name: 'fields_count') required int fieldsCount,

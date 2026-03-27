@@ -25,7 +25,7 @@ enum EntryState {
 /// - At least one of scheduledFor/occurredAt must be non-null
 /// - occurredAt cannot be in the future
 @freezed
-class LogEntryModel with _$LogEntryModel {
+abstract class LogEntryModel with _$LogEntryModel {
   const LogEntryModel._();
   
   const factory LogEntryModel({

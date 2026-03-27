@@ -5,7 +5,8 @@ part 'numeric_statistics.g.dart';
 
 /// Complete descriptive statistics for a numeric dataset.
 @freezed
-class NumericStatistics with _$NumericStatistics {
+abstract class NumericStatistics with _$NumericStatistics {
+  const NumericStatistics._();
   const factory NumericStatistics({
     required int count,
     required double sum,

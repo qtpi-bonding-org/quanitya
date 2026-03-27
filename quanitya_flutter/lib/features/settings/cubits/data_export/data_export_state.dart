@@ -11,7 +11,7 @@ enum DataExportOperation {
 }
 
 @freezed
-class DataExportState with _$DataExportState, UiFlowStateMixin implements IUiFlowState {
+abstract class DataExportState with _$DataExportState, UiFlowStateMixin implements IUiFlowState {
   const DataExportState._();
 
   const factory DataExportState({

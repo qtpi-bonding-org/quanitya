@@ -5,7 +5,8 @@ part 'frequency_statistics.g.dart';
 
 /// Frequency/cycle analysis for event-based data (e.g., period tracking).
 @freezed
-class FrequencyStatistics with _$FrequencyStatistics {
+abstract class FrequencyStatistics with _$FrequencyStatistics {
+  const FrequencyStatistics._();
   const factory FrequencyStatistics({
     /// Number of events analyzed
     required int eventCount,
@@ -37,7 +38,8 @@ class FrequencyStatistics with _$FrequencyStatistics {
 
 /// Frequency distribution for categorical or discrete data.
 @freezed
-class FrequencyDistribution with _$FrequencyDistribution {
+abstract class FrequencyDistribution with _$FrequencyDistribution {
+  const FrequencyDistribution._();
   const factory FrequencyDistribution({
     /// Map of value to count
     required Map<String, int> frequencies,

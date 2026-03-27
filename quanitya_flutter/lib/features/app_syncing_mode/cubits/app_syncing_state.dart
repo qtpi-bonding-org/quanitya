@@ -21,7 +21,7 @@ enum AppSyncingOperation {
 /// AND `EntitlementState.hasSyncAccess` (server grants sync entitlement).
 /// Live connection status comes from PowerSync's status stream, not this state.
 @freezed
-class AppSyncingState with _$AppSyncingState, UiFlowStateMixin implements IUiFlowState {
+abstract class AppSyncingState with _$AppSyncingState, UiFlowStateMixin implements IUiFlowState {
   const factory AppSyncingState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,

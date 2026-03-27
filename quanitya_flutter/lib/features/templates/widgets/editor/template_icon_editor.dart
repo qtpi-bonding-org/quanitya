@@ -12,7 +12,7 @@ import '../../../../design_system/widgets/quanitya_text_field.dart';
 import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../support/extensions/color_extensions.dart';
-import '../../../../support/utils/icon_resolver.dart';
+import '../../../../design_system/widgets/template_icon.dart';
 import '../../../../infrastructure/fonts/font_preloader_service.dart';
 import '../../cubits/editor/template_editor_cubit.dart';
 import '../../cubits/editor/template_editor_state.dart';
@@ -30,9 +30,6 @@ class TemplateIconEditor extends StatelessWidget {
       buildWhen: (p, c) =>
           p.aesthetics != c.aesthetics || p.templateName != c.templateName,
       builder: (context, state) {
-        final iconString = state.aesthetics?.icon;
-        final iconData = IconResolver.resolve(iconString) ?? Icons.description;
-
         final accentHexStr = state.aesthetics?.palette.accents.firstOrNull;
         final accentColor = accentHexStr != null
             ? HexColorExtension(accentHexStr).toColor()
@@ -66,23 +63,11 @@ class TemplateIconEditor extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: AppSizes.iconXLarge,
-                        height: AppSizes.iconXLarge,
-                        decoration: BoxDecoration(
-                          color: accentColor.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: accentColor,
-                            width: AppSizes.borderWidthThick,
-                          ),
-                        ),
-                        alignment: Alignment.center,
-                        child: Icon(
-                          iconData,
-                          size: AppSizes.iconLarge,
-                          color: accentColor,
-                        ),
+                      TemplateIcon(
+                        iconString: state.aesthetics?.icon,
+                        emoji: state.aesthetics?.emoji,
+                        size: AppSizes.iconXLarge,
+                        color: accentColor,
                       ),
                       VSpace.x1,
                       Text(

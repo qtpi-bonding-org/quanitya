@@ -7,7 +7,8 @@ enum LlmProvider { quanitya, openRouter, ollama }
 
 /// Configuration for LLM providers (Quanitya/OpenRouter/Ollama)
 @freezed
-class LlmConfig with _$LlmConfig {
+abstract class LlmConfig with _$LlmConfig {
+  const LlmConfig._();
   const factory LlmConfig({
     required LlmProvider provider,
     required String apiKey,
@@ -65,7 +66,8 @@ enum LlmCallType { templateGeneration, analysisSuggestion }
 
 /// Request with system/user prompts and strict JSON schema
 @freezed
-class LlmRequest with _$LlmRequest {
+abstract class LlmRequest with _$LlmRequest {
+  const LlmRequest._();
   const factory LlmRequest({
     required String systemPrompt,
     required String userPrompt,
@@ -86,7 +88,8 @@ enum LlmChatRole {
 
 /// Chat message for conversational requests
 @freezed
-class LlmChatMessage with _$LlmChatMessage {
+abstract class LlmChatMessage with _$LlmChatMessage {
+  const LlmChatMessage._();
   const factory LlmChatMessage({
     required LlmChatRole role,
     required String content,
@@ -102,7 +105,8 @@ class LlmChatMessage with _$LlmChatMessage {
 
 /// Request for conversational chat (no structured output)
 @freezed
-class LlmChatRequest with _$LlmChatRequest {
+abstract class LlmChatRequest with _$LlmChatRequest {
+  const LlmChatRequest._();
   const factory LlmChatRequest({
     required List<LlmChatMessage> messages,
     @Default(0.7) double temperature,
@@ -130,7 +134,8 @@ class LlmChatRequest with _$LlmChatRequest {
 
 /// Response from LLM service (structured)
 @freezed
-class LlmResponse with _$LlmResponse {
+abstract class LlmResponse with _$LlmResponse {
+  const LlmResponse._();
   const factory LlmResponse({
     required Map<String, dynamic> data,
     String? model,
@@ -142,7 +147,8 @@ class LlmResponse with _$LlmResponse {
 
 /// Response from LLM chat service (conversational)
 @freezed
-class LlmChatResponse with _$LlmChatResponse {
+abstract class LlmChatResponse with _$LlmChatResponse {
+  const LlmChatResponse._();
   const factory LlmChatResponse({
     required String content,
     String? model,

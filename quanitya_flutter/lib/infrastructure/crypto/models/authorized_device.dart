@@ -8,7 +8,8 @@ part 'authorized_device.g.dart';
 /// Contains the device's public key and authorization metadata.
 /// Used for device management and revocation operations.
 @freezed
-class AuthorizedDevice with _$AuthorizedDevice {
+abstract class AuthorizedDevice with _$AuthorizedDevice {
+  const AuthorizedDevice._();
   const factory AuthorizedDevice({
     required String publicKey,
     required DateTime authorizedAt,

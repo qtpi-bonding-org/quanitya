@@ -8,7 +8,7 @@ part 'search_state.freezed.dart';
 enum SearchOperation { search, clear }
 
 @freezed
-class SearchState with _$SearchState, UiFlowStateMixin implements IUiFlowState {
+abstract class SearchState with _$SearchState, UiFlowStateMixin implements IUiFlowState {
   const SearchState._();
 
   const factory SearchState({

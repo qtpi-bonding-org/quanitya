@@ -104,6 +104,10 @@ class _RecoveryForm extends StatelessWidget {
         listener: (context, state) async {
           AppRouter.resetKeyCheck();
 
+          // Keep loading visible during post-recovery sync
+          final loadingService = GetIt.instance<IUiFlowService>();
+          loadingService.showLoading();
+
           try {
             // Post-recovery: mark purchased + refresh entitlements via cubit
             final entitlementCubit = GetIt.instance<EntitlementCubit>();
@@ -114,6 +118,8 @@ class _RecoveryForm extends StatelessWidget {
             await GetIt.instance<AppSyncingCubit>().startSyncAfterRecovery();
           } catch (e, stack) {
             await ErrorPrivserver.captureError(e, stack, source: 'AccountRecoveryPage.postRecovery');
+          } finally {
+            loadingService.hideLoading();
           }
 
           if (context.mounted) {

@@ -9,7 +9,7 @@ part 'template_gallery_state.freezed.dart';
 enum TemplateGalleryOperation { load, preview, import_ }
 
 @freezed
-class TemplateGalleryState
+abstract class TemplateGalleryState
     with _$TemplateGalleryState, UiFlowStateMixin
     implements IUiFlowState {
   const TemplateGalleryState._();

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../primitives/app_sizes.dart';
 import '../primitives/quanitya_palette.dart';
 import '../../support/extensions/color_extensions.dart';
-import '../../support/utils/icon_resolver.dart';
+import 'template_icon.dart';
 
 /// Circular icon bubble displaying a template's icon, emoji, or fallback.
 ///
@@ -27,6 +27,9 @@ class TemplateIconBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
+    final iconColor = accentColorHex != null
+        ? accentColorHex!.toColor()
+        : palette.textSecondary;
 
     return Container(
       width: AppSizes.size36,
@@ -42,27 +45,13 @@ class TemplateIconBubble extends StatelessWidget {
         ),
       ),
       alignment: Alignment.center,
-      child: _buildContent(),
+      child: TemplateIcon(
+        iconString: iconString,
+        emoji: emoji,
+        size: AppSizes.iconMedium,
+        color: iconColor,
+        fallbackIcon: fallbackIcon,
+      ),
     );
-  }
-
-  Widget _buildContent() {
-    final iconColor = accentColorHex != null
-        ? accentColorHex!.toColor()
-        : QuanityaPalette.primary.textSecondary;
-
-    // Priority: icon > emoji > fallback
-    if (iconString != null && iconString!.contains(':')) {
-      final iconData = IconResolver.resolve(iconString);
-      if (iconData != null) {
-        return Icon(iconData, size: AppSizes.iconMedium, color: iconColor);
-      }
-    }
-
-    if (emoji != null && emoji!.isNotEmpty) {
-      return Text(emoji!, style: TextStyle(fontSize: AppSizes.iconMedium));
-    }
-
-    return Icon(fallbackIcon, size: AppSizes.iconMedium, color: iconColor);
   }
 }

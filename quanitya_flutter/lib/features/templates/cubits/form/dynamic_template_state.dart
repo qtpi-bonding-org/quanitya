@@ -10,7 +10,7 @@ part 'dynamic_template_state.freezed.dart';
 ///
 /// Users fill out all fields in the template, then submit as one LogEntry.
 @freezed
-class DynamicTemplateState
+abstract class DynamicTemplateState
     with _$DynamicTemplateState, UiFlowStateMixin
     implements IUiFlowState {
   const DynamicTemplateState._();

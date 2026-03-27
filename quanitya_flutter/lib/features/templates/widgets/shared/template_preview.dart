@@ -16,7 +16,7 @@ import '../../../../logic/templates/models/shared/tracker_template.dart';
 import '../../../../logic/templates/services/shared/default_value_handler.dart';
 import '../../../../logic/templates/services/shared/dynamic_field_builder.dart';
 import '../../../../infrastructure/fonts/font_preloader_service.dart';
-import '../../../../support/utils/icon_resolver.dart';
+import '../../../../design_system/widgets/template_icon.dart';
 
 /// Unified template preview widget that works with any template source.
 ///
@@ -318,29 +318,12 @@ class _TemplatePreviewState extends State<TemplatePreview> {
   }
 
   Widget _buildIconOrEmoji() {
-    final aesthetics = widget.aesthetics;
-
-    // Emoji first — render directly, no container
-    if (aesthetics?.emoji != null && aesthetics!.emoji!.isNotEmpty) {
-      return Text(
-        aesthetics.emoji!,
-        style: TextStyle(fontSize: AppSizes.fontMassive),
-      );
-    }
-
-    // Icon — render directly with accent color
-    if (aesthetics?.icon != null && aesthetics!.icon!.isNotEmpty) {
-      final iconData = IconResolver.resolve(aesthetics.icon!);
-      if (iconData != null) {
-        return Icon(iconData, size: AppSizes.fontMassive, color: _accentColor);
-      }
-    }
-
-    // Default
-    return Icon(
-      Icons.assignment_outlined,
+    return TemplateIcon(
+      iconString: widget.aesthetics?.icon,
+      emoji: widget.aesthetics?.emoji,
       size: AppSizes.fontMassive,
       color: _accentColor,
+      fallbackIcon: Icons.assignment_outlined,
     );
   }
 

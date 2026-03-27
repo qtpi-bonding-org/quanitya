@@ -27,7 +27,7 @@ enum PairingStatus {
 }
 
 @freezed
-class PairingQrState with _$PairingQrState, UiFlowStateMixin implements IUiFlowState {
+abstract class PairingQrState with _$PairingQrState, UiFlowStateMixin implements IUiFlowState {
   const PairingQrState._();
 
   const factory PairingQrState({

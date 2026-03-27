@@ -13,7 +13,7 @@ enum AnalyticsOperation {
 }
 
 @freezed
-class AnalyticsState with _$AnalyticsState, UiFlowStateMixin implements IUiFlowState {
+abstract class AnalyticsState with _$AnalyticsState, UiFlowStateMixin implements IUiFlowState {
   const AnalyticsState._();
 
   const factory AnalyticsState({

@@ -13,7 +13,7 @@ enum DeviceManagementOperation {
 }
 
 @freezed
-class DeviceManagementState with _$DeviceManagementState, UiFlowStateMixin implements IUiFlowState {
+abstract class DeviceManagementState with _$DeviceManagementState, UiFlowStateMixin implements IUiFlowState {
   const DeviceManagementState._();
 
   const factory DeviceManagementState({

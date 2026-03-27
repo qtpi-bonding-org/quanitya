@@ -15,8 +15,9 @@ part 'time_series_matrix.g.dart';
 /// Structure: [[timestamp_ms, value1, value2, ...], ...]
 /// Column names: ['timestamp', 'field1', 'field2', ...]
 @freezed
-class TimeSeriesMatrix with _$TimeSeriesMatrix {
-  const factory TimeSeriesMatrix._({
+abstract class TimeSeriesMatrix with _$TimeSeriesMatrix {
+  const TimeSeriesMatrix._();
+  const factory TimeSeriesMatrix({
     required Matrix data,
     required List<String> columnNames,
     @Default({}) Map<String, Map<String, int>> categoryEncoders,
@@ -87,7 +88,7 @@ class TimeSeriesMatrix with _$TimeSeriesMatrix {
       rows.add(row);
     }
     
-    return TimeSeriesMatrix._(
+    return TimeSeriesMatrix(
       data: rows, 
       columnNames: columnNames,
       categoryEncoders: categoryEncoders,
@@ -292,7 +293,7 @@ extension TimeSeriesMatrixExt on TimeSeriesMatrix {
   /// Create new matrix with rows that satisfy predicate
   TimeSeriesMatrix where(bool Function(List<Numeric>) test) {
     final filteredData = data.where(test).toList();
-    return TimeSeriesMatrix._(
+    return TimeSeriesMatrix(
       data: filteredData,
       columnNames: columnNames,
     );
@@ -301,7 +302,7 @@ extension TimeSeriesMatrixExt on TimeSeriesMatrix {
   /// Create new matrix with subset of rows
   TimeSeriesMatrix sublist(int start, [int? end]) {
     final subData = data.sublist(start, end);
-    return TimeSeriesMatrix._(
+    return TimeSeriesMatrix(
       data: subData,
       columnNames: columnNames,
     );
@@ -327,7 +328,7 @@ extension TimeSeriesMatrixExt on TimeSeriesMatrix {
         .map((i) => columnNames[i])
         .toList();
     
-    return TimeSeriesMatrix._(
+    return TimeSeriesMatrix(
       data: newData,
       columnNames: newColumnNames,
     );

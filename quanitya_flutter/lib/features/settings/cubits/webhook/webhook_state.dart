@@ -18,7 +18,7 @@ enum WebhookOperation {
 }
 
 @freezed
-class WebhookState with _$WebhookState, UiFlowStateMixin implements IUiFlowState {
+abstract class WebhookState with _$WebhookState, UiFlowStateMixin implements IUiFlowState {
   const WebhookState._();
 
   const factory WebhookState({

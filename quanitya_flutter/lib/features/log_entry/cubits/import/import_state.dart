@@ -3,7 +3,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'import_state.freezed.dart';
 
 @freezed
-class ImportState with _$ImportState {
+abstract class ImportState with _$ImportState {
+  const ImportState._();
   const factory ImportState.idle() = ImportIdle;
   const factory ImportState.picking() = ImportPicking;
   const factory ImportState.processing() = ImportProcessing;

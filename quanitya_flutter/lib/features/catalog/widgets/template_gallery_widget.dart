@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
+import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/template_icon.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../cubits/template_gallery_cubit.dart';
@@ -62,7 +64,12 @@ class TemplateGalleryWidget extends StatelessWidget {
                   children: [
                     for (final entry in templates)
                       GalleryCard(
-                        emoji: entry.emoji,
+                        icon: TemplateIcon(
+                          iconString: entry.icon,
+                          emoji: entry.emoji,
+                          size: AppSizes.fontMassive,
+                          color: QuanityaPalette.primary.interactableColor,
+                        ),
                         name: entry.name,
                         isSelected: cubit.isSelected(entry.slug),
                         onTap: () => onCardTap(entry),
