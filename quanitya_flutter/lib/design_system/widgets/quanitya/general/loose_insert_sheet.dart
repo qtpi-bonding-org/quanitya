@@ -10,11 +10,13 @@ import '../../../../support/extensions/context_extensions.dart';
 class LooseInsertSheet extends StatelessWidget {
   final String? title;
   final Widget child;
+  final double maxHeightFraction;
 
   const LooseInsertSheet({
     super.key,
     this.title,
     required this.child,
+    this.maxHeightFraction = 0.85,
   });
 
   /// Show a modal bottom sheet using the LooseInsertSheet wrapper.
@@ -22,6 +24,7 @@ class LooseInsertSheet extends StatelessWidget {
     required BuildContext context,
     required Widget Function(BuildContext) builder,
     String? title,
+    double maxHeightFraction = 0.85,
   }) {
     return showModalBottomSheet<T>(
       context: context,
@@ -29,6 +32,7 @@ class LooseInsertSheet extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => LooseInsertSheet(
         title: title,
+        maxHeightFraction: maxHeightFraction,
         child: builder(context),
       ),
     );
@@ -38,7 +42,7 @@ class LooseInsertSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
+        maxHeight: MediaQuery.of(context).size.height * maxHeightFraction,
       ),
       decoration: BoxDecoration(
         color: context.colors.backgroundPrimary,

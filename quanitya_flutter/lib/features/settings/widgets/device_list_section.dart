@@ -5,7 +5,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
-import '../../../app_router.dart';
+import '../../device_pairing/pages/scan_pairing_sheet.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
@@ -187,7 +187,12 @@ class _DeviceListSectionState extends State<DeviceListSection> {
                 ),
                 QuanityaTextButton(
                   text: context.l10n.addDevice,
-                  onPressed: () => AppNavigation.toScanPairingQr(context),
+                  onPressed: () async {
+                    await ScanPairingSheet.show(context);
+                    if (context.mounted) {
+                      context.read<DeviceManagementCubit>().loadDevices();
+                    }
+                  },
                 ),
               ],
             ),

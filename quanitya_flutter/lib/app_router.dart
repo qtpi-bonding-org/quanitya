@@ -19,7 +19,6 @@ import 'features/onboarding/pages/recovery_key_backup_page.dart';
 import 'features/onboarding/pages/account_recovery_page.dart';
 import 'features/onboarding/cubits/onboarding_cubit.dart';
 import 'features/device_pairing/pages/show_pairing_qr_page.dart';
-import 'features/device_pairing/pages/scan_pairing_qr_page.dart';
 import 'features/onboarding/pages/connect_device_page.dart';
 import 'infrastructure/auth/account_service.dart';
 import 'infrastructure/crypto/crypto_key_repository.dart';
@@ -169,11 +168,6 @@ class AppRouter {
             builder: (context, state) => const ShowPairingQrPage(),
           ),
           GoRoute(
-            path: AppRoutes.scanPairingQr,
-            name: RouteNames.scanPairingQr,
-            builder: (context, state) => const ScanPairingQrPage(),
-          ),
-          GoRoute(
             path: AppRoutes.about,
             name: RouteNames.about,
             builder: (context, state) => const AboutPage(),
@@ -243,7 +237,6 @@ class AppRoutes {
   static const String recoveryKeyBackup = '/recovery-key-backup';
   static const String accountRecovery = '/account-recovery';
   static const String showPairingQr = '/show-pairing-qr';
-  static const String scanPairingQr = '/scan-pairing-qr';
   static const String about = '/about';
   static const String templateEditor = '/template-editor';
   static const String connectDevice = '/connect-device';
@@ -259,7 +252,6 @@ class RouteNames {
   static const String recoveryKeyBackup = 'recoveryKeyBackup';
   static const String accountRecovery = 'accountRecovery';
   static const String showPairingQr = 'showPairingQr';
-  static const String scanPairingQr = 'scanPairingQr';
   static const String about = 'about';
   static const String templateEditor = 'templateEditor';
   static const String connectDevice = 'connectDevice';
@@ -292,10 +284,6 @@ class AppNavigation {
 
   static void toShowPairingQr(BuildContext context) {
     context.pushNamed(RouteNames.showPairingQr);
-  }
-
-  static void toScanPairingQr(BuildContext context) {
-    context.pushNamed(RouteNames.scanPairingQr);
   }
 
   static void toConnectDevice(BuildContext context) {
