@@ -148,14 +148,9 @@ class TemplateIconEditor extends StatelessWidget {
 
     if (icon != null && context.mounted) {
       // Format: "packname:iconname"
-      final packName = icon.pack.name;
+      final packName = icon.pack;
       final iconName = icon.name;
       final iconString = '$packName:$iconName';
-
-      debugPrint('Icon picked:');
-      debugPrint('  pack.name: $packName');
-      debugPrint('  icon.name: $iconName');
-      debugPrint('  iconString: $iconString');
 
       context.read<TemplateEditorCubit>().updateTemplateIcon(iconString);
     }

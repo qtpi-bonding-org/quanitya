@@ -79,11 +79,11 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     final generator = GetIt.I<SymbolicCombinationGenerator>();
     _defaultHandler = GetIt.I<DefaultValueHandler>();
     _validWidgets = generator.getValidUiElementsForField(widget.fieldType);
-    
+
     if (widget.isEditing) {
       final field = widget.existingField!;
       _labelController = TextEditingController(text: field.label);
-      _selectedWidget = field.uiElement ?? _validWidgets.first;
+      _selectedWidget = field.uiElement ?? (_validWidgets.isNotEmpty ? _validWidgets.first : UiElementEnum.textField);
       _isList = field.isList;
       _options = List.from(field.options ?? []);
       _selectedUnit = field.unit;
@@ -116,7 +116,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       );
     } else {
       _labelController = TextEditingController();
-      _selectedWidget = _validWidgets.first;
+      _selectedWidget = _validWidgets.isNotEmpty ? _validWidgets.first : UiElementEnum.textField;
       _isList = false;
       _isOptional = false;
       _options = [];
@@ -220,8 +220,6 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       widget.fieldType == FieldEnum.float ||
       widget.fieldType == FieldEnum.dimension;
 
-  bool get _rangeRequired => _isNumericField;
-
   Widget _buildRangeEditor(BuildContext context, Color draftColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,30 +231,32 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
           ),
         ),
         VSpace.x05,
-        QuanityaRow(
-          spacing: HSpace.x1,
-          start: Expanded(
-            child: QuanityaTextField(
-              controller: _minController,
-              hintText: context.l10n.fieldRangeMinHint,
-              keyboardType: widget.fieldType == FieldEnum.integer
-                  ? const TextInputType.numberWithOptions(signed: true)
-                  : const TextInputType.numberWithOptions(
-                      decimal: true, signed: true),
-              onChanged: (_) => setState(() {}),
+        Row(
+          children: [
+            Expanded(
+              child: QuanityaTextField(
+                controller: _minController,
+                hintText: context.l10n.fieldRangeMinHint,
+                keyboardType: widget.fieldType == FieldEnum.integer
+                    ? const TextInputType.numberWithOptions(signed: true)
+                    : const TextInputType.numberWithOptions(
+                        decimal: true, signed: true),
+                onChanged: (_) => setState(() {}),
+              ),
             ),
-          ),
-          end: Expanded(
-            child: QuanityaTextField(
-              controller: _maxController,
-              hintText: context.l10n.fieldRangeMaxHint,
-              keyboardType: widget.fieldType == FieldEnum.integer
-                  ? const TextInputType.numberWithOptions(signed: true)
-                  : const TextInputType.numberWithOptions(
-                      decimal: true, signed: true),
-              onChanged: (_) => setState(() {}),
+            HSpace.x1,
+            Expanded(
+              child: QuanityaTextField(
+                controller: _maxController,
+                hintText: context.l10n.fieldRangeMaxHint,
+                keyboardType: widget.fieldType == FieldEnum.integer
+                    ? const TextInputType.numberWithOptions(signed: true)
+                    : const TextInputType.numberWithOptions(
+                        decimal: true, signed: true),
+                onChanged: (_) => setState(() {}),
+              ),
             ),
-          ),
+          ],
         ),
       ],
     );
@@ -266,7 +266,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     return QuanityaRow(
       alignment: CrossAxisAlignment.center,
       start: Icon(
-        _getFieldIcon(),
+        widget.fieldType.icon,
         size: AppSizes.iconSmall,
         color: draftColor,
       ),
@@ -295,8 +295,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         Wrap(
           spacing: AppSizes.space,
           runSpacing: AppSizes.space * 0.5,
-          children: _validWidgets.map((w) => _DraftChip(
-            label: _getWidgetDisplayName(context, w),
+          children: _validWidgets.map((w) => PenCircledChip(
+            label: w.displayName(context),
             isSelected: _selectedWidget == w,
             onTap: () => setState(() => _selectedWidget = w),
           )).toList(),
@@ -347,6 +347,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
               controller: _optionController,
               hintText: context.l10n.addOptionHint,
               onSubmitted: (_) => _addOption(),
+              onChanged: (_) => setState(() {}),
             ),
           ),
           end: QuanityaIconButton(
@@ -387,7 +388,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
               spacing: AppSizes.space,
               runSpacing: AppSizes.space * 0.5,
               children: MeasurementUnit.unitsFor(dimension).map((unit) =>
-                _DraftChip(
+                PenCircledChip(
                   label: '${unit.fullName} (${unit.displayName})',
                   isSelected: _selectedUnit == unit,
                   onTap: () => setState(() => _selectedUnit = unit),
@@ -533,8 +534,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             _defaultValue = _defaultHandler.parseDefault(value, widget.fieldType);
             if (_defaultValue == null) {
               _defaultValueError = widget.fieldType == FieldEnum.integer
-                  ? 'Must be a whole number'
-                  : 'Must be a number';
+                  ? context.l10n.validationMustBeWholeNumber
+                  : context.l10n.validationMustBeNumber;
             } else {
               _defaultValueError = null;
             }
@@ -558,9 +559,12 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   }
 
   Widget _buildBooleanDefaultInput(BuildContext context, Color draftColor) {
-    return Row(
+    return Wrap(
+      spacing: AppSizes.space,
+      runSpacing: AppSizes.space * 0.5,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        _DraftChip(
+        PenCircledChip(
           label: context.l10n.booleanTrue,
           isSelected: _defaultValue == true,
           onTap: () => setState(() {
@@ -568,8 +572,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             _defaultValueError = null;
           }),
         ),
-        HSpace.x1,
-        _DraftChip(
+        PenCircledChip(
           label: context.l10n.booleanFalse,
           isSelected: _defaultValue == false,
           onTap: () => setState(() {
@@ -577,7 +580,6 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             _defaultValueError = null;
           }),
         ),
-        HSpace.x2,
         if (_defaultValue != null)
           QuanityaTextButton(
             text: context.l10n.actionClear,
@@ -607,7 +609,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             context: context,
             initialTime: TimeOfDay.now(),
           );
-          if (time != null) {
+          if (time != null && mounted) {
             final dateTime = DateTime(
               date.year, date.month, date.day,
               time.hour, time.minute,
@@ -671,7 +673,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     return Wrap(
       spacing: AppSizes.space,
       runSpacing: AppSizes.space * 0.5,
-      children: _options.map((option) => _DraftChip(
+      children: _options.map((option) => PenCircledChip(
         label: option,
         isSelected: _defaultValue == option,
         onTap: () => setState(() {
@@ -776,7 +778,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     num? minVal = minText.isNotEmpty ? num.parse(minText) : null;
     num? maxVal = maxText.isNotEmpty ? num.parse(maxText) : null;
 
-    if (_rangeRequired) {
+    if (_isNumericField) {
       minVal ??= 0;
       maxVal ??= 10;
     }
@@ -835,22 +837,6 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     widget.onSave(field);
   }
 
-  IconData _getFieldIcon() {
-    return switch (widget.fieldType) {
-      FieldEnum.integer => Icons.numbers,
-      FieldEnum.float => Icons.numbers,
-      FieldEnum.text => Icons.text_fields,
-      FieldEnum.boolean => Icons.toggle_on,
-      FieldEnum.datetime => Icons.calendar_today,
-      FieldEnum.enumerated => Icons.list,
-      FieldEnum.dimension => Icons.straighten,
-      FieldEnum.reference => Icons.link,
-      FieldEnum.location => Icons.location_on,
-      FieldEnum.group => Icons.dashboard,
-      FieldEnum.multiEnum => Icons.checklist,
-    };
-  }
-
   String _getDimensionDisplayName(BuildContext context, MeasurementDimension dimension) {
     return switch (dimension) {
       MeasurementDimension.mass => context.l10n.dimensionMass,
@@ -864,47 +850,4 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     };
   }
 
-  String _getWidgetDisplayName(BuildContext context, UiElementEnum widget) {
-    return switch (widget) {
-      UiElementEnum.slider => context.l10n.widgetSlider,
-      UiElementEnum.stepper => context.l10n.widgetStepper,
-      UiElementEnum.textField => context.l10n.widgetTextField,
-      UiElementEnum.textArea => context.l10n.widgetTextArea,
-      UiElementEnum.dropdown => context.l10n.widgetDropdown,
-      UiElementEnum.radio => context.l10n.widgetRadio,
-      UiElementEnum.chips => context.l10n.widgetChips,
-      UiElementEnum.toggleSwitch => context.l10n.widgetToggleSwitch,
-      UiElementEnum.checkbox => context.l10n.widgetCheckbox,
-      UiElementEnum.datePicker => context.l10n.widgetDatePicker,
-      UiElementEnum.timePicker => context.l10n.widgetTimePicker,
-      UiElementEnum.datetimePicker => context.l10n.widgetDatetimePicker,
-      UiElementEnum.searchField => context.l10n.widgetSearchField,
-      UiElementEnum.locationPicker => context.l10n.widgetLocationPicker,
-      UiElementEnum.timer => context.l10n.widgetTimer,
-    };
-  }
-}
-
-
-/// Simple chip for draft state - all in blue-gray "pencil" color.
-/// Selected state just gets a border, no ink black.
-class _DraftChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _DraftChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return PenCircledChip(
-      label: label,
-      isSelected: isSelected,
-      onTap: onTap,
-    );
-  }
 }

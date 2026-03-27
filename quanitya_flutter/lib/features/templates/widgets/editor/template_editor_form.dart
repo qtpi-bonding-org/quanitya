@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../logic/templates/enums/field_enum.dart';
 import '../../../../logic/templates/enums/field_enum_extensions.dart';
-import '../../../../logic/templates/models/shared/template_field.dart';
 import '../../../../design_system/structures/column.dart';
 import '../../../../design_system/structures/row.dart';
 import '../../../../design_system/structures/group.dart';
@@ -12,7 +12,6 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
-import '../../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_confirmation_dialog.dart';
@@ -83,14 +82,16 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
-      buildWhen: (p, c) => p.template != c.template,
+      buildWhen: (p, c) =>
+          p.template != c.template ||
+          p.canSave != c.canSave ||
+          p.fields.length != c.fields.length ||
+          p.scheduleFrequency != c.scheduleFrequency ||
+          p.scheduleHour != c.scheduleHour ||
+          p.scheduleMinute != c.scheduleMinute ||
+          p.scheduleWeeklyDays != c.scheduleWeeklyDays,
       builder: (context, state) {
         final isEditing = state.template != null;
 
@@ -249,36 +250,65 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
       top: false,
       child: Padding(
         padding: AppPadding.allDouble,
-        child: QuanityaRow(
-          spacing: HSpace.x2,
-          start: isEditing
-              ? QuanityaTextButton(
-                  text: context.l10n.actionDelete,
-                  onPressed: () => _confirmDeleteTemplate(context, state),
-                  isDestructive: true,
-                )
-              : QuanityaTextButton(
-                  text: context.l10n.discardAction,
-                  onPressed: () {
-                    context.read<TemplateEditorCubit>().discard();
-                    AppNavigation.back(context);
-                  },
-                  isDestructive: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Validation hint when buttons are disabled
+            if (!state.canSave)
+              Padding(
+                padding: EdgeInsets.only(bottom: AppSizes.space),
+                child: Text(
+                  _validationHint(context, state),
+                  style: context.text.bodySmall?.copyWith(
+                    color: context.colors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-          middle: KeyedSubtree(
-            key: DesignerTourKeys.previewButton,
-            child: QuanityaTextButton(
-              text: context.l10n.previewAction,
-              onPressed: state.canSave ? widget.onPreview : null,
+              ),
+            QuanityaRow(
+              spacing: HSpace.x2,
+              start: isEditing
+                  ? QuanityaTextButton(
+                      text: context.l10n.actionDelete,
+                      onPressed: () => _confirmDeleteTemplate(context, state),
+                      isDestructive: true,
+                    )
+                  : QuanityaTextButton(
+                      text: context.l10n.discardAction,
+                      onPressed: () {
+                        context.read<TemplateEditorCubit>().discard();
+                        AppNavigation.back(context);
+                      },
+                      isDestructive: true,
+                    ),
+              middle: KeyedSubtree(
+                key: DesignerTourKeys.previewButton,
+                child: QuanityaTextButton(
+                  text: context.l10n.previewAction,
+                  onPressed: state.canSave ? widget.onPreview : null,
+                ),
+              ),
+              end: QuanityaTextButton(
+                text: context.l10n.actionSave,
+                onPressed: state.canSave ? widget.onSave : null,
+              ),
             ),
-          ),
-          end: QuanityaTextButton(
-            text: context.l10n.actionSave,
-            onPressed: state.canSave ? widget.onSave : null,
-          ),
+          ],
         ),
       ),
     );
+  }
+
+  String _validationHint(BuildContext context, TemplateEditorState state) {
+    final hasName = state.templateName.trim().isNotEmpty;
+    final hasFields = state.fields.isNotEmpty;
+    if (!hasName && !hasFields) {
+      return context.l10n.templateRequiresNameAndFields;
+    } else if (!hasName) {
+      return context.l10n.templateRequiresName;
+    } else {
+      return context.l10n.templateRequiresFields;
+    }
   }
 
   Future<void> _confirmDeleteTemplate(
@@ -298,9 +328,9 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
         final repo = GetIt.I<TemplateWithAestheticsRepository>();
         await repo.archive(templateId);
         if (context.mounted) {
-          PostItToast.show(context,
+          GetIt.I<IFeedbackService>().show(FeedbackMessage(
               message: context.l10n.templateDeleted,
-              type: PostItType.success);
+              type: MessageType.success));
           AppNavigation.back(context);
         }
       },
@@ -342,9 +372,9 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   }
 
   Widget _buildAddFieldList(BuildContext context) {
-    // Reference fields are not yet implemented — hide from picker
+    // Reference not implemented; group is created via select-and-group in FieldEditorList
     final types = FieldEnum.values
-        .where((t) => t != FieldEnum.reference)
+        .where((t) => t != FieldEnum.reference && t != FieldEnum.group)
         .toList();
     return QuanityaGroup(
       child: Column(
@@ -421,9 +451,9 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     final config = await llmCubit.buildLlmConfig();
     if (config == null) {
       if (context.mounted) {
-        PostItToast.show(context,
+        GetIt.I<IFeedbackService>().show(FeedbackMessage(
             message: context.l10n.llmProviderConfigureLlm,
-            type: PostItType.warning);
+            type: MessageType.warning));
       }
       return;
     }
@@ -437,6 +467,12 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
       final preview = generatorCubit.state.preview;
       if (preview != null && mounted) {
         editorCubit.loadTemplate(preview);
+      }
+    } catch (e) {
+      if (mounted) {
+        GetIt.I<IFeedbackService>().show(FeedbackMessage(
+            message: context.l10n.aiGenerationFailed,
+            type: MessageType.error));
       }
     } finally {
       if (mounted) {

@@ -149,8 +149,8 @@ class SymbolicCombinationGenerator {
         return false;
 
       case FieldEnum.multiEnum:
-        // Multi-select fields work with selection UI elements
-        return _isSelectionCompatibleUi(uiElement);
+        // Multi-select only works with chips — dropdown/radio are single-select
+        return uiElement == UiElementEnum.chips;
     }
   }
 

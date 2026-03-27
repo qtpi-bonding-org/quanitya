@@ -46,10 +46,8 @@ class TemplateEditorState
 
     // Field editing
     @Default([]) List<TemplateField> fields,
-    String? editingFieldId,
 
-    // Preview mode
-    @Default(false) bool isPreviewMode,
+    // Preview values (temporary, used by preview sheet)
     @Default({}) Map<String, dynamic> previewValues,
     
     // Schedule/Reminder settings
@@ -84,22 +82,6 @@ extension TemplateEditorStateX on TemplateEditorState {
         updatedAt: DateTime.now(),
       ),
     );
-  }
-
-  /// Whether the template has unsaved changes
-  bool get hasUnsavedChanges {
-    if (template == null) return fields.isNotEmpty || templateName.isNotEmpty;
-
-    return template!.name != templateName ||
-        !_fieldsEqual(template!.fields, fields);
-  }
-
-  bool _fieldsEqual(List<TemplateField> a, List<TemplateField> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
   }
 
   /// Whether we can save the template

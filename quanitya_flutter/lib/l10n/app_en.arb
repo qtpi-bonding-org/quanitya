@@ -134,9 +134,12 @@
   "recovering": "Recovering...",
   "logEntryViewLabel": "View log entry",
   "logEntryAction": "Log Entry",
-  "createTemplateTitle": "Generate Template",
+  "createTemplateTitle": "Template Designer",
   "editTemplateTitle": "Edit Template",
   "previewAction": "Preview",
+  "templateRequiresNameAndFields": "Add a name and at least one field",
+  "templateRequiresName": "Add a template name",
+  "templateRequiresFields": "Add at least one field",
   "discardAction": "Discard",
   "templateNameLabel": "Template Name",
   "templateNameHint": "e.g., Daily Mood Check-in",
@@ -166,6 +169,17 @@
   "fieldChoice": "Choice",
   "fieldFloat": "Decimal",
   "fieldLabelLabel": "Field Label",
+  "groupFieldsAction": "Group {count} fields",
+  "@groupFieldsAction": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "groupFieldsConfirm": "Create Group",
+  "groupLabelTitle": "Group Name",
+  "groupLabelHint": "e.g., Vitals, Mood, Exercise",
+  "ungroupAction": "Ungroup",
+  "groupModeTooltip": "Group fields",
+  "groupModeHint": "Tap fields to select, then group",
+  "actionDone": "Done",
   "fieldLabelHint": "e.g., Mood Level, Energy, Notes",
   "widgetTypeLabel": "Input Style",
   "widgetSlider": "Slider",
@@ -378,7 +392,14 @@
       }
     }
   },
-  "enableICloudSync": "Enable iCloud Sync",
+  "createPlatformDeviceKey": "Create {platform} Device Key",
+  "@createPlatformDeviceKey": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
   "webhooksCreateTemplateFirst": "Create a template first to add webhooks",
   "devToolsTitle": "Dev Tools",
   "devSeedFakeData": "Seed Fake Data",
@@ -488,6 +509,9 @@
   "fieldRangeMaxHint": "Max",
   "fieldRangeRequired": "Required for this widget",
   "fieldDefaultValueLabel": "Default Value (optional)",
+  "fieldDefaultValueLabelShort": "Default",
+  "validationMustBeWholeNumber": "Must be a whole number",
+  "validationMustBeNumber": "Must be a number",
   "fieldDefaultValueHint": "Quick log value",
   "fieldDefaultValueQuickLogHint": "Set default value to enable quick log",
   "fieldDefaultValueAddOptionsFirst": "Add options first to set a default.",
@@ -630,8 +654,9 @@
   "templateContainerStyleDescription": "This controls the shape of field containers.",
   "templateAccentLabel": "Accent",
   "templateToneLabel": "Tone",
-  "aiGeneratorTitle": "AI Template Generator",
+  "aiGeneratorTitle": "AI Template Designer",
   "aiGeneratorHint": "Describe what you want to track",
+  "aiGenerationFailed": "Template generation failed. Please try again.",
   "aiAddApiKeyTitle": "Add OpenRouter API Key",
   "aiAddApiKeyDescription": "An OpenRouter API key is required for AI generation. Get one at openrouter.ai",
   "aiApiKeyNameLabel": "Name",
@@ -768,14 +793,14 @@
   "resultsNoResultsTitle": "No Results Yet",
   "resultsNoResultsGraphsDescription": "Log entries to see visualizations here.",
   "resultsNoResultsAnalysisDescription": "Log entries to see analysis here.",
-  "resultsAnalyzeField": "Analyze field: {fieldName}",
+  "resultsAnalyzeField": "Analyze: {fieldName}",
   "@resultsAnalyzeField": {
     "placeholders": {
       "fieldName": { "type": "String" }
     }
   },
-  "resultsAnalyzeFields": "Analyze Fields",
-  "resultsAnalyzeFieldsDescription": "Select a numeric field to create or view analysis scripts",
+  "resultsAnalyzeFields": "Analyze Template",
+  "resultsAnalyzeFieldsDescription": "Create or edit analysis scripts for this template",
   "resultsAnalysisResults": "Analysis Results",
   "resultsAnalysisResultsDescription": "Results from executed analysis scripts",
   "resultsNoAnalysisTitle": "No Analysis Available",
@@ -979,6 +1004,7 @@
   },
   "fieldBuilderUpdateLocation": "Update Location",
   "fieldBuilderCaptureLocation": "Capture Location",
+  "fieldBuilderLocationFailed": "Could not capture location. Check permissions.",
   "syncLocalOnly": "Local only",
   "syncConnecting": "Connecting...",
   "syncConnected": "Synced",

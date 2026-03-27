@@ -194,13 +194,13 @@ class _WeekdaySelector extends StatelessWidget {
   });
 
   static const _days = [
-    ('MO', 'M'),
-    ('TU', 'T'),
-    ('WE', 'W'),
-    ('TH', 'T'),
-    ('FR', 'F'),
-    ('SA', 'S'),
-    ('SU', 'S'),
+    ('MO', 'Mo'),
+    ('TU', 'Tu'),
+    ('WE', 'We'),
+    ('TH', 'Th'),
+    ('FR', 'Fr'),
+    ('SA', 'Sa'),
+    ('SU', 'Su'),
   ];
 
   @override

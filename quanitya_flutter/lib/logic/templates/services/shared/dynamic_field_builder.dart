@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:get_it/get_it.dart';
 import '../../../../infrastructure/location/location_service.dart';
 
 import '../../enums/field_enum.dart';
@@ -668,9 +670,13 @@ class DynamicFieldBuilder {
                   try {
                     final location = await LocationService.captureCurrentPosition();
                     onChanged(location);
-                  } catch (e) {
-                    // Permission denied or location unavailable — don't crash
-                    debugPrint('Location capture failed: $e');
+                  } catch (_) {
+                    if (context.mounted) {
+                      GetIt.instance<IFeedbackService>().show(FeedbackMessage(
+                        message: context.l10n.fieldBuilderLocationFailed,
+                        type: MessageType.error,
+                      ));
+                    }
                   }
                 },
                 style: textStyle?.copyWith(color: accentColor),
@@ -703,19 +709,27 @@ class DynamicFieldBuilder {
     );
   }
 
-  /// Extract numeric constraints from field validators
+  /// Extract numeric constraints from field validators.
+  /// Handles both numeric (min/max) and dimension (minValue/maxValue) validators.
   static ({double min, double max}) _getNumericConstraints(TemplateField field) {
     double min = 0;
     double max = 100;
 
     for (final validator in field.validators) {
+      final data = validator.validatorData;
       if (validator.validatorType == ValidatorType.numeric) {
-        final data = validator.validatorData;
         if (data.containsKey('min')) {
           min = (data['min'] as num).toDouble();
         }
         if (data.containsKey('max')) {
           max = (data['max'] as num).toDouble();
+        }
+      } else if (validator.validatorType == ValidatorType.dimension) {
+        if (data.containsKey('minValue')) {
+          min = (data['minValue'] as num).toDouble();
+        }
+        if (data.containsKey('maxValue')) {
+          max = (data['maxValue'] as num).toDouble();
         }
       }
     }

@@ -5,7 +5,6 @@ import '../../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../../logic/templates/models/shared/template_field.dart';
 import '../../../../logic/templates/models/shared/template_aesthetics.dart';
 import '../../../../logic/templates/enums/ai/template_preset.dart';
-import '../../../../logic/templates/enums/ui_element_enum.dart';
 import '../../../../logic/schedules/models/schedule.dart';
 import '../../../../logic/schedules/services/schedule_service.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
@@ -111,20 +110,6 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
     );
   }
 
-  /// Load an existing template by ID
-  Future<void> loadExistingById(String templateId) async {
-    await tryOperation(() async {
-      final templateWithAesthetics = await _repository.findById(templateId);
-      if (templateWithAesthetics == null) {
-        throw StateError('Template not found');
-      }
-
-      loadTemplate(templateWithAesthetics);
-
-      return state.copyWith(status: UiFlowStatus.success);
-    }, emitLoading: true);
-  }
-
   // ─────────────────────────────────────────────────────────────────────────
   // Basic Info Editing
   // ─────────────────────────────────────────────────────────────────────────
@@ -150,32 +135,6 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   // ─────────────────────────────────────────────────────────────────────────
   // Field Management
   // ─────────────────────────────────────────────────────────────────────────
-
-  /// Add a new field to the template
-  void addField(
-    FieldEnum type, 
-    String label, {
-    List<String>? options,
-    UiElementEnum? uiElement,
-    bool isList = false,
-  }) {
-    final newField = TemplateField.create(
-      type: type,
-      label: label,
-      options: options,
-      uiElement: uiElement,
-      isList: isList,
-    );
-
-    final updatedFields = [...state.fields, newField];
-
-    emit(
-      state.copyWith(
-        fields: updatedFields,
-        lastOperation: TemplateEditorOperation.addField,
-      ),
-    );
-  }
 
   /// Add a pre-built field to the template
   void addFieldFromTemplate(TemplateField field) {
@@ -234,6 +193,64 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
         lastOperation: TemplateEditorOperation.reorderFields,
       ),
     );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Field Grouping
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Group selected fields into a new group field.
+  /// Removes them from top-level and creates a group at the first selected field's position.
+  void groupFields(List<String> fieldIds, String groupLabel) {
+    if (fieldIds.length < 2) return;
+
+    final updatedFields = List<TemplateField>.from(state.fields);
+    final subFields = <TemplateField>[];
+    int insertIndex = updatedFields.length;
+
+    // Collect sub-fields and find the earliest index
+    for (final id in fieldIds) {
+      final index = updatedFields.indexWhere((f) => f.id == id);
+      if (index != -1) {
+        if (index < insertIndex) insertIndex = index;
+        subFields.add(updatedFields[index]);
+      }
+    }
+
+    // Remove selected fields (reverse order to preserve indices)
+    updatedFields.removeWhere((f) => fieldIds.contains(f.id));
+
+    // Create group and insert at earliest position
+    final group = TemplateField.create(
+      type: FieldEnum.group,
+      label: groupLabel,
+      subFields: subFields,
+    );
+    if (insertIndex > updatedFields.length) insertIndex = updatedFields.length;
+    updatedFields.insert(insertIndex, group);
+
+    emit(state.copyWith(
+      fields: updatedFields,
+      lastOperation: TemplateEditorOperation.updateField,
+    ));
+  }
+
+  /// Dissolve a group — promotes all sub-fields back to top-level at the group's position.
+  void ungroupField(String groupFieldId) {
+    final updatedFields = List<TemplateField>.from(state.fields);
+    final groupIndex = updatedFields.indexWhere((f) => f.id == groupFieldId);
+    if (groupIndex == -1) return;
+
+    final group = updatedFields[groupIndex];
+    if (group.type != FieldEnum.group || group.subFields == null) return;
+
+    updatedFields.removeAt(groupIndex);
+    updatedFields.insertAll(groupIndex, group.subFields!);
+
+    emit(state.copyWith(
+      fields: updatedFields,
+      lastOperation: TemplateEditorOperation.updateField,
+    ));
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -389,34 +406,8 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Preview Mode
+  // Preview
   // ─────────────────────────────────────────────────────────────────────────
-
-  /// Toggle preview mode to test the form
-  void togglePreviewMode() {
-    if (!state.isPreviewMode) {
-      // Entering preview mode - initialize preview values
-      final initialValues = <String, dynamic>{};
-      for (final field in state.fields) {
-        initialValues[field.id] = _getDefaultPreviewValue(field);
-      }
-
-      emit(
-        state.copyWith(
-          isPreviewMode: true,
-          previewValues: initialValues,
-        ),
-      );
-    } else {
-      // Exiting preview mode
-      emit(
-        state.copyWith(
-          isPreviewMode: false,
-          previewValues: {},
-        ),
-      );
-    }
-  }
 
   /// Update a preview value (for testing the form)
   /// 
@@ -554,31 +545,4 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
     }, emitLoading: false);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Helpers
-  // ─────────────────────────────────────────────────────────────────────────
-
-  dynamic _getDefaultPreviewValue(TemplateField field) {
-    // List fields start with empty array
-    if (field.isList) {
-      return <dynamic>[];
-    }
-    
-    return switch (field.type) {
-      FieldEnum.integer => 0,
-      FieldEnum.float => 0.0,
-      FieldEnum.boolean => false,
-      FieldEnum.text => '',
-      FieldEnum.datetime => DateTime.now(),
-      FieldEnum.enumerated => field.options?.firstOrNull,
-      FieldEnum.dimension => {
-        'value': 0.0,
-        'unit': field.unit?.name ?? 'unit',
-      },
-      FieldEnum.reference => null,
-      FieldEnum.location => null,
-      FieldEnum.group => null,
-      FieldEnum.multiEnum => <String>[],
-    };
-  }
 }
