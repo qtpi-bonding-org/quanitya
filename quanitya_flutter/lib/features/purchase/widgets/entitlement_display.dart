@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:anonaccred_client/anonaccred_client.dart' show EntitlementType;
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
-    show AccountFeatureEntitlement;
+    show AccountFeatureEntitlement, Feature;
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
@@ -56,7 +56,7 @@ class EntitlementDisplay extends StatelessWidget {
               ),
             ),
             VSpace.x1,
-            ...entitlements.map((e) => _buildEntitlementRow(context, e)),
+            ..._buildFeatureRows(context),
           ],
 
           // Error/retry
@@ -86,26 +86,58 @@ class EntitlementDisplay extends StatelessWidget {
     );
   }
 
-  Widget _buildEntitlementRow(
-      BuildContext context, AccountFeatureEntitlement e) {
-    final palette = QuanityaPalette.primary;
-    final name = e.tag;
-    final type = e.type;
+  /// Groups entitlements by [Feature] and renders one row per feature.
+  ///
+  /// - **cloudSync** (subscription): Active/Inactive based on any balance > 0
+  /// - **llm** (consumable): sum of all LLM-tagged balances
+  List<Widget> _buildFeatureRows(BuildContext context) {
+    final grouped = <Feature, List<AccountFeatureEntitlement>>{};
+    for (final e in entitlements) {
+      (grouped[e.feature] ??= []).add(e);
+    }
 
-    // Subscription / onetime → boolean active/inactive
-    // Consumable → numeric balance
-    final (String label, Color color) = switch (type) {
-      EntitlementType.subscription || EntitlementType.onetime =>
-        e.balance > 0
-            ? (context.l10n.entitlementActive, palette.stateOnColor)
-            : (context.l10n.entitlementInactive, palette.textSecondary),
-      EntitlementType.consumable => (
-        e.balance.truncateToDouble() == e.balance
-            ? e.balance.toInt().toString()
-            : e.balance.toStringAsFixed(1),
-        e.balance > 0 ? palette.textPrimary : palette.textSecondary,
-      ),
+    // Stable display order: cloudSync first, then llm.
+    const featureOrder = [Feature.cloudSync, Feature.llm];
+
+    return [
+      for (final feature in featureOrder)
+        if (grouped.containsKey(feature))
+          _buildFeatureRow(context, feature, grouped[feature]!),
+    ];
+  }
+
+  Widget _buildFeatureRow(
+    BuildContext context,
+    Feature feature,
+    List<AccountFeatureEntitlement> entries,
+  ) {
+    final palette = QuanityaPalette.primary;
+
+    final name = switch (feature) {
+      Feature.cloudSync => context.l10n.featureCloudSync,
+      Feature.llm => context.l10n.featureLlm,
     };
+
+    // Subscriptions → boolean active/inactive
+    // Consumables → sum balances
+    final hasSubscription =
+        entries.any((e) => e.type == EntitlementType.subscription);
+
+    String label;
+    Color color;
+    if (hasSubscription) {
+      final active = entries.any((e) => e.balance > 0);
+      label = active
+          ? context.l10n.entitlementActive
+          : context.l10n.entitlementInactive;
+      color = active ? palette.stateOnColor : palette.textSecondary;
+    } else {
+      final total = entries.fold<double>(0, (sum, e) => sum + e.balance);
+      label = total.truncateToDouble() == total
+          ? total.toInt().toString()
+          : total.toStringAsFixed(1);
+      color = total > 0 ? palette.textPrimary : palette.textSecondary;
+    }
 
     return Padding(
       padding: EdgeInsets.only(bottom: AppSizes.space * 0.5),

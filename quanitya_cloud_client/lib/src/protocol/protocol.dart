@@ -261,6 +261,10 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i25.ServerException?>()) {
       return (data != null ? _i25.ServerException.fromJson(data) : null) as T;
     }
+    if (t == List<_i13.Feature>) {
+      return (data as List).map((e) => deserialize<_i13.Feature>(e)).toList()
+          as T;
+    }
     if (t == List<_i22.RailCatalogEntry>) {
       return (data as List)
               .map((e) => deserialize<_i22.RailCatalogEntry>(e))

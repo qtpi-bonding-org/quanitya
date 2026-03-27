@@ -12,24 +12,27 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'feature.dart' as _i2;
+import 'package:quanitya_cloud_client/src/protocol/protocol.dart' as _i3;
 
 abstract class CatalogProduct implements _i1.SerializableModel {
   CatalogProduct._({
     required this.storeProductId,
-    required this.feature,
+    required this.features,
     required this.serverValidated,
   });
 
   factory CatalogProduct({
     required String storeProductId,
-    required _i2.Feature feature,
+    required List<_i2.Feature> features,
     required bool serverValidated,
   }) = _CatalogProductImpl;
 
   factory CatalogProduct.fromJson(Map<String, dynamic> jsonSerialization) {
     return CatalogProduct(
       storeProductId: jsonSerialization['storeProductId'] as String,
-      feature: _i2.Feature.fromJson((jsonSerialization['feature'] as String)),
+      features: _i3.Protocol().deserialize<List<_i2.Feature>>(
+        jsonSerialization['features'],
+      ),
       serverValidated: _i1.BoolJsonExtension.fromJson(
         jsonSerialization['serverValidated'],
       ),
@@ -38,7 +41,7 @@ abstract class CatalogProduct implements _i1.SerializableModel {
 
   String storeProductId;
 
-  _i2.Feature feature;
+  List<_i2.Feature> features;
 
   bool serverValidated;
 
@@ -47,7 +50,7 @@ abstract class CatalogProduct implements _i1.SerializableModel {
   @_i1.useResult
   CatalogProduct copyWith({
     String? storeProductId,
-    _i2.Feature? feature,
+    List<_i2.Feature>? features,
     bool? serverValidated,
   });
   @override
@@ -55,7 +58,7 @@ abstract class CatalogProduct implements _i1.SerializableModel {
     return {
       '__className__': 'CatalogProduct',
       'storeProductId': storeProductId,
-      'feature': feature.toJson(),
+      'features': features.toJson(valueToJson: (v) => v.toJson()),
       'serverValidated': serverValidated,
     };
   }
@@ -69,11 +72,11 @@ abstract class CatalogProduct implements _i1.SerializableModel {
 class _CatalogProductImpl extends CatalogProduct {
   _CatalogProductImpl({
     required String storeProductId,
-    required _i2.Feature feature,
+    required List<_i2.Feature> features,
     required bool serverValidated,
   }) : super._(
          storeProductId: storeProductId,
-         feature: feature,
+         features: features,
          serverValidated: serverValidated,
        );
 
@@ -83,12 +86,12 @@ class _CatalogProductImpl extends CatalogProduct {
   @override
   CatalogProduct copyWith({
     String? storeProductId,
-    _i2.Feature? feature,
+    List<_i2.Feature>? features,
     bool? serverValidated,
   }) {
     return CatalogProduct(
       storeProductId: storeProductId ?? this.storeProductId,
-      feature: feature ?? this.feature,
+      features: features ?? this.features.map((e0) => e0).toList(),
       serverValidated: serverValidated ?? this.serverValidated,
     );
   }

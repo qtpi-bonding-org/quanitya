@@ -698,6 +698,8 @@
   "entitlementLabel": "Entitlement #{id}",
   "entitlementActive": "Active",
   "entitlementInactive": "Inactive",
+  "featureCloudSync": "Cloud Sync",
+  "featureLlm": "AI Credits",
   "outboxTitle": "Outbox",
   "outboxTabFeedback": "Feedback",
   "outboxTabAnalytics": "Analytics",
