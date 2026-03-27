@@ -47,13 +47,13 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
   /// Revoke a device by ID
   /// 
   /// Cannot revoke the current device - user must sign out instead.
-  Future<void> revokeDevice(UuidValue deviceId) async {
+  Future<void> revokeDevice(UuidValue deviceId, {required String ultimateKeyJwk}) async {
     // Check if trying to revoke current device
     final device = state.devices.firstWhere(
       (d) => d.id == deviceId,
       orElse: () => throw const AuthException('Device not found'),
     );
-    
+
     if (state.isCurrentDevice(device)) {
       emit(state.copyWith(
         status: UiFlowStatus.failure,
@@ -65,7 +65,7 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
     await tryOperation(() async {
       emit(state.copyWith(revokingDeviceId: deviceId));
 
-      await _accountService.revokeDevice(deviceId);
+      await _accountService.revokeDevice(deviceId, ultimateKeyJwk: ultimateKeyJwk);
 
       // If revoking the cross-device key, also delete from platform storage
       if (_keyRepository.isCrossDeviceStorageAvailable &&

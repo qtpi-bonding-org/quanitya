@@ -9,8 +9,10 @@ import '../../device_pairing/pages/scan_pairing_sheet.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
+import '../../../design_system/widgets/quanitya_text_field.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../infrastructure/auth/auth_repository.dart';
 import '../../../infrastructure/auth/auth_service.dart'
@@ -405,17 +407,57 @@ class _DeviceCard extends StatelessWidget {
   }
 
   void _confirmRevoke(BuildContext context) {
-    QuanityaConfirmationDialog.show(
+    final keyController = TextEditingController();
+    final cubit = context.read<DeviceManagementCubit>();
+    final deviceId = device.id;
+    if (deviceId == null) return;
+
+    LooseInsertSheet.show(
       context: context,
       title: context.l10n.revokeDevice,
-      message: context.l10n.revokeDeviceConfirmation(device.label),
-      confirmText: context.l10n.revoke,
-      isDestructive: true,
-      onConfirm: () {
-        final deviceId = device.id;
-        if (deviceId == null) return;
-        context.read<DeviceManagementCubit>().revokeDevice(deviceId);
-      },
+      builder: (sheetContext) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.revokeDeviceConfirmation(device.label),
+            style: context.text.bodyMedium,
+          ),
+          VSpace.x2,
+          Text(
+            context.l10n.revokeRequiresRecoveryKey,
+            style: context.text.bodySmall?.copyWith(
+              color: context.colors.destructiveColor,
+            ),
+          ),
+          VSpace.x1,
+          QuanityaTextField(
+            controller: keyController,
+            maxLines: 3,
+            hintText: context.l10n.recoveryKeyHint,
+          ),
+          VSpace.x3,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              QuanityaTextButton(
+                text: context.l10n.actionCancel,
+                onPressed: () => Navigator.pop(sheetContext),
+              ),
+              QuanityaTextButton(
+                text: context.l10n.revoke,
+                isDestructive: true,
+                onPressed: () {
+                  final key = keyController.text.trim();
+                  if (key.isEmpty) return;
+                  Navigator.pop(sheetContext);
+                  cubit.revokeDevice(deviceId, ultimateKeyJwk: key);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

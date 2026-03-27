@@ -398,6 +398,8 @@
       }
     }
   },
+  "revokeRequiresRecoveryKey": "Paste your recovery key to authorize this action.",
+  "recoveryKeyHint": "Paste recovery key here...",
   "createPlatformDeviceKey": "Create {platform} Device Key",
   "@createPlatformDeviceKey": {
     "placeholders": {

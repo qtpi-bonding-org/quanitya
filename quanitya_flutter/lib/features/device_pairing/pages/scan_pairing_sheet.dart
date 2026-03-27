@@ -91,6 +91,7 @@ class _ScanPairingContentState extends State<_ScanPairingContent>
           if (state.scanStatus == ScanStatus.confirmationRequired) {
             _showConfirmationDialog(context, state);
           } else if (state.scanStatus == ScanStatus.success) {
+            _scannerController.stop();
             Navigator.of(widget.sheetContext).pop();
           }
         },

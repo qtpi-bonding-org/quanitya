@@ -805,26 +805,31 @@ class AccountService {
 
   /// Revoke a device by ID.
   ///
+  /// Requires the ultimate private key (recovery key) to sign the request.
+  /// The server verifies the signature against the ultimate public key.
+  ///
   /// Throws [AuthException] on failure.
-  Future<void> revokeDevice(UuidValue deviceId) {
+  Future<void> revokeDevice(UuidValue deviceId, {required String ultimateKeyJwk}) {
     return tryMethod(
       () async {
+        // Import ultimate key for signing
+        final ultimateKeyDuo = await _keyRepository.importUltimateKeyJwk(ultimateKeyJwk);
+        final ultimatePublicKeyHex =
+            await ultimateKeyDuo.signingKeyPair.exportPublicKeyHex();
+
         final challenge =
             await _client.modules.anonaccount.entrypoint.getChallenge();
         final pow = await _computeProofOfWork(
           challenge.challenge,
           challenge.difficulty,
         );
-        final pubKeyHex =
-            await _keyRepository.getDeviceSigningPublicKeyHex();
-        if (pubKeyHex == null) throw const AuthException('Device public key not available');
         final signPayload =
-            '${challenge.challenge}:revokeDevice:$pubKeyHex';
-        final sig = await _encryption.signWithDeviceKey(signPayload);
+            '${challenge.challenge}:revokeDevice:$ultimatePublicKeyHex';
+        final sig = await _encryption.signWithKeyDuo(signPayload, ultimateKeyDuo);
         await _client.modules.anonaccount.deviceManagement.revokeDevice(
           challenge: challenge.challenge,
           proofOfWork: pow,
-          publicKeyHex: pubKeyHex,
+          publicKeyHex: ultimatePublicKeyHex,
           signature: sig,
           deviceId: deviceId,
         );
