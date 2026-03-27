@@ -13,7 +13,6 @@ import '../../../design_system/widgets/device_name_display.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../infrastructure/device/device_info_service.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../../../design_system/widgets/quanitya_empty_state.dart';
 import '../cubits/onboarding_cubit.dart';
 import '../cubits/onboarding_state.dart';
 
@@ -49,7 +48,6 @@ class _AboutView extends StatelessWidget {
             );
           },
           builder: (context, state) {
-            // Show loading screen while generating keys
             if (state.isLoading) {
               return _KeyGenerationLoadingView();
             }
@@ -114,9 +112,8 @@ class _KeyGenerationLoadingViewState extends State<_KeyGenerationLoadingView> {
   @override
   Widget build(BuildContext context) {
     final dots = '.' * _dotCount;
-    // Pad to keep text from jumping
     final paddedDots = dots.padRight(3);
-    
+
     return Center(
       child: Padding(
         padding: AppPadding.page,
@@ -125,20 +122,17 @@ class _KeyGenerationLoadingViewState extends State<_KeyGenerationLoadingView> {
           crossAlignment: CrossAxisAlignment.center,
           spacing: VSpace.x3,
           children: [
-            // Key icon - the anchor
             Icon(
               Icons.key_rounded,
               size: AppSizes.iconXLarge * 2.5,
               color: context.colors.textPrimary,
             ),
             VSpace.x4,
-            // Title with animated dots - header role
             Text(
               '${context.l10n.generatingKeysTitle}$paddedDots',
               style: context.text.headlineSmall,
               textAlign: TextAlign.center,
             ),
-            // Description - body role, secondary color
             Text(
               context.l10n.generatingKeysDescription,
               style: context.text.bodyMedium?.copyWith(
@@ -147,13 +141,11 @@ class _KeyGenerationLoadingViewState extends State<_KeyGenerationLoadingView> {
               textAlign: TextAlign.center,
             ),
             VSpace.x4,
-            // Device name display
             DeviceNameDisplay(
               label: context.l10n.pairingDeviceNameLabel,
               deviceName: _deviceName,
             ),
             VSpace.x2,
-            // Time hint - metadata role, whisper
             Text(
               context.l10n.generatingKeysHint,
               style: context.text.bodySmall?.copyWith(
@@ -175,7 +167,6 @@ class _HeaderSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final secondaryText = context.colors.textSecondary;
     final bodyStyle = context.text.bodyMedium?.copyWith(color: secondaryText);
-    final boldStyle = bodyStyle?.copyWith(fontWeight: FontWeight.bold);
 
     return QuanityaColumn(
       spacing: VSpace.x2,
@@ -204,7 +195,6 @@ class _NameExplanationSection extends StatelessWidget {
     return QuanityaColumn(
       spacing: VSpace.x3,
       children: [
-        Text(context.l10n.aboutPhilosophyTitle, style: context.text.headlineMedium),
         _DefinitionItem(
           title: context.l10n.aboutQuaTitle,
           subtitle: context.l10n.aboutQuaSubtitle,
@@ -272,7 +262,7 @@ class _DefinitionItem extends StatelessWidget {
   }
 }
 
-/// Privacy, Anonymous, Local-first, Open Source features
+/// Personal, Private, Anonymous, Transparent
 class _FeaturesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -280,9 +270,14 @@ class _FeaturesSection extends StatelessWidget {
       spacing: VSpace.x3,
       children: [
         _FeatureItem(
+          title: context.l10n.aboutPersonalTitle,
+          description: context.l10n.aboutPersonalDescription,
+          icon: Icons.smartphone,
+        ),
+        _FeatureItem(
           title: context.l10n.aboutPrivacyTitle,
           description: context.l10n.aboutPrivacyDescription,
-          icon: Icons.security,
+          icon: Icons.lock,
         ),
         _FeatureItem(
           title: context.l10n.aboutAnonymousTitle,
@@ -290,13 +285,8 @@ class _FeaturesSection extends StatelessWidget {
           icon: Icons.person_off,
         ),
         _FeatureItem(
-          title: context.l10n.aboutLocalTitle,
-          description: context.l10n.aboutLocalDescription,
-          icon: Icons.wifi_off,
-        ),
-        _FeatureItem(
-          title: context.l10n.aboutSourceTitle,
-          description: context.l10n.aboutSourceDescription,
+          title: context.l10n.aboutTransparentTitle,
+          description: context.l10n.aboutTransparentDescription,
           icon: Icons.code,
         ),
       ],
@@ -347,15 +337,11 @@ class _FooterSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: AppPadding.verticalQuadruple,
-      child: QuanityaColumn(
-        spacing: VSpace.x4,
-        children: [
-          const QuanityaEmptyState(),
-          QuanityaTextButton(
-            text: context.l10n.createAccount,
-            onPressed: () async => await context.read<OnboardingCubit>().createAccount(),
-          ),
-        ],
+      child: Center(
+        child: QuanityaTextButton(
+          text: context.l10n.createAccount,
+          onPressed: () async => await context.read<OnboardingCubit>().createAccount(),
+        ),
       ),
     );
   }
