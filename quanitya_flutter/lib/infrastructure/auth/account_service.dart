@@ -27,7 +27,7 @@ import 'auth_service.dart'
     show AccountCreationException, AccountCreationResult, AccountDeletionException, AccountRecoveryException, AuthException, AuthFailure, storeAuthSession;
 import 'registration_payload.dart';
 
-const _tag = 'account_service';
+const _tag = 'infrastructure/auth/account_service';
 
 /// Account lifecycle service — create, register, recover, delete accounts.
 ///

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../../infrastructure/config/debug_log.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/db/app_database.dart';
@@ -18,6 +18,8 @@ import '../../logic/templates/enums/field_enum.dart';
 import '../../logic/templates/enums/ui_element_enum.dart';
 import '../../logic/templates/models/shared/template_field.dart';
 import '../../logic/templates/models/shared/template_aesthetics.dart';
+
+const _tag = 'dev/services/dev_seeder_service';
 
 /// Development seeder service for populating the database with fake data.
 ///
@@ -57,13 +59,13 @@ class DevSeederService {
   Future<void> ensureEncryptionKeys() async {
     final status = await _cryptoKeyRepo.getKeyStatus();
     if (status == CryptoKeyStatus.notInitialized) {
-      debugPrint('DevSeeder: Generating encryption keys...');
+      Log.d(_tag, 'DevSeeder: Generating encryption keys...');
       await _cryptoKeyRepo.generateAccountKeys();
       // Discard the ultimate key (we don't need it for dev)
       await _cryptoKeyRepo.getUltimateKeyJwkOnce();
-      debugPrint('DevSeeder: Encryption keys generated');
+      Log.d(_tag, 'DevSeeder: Encryption keys generated');
     } else {
-      debugPrint('DevSeeder: Encryption keys already exist (status: $status)');
+      Log.d(_tag, 'DevSeeder: Encryption keys already exist (status: $status)');
     }
   }
 

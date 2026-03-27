@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:injectable/injectable.dart';
 import 'package:llamadart/llamadart.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+
+const _tag = 'logic/llm/services/local_llm_service';
 
 /// Manages the on-device LLM for structured extraction.
 ///
@@ -45,7 +47,7 @@ class LocalLlmService {
       throw StateError('Model is already loaded. Call unloadModel() first.');
     }
 
-    debugPrint('=== LocalLlmService: starting model load ===');
+    Log.d(_tag, '=== LocalLlmService: starting model load ===');
 
     // Copy model from assets to file system
     final dir = await getApplicationSupportDirectory();
@@ -53,10 +55,10 @@ class LocalLlmService {
     final modelFile = File(modelPath);
 
     if (!modelFile.existsSync()) {
-      debugPrint('=== LocalLlmService: copying model from assets (469MB)... ===');
+      Log.d(_tag, '=== LocalLlmService: copying model from assets (469MB)... ===');
       final data = await rootBundle.load(_modelAssetPath);
       await modelFile.writeAsBytes(data.buffer.asUint8List(), flush: true);
-      debugPrint('=== LocalLlmService: model copied ===');
+      Log.d(_tag, '=== LocalLlmService: model copied ===');
     }
 
     final sw = Stopwatch()..start();
@@ -70,7 +72,7 @@ class LocalLlmService {
     });
     sw.stop();
 
-    debugPrint('=== LocalLlmService: model loaded in ${sw.elapsedMilliseconds}ms ===');
+    Log.d(_tag, '=== LocalLlmService: model loaded in ${sw.elapsedMilliseconds}ms ===');
 
     _backend = backend;
     _modelHandle = modelHandle;
@@ -105,7 +107,7 @@ class LocalLlmService {
         'Metal GPU allocation may have failed.',
       );
     });
-    debugPrint('=== LocalLlmService: fresh context created, starting inference ===');
+    Log.d(_tag, '=== LocalLlmService: fresh context created, starting inference ===');
 
     try {
       final sw = Stopwatch()..start();
@@ -125,14 +127,14 @@ class LocalLlmService {
       // Backend stream emits List<int> (UTF-8 bytes), decode to string
       await for (final bytes in stream) {
         if (isCancelled?.call() == true) {
-          debugPrint('=== LocalLlmService: cancelled after ${sw.elapsedMilliseconds}ms ===');
+          Log.d(_tag, '=== LocalLlmService: cancelled after ${sw.elapsedMilliseconds}ms ===');
           _backend!.cancelGeneration();
           sw.stop();
           return buffer.toString().trim();
         }
 
         if (DateTime.now().isAfter(deadline)) {
-          debugPrint('=== LocalLlmService: timed out after ${_inferenceTimeout.inSeconds}s ===');
+          Log.d(_tag, '=== LocalLlmService: timed out after ${_inferenceTimeout.inSeconds}s ===');
           _backend!.cancelGeneration();
           sw.stop();
           throw TimeoutException(
@@ -145,14 +147,14 @@ class LocalLlmService {
       }
 
       sw.stop();
-      debugPrint('=== LocalLlmService: done in ${sw.elapsedMilliseconds}ms, '
+      Log.d(_tag, '=== LocalLlmService: done in ${sw.elapsedMilliseconds}ms, '
           '${buffer.length} chars ===');
 
       return buffer.toString().trim();
     } finally {
       // Always free the context — model stays loaded
       await _backend!.contextFree(contextHandle);
-      debugPrint('=== LocalLlmService: context freed ===');
+      Log.d(_tag, '=== LocalLlmService: context freed ===');
     }
   }
 
@@ -161,7 +163,7 @@ class LocalLlmService {
   // the @disposeMethod is sync so it fire-and-forgets this Future.
   // In production, hook into app lifecycle to await this properly.
   Future<void> unloadModel() async {
-    debugPrint('=== LocalLlmService: unloading ===');
+    Log.d(_tag, '=== LocalLlmService: unloading ===');
     if (_modelHandle != null && _backend != null) {
       await _backend!.modelFree(_modelHandle!);
     }

@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../config/debug_log.dart';
 
 import '../../data/dao/template_query_dao.dart';
 import '../../data/interfaces/log_entry_interface.dart';
@@ -10,6 +10,8 @@ import '../../logic/log_entries/services/log_entry_service.dart';
 import '../../logic/templates/enums/field_enum.dart';
 import '../../logic/templates/models/shared/template_field.dart';
 import '../../logic/templates/models/shared/tracker_template.dart';
+
+const _tag = 'infrastructure/notifications/notification_action_handler';
 
 /// Action IDs used in notification action buttons.
 abstract final class NotificationActionIds {
@@ -65,10 +67,10 @@ class NotificationActionHandler implements INotificationActionHandler {
     required String? payload,
     String? inputText,
   }) async {
-    debugPrint('NotificationActionHandler: action=$actionId, payload=$payload');
+    Log.d(_tag, 'NotificationActionHandler: action=$actionId, payload=$payload');
 
     if (payload == null || payload.isEmpty) {
-      debugPrint('NotificationActionHandler: No payload, ignoring');
+      Log.d(_tag, 'NotificationActionHandler: No payload, ignoring');
       return;
     }
 
@@ -78,7 +80,7 @@ class NotificationActionHandler implements INotificationActionHandler {
       case NotificationActionIds.openEntry:
         _handleOpenEntry(payload);
       default:
-        debugPrint('NotificationActionHandler: Unknown action $actionId');
+        Log.d(_tag, 'NotificationActionHandler: Unknown action $actionId');
     }
   }
 
@@ -88,20 +90,20 @@ class NotificationActionHandler implements INotificationActionHandler {
       // Fetch the todo entry
       final todo = await _logEntryRepo.getEntry(todoId);
       if (todo == null) {
-        debugPrint('NotificationActionHandler: Todo $todoId not found');
+        Log.d(_tag, 'NotificationActionHandler: Todo $todoId not found');
         return;
       }
 
       // Already logged — skip
       if (todo.occurredAt != null) {
-        debugPrint('NotificationActionHandler: Todo $todoId already logged');
+        Log.d(_tag, 'NotificationActionHandler: Todo $todoId already logged');
         return;
       }
 
       // Fetch template to build default values
       final template = await _templateQueryDao.findById(todo.templateId);
       if (template == null) {
-        debugPrint('NotificationActionHandler: Template ${todo.templateId} not found');
+        Log.d(_tag, 'NotificationActionHandler: Template ${todo.templateId} not found');
         return;
       }
 
@@ -118,9 +120,9 @@ class NotificationActionHandler implements INotificationActionHandler {
 
       // Note: the OS dismisses the notification when the action button is tapped
 
-      debugPrint('NotificationActionHandler: Quick logged for template ${template.name}');
+      Log.d(_tag, 'NotificationActionHandler: Quick logged for template ${template.name}');
     } catch (e) {
-      debugPrint('NotificationActionHandler: Quick log failed: $e');
+      Log.d(_tag, 'NotificationActionHandler: Quick log failed: $e');
       rethrow;
     }
   }

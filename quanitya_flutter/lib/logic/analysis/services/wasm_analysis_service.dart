@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:javascript_flutter/javascript_flutter.dart';
 import 'package:injectable/injectable.dart';
 import 'package:jinja/jinja.dart' as jinja;
@@ -11,6 +11,8 @@ import '../models/matrix_vector_scalar/field_value.dart';
 import '../enums/analysis_output_mode.dart';
 import '../../../data/interfaces/analysis_script_interface.dart';
 import '../exceptions/analysis_exceptions.dart';
+
+const _tag = 'logic/analysis/services/wasm_analysis_service';
 
 /// Hardened WASM Analysis Service with:
 /// - Asset caching (eliminates disk I/O bottleneck)
@@ -73,7 +75,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
     } catch (e, stack) {
       if (e is AnalysisException) rethrow;
       // ignore: avoid_print
-      debugPrint('WasmAnalysisService ERROR: $e\n$stack');
+      Log.d(_tag, 'WasmAnalysisService ERROR: $e\n$stack');
       throw AnalysisException('Analysis Engine Error: $e');
     }
   }
@@ -154,7 +156,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
     } catch (e, stack) {
       if (e is AnalysisException) rethrow;
       // ignore: avoid_print
-      debugPrint('JS Runtime ERROR: $e\n$stack');
+      Log.d(_tag, 'JS Runtime ERROR: $e\n$stack');
       throw AnalysisException('JS Runtime Error: $e');
     } finally {
       await javascript.dispose();

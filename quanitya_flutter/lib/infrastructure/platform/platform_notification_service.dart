@@ -1,11 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../config/debug_log.dart';
 
 import '../core/try_operation.dart';
 import '../notifications/notification_service.dart';
 import '../notifications/exceptions/notification_exception.dart';
 import 'platform_capability_service.dart';
+
+const _tag = 'infrastructure/platform/platform_notification_service';
 
 /// Platform-aware notification service that gracefully handles unsupported platforms.
 /// 
@@ -28,7 +30,7 @@ class PlatformNotificationService {
     return tryMethod(
       () async {
         if (!_capabilities.supportsLocalNotifications) {
-          debugPrint('⚠️ ${_capabilities.platformName}: Local notifications not supported');
+          Log.d(_tag, '⚠️ ${_capabilities.platformName}: Local notifications not supported');
           return false;
         }
         
@@ -52,7 +54,7 @@ class PlatformNotificationService {
     return tryMethod(
       () async {
         if (!_capabilities.supportsLocalNotifications) {
-          debugPrint('⚠️ ${_capabilities.platformName}: Skipping notification - $title: $body');
+          Log.d(_tag, '⚠️ ${_capabilities.platformName}: Skipping notification - $title: $body');
           return;
         }
         
@@ -87,7 +89,7 @@ class PlatformNotificationService {
     return tryMethod(
       () async {
         if (!_capabilities.supportsLocalNotifications) {
-          debugPrint('⚠️ ${_capabilities.platformName}: Skipping scheduled notification - $title at $scheduledDate');
+          Log.d(_tag, '⚠️ ${_capabilities.platformName}: Skipping scheduled notification - $title at $scheduledDate');
           return;
         }
 

@@ -2,13 +2,15 @@ import 'dart:async';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:intl/intl.dart';
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
-import 'package:flutter/foundation.dart' show debugPrint;
 import '../../../data/interfaces/log_entry_interface.dart';
 import '../../../data/dao/log_entry_query_dao.dart';
 import '../../../data/dao/template_query_dao.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import 'timeline_data_state.dart';
+
+const _tag = 'features/home/cubits/timeline_data_cubit';
 
 @injectable
 class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
@@ -68,7 +70,7 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
             ));
           },
           onError: (e) {
-            debugPrint('TimelineDataCubit: Error in past entries stream: $e');
+            Log.d(_tag, 'TimelineDataCubit: Error in past entries stream: $e');
             emit(state.copyWith(error: e, status: UiFlowStatus.failure));
           },
         );
@@ -96,7 +98,8 @@ class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
             ));
           },
           onError: (e) {
-            debugPrint(
+            Log.d(
+              _tag,
               'TimelineDataCubit: Error in upcoming entries stream: $e',
             );
             emit(state.copyWith(error: e, status: UiFlowStatus.failure));

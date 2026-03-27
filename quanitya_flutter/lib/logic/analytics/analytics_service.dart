@@ -2,13 +2,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import '../../infrastructure/config/debug_log.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 import '../../data/repositories/analytics_inbox_repository.dart';
 import '../../infrastructure/public_submission/public_submission_service.dart';
+
+const _tag = 'logic/analytics/analytics_service';
 
 /// Privacy-first analytics service with local-first storage.
 ///
@@ -90,16 +93,16 @@ class AnalyticsService {
 
   /// Save event to local inbox. Never throws.
   void _track(String event, {Map<String, dynamic>? props}) {
-    debugPrint('📊 Analytics: tracking "$event"');
+    Log.d(_tag, 'Analytics: tracking "$event"');
     unawaited(_inbox.saveEvent(
       eventName: event,
       clientTimestamp: DateTime.now().toUtc(),
       platform: _platformName,
       props: props != null ? jsonEncode(props) : null,
     ).then((_) {
-      debugPrint('📊 Analytics: "$event" saved to inbox');
+      Log.d(_tag, 'Analytics: "$event" saved to inbox');
     }).catchError((e) {
-      debugPrint('📊 Analytics: "$event" FAILED: $e');
+      Log.d(_tag, 'Analytics: "$event" FAILED: $e');
     }));
   }
 
@@ -152,7 +155,7 @@ class AnalyticsService {
 
         totalSent += batch.length;
       } catch (e, stack) {
-        debugPrint('Analytics batch send error: $e');
+        Log.d(_tag, 'Analytics batch send error: $e');
         await ErrorPrivserver.captureError(e, stack, source: 'AnalyticsService');
         break;
       }

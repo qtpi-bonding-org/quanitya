@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show debugPrint, kIsWeb, visibleForTesting;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:health/health.dart';
 import 'package:injectable/injectable.dart';
@@ -15,6 +16,8 @@ import '../../../logic/ingestion/services/data_ingestion_service.dart';
 import '../../../logic/ingestion/adapters/flutter_data_source_adapter.dart';
 import '../../../logic/templates/models/shared/template_aesthetics.dart';
 import 'health_adapter_factory.dart';
+
+const _tag = 'integrations/flutter/health/health_sync_service';
 
 /// Default health data types to sync.
 const defaultHealthTypes = [
@@ -102,7 +105,7 @@ class HealthSyncService {
       if (!await hasPermissions(types)) return;
       await sync(types);
     } catch (e, stack) {
-      debugPrint('HealthSyncService: syncIfEnabled failed: $e');
+      Log.d(_tag, 'HealthSyncService: syncIfEnabled failed: $e');
       await ErrorPrivserver.captureError(e, stack, source: 'HealthSyncService');
     }
   }

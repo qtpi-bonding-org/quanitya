@@ -1,14 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import '../../../infrastructure/config/debug_log.dart';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../infrastructure/purchase/i_purchase_service.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
 import '../../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import 'purchase_state.dart';
+
+const _tag = 'features/purchase/cubits/purchase_cubit';
 
 @lazySingleton
 class PurchaseCubit extends QuanityaCubit<PurchaseState> {
@@ -28,7 +30,7 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
   Future<void> _initialize() => tryOperation(() async {
     await _purchaseService.recoverPendingPurchases();
     await _purchaseService.reconcileSubscriptionEntitlements();
-    debugPrint('PurchaseCubit: Initialization complete');
+    Log.d(_tag, 'PurchaseCubit: Initialization complete');
     return state;
   }, emitLoading: false);
 

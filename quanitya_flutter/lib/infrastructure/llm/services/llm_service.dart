@@ -1,16 +1,19 @@
 import 'dart:convert';
 import 'package:dartantic_ai/dartantic_ai.dart';
 import 'package:dartantic_interface/dartantic_interface.dart';
-import 'package:json_schema/json_schema.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
+import 'package:json_schema/json_schema.dart';
+import '../../config/debug_log.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
+
+import '../../auth/auth_account_orchestrator.dart';
 import '../../core/try_operation.dart';
 import '../models/llm_types.dart';
 import 'schema_translator.dart';
 
-import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
-import '../../auth/auth_account_orchestrator.dart';
+const _tag = 'infrastructure/llm/services/llm_service';
 
 /// Super lightweight LLM service with structured output support
 /// Compatible with OpenRouter and Ollama
@@ -31,9 +34,9 @@ class LlmService {
         // Quanitya provider routes through cloud proxy (managed, no API key)
         if (config.provider == LlmProvider.quanitya) {
           if (kDebugMode) {
-            debugPrint('\n☁️☁️☁️ CLOUD PROXY REQUEST START ☁️☁️☁️');
-            debugPrint('Model: ${config.model}');
-            debugPrint('JsonSchema size: ${jsonEncode(request.jsonSchema).length}');
+            Log.d(_tag, 'CLOUD PROXY REQUEST START');
+            Log.d(_tag, 'Model: ${config.model}');
+            Log.d(_tag, 'JsonSchema size: ${jsonEncode(request.jsonSchema).length}');
           }
 
           final cloudRequest = CloudLlmStructuredRequest(
@@ -53,7 +56,7 @@ class LlmService {
           );
 
           if (kDebugMode) {
-             debugPrint('☁️☁️☁️ CLOUD PROXY SUCCESS (balance: ${response.balance}) ☁️☁️☁️\n');
+             Log.d(_tag, 'CLOUD PROXY SUCCESS (balance: ${response.balance})');
           }
 
           // Decode the JSON string from the response
@@ -79,12 +82,12 @@ class LlmService {
 
         // Debug logging
         if (kDebugMode) {
-          debugPrint('\n🚀🚀🚀 LLM REQUEST START 🚀🚀🚀');
-          debugPrint('Model: ${config.model}');
-          debugPrint('Provider: ${config.provider}');
-          debugPrint('System Prompt: ${request.systemPrompt}');
-          debugPrint('User Prompt: ${request.userPrompt}');
-          debugPrint('🚀🚀🚀 LLM REQUEST END 🚀🚀🚀\n');
+          Log.d(_tag, 'LLM REQUEST START');
+          Log.d(_tag, 'Model: ${config.model}');
+          Log.d(_tag, 'Provider: ${config.provider}');
+          Log.d(_tag, 'System Prompt: ${request.systemPrompt}');
+          Log.d(_tag, 'User Prompt: ${request.userPrompt}');
+          Log.d(_tag, 'LLM REQUEST END');
         }
 
         // Execute using Dartantic's native structured output capability
@@ -96,9 +99,9 @@ class LlmService {
 
         // Debug logging
         if (kDebugMode) {
-          debugPrint('\n📨📨📨 LLM RESPONSE START 📨📨📨');
-          debugPrint('Response: ${jsonEncode(response.output)}');
-          debugPrint('📨📨📨 LLM RESPONSE END 📨📨📨\n');
+          Log.d(_tag, 'LLM RESPONSE START');
+          Log.d(_tag, 'Response: ${jsonEncode(response.output)}');
+          Log.d(_tag, 'LLM RESPONSE END');
         }
 
         return LlmResponse(

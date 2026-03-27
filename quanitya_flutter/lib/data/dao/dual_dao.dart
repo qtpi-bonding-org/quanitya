@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
+import '../../infrastructure/config/debug_log.dart';
 import 'package:uuid/uuid.dart';
 
 import '../db/app_database.dart';
 import '../../infrastructure/crypto/data_encryption_service.dart';
+
+const _tag = 'data/dao/dual_dao';
 
 /// Type-safe pairing of local and encrypted tables
 ///
@@ -88,38 +90,38 @@ abstract class DualDao<TLocal extends DataClass, TEncrypted extends DataClass> {
   /// - The updatedAt inside the encrypted JSON blob
   /// This enables E2EEPuller to skip redundant writes by comparing timestamps.
   Future<TLocal> upsert(TLocal entity) async {
-    debugPrint('🟡 DualDao.upsert called, useTransaction: $useTransaction');
+    Log.d(_tag, '🟡 DualDao.upsert called, useTransaction: $useTransaction');
     
     // 0. Generate canonical timestamp BEFORE anything else
     final now = DateTime.now();
     
     // 1. Ensure entity has UUID - generate if missing (before transaction)
-    debugPrint('🟡   Step 1: Ensuring UUID...');
+    Log.d(_tag, '🟡   Step 1: Ensuring UUID...');
     final entityWithUUID = ensureEntityHasUUID(entity);
     
     // 2. Apply canonical timestamp to entity
-    debugPrint('🟡   Step 2: Applying timestamp...');
+    Log.d(_tag, '🟡   Step 2: Applying timestamp...');
     final entityWithTimestamp = applyTimestamp(entityWithUUID, now);
     final entityId = getEntityId(entityWithTimestamp);
 
     // 3. Encrypt the data (before transaction - async not allowed inside)
     // The encrypted blob now contains the same `now` timestamp
-    debugPrint('🟡   Step 3: Encrypting data...');
+    Log.d(_tag, '🟡   Step 3: Encrypting data...');
     final jsonData = entityToJson(entityWithTimestamp);
     final encryptedBytes = await encryption.encryptData(jsonEncode(jsonData));
     final encryptedData = base64.encode(encryptedBytes);
-    debugPrint('🟡   Step 3: Encryption done');
+    Log.d(_tag, '🟡   Step 3: Encryption done');
 
     Future<void> doWrites() async {
       // 4. Upsert to local table (Drift ORM) - uses entity.updatedAt which is `now`
-      debugPrint('🟡   Step 4: Upserting to local table...');
+      Log.d(_tag, '🟡   Step 4: Upserting to local table...');
       final insertable = entityToInsertable(entityWithTimestamp);
       await db.into(tables.localTable).insertOnConflictUpdate(insertable);
-      debugPrint('🟡   Step 4: Local table done');
+      Log.d(_tag, '🟡   Step 4: Local table done');
 
       // 5. Upsert to encrypted table (raw SQL for PowerSync views)
       // Uses same `now` timestamp for consistency
-      debugPrint('🟡   Step 5: Upserting to encrypted table...');
+      Log.d(_tag, '🟡   Step 5: Upserting to encrypted table...');
       await db.customStatement(
         '''
         INSERT OR REPLACE INTO ${tables.encryptedTableName} (id, encrypted_data, updated_at)
@@ -127,14 +129,14 @@ abstract class DualDao<TLocal extends DataClass, TEncrypted extends DataClass> {
         ''',
         [entityId, encryptedData, now.toIso8601String()],
       );
-      debugPrint('🟡   Step 5: Encrypted table done');
+      Log.d(_tag, '🟡   Step 5: Encrypted table done');
     }
 
     if (useTransaction) {
-      debugPrint('🟡   Using Drift transaction for atomicity');
+      Log.d(_tag, '🟡   Using Drift transaction for atomicity');
       await db.transaction(() => doWrites());
     } else {
-      debugPrint('🟡   No transaction wrapper (caller manages)');
+      Log.d(_tag, '🟡   No transaction wrapper (caller manages)');
       await doWrites();
     }
 
@@ -157,7 +159,7 @@ abstract class DualDao<TLocal extends DataClass, TEncrypted extends DataClass> {
   Future<List<TLocal>> bulkUpsert(List<TLocal> entities) async {
     if (entities.isEmpty) return [];
 
-    debugPrint('🟡 DualDao.bulkUpsert called with ${entities.length} entities');
+    Log.d(_tag, '🟡 DualDao.bulkUpsert called with ${entities.length} entities');
 
     // 0. Generate canonical timestamp BEFORE anything else
     final now = DateTime.now();
@@ -184,7 +186,7 @@ abstract class DualDao<TLocal extends DataClass, TEncrypted extends DataClass> {
       ));
     }
 
-    debugPrint('🟡   Pre-encryption complete for ${prepared.length} entities');
+    Log.d(_tag, '🟡   Pre-encryption complete for ${prepared.length} entities');
 
     // 2. Single transaction for all writes
     Future<void> doWrites() async {
@@ -205,14 +207,14 @@ abstract class DualDao<TLocal extends DataClass, TEncrypted extends DataClass> {
     }
 
     if (useTransaction) {
-      debugPrint('🟡   Using Drift transaction for bulk atomicity');
+      Log.d(_tag, '🟡   Using Drift transaction for bulk atomicity');
       await db.transaction(() => doWrites());
     } else {
-      debugPrint('🟡   No transaction wrapper (caller manages)');
+      Log.d(_tag, '🟡   No transaction wrapper (caller manages)');
       await doWrites();
     }
 
-    debugPrint('🟡   BulkUpsert complete');
+    Log.d(_tag, '🟡   BulkUpsert complete');
     return prepared.map((p) => p.entity).toList();
   }
 

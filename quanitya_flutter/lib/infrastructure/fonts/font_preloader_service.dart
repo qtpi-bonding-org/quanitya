@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:injectable/injectable.dart';
+import '../config/debug_log.dart';
 
 import '../../logic/templates/enums/ai/allowed_font.dart';
+
+const _tag = 'infrastructure/fonts/font_preloader_service';
 
 /// Service to preload Google Fonts for offline use.
 /// 
@@ -26,7 +29,7 @@ class FontPreloaderService {
   Future<void> preloadAllFonts() async {
     if (_isPreloaded) return;
     
-    debugPrint('🔤 Preloading Google Fonts in background...');
+    Log.d(_tag, 'Preloading Google Fonts in background...');
     
     final futures = <Future<void>>[];
     
@@ -38,7 +41,7 @@ class FontPreloaderService {
     }
     
     if (futures.isEmpty) {
-      debugPrint('✅ No Google Fonts to preload (all fonts are bundled)');
+      Log.d(_tag, 'No Google Fonts to preload (all fonts are bundled)');
       _isPreloaded = true;
       return;
     }
@@ -46,9 +49,9 @@ class FontPreloaderService {
     try {
       await Future.wait(futures);
       _isPreloaded = true;
-      debugPrint('✅ Google Fonts preloaded successfully');
+      Log.d(_tag, 'Google Fonts preloaded successfully');
     } catch (e) {
-      debugPrint('⚠️ Some Google Fonts failed to preload: $e');
+      Log.d(_tag, 'Some Google Fonts failed to preload: $e');
       // Don't throw - app should still work with system fonts
       _isPreloaded = true; // Mark as done to avoid retries
     }
@@ -66,9 +69,9 @@ class FontPreloaderService {
         Future.value(boldFont.fontFamily),
       ]);
       
-      debugPrint('  ✅ Preloaded Google Font: $fontName');
+      Log.d(_tag, 'Preloaded Google Font: $fontName');
     } catch (e) {
-      debugPrint('  ❌ Failed to preload Google Font: $fontName: $e');
+      Log.d(_tag, 'Failed to preload Google Font: $fontName: $e');
     }
   }
   
@@ -99,7 +102,7 @@ class FontPreloaderService {
         color: color,
       );
     } catch (e) {
-      debugPrint('⚠️ Google Font $fontName not available, using system default');
+      Log.d(_tag, 'Google Font $fontName not available, using system default');
       return TextStyle(
         fontSize: fontSize,
         fontWeight: fontWeight,

@@ -1,13 +1,15 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     show AccountFeatureEntitlement, Client;
+import '../config/debug_log.dart';
 
 import '../auth/auth_account_orchestrator.dart';
 import '../core/try_operation.dart';
 import 'entitlement_repository.dart';
 import 'entitlement_exception.dart';
 import 'i_entitlement_service.dart';
+
+const _tag = 'infrastructure/purchase/entitlement_service';
 
 @LazySingleton(as: IEntitlementService)
 class EntitlementService implements IEntitlementService {
@@ -24,9 +26,9 @@ class EntitlementService implements IEntitlementService {
         await _authOrchestrator.ensureAuthenticated();
         final entitlements =
             await _client.featureEntitlement.getMyEntitlements();
-        debugPrint('EntitlementService: server returned ${entitlements.length} entitlements');
+        Log.d(_tag, 'EntitlementService: server returned ${entitlements.length} entitlements');
         for (final e in entitlements) {
-          debugPrint('  tag=${e.tag} feature=${e.feature.name} balance=${e.balance} type=${e.type.name}');
+          Log.d(_tag, '  tag=${e.tag} feature=${e.feature.name} balance=${e.balance} type=${e.type.name}');
         }
         final cached = entitlements.map((e) => CachedEntitlement(
           tag: e.tag,
@@ -35,7 +37,7 @@ class EntitlementService implements IEntitlementService {
           type: e.type.name,
           name: e.tag,
         )).toList();
-        debugPrint('EntitlementService: cached ${cached.length} entitlements');
+        Log.d(_tag, 'EntitlementService: cached ${cached.length} entitlements');
         await _cache.store(cached);
         return entitlements;
       },

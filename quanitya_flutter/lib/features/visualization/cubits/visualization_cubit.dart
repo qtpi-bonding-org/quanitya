@@ -1,12 +1,14 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../../../infrastructure/config/debug_log.dart';
 
 import '../../../data/interfaces/analysis_script_interface.dart';
 import '../../../data/repositories/data_retrieval_service.dart';
 import '../../../logic/analysis/services/analysis_engine.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import 'visualization_state.dart';
+
+const _tag = 'features/visualization/cubits/visualization_cubit';
 
 export 'visualization_state.dart';
 
@@ -55,7 +57,7 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
           );
         } catch (e) {
           failedScriptNames.add(script.name);
-          debugPrint('Failed to execute script ${script.name}: $e');
+          Log.d(_tag, 'Failed to execute script ${script.name}: $e');
         }
       }
 

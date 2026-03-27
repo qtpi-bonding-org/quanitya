@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     show Client, RailCatalogEntry;
+import '../config/debug_log.dart';
 
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../core/try_operation.dart';
@@ -15,6 +15,8 @@ import 'i_digital_purchase_repository.dart';
 import 'i_purchase_service.dart';
 import 'purchase_exception.dart';
 import 'purchase_models.dart';
+
+const _tag = 'infrastructure/purchase/purchase_service';
 
 @LazySingleton(as: IPurchaseService)
 class PurchaseService implements IPurchaseService {
@@ -46,7 +48,7 @@ class PurchaseService implements IPurchaseService {
         _entitlementGrantedController.add(null);
       }),
     );
-    debugPrint('PurchaseService: Registered provider for ${provider.rail}');
+    Log.d(_tag, 'PurchaseService: Registered provider for ${provider.rail}');
   }
 
   @override
@@ -121,11 +123,11 @@ class PurchaseService implements IPurchaseService {
             // Best-effort: server already granted the entitlement, so the
             // next getEntitlements() call will refresh the cache. Don't
             // fail the purchase over a local cache write error.
-            debugPrint('PurchaseService.purchase: cache update failed (non-fatal): $e');
+            Log.d(_tag, 'PurchaseService.purchase: cache update failed (non-fatal): $e');
             await ErrorPrivserver.captureError(e, stack, source: 'PurchaseService.purchase');
           }
         } else {
-          debugPrint('PurchaseService.purchase: server returned incomplete entitlement '
+          Log.d(_tag, 'PurchaseService.purchase: server returned incomplete entitlement '
               '(tag=${validationResult.tag}, amount=${validationResult.amount})');
         }
 

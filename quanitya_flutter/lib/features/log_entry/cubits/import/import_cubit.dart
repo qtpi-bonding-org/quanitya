@@ -1,10 +1,12 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
+import '../../../../infrastructure/config/debug_log.dart';
 
 import '../../../../logic/import/services/import_executor.dart';
+
+const _tag = 'features/log_entry/cubits/import/import_cubit';
 import '../../../../logic/import/services/timestamp_resolver.dart';
 import '../../../../logic/llm/services/local_llm_service.dart';
 import '../../../../logic/ocr/services/ocr_service.dart';
@@ -93,14 +95,14 @@ class ImportCubit extends Cubit<ImportState> {
         return;
       }
 
-      debugPrint('=== ImportCubit: extracted ${nonEmpty.length} items ===');
+      Log.d(_tag,'=== ImportCubit: extracted ${nonEmpty.length} items ===');
       if (nonEmpty.length == 1) {
         emit(ImportState.singleResult(item: nonEmpty.first));
       } else {
         emit(ImportState.multipleResults(items: nonEmpty));
       }
     } catch (e) {
-      debugPrint('=== ImportCubit: error: $e ===');
+      Log.d(_tag,'=== ImportCubit: error: $e ===');
       emit(ImportState.error(message: 'Import failed: $e'));
     }
   }
@@ -131,7 +133,7 @@ class ImportCubit extends Cubit<ImportState> {
 
       emit(ImportState.done(count: count));
     } catch (e) {
-      debugPrint('=== ImportCubit: bulk import error: $e ===');
+      Log.d(_tag,'=== ImportCubit: bulk import error: $e ===');
       emit(ImportState.error(message: 'Import failed: $e'));
     }
   }

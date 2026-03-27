@@ -1,7 +1,9 @@
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:injectable/injectable.dart';
+
+const _tag = 'logic/ocr/services/ocr_service';
 
 /// Simple data class for a recognized text line with bounding box.
 class OcrLine {
@@ -31,7 +33,7 @@ class OcrService {
     }
 
     final result = reconstructRows(lines);
-    debugPrint('=== OCR: ${recognized.text.length} chars, '
+    Log.d(_tag, '=== OCR: ${recognized.text.length} chars, '
         '${lines.length} lines, reconstructed ${result.split('\n').length} rows ===');
     return result;
   }

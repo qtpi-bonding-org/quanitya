@@ -4,9 +4,12 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../../infrastructure/config/debug_log.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../db/app_database.dart';
+
+const _tag = 'data/repositories/data_export_repository';
 
 /// Result of a data export operation.
 enum DataExportResult {
@@ -48,7 +51,7 @@ class DataExportRepository {
   /// Returns an [XFile] ready to share. This is the heavy/async part
   /// (DB queries + JSON encoding) that should run under a loading overlay.
   Future<XFile> prepareExportFile(Set<String> tableNames) async {
-    debugPrint('📤 DataExportRepository: Starting export...');
+    Log.d(_tag, '📤 DataExportRepository: Starting export...');
 
     final exportData = <String, dynamic>{
       'exportedAt': DateTime.now().toIso8601String(),
@@ -59,7 +62,7 @@ class DataExportRepository {
     for (final tableName in tableNames) {
       final rows = await _db.customSelect('SELECT * FROM $tableName').get();
       exportData[tableName] = rows.map((r) => r.data).toList();
-      debugPrint('📤   $tableName: ${rows.length} rows');
+      Log.d(_tag, '📤   $tableName: ${rows.length} rows');
     }
 
     final jsonString =
@@ -73,7 +76,7 @@ class DataExportRepository {
         .first;
     final filename = 'quanitya_export_$timestamp.json';
 
-    debugPrint('📤   Prepared file: $filename');
+    Log.d(_tag, '📤   Prepared file: $filename');
 
     return XFile.fromData(
       bytes,
@@ -88,7 +91,7 @@ class DataExportRepository {
   /// so callers must not hold a loading overlay while awaiting this.
   Future<DataExportResult> shareExportFile(XFile file) async {
     try {
-      debugPrint('📤   Sharing file: ${file.name}');
+      Log.d(_tag, '📤   Sharing file: ${file.name}');
 
       final result = await Share.shareXFiles(
         [file],
@@ -98,18 +101,18 @@ class DataExportRepository {
 
       switch (result.status) {
         case ShareResultStatus.success:
-          debugPrint('📤   Export successful');
+          Log.d(_tag, '📤   Export successful');
           return DataExportResult.success;
         case ShareResultStatus.dismissed:
-          debugPrint('📤   Export cancelled by user');
+          Log.d(_tag, '📤   Export cancelled by user');
           return DataExportResult.cancelled;
         case ShareResultStatus.unavailable:
-          debugPrint('📤   Share unavailable');
+          Log.d(_tag, '📤   Share unavailable');
           return DataExportResult.failed;
       }
     } catch (e, stack) {
-      debugPrint('❌ DataExportRepository: Share failed: $e');
-      debugPrint('❌ Stack: $stack');
+      Log.d(_tag, '❌ DataExportRepository: Share failed: $e');
+      Log.d(_tag, '❌ Stack: $stack');
       rethrow;
     }
   }
@@ -206,15 +209,15 @@ class DataExportRepository {
             );
           }
 
-          debugPrint('📥   $tableName: ${rows.length} rows imported');
+          Log.d(_tag, '📥   $tableName: ${rows.length} rows imported');
         }
       });
 
       _parsedImport = null;
-      debugPrint('📥 Import completed successfully');
+      Log.d(_tag, '📥 Import completed successfully');
     } catch (e, stack) {
-      debugPrint('❌ DataExportRepository: Import failed: $e');
-      debugPrint('❌ Stack: $stack');
+      Log.d(_tag, '❌ DataExportRepository: Import failed: $e');
+      Log.d(_tag, '❌ Stack: $stack');
       if (e is ImportFailedException) rethrow;
       throw ImportFailedException('Import failed: $e');
     }

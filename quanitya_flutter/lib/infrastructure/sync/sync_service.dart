@@ -13,7 +13,7 @@ import '../config/app_config.dart';
 import '../core/try_operation.dart';
 import '../purchase/entitlement_repository.dart';
 
-const _tag = 'sync_service';
+const _tag = 'infrastructure/sync/sync_service';
 
 /// Exception thrown when sync lifecycle operations fail.
 class SyncException implements Exception {

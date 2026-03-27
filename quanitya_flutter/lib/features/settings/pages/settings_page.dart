@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
@@ -39,6 +40,8 @@ import '../../../integrations/flutter/health/health_sync_cubit.dart';
 import '../../../integrations/flutter/health/health_sync_service.dart'
     show defaultHealthTypes;
 import '../../../integrations/flutter/health/health_sync_state.dart';
+
+const _tag = 'features/settings/pages/settings_page';
 
 bool get _supportsHealthData => !kIsWeb && (Platform.isIOS || Platform.isAndroid);
 
@@ -208,7 +211,7 @@ class _TutorialSectionState extends State<_TutorialSection> {
               }
               if (mounted) setState(() => _showTours = enabled);
             } catch (e, stack) {
-              debugPrint('Tour toggle failed: $e');
+              Log.d(_tag, 'Tour toggle failed: $e');
               await ErrorPrivserver.captureError(e, stack, source: 'SettingsPage.tourToggle');
             }
           },
@@ -501,7 +504,7 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
         });
       }
     } catch (e) {
-      debugPrint('SettingsPage: Failed to load templates: $e');
+      Log.d(_tag, 'SettingsPage: Failed to load templates: $e');
       if (mounted) {
         setState(() => _templateLoadFailed = true);
       }

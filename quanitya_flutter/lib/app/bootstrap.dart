@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' as cubit_ui_flow;
+import '../infrastructure/config/debug_log.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
@@ -28,6 +29,8 @@ import '../features/settings/services/tested_models_service.dart';
 import '../integrations/flutter/health/health_sync_service.dart';
 import 'bootstrap.config.dart';
 
+const _tag = 'app/bootstrap';
+
 /// Global service locator instance
 final GetIt getIt = GetIt.instance;
 
@@ -47,30 +50,30 @@ Future<void> configureDependencies() => getIt.init(
 ///
 /// Call this once from main() before runApp().
 Future<void> bootstrap() async {
-  debugPrint('Bootstrap: Starting...');
+  Log.d(_tag, 'Bootstrap: Starting...');
 
   try {
     // 0. Apply dev configuration (including logging settings)
-    debugPrint('Bootstrap: Applying dev configuration...');
+    Log.d(_tag, 'Bootstrap: Applying dev configuration...');
     DevConfig.applyLoggingConfig();
-    debugPrint(
+    Log.d(_tag,
       'Bootstrap: Dev configuration applied (PowerSync logging: ${DevConfig.enablePowerSyncLogging}, connection errors: ${DevConfig.enablePowerSyncConnectionErrors}, other logs: enabled)',
     );
 
     // 1. Configure all injectable dependencies
-    debugPrint('Bootstrap: Configuring dependencies...');
+    Log.d(_tag, 'Bootstrap: Configuring dependencies...');
     await configureDependencies();
-    debugPrint('Bootstrap: Dependencies configured');
+    Log.d(_tag, 'Bootstrap: Dependencies configured');
 
     // 2. Register UI flow service (depends on localization/feedback/loading)
-    debugPrint('Bootstrap: Registering UI flow service...');
+    Log.d(_tag, 'Bootstrap: Registering UI flow service...');
     _registerUiFlowService();
-    debugPrint('Bootstrap: UI flow service registered');
+    Log.d(_tag, 'Bootstrap: UI flow service registered');
 
     // 2.5. Configure ErrorPrivserver for privacy-preserving error reporting
-    debugPrint('Bootstrap: Configuring ErrorPrivserver...');
+    Log.d(_tag, 'Bootstrap: Configuring ErrorPrivserver...');
     _configureErrorPrivserver();
-    debugPrint('Bootstrap: ErrorPrivserver configured');
+    Log.d(_tag, 'Bootstrap: ErrorPrivserver configured');
 
     // 3. AppSyncingCubit self-hydrates from DB in constructor (no init needed)
 
@@ -81,33 +84,33 @@ Future<void> bootstrap() async {
       final ftsDao = getIt<FtsSearchDao>();
       await ftsDao.ensureTable();
       await ftsDao.rebuildIfEmpty();
-      debugPrint('Bootstrap: FTS search index ready');
+      Log.d(_tag, 'Bootstrap: FTS search index ready');
     }
 
     // 4.2. One-time migration: encrypt existing plaintext aesthetics
     await _migrateAestheticsToE2EE();
 
     // 4. Initialize Serverpod client auth
-    debugPrint('Bootstrap: Initializing Serverpod client auth...');
+    Log.d(_tag, 'Bootstrap: Initializing Serverpod client auth...');
     _initializeClientAuth();
-    debugPrint('Bootstrap: Serverpod client auth initialized');
+    Log.d(_tag, 'Bootstrap: Serverpod client auth initialized');
 
     // 5. Initialize AuthService
     if (getIt.isRegistered<AuthService>()) {
-      debugPrint('Bootstrap: Initializing AuthService...');
+      Log.d(_tag, 'Bootstrap: Initializing AuthService...');
       final authService = getIt<AuthService>();
       await authService.initialize();
-      debugPrint('Bootstrap: AuthService initialized');
+      Log.d(_tag, 'Bootstrap: AuthService initialized');
 
     }
 
     // 5.5. Initialize PurchaseService — register providers for supported rails
     if (getIt.isRegistered<IPurchaseService>()) {
-      debugPrint('Bootstrap: Initializing PurchaseService...');
+      Log.d(_tag, 'Bootstrap: Initializing PurchaseService...');
       final purchaseService = getIt<IPurchaseService>();
       final platformCaps = getIt<PlatformCapabilityService>();
       final supportedRails = platformCaps.supportedPurchaseRails;
-      debugPrint('Bootstrap: Supported purchase rails: $supportedRails');
+      Log.d(_tag, 'Bootstrap: Supported purchase rails: $supportedRails');
 
       if (supportedRails.isNotEmpty &&
           !kIsWeb &&
@@ -117,16 +120,16 @@ Future<void> bootstrap() async {
             await provider.isAvailable()) {
           await provider.initialize();
           purchaseService.registerProvider(provider);
-          debugPrint(
+          Log.d(_tag,
             'Bootstrap: Registered ${provider.rail.name} purchase provider',
           );
         } else {
-          debugPrint(
+          Log.d(_tag,
             'Bootstrap: Provider ${provider.rail.name} not in supported rails or unavailable',
           );
         }
       } else {
-        debugPrint(
+        Log.d(_tag,
           'Bootstrap: No purchase providers to register for this platform',
         );
       }
@@ -137,12 +140,12 @@ Future<void> bootstrap() async {
 
     // 7-11. Parallel initialization of independent services
     // These have no dependencies on each other — run concurrently.
-    debugPrint('Bootstrap: Starting parallel initialization...');
+    Log.d(_tag, 'Bootstrap: Starting parallel initialization...');
 
     // Font preloading is fire-and-forget (no await needed)
     if (getIt.isRegistered<FontPreloaderService>()) {
       getIt<FontPreloaderService>().preloadAllFonts().catchError((e) {
-        debugPrint('Bootstrap: Font preloading failed (non-critical): $e');
+        Log.d(_tag, 'Bootstrap: Font preloading failed (non-critical): $e');
       });
     }
 
@@ -150,15 +153,15 @@ Future<void> bootstrap() async {
       // 7. NotificationService
       if (getIt.isRegistered<NotificationService>())
         getIt<NotificationService>().initialize().then((_) {
-          debugPrint('Bootstrap: NotificationService initialized');
+          Log.d(_tag, 'Bootstrap: NotificationService initialized');
         }),
 
       // 9. Generate pending todos from schedules
       if (getIt.isRegistered<ScheduleGeneratorService>())
         getIt<ScheduleGeneratorService>().generatePendingTodos().then((result) {
-          debugPrint('Bootstrap: Todo generation complete - $result');
+          Log.d(_tag, 'Bootstrap: Todo generation complete - $result');
           if (result.failedScheduleIds.isNotEmpty) {
-            debugPrint('Bootstrap: WARNING - ${result.failedScheduleIds.length} '
+            Log.d(_tag, 'Bootstrap: WARNING - ${result.failedScheduleIds.length} '
                 'schedule(s) failed to generate todos: '
                 '${result.failedScheduleIds.join(', ')}');
           }
@@ -167,9 +170,9 @@ Future<void> bootstrap() async {
       // 9.5. Sync tested LLM models (fails silently if offline)
       if (getIt.isRegistered<TestedModelsService>())
         getIt<TestedModelsService>().syncOnStartup().then((_) {
-          debugPrint('Bootstrap: Tested LLM models synced');
+          Log.d(_tag, 'Bootstrap: Tested LLM models synced');
         }).catchError((e) {
-          debugPrint('Bootstrap: LLM model sync failed (non-critical): $e');
+          Log.d(_tag, 'Bootstrap: LLM model sync failed (non-critical): $e');
         }),
 
       // 10. Register health sync resume hook if previously enabled
@@ -178,11 +181,11 @@ Future<void> bootstrap() async {
 
       // 11. Initialize router with correct initial location based on key status
       AppRouter.initialize().then((_) {
-        debugPrint('Bootstrap: Router initialized');
+        Log.d(_tag, 'Bootstrap: Router initialized');
       }),
     ]);
 
-    debugPrint('Bootstrap: Parallel initialization complete');
+    Log.d(_tag, 'Bootstrap: Parallel initialization complete');
 
     // Track app opened (non-blocking, no await)
     if (getIt.isRegistered<AnalyticsService>()) {
@@ -201,10 +204,10 @@ Future<void> bootstrap() async {
       _autoSendErrors();
     }
 
-    debugPrint('Bootstrap: Complete');
+    Log.d(_tag, 'Bootstrap: Complete');
   } catch (e, stack) {
-    debugPrint('Bootstrap: FAILED - $e');
-    debugPrint('Bootstrap: Stack trace:\n$stack');
+    Log.d(_tag, 'Bootstrap: FAILED - $e');
+    Log.d(_tag, 'Bootstrap: Stack trace:\n$stack');
     rethrow;
   }
 }
@@ -239,12 +242,12 @@ void _autoSendAnalytics() {
       final autoSend = await settingsRepo.getAnalyticsAutoSend();
       if (!autoSend) return;
 
-      debugPrint('Bootstrap: Auto-sending analytics events...');
+      Log.d(_tag, 'Bootstrap: Auto-sending analytics events...');
       final analyticsService = getIt<AnalyticsService>();
       final sent = await analyticsService.sendAllUnsent();
-      debugPrint('Bootstrap: Auto-sent $sent analytics events');
+      Log.d(_tag, 'Bootstrap: Auto-sent $sent analytics events');
     } catch (e) {
-      debugPrint('Bootstrap: Analytics auto-send failed (non-critical): $e');
+      Log.d(_tag, 'Bootstrap: Analytics auto-send failed (non-critical): $e');
     }
   }));
 }
@@ -263,12 +266,12 @@ void _autoSendErrors() {
       final errors = await repo.getUnsentErrors();
       if (errors.isEmpty) return;
 
-      debugPrint('Bootstrap: Auto-sending ${errors.length} error reports...');
+      Log.d(_tag, 'Bootstrap: Auto-sending ${errors.length} error reports...');
       final entries = errors.map((e) => e.errorData).toList();
       final sent = await reporter.sendErrorReports(entries);
-      debugPrint('Bootstrap: Auto-sent $sent error reports');
+      Log.d(_tag, 'Bootstrap: Auto-sent $sent error reports');
     } catch (e) {
-      debugPrint('Bootstrap: Error auto-send failed (non-critical): $e');
+      Log.d(_tag, 'Bootstrap: Error auto-send failed (non-critical): $e');
     }
   }));
 }
@@ -295,20 +298,20 @@ void _configureErrorPrivserver() {
       ),
     );
 
-    debugPrint(
+    Log.d(_tag,
       'ErrorPrivserver: Configured with Drift storage and Quanitya exception mapper',
     );
   } else {
-    debugPrint(
+    Log.d(_tag,
       'ErrorPrivserver: Skipping configuration - required services not registered',
     );
-    debugPrint(
+    Log.d(_tag,
       '  - ErrorReporterService: ${getIt.isRegistered<ErrorReporterService>()}',
     );
-    debugPrint(
+    Log.d(_tag,
       '  - IExceptionKeyMapper: ${getIt.isRegistered<cubit_ui_flow.IExceptionKeyMapper>()}',
     );
-    debugPrint(
+    Log.d(_tag,
       '  - ErrorBoxRepository: ${getIt.isRegistered<ErrorBoxRepository>()}',
     );
   }
@@ -335,24 +338,24 @@ Future<void> _migrateAestheticsToE2EE() async {
         .then((row) => row.read<int>('c'));
 
     if (encryptedCount > 0) {
-      debugPrint('E2EE Migration: Aesthetics already migrated ($encryptedCount records)');
+      Log.d(_tag, 'E2EE Migration: Aesthetics already migrated ($encryptedCount records)');
       return;
     }
 
     // Read all existing plaintext aesthetics
     final existingAesthetics = await db.select(db.templateAesthetics).get();
     if (existingAesthetics.isEmpty) {
-      debugPrint('E2EE Migration: No aesthetics to migrate');
+      Log.d(_tag, 'E2EE Migration: No aesthetics to migrate');
       return;
     }
 
-    debugPrint('E2EE Migration: Migrating ${existingAesthetics.length} aesthetics to E2EE');
+    Log.d(_tag, 'E2EE Migration: Migrating ${existingAesthetics.length} aesthetics to E2EE');
 
     final dualDao = getIt<TemplateAestheticsDualDao>();
     await dualDao.bulkUpsert(existingAesthetics);
 
-    debugPrint('E2EE Migration: Complete');
+    Log.d(_tag, 'E2EE Migration: Complete');
   } catch (e) {
-    debugPrint('E2EE Migration: Failed (non-fatal): $e');
+    Log.d(_tag, 'E2EE Migration: Failed (non-fatal): $e');
   }
 }

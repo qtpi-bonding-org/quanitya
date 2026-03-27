@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../infrastructure/config/debug_log.dart';
 import 'package:quanitya_flutter/dev/models/ocr_table_model.dart';
 import 'package:quanitya_flutter/logic/ingestion/adapters/import_data_source_adapter.dart';
 import 'package:quanitya_flutter/logic/llm/services/local_llm_service.dart';
@@ -12,6 +13,8 @@ import 'package:quanitya_flutter/logic/ocr/services/template_extraction_schema_b
 import 'package:quanitya_flutter/logic/templates/enums/field_enum.dart';
 import 'package:quanitya_flutter/logic/templates/models/shared/template_field.dart';
 import 'package:quanitya_flutter/logic/templates/models/shared/tracker_template.dart';
+
+const _tag = 'dev/pages/ocr_test_page';
 
 class OcrTestPage extends StatefulWidget {
   const OcrTestPage({super.key});
@@ -130,8 +133,8 @@ class _OcrTestPageState extends State<OcrTestPage> {
       final text = await _ocrService.recognizeText(image.path);
       sw.stop();
 
-      debugPrint('=== OCR: done in ${sw.elapsedMilliseconds}ms ===');
-      debugPrint(text);
+      Log.d(_tag, '=== OCR: done in ${sw.elapsedMilliseconds}ms ===');
+      Log.d(_tag, text);
 
       setState(() {
         _table = OcrTableModel.fromOcrText(text);
@@ -170,9 +173,9 @@ class _OcrTestPageState extends State<OcrTestPage> {
   Future<void> _extract() async {
     _finishEditing();
     final text = _table?.toText();
-    debugPrint('=== TABLE toText() START ===');
-    debugPrint(text);
-    debugPrint('=== TABLE toText() END (${text?.length} chars) ===');
+    Log.d(_tag, '=== TABLE toText() START ===');
+    Log.d(_tag, text ?? '');
+    Log.d(_tag, '=== TABLE toText() END (${text?.length} chars) ===');
     if (text == null || text.isEmpty) {
       setState(() => _error = 'No data to extract');
       return;
@@ -202,7 +205,7 @@ class _OcrTestPageState extends State<OcrTestPage> {
         ocrText: ocrText,
         fields: _extractionFields,
       );
-      debugPrint('=== LLM PROMPT ===\n$prompt');
+      Log.d(_tag, '=== LLM PROMPT ===\n$prompt');
 
       final sw = Stopwatch()..start();
       final rawOutput = await _llmService.generate(
@@ -212,7 +215,7 @@ class _OcrTestPageState extends State<OcrTestPage> {
       );
       sw.stop();
 
-      debugPrint('=== LLM OUTPUT (${sw.elapsedMilliseconds}ms) ===\n$rawOutput');
+      Log.d(_tag, '=== LLM OUTPUT (${sw.elapsedMilliseconds}ms) ===\n$rawOutput');
 
       if (!mounted) return;
       setState(() { _llmOutput = rawOutput; _llmDuration = sw.elapsed; _llmRunning = false; });

@@ -1,15 +1,17 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import '../../../infrastructure/config/debug_log.dart';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../data/repositories/error_box_repository.dart';
 import '../../../features/app_syncing_mode/repositories/app_syncing_repository.dart';
 import '../../../infrastructure/error_reporting/error_reporter_service.dart';
 import 'errors_state.dart';
+
+const _tag = 'features/errors/cubits/errors_cubit';
 
 @lazySingleton
 class ErrorsCubit extends QuanityaCubit<ErrorsState> {
@@ -27,9 +29,9 @@ class ErrorsCubit extends QuanityaCubit<ErrorsState> {
   Future<void> _initialize() async {
     try {
       await load();
-      debugPrint('ErrorsCubit: Initialization complete');
+      Log.d(_tag, 'ErrorsCubit: Initialization complete');
     } catch (e) {
-      debugPrint('ErrorsCubit: Initialization failed (non-critical): $e');
+      Log.d(_tag, 'ErrorsCubit: Initialization failed (non-critical): $e');
     }
   }
 

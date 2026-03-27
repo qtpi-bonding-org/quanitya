@@ -15,7 +15,7 @@ import '../../models/matrix_vector_scalar/analysis_data_type.dart';
 import '../../exceptions/analysis_exceptions.dart';
 import '../field_shape_resolver.dart';
 
-const _tag = 'ai_analysis_orchestrator';
+const _tag = 'logic/analysis/services/ai/ai_analysis_orchestrator';
 
 /// Simple suggestion model for AI-generated analysis scripts
 class ScriptSuggestion {

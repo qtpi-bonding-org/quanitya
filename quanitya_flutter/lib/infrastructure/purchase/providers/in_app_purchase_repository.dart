@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:in_app_purchase/in_app_purchase.dart' as iap;
+import '../../config/debug_log.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
@@ -19,6 +20,8 @@ import '../../crypto/utils/hashcash.dart';
 import '../i_digital_purchase_repository.dart';
 import '../purchase_exception.dart';
 import '../purchase_models.dart';
+
+const _tag = 'infrastructure/purchase/providers/in_app_purchase_repository';
 
 /// Repository for Apple/Google In-App Purchases.
 ///
@@ -81,7 +84,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
         _purchaseSubscription = _iapInstance.purchaseStream.listen(
           _handlePurchaseUpdates,
           onError: (error) {
-            debugPrint('InAppPurchaseProvider: Purchase stream error: $error');
+            Log.d(_tag, 'InAppPurchaseProvider: Purchase stream error: $error');
           },
         );
       },
@@ -159,7 +162,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
         final response = await _iapInstance.queryProductDetails(productIds);
 
         if (response.notFoundIDs.isNotEmpty) {
-          debugPrint(
+          Log.d(_tag,
             'InAppPurchaseProvider: Products not found: ${response.notFoundIDs}',
           );
         }
@@ -250,7 +253,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
   ) {
     return tryMethod(
       () async {
-        debugPrint('validateWithServer: starting for '
+        Log.d(_tag, 'validateWithServer: starting for '
             'rail=${purchase.rail}, '
             'productId=${purchase.productId}, '
             'transactionId=${purchase.transactionId}, '
@@ -259,13 +262,13 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
         // Ensure JWT session (orchestrator handles re-registration if needed).
         await _authOrchestrator.ensureAuthenticated();
 
-        debugPrint('validateWithServer: authenticated, validating...');
+        Log.d(_tag, 'validateWithServer: authenticated, validating...');
         // ignore: prefer_typing_uninitialized_variables
         final result;
 
         if (purchase.rail == PurchaseRail.appleIap) {
           final txnId = purchase.transactionId ?? '';
-          debugPrint('validateWithServer: calling validateAppleTransaction '
+          Log.d(_tag, 'validateWithServer: calling validateAppleTransaction '
               'txnId=$txnId, '
               'productId=${purchase.productId}');
           result =
@@ -275,7 +278,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
             internalTransactionId: purchase.transactionId,
           );
         } else {
-          debugPrint('validateWithServer: calling validateGooglePurchase '
+          Log.d(_tag, 'validateWithServer: calling validateGooglePurchase '
               'packageName=${purchase.packageName}, '
               'productId=${purchase.productId}, '
               'purchaseToken=${purchase.purchaseToken != null ? '${purchase.purchaseToken?.substring(0, 20)}...' : 'null'}');
@@ -297,14 +300,14 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
           );
         }
 
-        debugPrint('validateWithServer: server response=$result');
+        Log.d(_tag, 'validateWithServer: server response=$result');
 
         if (result.success) {
           // Complete the platform purchase (clears Apple/Google queue)
           final rawDetails = _rawPurchaseDetails.remove(purchase.productId);
           if (rawDetails != null) {
             await _iapInstance.completePurchase(rawDetails);
-            debugPrint('validateWithServer: completePurchase called');
+            Log.d(_tag, 'validateWithServer: completePurchase called');
           }
         }
 
@@ -355,12 +358,12 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
   /// iOS/macOS: query StoreKit 2 active transactions and re-validate
   /// subscriptions with the server.
   Future<void> _reconcileAppleSubscriptions() async {
-    debugPrint('reconcileSubscriptionEntitlements: querying SK2 transactions...');
+    Log.d(_tag, 'reconcileSubscriptionEntitlements: querying SK2 transactions...');
     final allTransactions = await SK2Transaction.transactions();
     final transactions = allTransactions.where(
       (tx) => tx.subscriptionGroupID != null,
     ).toList();
-    debugPrint(
+    Log.d(_tag,
       'reconcileSubscriptionEntitlements: found ${transactions.length} subscription transactions (${allTransactions.length} total)',
     );
 
@@ -374,12 +377,12 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
         );
 
         final validation = await validateWithServer(result);
-        debugPrint(
+        Log.d(_tag,
           'reconcileSubscriptionEntitlements: '
           '${transaction.productId} → success=${validation.success}',
         );
       } catch (e, stack) {
-        debugPrint(
+        Log.d(_tag,
           'reconcileSubscriptionEntitlements: failed for '
           '${transaction.productId}: $e',
         );
@@ -391,7 +394,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
   /// Android: query active subscriptions via Google Play Billing and
   /// re-validate each with the server.
   Future<void> _reconcileGoogleSubscriptions() async {
-    debugPrint('reconcileSubscriptionEntitlements: querying Google Play subscriptions...');
+    Log.d(_tag, 'reconcileSubscriptionEntitlements: querying Google Play subscriptions...');
     final androidAddition = _iapInstance
         .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
 
@@ -400,7 +403,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
     final subscriptions = response.pastPurchases.where(
       (p) => p.productID.endsWith('_month') || p.productID.endsWith('_year'),
     ).toList();
-    debugPrint(
+    Log.d(_tag,
       'reconcileSubscriptionEntitlements: found ${subscriptions.length} subscriptions (${response.pastPurchases.length} total)',
     );
 
@@ -416,12 +419,12 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
         );
 
         final validation = await validateWithServer(result);
-        debugPrint(
+        Log.d(_tag,
           'reconcileSubscriptionEntitlements: '
           '${purchase.productID} → success=${validation.success}',
         );
       } catch (e, stack) {
-        debugPrint(
+        Log.d(_tag,
           'reconcileSubscriptionEntitlements: failed for '
           '${purchase.productID}: $e',
         );
@@ -538,14 +541,14 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
     final txnId = result.transactionId ?? result.productId;
     _recoveringTransactions.add(txnId);
     try {
-      debugPrint('_recoverOrphanedPurchase: recovering '
+      Log.d(_tag, '_recoverOrphanedPurchase: recovering '
           'productId=${result.productId}, '
           'transactionId=${result.transactionId}');
       await validateWithServer(result);
-      debugPrint('_recoverOrphanedPurchase: recovered ${result.productId}');
+      Log.d(_tag, '_recoverOrphanedPurchase: recovered ${result.productId}');
       _entitlementGrantedController.add(null);
     } catch (e, stack) {
-      debugPrint('_recoverOrphanedPurchase: failed for '
+      Log.d(_tag, '_recoverOrphanedPurchase: failed for '
           '${result.productId}: $e');
       await ErrorPrivserver.captureError(e, stack, source: 'InAppPurchaseRepository');
       // Still try to complete the purchase to clear the queue
@@ -553,10 +556,10 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
       if (rawDetails != null) {
         try {
           await _iapInstance.completePurchase(rawDetails);
-          debugPrint('_recoverOrphanedPurchase: '
+          Log.d(_tag, '_recoverOrphanedPurchase: '
               'completePurchase called for ${result.productId}');
         } catch (e2, stack2) {
-          debugPrint('_recoverOrphanedPurchase: '
+          Log.d(_tag, '_recoverOrphanedPurchase: '
               'completePurchase also failed: $e2');
           await ErrorPrivserver.captureError(e2, stack2, source: 'InAppPurchaseRepository');
         }

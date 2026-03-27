@@ -7,7 +7,7 @@ import '../core/try_operation.dart';
 import 'account_service.dart';
 import 'auth_service.dart' show AuthService, DeviceAuthenticationException;
 
-const _tag = 'auth_orchestrator';
+const _tag = 'infrastructure/auth/auth_account_orchestrator';
 
 /// Coordinates JWT authentication with automatic device re-registration.
 ///

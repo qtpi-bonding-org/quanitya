@@ -1,7 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:rrule/rrule.dart';
 
+const _tag = 'logic/schedules/services/recurrence_service';
 
 /// Service for parsing and calculating recurrence rules (RRULE).
 /// 
@@ -24,7 +25,7 @@ class RecurrenceService {
           : 'RRULE:$rruleString';
       return RecurrenceRule.fromString(normalized);
     } catch (e) {
-      debugPrint('RecurrenceService: Invalid RRULE "$rruleString": $e');
+      Log.d(_tag, 'RecurrenceService: Invalid RRULE "$rruleString": $e');
       return null;
     }
   }
@@ -80,7 +81,7 @@ class RecurrenceService {
       ).toList();
       return results.map(_fromWallClockUtc).toList();
     } catch (e) {
-      debugPrint('RecurrenceService: Error getting occurrences: $e');
+      Log.d(_tag, 'RecurrenceService: Error getting occurrences: $e');
       return [];
     }
   }
@@ -102,7 +103,7 @@ class RecurrenceService {
       ).take(count).toList();
       return results.map(_fromWallClockUtc).toList();
     } catch (e) {
-      debugPrint('RecurrenceService: Error getting next occurrences: $e');
+      Log.d(_tag, 'RecurrenceService: Error getting next occurrences: $e');
       return [];
     }
   }
@@ -121,7 +122,7 @@ class RecurrenceService {
       // until the dependency is sorted.
       return 'Repeats ${rule.frequency.toString().split('.').last}';
     } catch (e) {
-      debugPrint('RecurrenceService: Error converting to text: $e');
+      Log.d(_tag, 'RecurrenceService: Error converting to text: $e');
       return rruleString;
     }
   }

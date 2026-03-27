@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'infrastructure/config/debug_log.dart';
 import 'package:go_router/go_router.dart';
 import 'package:get_it/get_it.dart';
 
@@ -23,6 +24,8 @@ import 'features/onboarding/pages/connect_device_page.dart';
 import 'infrastructure/auth/account_service.dart';
 import 'infrastructure/crypto/crypto_key_repository.dart';
 import 'infrastructure/device/device_info_service.dart';
+
+const _tag = 'app_router';
 
 class AppRouter {
   AppRouter._();
@@ -50,16 +53,16 @@ class AppRouter {
   /// Returns true if recovery succeeded, false otherwise.
   static Future<bool> _attemptCrossDeviceRecovery() async {
     try {
-      debugPrint('AppRouter: Cross-device key found — attempting recovery...');
+      Log.d(_tag, 'AppRouter: Cross-device key found — attempting recovery...');
       final accountService = GetIt.instance<AccountService>();
       final deviceInfo = GetIt.instance<DeviceInfoService>();
       final deviceLabel = await deviceInfo.getDeviceName();
 
       await accountService.recoverFromCrossDeviceKey(deviceLabel: deviceLabel);
-      debugPrint('AppRouter: Cross-device recovery succeeded');
+      Log.d(_tag, 'AppRouter: Cross-device recovery succeeded');
       return true;
     } catch (e) {
-      debugPrint('AppRouter: Cross-device recovery failed, falling back to onboarding: $e');
+      Log.d(_tag, 'AppRouter: Cross-device recovery failed, falling back to onboarding: $e');
       return false;
     }
   }

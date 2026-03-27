@@ -1,11 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:quanitya_flutter/infrastructure/core/try_operation.dart';
 import 'package:quanitya_flutter/data/db/app_database.dart';
 import 'package:quanitya_flutter/infrastructure/config/app_config.dart';
 import '../models/app_syncing_mode.dart';
 import '../exceptions/app_syncing_exceptions.dart';
+
+const _tag = 'features/app_syncing_mode/repositories/app_syncing_repository';
 
 @lazySingleton
 class AppSyncingRepository {
@@ -31,7 +33,7 @@ class AppSyncingRepository {
     return tryMethod(() async {
       await _ensureInitialized();
       final settings = await _db.select(_db.appOperatingSettings).getSingle();
-      debugPrint('📋 AppSyncingRepository: getSettings() → mode=${settings.mode.name}');
+      Log.d(_tag, '📋 AppSyncingRepository: getSettings() → mode=${settings.mode.name}');
       return settings;
     }, AppSyncingException.new, 'getSettings');
   }
@@ -66,7 +68,7 @@ class AppSyncingRepository {
       if (updated == 0) {
         throw const AppSyncingException('Failed to update syncing mode');
       }
-      debugPrint('✅ AppSyncingRepository: Mode updated to ${mode.name} ($updated rows)');
+      Log.d(_tag, '✅ AppSyncingRepository: Mode updated to ${mode.name} ($updated rows)');
     }, AppSyncingException.new, 'updateMode');
   }
 

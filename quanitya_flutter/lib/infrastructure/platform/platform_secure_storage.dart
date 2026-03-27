@@ -1,11 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../config/debug_log.dart';
 
 import '../core/try_operation.dart';
 import '../crypto/interfaces/i_secure_storage.dart';
 import '../crypto/exceptions/crypto_exceptions.dart';
 import 'platform_capability_service.dart';
+
+const _tag = 'infrastructure/platform/platform_secure_storage';
 
 /// Platform-aware secure storage that gracefully handles web limitations.
 /// 
@@ -31,7 +33,7 @@ class PlatformSecureStorage implements ISecureStorage {
         }
         
         if (_capabilities.isWeb) {
-          debugPrint('🌐 Web: Using WebCrypto API for secure storage');
+          Log.d(_tag, '🌐 Web: Using WebCrypto API for secure storage');
         }
         
         await _secureStorage.write(key: _deviceKeyId, value: jwk);

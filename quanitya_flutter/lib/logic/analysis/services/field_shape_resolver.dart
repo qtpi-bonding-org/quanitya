@@ -7,7 +7,7 @@ import '../../templates/enums/field_enum.dart';
 import '../../templates/models/shared/template_field.dart';
 import '../exceptions/analysis_exceptions.dart';
 
-const _tag = 'field_shape_resolver';
+const _tag = 'logic/analysis/services/field_shape_resolver';
 
 /// Resolves the data shape of a field for AI prompts and WASM context.
 ///

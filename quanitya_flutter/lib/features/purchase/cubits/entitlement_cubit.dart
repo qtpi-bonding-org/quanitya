@@ -1,12 +1,14 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import '../../../infrastructure/config/debug_log.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../infrastructure/purchase/entitlement_repository.dart';
 import '../../../infrastructure/purchase/i_entitlement_service.dart';
 import 'entitlement_state.dart';
+
+const _tag = 'features/purchase/cubits/entitlement_cubit';
 
 @lazySingleton
 class EntitlementCubit extends QuanityaCubit<EntitlementState> {
@@ -42,7 +44,7 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
     if (state.hasPurchased) {
       await loadStorageUsage();
     }
-    debugPrint('EntitlementCubit: Initialization complete (hasPurchased=${state.hasPurchased})');
+    Log.d(_tag, 'EntitlementCubit: Initialization complete (hasPurchased=${state.hasPurchased})');
     return state;
   }, emitLoading: false);
 

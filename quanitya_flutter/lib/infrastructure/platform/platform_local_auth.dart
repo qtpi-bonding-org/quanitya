@@ -1,10 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:local_auth/local_auth.dart';
+import '../config/debug_log.dart';
 
 import '../core/try_operation.dart';
 import 'platform_capability_service.dart';
 import 'exceptions/device_auth_exception.dart';
+
+const _tag = 'infrastructure/platform/platform_local_auth';
 
 /// Platform-aware local authentication that gracefully handles unsupported platforms.
 /// 
@@ -62,7 +64,7 @@ class PlatformLocalAuth {
     return tryMethod(
       () async {
         if (!_capabilities.supportsLocalAuth) {
-          debugPrint('⚠️ ${_capabilities.platformName}: Local auth not supported');
+          Log.d(_tag, '⚠️ ${_capabilities.platformName}: Local auth not supported');
           return false;
         }
         

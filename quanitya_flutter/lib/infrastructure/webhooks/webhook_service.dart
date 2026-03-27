@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
+import '../config/debug_log.dart';
 
 import '../core/try_operation.dart';
 import 'api_key_repository.dart';
@@ -10,6 +10,8 @@ import 'models/api_key_model.dart';
 import 'models/webhook_model.dart';
 import 'webhook_exception.dart';
 import 'webhook_repository.dart';
+
+const _tag = 'infrastructure/webhooks/webhook_service';
 
 /// Service for triggering webhooks.
 /// 
@@ -62,7 +64,7 @@ class WebhookService {
         unawaited(_fireWebhookSafe(webhook));
       }
     } catch (e, stack) {
-      debugPrint('WebhookService: triggerForTemplateAsync failed: $e');
+      Log.d(_tag, 'WebhookService: triggerForTemplateAsync failed: $e');
       await ErrorPrivserver.captureError(e, stack, source: 'WebhookService');
     }
   }
@@ -72,7 +74,7 @@ class WebhookService {
     try {
       await _fireWebhook(webhook);
     } catch (e, stack) {
-      debugPrint('WebhookService: _fireWebhookSafe failed: $e');
+      Log.d(_tag, 'WebhookService: _fireWebhookSafe failed: $e');
       await ErrorPrivserver.captureError(e, stack, source: 'WebhookService');
     }
   }

@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
+import '../config/debug_log.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' show Client;
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
     show FlutterAuthSessionManagerExtension;
@@ -15,6 +15,8 @@ import '../purchase/entitlement_repository.dart';
 import '../security/database_key_service.dart';
 import 'account_service.dart';
 import 'auth_repository.dart';
+
+const _tag = 'infrastructure/auth/delete_orchestrator';
 
 /// Exception for delete/reset operations.
 class DeleteException implements Exception {
@@ -82,7 +84,7 @@ class DeleteOrchestrator {
           await _keyRepository.deleteCrossDeviceKey();
         } catch (e, stack) {
           // Non-critical — key may not exist
-          debugPrint('Cross-device key deletion skipped: ${e.runtimeType}');
+          Log.d(_tag, 'Cross-device key deletion skipped: ${e.runtimeType}');
           await ErrorPrivserver.captureError(e, stack, source: 'DeleteOrchestrator');
         }
 

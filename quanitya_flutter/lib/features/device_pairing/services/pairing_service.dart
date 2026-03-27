@@ -2,12 +2,14 @@ import 'dart:convert';
 
 import 'package:anonaccount_client/anonaccount_client.dart';
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:webcrypto/webcrypto.dart';
 
 import '../../../features/app_syncing_mode/models/app_syncing_mode.dart';
+
+const _tag = 'features/device_pairing/services/pairing_service';
 import '../../../features/app_syncing_mode/repositories/app_syncing_repository.dart';
 import '../../../infrastructure/core/try_operation.dart';
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
@@ -116,7 +118,7 @@ class PairingService implements IPairingService {
       () async {
         // Defensive check: prevent pairing if keys already exist
         if (await _keyRepository.hasExistingKeys()) {
-          debugPrint(
+          Log.d(_tag,
             'PairingService: BLOCKED - Keys already exist on this device',
           );
           throw const PairingException(
@@ -125,7 +127,7 @@ class PairingService implements IPairingService {
           );
         }
 
-        debugPrint('PairingService: Generating device keys...');
+        Log.d(_tag,'PairingService: Generating device keys...');
 
         // 1. Generate device key (3072-bit RSA + ECDSA P-256)
         final deviceKey = await _keyRepository.generateDeviceKey();
@@ -145,7 +147,7 @@ class PairingService implements IPairingService {
           label: deviceLabel,
         );
 
-        debugPrint('PairingService: QR data generated');
+        Log.d(_tag,'PairingService: QR data generated');
 
         return GeneratedPairingData(
           qrData: qrData,
@@ -162,7 +164,7 @@ class PairingService implements IPairingService {
   Future<ScannedPairingData> parseQrCode(String qrJson) {
     return tryMethod(
       () async {
-        debugPrint('PairingService: Parsing QR code...');
+        Log.d(_tag,'PairingService: Parsing QR code...');
 
         // 1. Parse JSON
         final Map<String, dynamic> json;
@@ -189,7 +191,7 @@ class PairingService implements IPairingService {
         final signingKeyHex = await deviceBPublicKey.signingKeyPair
             .exportPublicKeyHex();
 
-        debugPrint('PairingService: QR parsed, device label: ${qrData.label}');
+        Log.d(_tag,'PairingService: QR parsed, device label: ${qrData.label}');
 
         return ScannedPairingData(
           label: qrData.label,
@@ -204,7 +206,7 @@ class PairingService implements IPairingService {
 
   @override
   Stream<String> monitorRegistration(String signingKeyHex) async* {
-    debugPrint('PairingService: Monitoring registration for $signingKeyHex');
+    Log.d(_tag, 'PairingService: Monitoring registration for $signingKeyHex');
 
     try {
       // PoW flow for monitorRegistration
@@ -226,11 +228,11 @@ class PairingService implements IPairingService {
       );
 
       await for (final event in stream) {
-        debugPrint('PairingService: Registration event received!');
+        Log.d(_tag,'PairingService: Registration event received!');
         yield event.encryptedDataKey;
       }
     } catch (e) {
-      debugPrint('PairingService: Monitor error: $e');
+      Log.d(_tag, 'PairingService: Monitor error: $e');
       throw PairingException('Failed to monitor registration', kind: PairingFailure.monitorFailed, cause: e);
     }
   }
@@ -242,7 +244,7 @@ class PairingService implements IPairingService {
   }) {
     return tryMethod(
       () async {
-        debugPrint('PairingService: Completing pairing...');
+        Log.d(_tag,'PairingService: Completing pairing...');
 
         final privateKey = deviceKey.encryption.privateKey;
         if (privateKey == null) {
@@ -264,15 +266,15 @@ class PairingService implements IPairingService {
         await _keyRepository.storeSymmetricDataKeyJwk(sdkJwk);
 
         // 4. Switch app to cloud mode after successful pairing
-        debugPrint(
+        Log.d(_tag,
           '🔐 PairingService: Switching app to cloud mode after pairing...',
         );
         await _appOperatingRepository.updateMode(AppSyncingMode.cloud);
-        debugPrint(
+        Log.d(_tag,
           '🔐 PairingService: App switched to cloud mode successfully',
         );
 
-        debugPrint('PairingService: Pairing completed successfully!');
+        Log.d(_tag,'PairingService: Pairing completed successfully!');
       },
       (message, [cause]) => PairingException(message, cause: cause),
       'completePairing',
@@ -287,36 +289,36 @@ class PairingService implements IPairingService {
   }) {
     return tryMethod(
       () async {
-        debugPrint('PairingService: Registering device "$label"...');
-        debugPrint('PairingService:   signingKeyHex: $signingKeyHex');
+        Log.d(_tag,'PairingService: Registering device "$label"...');
+        Log.d(_tag,'PairingService:   signingKeyHex: $signingKeyHex');
 
         // 1. Get our symmetric key
-        debugPrint('PairingService:   Step 1: Retrieving symmetric key...');
+        Log.d(_tag,'PairingService:   Step 1: Retrieving symmetric key...');
         final sdkJwk = await _keyRepository.getSymmetricDataKeyJwk();
         if (sdkJwk == null) {
-          debugPrint(
+          Log.d(_tag,
             'PairingService:   ERROR: Symmetric key not available in repository',
           );
           throw const PairingException('Symmetric key not available', kind: PairingFailure.symmetricKeyUnavailable);
         }
-        debugPrint(
+        Log.d(_tag,
           'PairingService:   Symmetric key found (length: ${sdkJwk.length})',
         );
 
         // 2. Encrypt SDK with Device B's public key
-        debugPrint(
+        Log.d(_tag,
           'PairingService:   Step 2: Encrypting SDK for new device...',
         );
         final encryptedDataKey = await _encryption.createEncryptedBlob(
           sdkJwk,
           encryptionPublicKey,
         );
-        debugPrint(
+        Log.d(_tag,
           'PairingService:   SDK encrypted successfully (length: ${encryptedDataKey.length})',
         );
 
         // 3. Register Device B with SignedPoW
-        debugPrint(
+        Log.d(_tag,
           'PairingService:   Step 3: Getting challenge for registerDeviceForAccount...',
         );
         final regChallenge =
@@ -331,7 +333,7 @@ class PairingService implements IPairingService {
             '${regChallenge.challenge}:registerDeviceForAccount:$callerKeyHex';
         final regSignature =
             await _encryption.signWithDeviceKey(regSignPayload);
-        debugPrint(
+        Log.d(_tag,
           'PairingService:   Step 3: Calling server.registerDeviceForAccount...',
         );
         await _client.modules.anonaccount.deviceManagement.registerDeviceForAccount(
@@ -344,7 +346,7 @@ class PairingService implements IPairingService {
           label: label,
         );
 
-        debugPrint('PairingService: Device registered successfully!');
+        Log.d(_tag,'PairingService: Device registered successfully!');
       },
       (message, [cause]) => PairingException(message, cause: cause),
       'registerDevice',

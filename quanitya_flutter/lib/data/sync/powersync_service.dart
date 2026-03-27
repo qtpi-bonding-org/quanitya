@@ -18,7 +18,7 @@ import '../../infrastructure/core/try_operation.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../infrastructure/security/database_key_service.dart';
 
-const _tag = 'powersync_service';
+const _tag = 'data/sync/powersync_service';
 
 /// Exception thrown when PowerSync operations fail.
 class PowerSyncException implements Exception {

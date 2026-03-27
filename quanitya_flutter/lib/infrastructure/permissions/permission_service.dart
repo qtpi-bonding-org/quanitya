@@ -1,7 +1,10 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:health/health.dart';
 import 'package:injectable/injectable.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../config/debug_log.dart';
+
+const _tag = 'infrastructure/permissions/permission_service';
 
 /// Centralized permission service for all OS-level permission requests.
 ///
@@ -56,10 +59,10 @@ class PermissionService {
         types,
         permissions: List.filled(types.length, HealthDataAccess.READ),
       );
-      debugPrint('PermissionService: health = $granted');
+      Log.d(_tag, 'PermissionService: health = $granted');
       return granted;
     } catch (e) {
-      debugPrint('PermissionService: health request failed: $e');
+      Log.d(_tag, 'PermissionService: health request failed: $e');
       return false;
     }
   }
@@ -77,7 +80,7 @@ class PermissionService {
       // hasPermissions returns bool? — null means undetermined (iOS READ)
       return result ?? true;
     } catch (e) {
-      debugPrint('PermissionService: health check failed: $e');
+      Log.d(_tag, 'PermissionService: health check failed: $e');
       return false;
     }
   }
@@ -91,15 +94,15 @@ class PermissionService {
       }
 
       if (status.isPermanentlyDenied) {
-        debugPrint('PermissionService: $label permanently denied — open Settings to grant');
+        Log.d(_tag, 'PermissionService: $label permanently denied — open Settings to grant');
         return false;
       }
 
       status = await permission.request();
-      debugPrint('PermissionService: $label = $status');
+      Log.d(_tag, 'PermissionService: $label = $status');
       return status.isGranted;
     } catch (e) {
-      debugPrint('PermissionService: $label request failed: $e');
+      Log.d(_tag, 'PermissionService: $label request failed: $e');
       return false;
     }
   }

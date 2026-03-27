@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import '../../infrastructure/config/debug_log.dart';
 import 'package:injectable/injectable.dart';
 
 import '../db/app_database.dart';
@@ -14,6 +14,8 @@ import '../../infrastructure/sync/sync_service.dart';
 import '../../logic/analysis/enums/analysis_output_mode.dart';
 import '../../logic/analysis/models/analysis_enums.dart';
 import '../../logic/templates/models/shared/template_aesthetics.dart';
+
+const _tag = 'data/repositories/e2ee_puller';
 
 /// Interface for background decryption and sync hydration
 ///
@@ -87,7 +89,7 @@ abstract class EncryptedTableProcessor<
         await _processEncryptedRecord(encrypted);
       } catch (e, stack) {
         // Log error but continue processing other records
-        debugPrint(
+        Log.d(_tag,
           'E2EEPuller: Error processing encrypted record '
           '${(encrypted as dynamic).id}: $e',
         );
@@ -474,7 +476,7 @@ class E2EEPuller implements IE2EEPuller {
   Future<void> resetCheckpoints() {
     return tryMethod(() async {
       await _db.delete(_db.pullerCheckpoints).go();
-      debugPrint('E2EEPuller: All checkpoints reset');
+      Log.d(_tag, 'E2EEPuller: All checkpoints reset');
     }, SyncException.new, 'resetCheckpoints');
   }
 
@@ -527,7 +529,7 @@ class E2EEPuller implements IE2EEPuller {
 
       if (newRecords.isEmpty) return;
 
-      debugPrint('E2EEPuller: Processing ${newRecords.length} $tableName');
+      Log.d(_tag, 'E2EEPuller: Processing ${newRecords.length} $tableName');
       await processor.processEncryptedRecords(newRecords);
 
       // Advance checkpoint
@@ -547,7 +549,7 @@ class E2EEPuller implements IE2EEPuller {
   Future<void> initialize() {
     return tryMethod(() async {
       if (_isListening) return;
-      debugPrint('E2EEPuller: Initializing streams with checkpoints...');
+      Log.d(_tag, 'E2EEPuller: Initializing streams with checkpoints...');
 
       await _startWatching(
         tableName: 'encrypted_templates',
@@ -586,7 +588,7 @@ class E2EEPuller implements IE2EEPuller {
 
       _isListening = true;
       _lastSyncTime = DateTime.now();
-      debugPrint('E2EEPuller: Streams initialized with checkpoint filtering');
+      Log.d(_tag, 'E2EEPuller: Streams initialized with checkpoint filtering');
     }, SyncException.new, 'initialize');
   }
 

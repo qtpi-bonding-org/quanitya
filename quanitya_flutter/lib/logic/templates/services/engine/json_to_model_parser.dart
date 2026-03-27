@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
+import '../../../../infrastructure/config/debug_log.dart';
 
 import '../../enums/ai/template_preset.dart';
 import '../../enums/field_enum.dart';
@@ -12,6 +13,8 @@ import '../../models/shared/tracker_template.dart';
 import '../../exceptions/template_parsing_exception.dart';
 import '../shared/default_value_handler.dart';
 import '../shared/wcag_compliance_validator.dart';
+
+const _tag = 'logic/templates/services/engine/json_to_model_parser';
 
 /// Result of parsing AI-generated JSON into data models.
 ///
@@ -474,13 +477,13 @@ class JsonToModelParser {
 
   /// Parses template container style from AI JSON
   TemplateContainerStyle? _parseTemplateContainerStyle(String? styleName) {
-    debugPrint('🎨 Parsing templateContainerStyle: $styleName');
+    Log.d(_tag, 'Parsing templateContainerStyle: $styleName');
     if (styleName == null) {
-      debugPrint('🎨 templateContainerStyle is null');
+      Log.d(_tag, 'templateContainerStyle is null');
       return null;
     }
     final result = TemplateContainerStyleX.fromName(styleName);
-    debugPrint('🎨 Parsed templateContainerStyle result: $result');
+    Log.d(_tag, 'Parsed templateContainerStyle result: $result');
     return result;
   }
 

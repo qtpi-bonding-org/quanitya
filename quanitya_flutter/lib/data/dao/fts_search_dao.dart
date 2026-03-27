@@ -1,8 +1,10 @@
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../../infrastructure/config/debug_log.dart';
 
 import '../db/app_database.dart';
+
+const _tag = 'data/dao/fts_search_dao';
 
 /// DAO for FTS5 full-text search on log entry text fields.
 ///
@@ -118,7 +120,7 @@ class FtsSearchDao {
   /// are all searchable. Text field values are naturally prominent
   /// in BM25 ranking since they contain more natural-language tokens.
   Future<void> rebuildAll() async {
-    debugPrint('FTS: Rebuilding full-text index...');
+    Log.d(_tag, 'FTS: Rebuilding full-text index...');
     await _db.customStatement('DELETE FROM log_entry_fts');
 
     await _db.customStatement('''
@@ -127,6 +129,6 @@ class FtsSearchDao {
       WHERE data_json IS NOT NULL AND data_json != '{}'
     ''');
 
-    debugPrint('FTS: Rebuild complete');
+    Log.d(_tag, 'FTS: Rebuild complete');
   }
 }
