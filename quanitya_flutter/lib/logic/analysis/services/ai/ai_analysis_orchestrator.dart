@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:injectable/injectable.dart';
 import 'package:jinja/jinja.dart' as jinja;
@@ -9,11 +8,10 @@ import '../../../../infrastructure/llm/services/llm_service.dart';
 import '../../../../infrastructure/llm/models/llm_types.dart';
 import '../../models/analysis_input.dart';
 import '../../models/analysis_enums.dart';
-import '../../models/field_analysis_context.dart';
 import '../../enums/analysis_output_mode.dart';
 import '../../models/matrix_vector_scalar/analysis_data_type.dart';
 import '../../exceptions/analysis_exceptions.dart';
-import '../../../templates/enums/field_enum.dart';
+import '../field_shape_resolver.dart';
 
 /// Simple suggestion model for AI-generated analysis scripts
 class ScriptSuggestion {
@@ -71,60 +69,25 @@ class AiAnalysisOrchestrator
     );
   }
 
-  /// Describes the shape of data.values for the prompt based on field type.
-  String _describeValueShape(FieldAnalysisContext context) {
-    final type = context.fieldType;
-    return switch (type) {
-      FieldEnum.integer => 'number[] (integers)',
-      FieldEnum.float => 'number[] (decimals)',
-      FieldEnum.dimension => 'number[] (measurements)',
-      FieldEnum.boolean => 'boolean[]',
-      FieldEnum.text => 'string[]',
-      FieldEnum.enumerated => 'string[] (one of predefined options)',
-      FieldEnum.datetime => 'string[] (ISO date strings)',
-      FieldEnum.group => _describeGroupShape(context),
-      FieldEnum.multiEnum => 'string[][] (arrays of selected option strings)',
-      FieldEnum.reference => 'string[] (reference IDs)',
-      FieldEnum.location => '{latitude: number, longitude: number}[]',
-    };
-  }
-
-  /// Describes the shape of a group field's values from metadata.
-  /// Never includes actual user data — only type shapes and labels.
-  String _describeGroupShape(FieldAnalysisContext context) {
-    // If metadata contains sub-field shape description, use it
-    final meta = context.metadata;
-    if (meta != null && meta.containsKey('subFieldShapes')) {
-      return meta['subFieldShapes'] as String;
-    }
-    return 'object[] or object[][] (group field — shape depends on sub-fields)';
-  }
-
   Future<ScriptSuggestion> generateSuggestion({
     required String intent,
-    required FieldAnalysisContext fieldContext,
+    required FieldShapeResult fieldShape,
     required LlmConfig llmConfig,
   }) async {
     try {
-      debugPrint('🤖 generateSuggestion: intent="$intent", provider=${llmConfig.provider}, model=${llmConfig.model}');
-      debugPrint('🤖 generateSuggestion: fieldContext=${fieldContext.fieldName} (${fieldContext.fieldType})');
-
       // 1. Load the centralized prompt configuration
       final promptConfigStr = await rootBundle.loadString('assets/prompt.json');
       final promptConfig = jsonDecode(promptConfigStr);
-      debugPrint('🤖 generateSuggestion: prompt.json loaded');
 
       // 2. Build the system prompt using jinja
       final env = jinja.Environment();
       final systemTemplate = env.fromString(promptConfig['system_prompt']);
       final systemPrompt = systemTemplate.render({
         'user_intent': intent,
-        'value_shape': _describeValueShape(fieldContext),
+        'value_shape': fieldShape.valueShape,
       });
-      debugPrint('🤖 generateSuggestion: system prompt built (${systemPrompt.length} chars)');
 
       final schema = (promptConfig['json_schema'] as Map<String, dynamic>)['schema'] as Map<String, dynamic>;
-      debugPrint('🤖 generateSuggestion: schema extracted, keys=${schema.keys.toList()}');
 
       // 3. Execute LLM request with Structured Output
       final response = await _llmService.execute(
@@ -136,21 +99,15 @@ class AiAnalysisOrchestrator
           callType: callType,
         ),
       );
-      debugPrint('🤖 generateSuggestion: LLM response received, keys=${response.data.keys.toList()}');
 
       // 4. Parse the response
       final input = AnalysisInput(
         intent: intent,
         startType: AnalysisDataType.timeSeriesMatrix,
-        fieldContext: fieldContext,
       );
 
-      final result = parseResponse(response.data, input);
-      debugPrint('🤖 generateSuggestion: parsed, snippet=${result.snippet.length} chars, lang=${result.snippetLanguage}');
-      return result;
-    } catch (e, stack) {
-      debugPrint('🤖 generateSuggestion FAILED: $e');
-      debugPrint('🤖 stack: $stack');
+      return parseResponse(response.data, input);
+    } catch (e) {
       throw AnalysisException('AI Suggestion failed: $e', e);
     }
   }

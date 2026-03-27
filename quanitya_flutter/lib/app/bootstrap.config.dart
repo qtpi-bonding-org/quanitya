@@ -316,8 +316,8 @@ import 'package:quanitya_flutter/logic/analysis/services/ai/ai_analysis_orchestr
     as _i790;
 import 'package:quanitya_flutter/logic/analysis/services/analysis_engine.dart'
     as _i820;
-import 'package:quanitya_flutter/logic/analysis/services/field_context_service.dart'
-    as _i34;
+import 'package:quanitya_flutter/logic/analysis/services/field_shape_resolver.dart'
+    as _i34b;
 import 'package:quanitya_flutter/logic/analysis/services/streaming_analytics_service.dart'
     as _i60;
 import 'package:quanitya_flutter/logic/analysis/services/wasm_analysis_service.dart'
@@ -477,8 +477,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i894.AnalysisBuilderMessageMapper>(
       () => _i894.AnalysisBuilderMessageMapper(),
     );
-    gh.factory<_i34.FieldContextService>(
-      () => const _i34.FieldContextService(),
+    gh.factory<_i34b.FieldShapeResolver>(
+      () => _i34b.FieldShapeResolver(gh<_i870.TemplateQueryDao>()),
     );
     gh.factory<_i205.ModelRuntimeConverter>(
       () => _i205.ModelRuntimeConverter(),
@@ -1160,7 +1160,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i810.IAnalysisScriptRepository>(),
         gh<_i554.TemplateWithAestheticsRepository>(),
         gh<_i790.AiAnalysisOrchestrator>(),
-        gh<_i34.FieldContextService>(),
+        gh<_i34b.FieldShapeResolver>(),
         gh<_i60.StreamingAnalyticsService>(),
         gh<_i193.IWasmAnalysisService>(),
       ),

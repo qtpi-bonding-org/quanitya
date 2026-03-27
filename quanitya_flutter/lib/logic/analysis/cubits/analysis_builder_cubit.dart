@@ -14,7 +14,7 @@ import '../enums/calculation.dart';
 import '../models/analysis_enums.dart';
 import '../models/matrix_vector_scalar/analysis_data_type.dart';
 import '../models/analysis_script.dart';
-import '../services/field_context_service.dart';
+import '../services/field_shape_resolver.dart';
 import '../services/ai/ai_analysis_orchestrator.dart';
 import '../services/streaming_analytics_service.dart';
 import '../services/wasm_analysis_service.dart';
@@ -58,7 +58,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
   final IAnalysisScriptRepository _repository;
   final TemplateWithAestheticsRepository _templateRepository;
   final AiAnalysisOrchestrator _aiOrchestrator;
-  final FieldContextService _fieldContextService;
+  final FieldShapeResolver _fieldShapeResolver;
   final StreamingAnalyticsService _streamingService;
   final IWasmAnalysisService _wasmService;
 
@@ -66,7 +66,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     this._repository,
     this._templateRepository,
     this._aiOrchestrator,
-    this._fieldContextService,
+    this._fieldShapeResolver,
     this._streamingService,
     this._wasmService,
   ) : super(const AnalysisBuilderState());
@@ -386,14 +386,11 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         throw Exception('Template ID is required for AI suggestions');
       }
 
-      final fieldContext = await _fieldContextService.getFieldContext(
-        templateId: state.templateId!,
-        fieldId: fieldId,
-      );
+      final fieldShape = await _fieldShapeResolver.resolve(fieldId);
 
       final suggestion = await _aiOrchestrator.generateSuggestion(
         intent: userIntent,
-        fieldContext: fieldContext,
+        fieldShape: fieldShape,
         llmConfig: llmConfig,
       );
 
