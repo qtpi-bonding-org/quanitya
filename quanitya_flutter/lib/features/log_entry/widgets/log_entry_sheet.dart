@@ -342,7 +342,7 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
+              title: Text(context.l10n.importSourceCamera),
               onTap: () {
                 Navigator.of(context).pop();
                 importCubit.importFromImage(
@@ -353,7 +353,7 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Photo Library'),
+              title: Text(context.l10n.importSourcePhotoLibrary),
               onTap: () {
                 Navigator.of(context).pop();
                 importCubit.importFromImage(
@@ -400,14 +400,14 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
         for (final entry in item.entries) {
           cubit.updateField(entry.key, entry.value);
         }
-        _showFeedback('Values filled from image', MessageType.success);
+        _showFeedback(context.l10n.importValuesFilled, MessageType.success);
         context.read<ImportCubit>().reset();
 
       case ImportMultipleResults(:final items):
         _showImportReview(context, items);
 
       case ImportDone(:final count):
-        _showFeedback('$count entries imported', MessageType.success);
+        _showFeedback(context.l10n.importEntriesImported(count), MessageType.success);
         Navigator.of(context).pop();
 
       case ImportError(:final message):
@@ -434,8 +434,8 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
 
     QuanityaActionDialog.show(
       context: context,
-      title: 'Review Import',
-      confirmText: 'Import All',
+      title: context.l10n.importReviewTitle,
+      confirmText: context.l10n.importReviewConfirm,
       child: ImportReviewContent(
         items: items,
         fields: extractionFields,

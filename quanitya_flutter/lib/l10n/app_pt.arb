@@ -704,5 +704,15 @@
   "accessibilityDataTableRows": "Data table with {count} {count, plural, =1{row} other{rows}}",
   "analysisEntriesCount": "Entries ({count})",
   "catalogTemplatesImported": "Templates imported",
-  "syncReconnected": "Sync reconnected"
+  "syncReconnected": "Sync reconnected",
+  "importSourceCamera": "Câmera",
+  "importSourcePhotoLibrary": "Fototeca",
+  "importValuesFilled": "Preenchido a partir da imagem",
+  "importEntriesImported": "{count} entradas importadas",
+  "importReviewTitle": "Revisar importação",
+  "importReviewConfirm": "Importar tudo",
+  "importModelDownloadTitle": "Baixar modelo IA",
+  "importModelDownloadMessage": "A importação de imagens requer um download único de 469 MB.",
+  "importModelDownloadConfirm": "Baixar",
+  "importModelDownloading": "Baixando modelo…"
 }

@@ -699,7 +699,6 @@
   "entitlementLabel": "Entitlement #{id}",
   "entitlementActive": "Active",
   "entitlementInactive": "Inactive",
-  "entitlementInactive": "Inactive",
   "outboxTitle": "Outbox",
   "outboxTabFeedback": "Feedback",
   "outboxTabAnalytics": "Analytics",
@@ -807,14 +806,22 @@
       "fieldName": { "type": "String" }
     }
   },
+  "importSourceCamera": "Camera",
+  "importSourcePhotoLibrary": "Photo Library",
+  "importValuesFilled": "Filled from image",
+  "importEntriesImported": "{count} entries imported",
+  "@importEntriesImported": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "importReviewTitle": "Review Import",
+  "importReviewConfirm": "Import All",
   "importModelDownloadTitle": "Download AI Model",
   "importModelDownloadMessage": "Image import requires a one-time 469 MB download.",
   "importModelDownloadConfirm": "Download",
   "importModelDownloading": "Downloading model…",
   "resultsAnalyzeFields": "Analyze",
-  "resultsAnalyzeFieldsDescription": "Create or edit analysis scripts for this template",
-  "resultsAnalysisResults": "Analysis Results",
-  "resultsAnalysisResultsDescription": "Results from executed analysis scripts",
   "resultsNoAnalysisTitle": "No Analysis Available",
   "resultsNoAnalysisDescription": "Add numeric fields to your template to enable analysis scripts.",
   "resultsDataPoints": "{count} data points",
