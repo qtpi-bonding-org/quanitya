@@ -1,6 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart' show Client;
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart'
+    show FlutterAuthSessionManagerExtension;
 
 import '../../data/repositories/e2ee_puller.dart';
 import '../../data/sync/powersync_service.dart';
@@ -8,6 +12,7 @@ import '../../features/guided_tour/guided_tour_service.dart';
 import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
 import '../purchase/entitlement_repository.dart';
+import '../security/database_key_service.dart';
 import 'account_service.dart';
 import 'auth_repository.dart';
 
@@ -38,6 +43,8 @@ class DeleteOrchestrator {
   final IPowerSyncRepository _powerSyncRepository;
   final IE2EEPuller _e2eePuller;
   final GuidedTourService _guidedTourService;
+  final Client _client;
+  final DatabaseKeyService _dbKeyService;
 
   DeleteOrchestrator(
     this._accountService,
@@ -47,6 +54,8 @@ class DeleteOrchestrator {
     this._powerSyncRepository,
     this._e2eePuller,
     this._guidedTourService,
+    this._client,
+    this._dbKeyService,
   );
 
   /// Delete the user's account on the server and clean up local state.
@@ -91,41 +100,28 @@ class DeleteOrchestrator {
     );
   }
 
-  /// Factory reset: wipe all local data and return the app to a fresh state.
+  /// Factory reset: wipe all local state and return the app to fresh install.
   ///
-  /// Steps:
-  /// 1. Disconnect PowerSync (keep DB file — singletons still reference it)
-  /// 2. Dispose E2EE puller and reset its checkpoints
-  /// 3. Reset guided tour flags
-  /// 4. Clear entitlement data (cache + paid flag)
-  /// 5. Clear all crypto keys (includes iCloud cross-device key)
-  /// 6. Clear registration flag
-  ///
-  /// Callers should handle UI concerns (navigation to onboarding,
-  /// AppRouter.resetKeyCheck) after this completes.
+  /// Requires a hot restart after completion — the stale SQLite DB file is
+  /// deleted on next launch when the missing SQLCipher key is detected.
   ///
   /// Throws [DeleteException] on failure.
   Future<void> factoryReset() {
     return tryMethod(
       () async {
-        // 1. Disconnect PowerSync (keep DB file — singletons still reference it)
+        // 1. Disconnect PowerSync
         await _powerSyncRepository.disconnect();
 
-        // 2. Clear E2EE puller state
-        await _e2eePuller.dispose();
-        await _e2eePuller.resetCheckpoints();
+        // 2. Clear JWT session (in-memory)
+        await _client.auth.updateSignedInUser(null);
 
-        // 3. Reset guided tour flags
-        await _guidedTourService.resetAllTours();
+        // 3. Wipe ALL device-local secure storage (crypto keys, registration
+        //    flag, SQLCipher key). On next cold start, missing SQLCipher key
+        //    triggers DB file deletion → fresh PowerSync DB.
+        await const FlutterSecureStorage().deleteAll();
 
-        // 4. Clear entitlement data (cache + paid flag)
-        await _entitlementRepository.clear();
-
-        // 5. Clear all crypto keys (includes iCloud cross-device key deletion)
-        await _keyRepository.clearKeys();
-
-        // 6. Clear registration flag
-        await _authRepo.clearRegistrationFlag();
+        // 4. Delete iCloud cross-device key (separate from device storage).
+        await _keyRepository.deleteCrossDeviceKey();
       },
       DeleteException.new,
       'factoryReset',

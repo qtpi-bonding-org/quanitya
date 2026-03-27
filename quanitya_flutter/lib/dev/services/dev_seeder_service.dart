@@ -44,9 +44,8 @@ class DevSeederService {
     this._pipelineRepo,
   );
 
-  /// Clear all data and seed with fresh fake data.
+  /// Seed fresh fake data (additive — does not clear existing data).
   Future<void> clearAndSeed() async {
-    await clearAll();
     await ensureEncryptionKeys();
     await seedAll();
   }
@@ -72,17 +71,21 @@ class DevSeederService {
   Future<void> clearAll() async {
     // Clear analysis scripts via repository
     final pipelines = await _pipelineRepo.getAllScripts();
-    for (final p in pipelines) {
-      await _pipelineRepo.deleteScript(p.id);
-    }
+    await Future.wait(pipelines.map((p) => _pipelineRepo.deleteScript(p.id)));
 
-    await _db.delete(_db.logEntries).go();
-    await _db.delete(_db.schedules).go();
-    await _db.delete(_db.templateAesthetics).go();
-    await _db.delete(_db.trackerTemplates).go();
-    await _db.delete(_db.encryptedEntries).go();
-    await _db.delete(_db.encryptedSchedules).go();
-    await _db.delete(_db.encryptedTemplates).go();
+    // Delete order matters: entries first (FK → templates), then templates.
+    await Future.wait([
+      _db.delete(_db.logEntries).go(),
+      _db.delete(_db.encryptedEntries).go(),
+      _db.delete(_db.schedules).go(),
+      _db.delete(_db.encryptedSchedules).go(),
+    ]);
+    await Future.wait([
+      _db.delete(_db.templateAesthetics).go(),
+      _db.delete(_db.encryptedTemplateAesthetics).go(),
+      _db.delete(_db.trackerTemplates).go(),
+      _db.delete(_db.encryptedTemplates).go(),
+    ]);
   }
 
   /// Seed all tables with fake data.

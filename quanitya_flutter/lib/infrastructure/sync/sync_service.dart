@@ -147,7 +147,15 @@ class SyncService {
       await disconnect();
       await _puller.resetCheckpoints();
 
-      final mode = await _syncRepo.getCurrentMode();
+      // Clear the PowerSync upload queue so stale local deletes (from factory
+      // reset) aren't pushed upstream, wiping the server data.
+      debugPrint('SyncService.reconnectAfterRecovery: clearing upload queue');
+      await _powerSync.powerSyncDb.execute('DELETE FROM ps_crud');
+
+      // Recovery implies the user had sync — check entitlement and force
+      // cloud mode instead of reading the (possibly stale) stored mode.
+      final hasSyncAccess = await _entitlementRepo.hasSyncAccess();
+      final mode = hasSyncAccess ? AppSyncingMode.cloud : await _syncRepo.getCurrentMode();
       await connect(mode);
 
       debugPrint('SyncService.reconnectAfterRecovery: complete');
