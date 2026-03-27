@@ -62,11 +62,9 @@ class SyncEndpoint extends Endpoint {
   Future<bool> deleteEncryptedTemplate(Session session, String id) async {
     final accountUuid = session.authenticated!.userIdentifier;
     final uuidId = UuidValue.fromString(id);
-    session.log('🗑️ deleteEncryptedTemplate: id=$id, accountUuid=$accountUuid', level: LogLevel.warning);
 
     final existing = await EncryptedTemplate.db.findById(session, uuidId);
     if (existing == null || existing.accountUuid != accountUuid) {
-      session.log('🗑️ deleteEncryptedTemplate: NOT FOUND or wrong account, skipping', level: LogLevel.warning);
       return false;
     }
 
@@ -75,7 +73,6 @@ class SyncEndpoint extends Endpoint {
     await StorageQuotaService.decrementUsage(
       session, accountUuid, removedSize, 1,
     );
-    session.log('🗑️ deleteEncryptedTemplate: DELETED id=$id', level: LogLevel.warning);
     return true;
   }
 
@@ -131,11 +128,9 @@ class SyncEndpoint extends Endpoint {
   Future<bool> deleteEncryptedEntry(Session session, String id) async {
     final accountUuid = session.authenticated!.userIdentifier;
     final uuidId = UuidValue.fromString(id);
-    session.log('🗑️ deleteEncryptedEntry: id=$id, accountUuid=$accountUuid', level: LogLevel.warning);
 
     final existing = await EncryptedEntry.db.findById(session, uuidId);
     if (existing == null || existing.accountUuid != accountUuid) {
-      session.log('🗑️ deleteEncryptedEntry: NOT FOUND or wrong account, skipping', level: LogLevel.warning);
       return false;
     }
 
@@ -144,7 +139,6 @@ class SyncEndpoint extends Endpoint {
     await StorageQuotaService.decrementUsage(
       session, accountUuid, removedSize, 1,
     );
-    session.log('🗑️ deleteEncryptedEntry: DELETED id=$id', level: LogLevel.warning);
     return true;
   }
 
@@ -200,11 +194,9 @@ class SyncEndpoint extends Endpoint {
   Future<bool> deleteEncryptedSchedule(Session session, String id) async {
     final accountUuid = session.authenticated!.userIdentifier;
     final uuidId = UuidValue.fromString(id);
-    session.log('🗑️ deleteEncryptedSchedule: id=$id, accountUuid=$accountUuid', level: LogLevel.warning);
 
     final existing = await EncryptedSchedule.db.findById(session, uuidId);
     if (existing == null || existing.accountUuid != accountUuid) {
-      session.log('🗑️ deleteEncryptedSchedule: NOT FOUND or wrong account, skipping', level: LogLevel.warning);
       return false;
     }
 
@@ -213,7 +205,6 @@ class SyncEndpoint extends Endpoint {
     await StorageQuotaService.decrementUsage(
       session, accountUuid, removedSize, 1,
     );
-    session.log('🗑️ deleteEncryptedSchedule: DELETED id=$id', level: LogLevel.warning);
     return true;
   }
 
@@ -272,11 +263,9 @@ class SyncEndpoint extends Endpoint {
   ) async {
     final accountUuid = session.authenticated!.userIdentifier;
     final uuidId = UuidValue.fromString(id);
-    session.log('🗑️ deleteEncryptedTemplateAesthetics: id=$id, accountUuid=$accountUuid', level: LogLevel.warning);
 
     final existing = await EncryptedTemplateAesthetics.db.findById(session, uuidId);
     if (existing == null || existing.accountUuid != accountUuid) {
-      session.log('🗑️ deleteEncryptedTemplateAesthetics: NOT FOUND or wrong account, skipping', level: LogLevel.warning);
       return false;
     }
 
@@ -346,12 +335,10 @@ class SyncEndpoint extends Endpoint {
   ) async {
     final accountUuid = session.authenticated!.userIdentifier;
     final uuidId = UuidValue.fromString(id);
-    session.log('🗑️ deleteEncryptedAnalysisScript: id=$id, accountUuid=$accountUuid', level: LogLevel.warning);
 
     final existing =
         await EncryptedAnalysisScript.db.findById(session, uuidId);
     if (existing == null || existing.accountUuid != accountUuid) {
-      session.log('🗑️ deleteEncryptedAnalysisScript: NOT FOUND or wrong account, skipping', level: LogLevel.warning);
       return false;
     }
 
@@ -360,7 +347,6 @@ class SyncEndpoint extends Endpoint {
     await StorageQuotaService.decrementUsage(
       session, accountUuid, removedSize, 1,
     );
-    session.log('🗑️ deleteEncryptedAnalysisScript: DELETED id=$id', level: LogLevel.warning);
     return true;
   }
 

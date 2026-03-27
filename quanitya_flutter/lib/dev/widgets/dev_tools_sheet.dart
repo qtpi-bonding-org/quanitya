@@ -317,11 +317,8 @@ class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
 
         setState(() => _isLoading = true);
         try {
-          // 1. Clear all Drift database tables
-          final seeder = GetIt.instance<DevSeederService>();
-          await seeder.clearAll();
-
-          // 2. Factory reset (PowerSync, E2EE puller, tours, entitlements, keys, registration flag)
+          // Factory reset (disconnects PowerSync, clears secure storage + iCloud key)
+          // DB file is deleted on next cold start when cipher key is missing.
           await GetIt.instance<DeleteOrchestrator>().factoryReset();
 
           // 3. Reset router key check and navigate to onboarding
