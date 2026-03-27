@@ -386,7 +386,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         throw Exception('Template ID is required for AI suggestions');
       }
 
-      final fieldShape = await _fieldShapeResolver.resolve(fieldId);
+      final fieldShape = await _fieldShapeResolver.resolve('${state.templateId}:$fieldId');
 
       final suggestion = await _aiOrchestrator.generateSuggestion(
         intent: userIntent,

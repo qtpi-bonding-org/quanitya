@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:injectable/injectable.dart';
 
 import '../../../data/dao/template_query_dao.dart';
@@ -22,8 +23,10 @@ class FieldShapeResolver {
   /// Returns a string like `number[]`, `string[]`,
   /// or `{exercise: string, weight: number, reps: number}[][]` for groups.
   Future<FieldShapeResult> resolve(String fieldId) async {
+    debugPrint('🔍 FieldShapeResolver.resolve: fieldId="$fieldId"');
     final parts = fieldId.split(':');
     if (parts.length != 2) {
+      debugPrint('🔍 FieldShapeResolver.resolve: INVALID format');
       throw AnalysisException('Invalid fieldId format: $fieldId');
     }
     final templateId = parts[0];
@@ -31,20 +34,25 @@ class FieldShapeResolver {
 
     final template = await _templateDao.findById(templateId);
     if (template == null) {
+      debugPrint('🔍 FieldShapeResolver.resolve: template NOT FOUND');
       throw AnalysisException('Template not found: $templateId');
     }
+    debugPrint('🔍 FieldShapeResolver.resolve: template="${template.name}", fields=${template.fields.map((f) => f.label).toList()}');
 
     final field = template.fields.where((f) => f.label == fieldLabel).firstOrNull;
     if (field == null) {
+      debugPrint('🔍 FieldShapeResolver.resolve: field "$fieldLabel" NOT FOUND');
       throw AnalysisException(
         'Field "$fieldLabel" not found in template "${template.name}"',
       );
     }
 
+    final shape = _describeShape(field);
+    debugPrint('🔍 FieldShapeResolver.resolve: field="${field.label}" type=${field.type} shape=$shape');
     return FieldShapeResult(
       fieldName: field.label,
       fieldType: field.type,
-      valueShape: _describeShape(field),
+      valueShape: shape,
     );
   }
 

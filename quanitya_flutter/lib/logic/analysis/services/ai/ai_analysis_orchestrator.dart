@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:injectable/injectable.dart';
 import 'package:jinja/jinja.dart' as jinja;
@@ -75,9 +76,12 @@ class AiAnalysisOrchestrator
     required LlmConfig llmConfig,
   }) async {
     try {
+      debugPrint('🤖 generateSuggestion: intent="$intent", field=${fieldShape.fieldName} (${fieldShape.fieldType}), shape=${fieldShape.valueShape}');
+
       // 1. Load the centralized prompt configuration
       final promptConfigStr = await rootBundle.loadString('assets/prompt.json');
       final promptConfig = jsonDecode(promptConfigStr);
+      debugPrint('🤖 generateSuggestion: prompt.json loaded');
 
       // 2. Build the system prompt using jinja
       final env = jinja.Environment();
@@ -86,10 +90,12 @@ class AiAnalysisOrchestrator
         'user_intent': intent,
         'value_shape': fieldShape.valueShape,
       });
+      debugPrint('🤖 generateSuggestion: system prompt built (${systemPrompt.length} chars)');
 
       final schema = (promptConfig['json_schema'] as Map<String, dynamic>)['schema'] as Map<String, dynamic>;
 
       // 3. Execute LLM request with Structured Output
+      debugPrint('🤖 generateSuggestion: calling LLM...');
       final response = await _llmService.execute(
         llmConfig,
         LlmRequest(
@@ -99,6 +105,7 @@ class AiAnalysisOrchestrator
           callType: callType,
         ),
       );
+      debugPrint('🤖 generateSuggestion: LLM response received');
 
       // 4. Parse the response
       final input = AnalysisInput(
@@ -106,8 +113,12 @@ class AiAnalysisOrchestrator
         startType: AnalysisDataType.timeSeriesMatrix,
       );
 
-      return parseResponse(response.data, input);
-    } catch (e) {
+      final result = parseResponse(response.data, input);
+      debugPrint('🤖 generateSuggestion: parsed, snippet=${result.snippet.length} chars, mode=${result.outputMode}');
+      return result;
+    } catch (e, stack) {
+      debugPrint('🤖 generateSuggestion FAILED: $e');
+      debugPrint('🤖 stack: $stack');
       throw AnalysisException('AI Suggestion failed: $e', e);
     }
   }
