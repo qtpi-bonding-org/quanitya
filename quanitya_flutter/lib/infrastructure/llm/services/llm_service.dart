@@ -42,8 +42,11 @@ class LlmService {
             model: config.model,
           );
 
-          // Execute via Serverpod Endpoint
-          final response = await _serverpodClient.cloudLlm.generateStructured(cloudRequest);
+          // Execute via Serverpod Endpoint (server-side OpenRouter timeout is 30s,
+          // so client needs ≥35s to avoid timing out before the server does)
+          final response = await _serverpodClient.cloudLlm
+              .generateStructured(cloudRequest)
+              .timeout(const Duration(seconds: 45));
 
           if (kDebugMode) {
              debugPrint('☁️☁️☁️ CLOUD PROXY SUCCESS (balance: ${response.balance}) ☁️☁️☁️\n');
