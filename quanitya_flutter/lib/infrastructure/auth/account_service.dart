@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+
+import '../config/debug_log.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
@@ -24,6 +26,8 @@ import 'auth_repository.dart';
 import 'auth_service.dart'
     show AccountCreationException, AccountCreationResult, AccountDeletionException, AccountRecoveryException, AuthException, AuthFailure, storeAuthSession;
 import 'registration_payload.dart';
+
+const _tag = 'account_service';
 
 /// Account lifecycle service — create, register, recover, delete accounts.
 ///
@@ -108,7 +112,7 @@ class AccountService {
             'Ultimate public key hex not available',
           );
         }
-        debugPrint('🔑 createAccount: ultimatePublicKeyHex=$ultimatePublicKeyHex (${ultimatePublicKeyHex.length} chars)');
+        Log.d(_tag,'🔑 createAccount: ultimatePublicKeyHex=$ultimatePublicKeyHex (${ultimatePublicKeyHex.length} chars)');
 
         // 3. Create encrypted blobs (while ultimate key is still available)
         final recoveryBlob = await _encryption.createEncryptedBlob(
@@ -187,7 +191,7 @@ class AccountService {
             );
           } catch (e, stack) {
             // Cross-device key is non-critical — continue
-            debugPrint('\u26a0\ufe0f Cross-device key setup failed (non-critical): $e');
+            Log.d(_tag,'\u26a0\ufe0f Cross-device key setup failed (non-critical): $e');
             await ErrorPrivserver.captureError(e, stack, source: 'AccountService');
           }
         }
@@ -342,7 +346,7 @@ class AccountService {
             }
           } catch (e, stack) {
             // Cross-device registration is non-critical — log and continue
-            debugPrint(
+            Log.d(_tag,
                 '\u26a0\ufe0f Cross-device key registration failed (non-critical): $e');
             await ErrorPrivserver.captureError(e, stack, source: 'AccountService');
           }
@@ -408,7 +412,7 @@ class AccountService {
         // 2. Derive ultimate public key hex (128 chars)
         final ultimatePublicKeyHex =
             await ultimateKeyDuo.signingKeyPair.exportPublicKeyHex();
-        debugPrint('🔑 recoverAccount: derived ultimatePublicKeyHex=$ultimatePublicKeyHex (${ultimatePublicKeyHex.length} chars)');
+        Log.d(_tag,'🔑 recoverAccount: derived ultimatePublicKeyHex=$ultimatePublicKeyHex (${ultimatePublicKeyHex.length} chars)');
 
         // 3. Recover encrypted data key from server (PoW-protected)
         final challengeResponse =

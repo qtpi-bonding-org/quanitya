@@ -1,5 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+
+import '../config/debug_log.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 import '../../data/repositories/e2ee_puller.dart';
@@ -11,6 +12,8 @@ import '../auth/auth_account_orchestrator.dart';
 import '../config/app_config.dart';
 import '../core/try_operation.dart';
 import '../purchase/entitlement_repository.dart';
+
+const _tag = 'sync_service';
 
 /// Exception thrown when sync lifecycle operations fail.
 class SyncException implements Exception {
@@ -63,7 +66,7 @@ class SyncService {
   Future<void> connect(AppSyncingMode mode) {
     return tryMethod(() async {
       if (!mode.supportsSync) {
-        debugPrint('SyncService.connect: skipping — local mode');
+        Log.d(_tag,'SyncService.connect: skipping — local mode');
         return;
       }
 
@@ -74,16 +77,16 @@ class SyncService {
       // Gate on sync entitlement.
       final hasSyncAccess = await _entitlementRepo.hasSyncAccess();
       if (!hasSyncAccess) {
-        debugPrint('SyncService.connect: no sync entitlement');
+        Log.d(_tag,'SyncService.connect: no sync entitlement');
         throw const SyncException('No sync access — purchase a sync plan to enable cloud sync');
       }
 
       await _powerSync.connect(_client, mode);
-      debugPrint('SyncService.connect: PowerSync connected = ${_powerSync.isConnected}');
+      Log.d(_tag,'SyncService.connect: PowerSync connected = ${_powerSync.isConnected}');
 
       if (!_puller.isListening) {
         await _puller.initialize();
-        debugPrint('SyncService.connect: E2EE puller initialised');
+        Log.d(_tag,'SyncService.connect: E2EE puller initialised');
       }
     }, SyncException.new, 'connect');
   }
@@ -93,11 +96,11 @@ class SyncService {
     return tryMethod(() async {
       if (_puller.isListening) {
         await _puller.dispose();
-        debugPrint('SyncService.disconnect: E2EE puller disposed');
+        Log.d(_tag,'SyncService.disconnect: E2EE puller disposed');
       }
 
       await _powerSync.disconnect();
-      debugPrint('SyncService.disconnect: PowerSync disconnected');
+      Log.d(_tag,'SyncService.disconnect: PowerSync disconnected');
     }, SyncException.new, 'disconnect');
   }
 
@@ -116,7 +119,7 @@ class SyncService {
       }
 
       await _syncRepo.updateMode(newMode);
-      debugPrint('SyncService.switchMode: mode set to ${newMode.name}');
+      Log.d(_tag,'SyncService.switchMode: mode set to ${newMode.name}');
     }, SyncException.new, 'switchMode');
   }
 
@@ -129,7 +132,7 @@ class SyncService {
       final mode = await _syncRepo.getCurrentMode();
       await disconnect();
       await connect(mode);
-      debugPrint('SyncService.reconnect: reconnected in ${mode.name} mode');
+      Log.d(_tag,'SyncService.reconnect: reconnected in ${mode.name} mode');
     }, SyncException.new, 'reconnect');
   }
 
@@ -142,14 +145,14 @@ class SyncService {
   /// Goes through the full [connect] gate (auth + entitlement checks).
   Future<void> reconnectAfterRecovery() {
     return tryMethod(() async {
-      debugPrint('SyncService.reconnectAfterRecovery: starting post-recovery sync');
+      Log.d(_tag,'SyncService.reconnectAfterRecovery: starting post-recovery sync');
 
       await disconnect();
       await _puller.resetCheckpoints();
 
       // Clear the PowerSync upload queue so stale local deletes (from factory
       // reset) aren't pushed upstream, wiping the server data.
-      debugPrint('SyncService.reconnectAfterRecovery: clearing upload queue');
+      Log.d(_tag,'SyncService.reconnectAfterRecovery: clearing upload queue');
       await _powerSync.powerSyncDb.execute('DELETE FROM ps_crud');
 
       // Recovery implies the user had sync — check entitlement and force
@@ -158,7 +161,7 @@ class SyncService {
       final mode = hasSyncAccess ? AppSyncingMode.cloud : await _syncRepo.getCurrentMode();
       await connect(mode);
 
-      debugPrint('SyncService.reconnectAfterRecovery: complete');
+      Log.d(_tag,'SyncService.reconnectAfterRecovery: complete');
     }, SyncException.new, 'reconnectAfterRecovery');
   }
 }

@@ -1,5 +1,6 @@
-import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show rootBundle;
+
+import '../../../../infrastructure/config/debug_log.dart';
 import 'package:injectable/injectable.dart';
 import 'package:jinja/jinja.dart' as jinja;
 import 'dart:convert';
@@ -13,6 +14,8 @@ import '../../enums/analysis_output_mode.dart';
 import '../../models/matrix_vector_scalar/analysis_data_type.dart';
 import '../../exceptions/analysis_exceptions.dart';
 import '../field_shape_resolver.dart';
+
+const _tag = 'ai_analysis_orchestrator';
 
 /// Simple suggestion model for AI-generated analysis scripts
 class ScriptSuggestion {
@@ -76,12 +79,12 @@ class AiAnalysisOrchestrator
     required LlmConfig llmConfig,
   }) async {
     try {
-      debugPrint('🤖 generateSuggestion: intent="$intent", field=${fieldShape.fieldName} (${fieldShape.fieldType}), shape=${fieldShape.valueShape}');
+      Log.d(_tag,'🤖 generateSuggestion: intent="$intent", field=${fieldShape.fieldName} (${fieldShape.fieldType}), shape=${fieldShape.valueShape}');
 
       // 1. Load the centralized prompt configuration
       final promptConfigStr = await rootBundle.loadString('assets/prompt.json');
       final promptConfig = jsonDecode(promptConfigStr);
-      debugPrint('🤖 generateSuggestion: prompt.json loaded');
+      Log.d(_tag,'🤖 generateSuggestion: prompt.json loaded');
 
       // 2. Build the system prompt using jinja
       final env = jinja.Environment();
@@ -90,12 +93,12 @@ class AiAnalysisOrchestrator
         'user_intent': intent,
         'value_shape': fieldShape.valueShape,
       });
-      debugPrint('🤖 generateSuggestion: system prompt built (${systemPrompt.length} chars)');
+      Log.d(_tag,'🤖 generateSuggestion: system prompt built (${systemPrompt.length} chars)');
 
       final schema = (promptConfig['json_schema'] as Map<String, dynamic>)['schema'] as Map<String, dynamic>;
 
       // 3. Execute LLM request with Structured Output
-      debugPrint('🤖 generateSuggestion: calling LLM...');
+      Log.d(_tag,'🤖 generateSuggestion: calling LLM...');
       final response = await _llmService.execute(
         llmConfig,
         LlmRequest(
@@ -105,7 +108,7 @@ class AiAnalysisOrchestrator
           callType: callType,
         ),
       );
-      debugPrint('🤖 generateSuggestion: LLM response received');
+      Log.d(_tag,'🤖 generateSuggestion: LLM response received');
 
       // 4. Parse the response
       final input = AnalysisInput(
@@ -114,11 +117,11 @@ class AiAnalysisOrchestrator
       );
 
       final result = parseResponse(response.data, input);
-      debugPrint('🤖 generateSuggestion: parsed, snippet=${result.snippet.length} chars, mode=${result.outputMode}');
+      Log.d(_tag,'🤖 generateSuggestion: parsed, snippet=${result.snippet.length} chars, mode=${result.outputMode}');
       return result;
     } catch (e, stack) {
-      debugPrint('🤖 generateSuggestion FAILED: $e');
-      debugPrint('🤖 stack: $stack');
+      Log.d(_tag,'🤖 generateSuggestion FAILED: $e');
+      Log.d(_tag,'🤖 stack: $stack');
       throw AnalysisException('AI Suggestion failed: $e', e);
     }
   }

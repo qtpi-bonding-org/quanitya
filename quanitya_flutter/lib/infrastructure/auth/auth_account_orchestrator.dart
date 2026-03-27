@@ -1,10 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+
+import '../config/debug_log.dart';
 import 'package:serverpod_client/serverpod_client.dart' show ServerpodClientUnauthorized;
 
 import '../core/try_operation.dart';
 import 'account_service.dart';
 import 'auth_service.dart' show AuthService, DeviceAuthenticationException;
+
+const _tag = 'auth_orchestrator';
 
 /// Coordinates JWT authentication with automatic device re-registration.
 ///
@@ -55,7 +58,7 @@ class AuthAccountOrchestrator {
     try {
       return await action();
     } on ServerpodClientUnauthorized {
-      debugPrint('AuthAccountOrchestrator: 401 on call — refreshing JWT');
+      Log.d(_tag,'AuthAccountOrchestrator: 401 on call — refreshing JWT');
       await _authService.clearSession();
       await _authenticate();
       return await action();
@@ -66,7 +69,7 @@ class AuthAccountOrchestrator {
     try {
       await _authService.ensureAuthenticated();
     } on DeviceAuthenticationException {
-      debugPrint('AuthAccountOrchestrator: device auth failed — re-registering');
+      Log.d(_tag,'AuthAccountOrchestrator: device auth failed — re-registering');
       await _accountService.ensureRegistered(deviceLabel: 'auto', force: true);
       await _authService.ensureAuthenticated();
     }

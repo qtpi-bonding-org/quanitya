@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:powersync_sqlcipher/powersync.dart';
+
+import '../../infrastructure/config/debug_log.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
@@ -15,6 +17,8 @@ import '../../infrastructure/config/dev_config.dart';
 import '../../infrastructure/core/try_operation.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../infrastructure/security/database_key_service.dart';
+
+const _tag = 'powersync_service';
 
 /// Exception thrown when PowerSync operations fail.
 class PowerSyncException implements Exception {
@@ -117,13 +121,13 @@ class PowerSyncRepository implements IPowerSyncRepository {
 
       _dbPath = path;
       final dbExists = !kIsWeb && await File(path).exists();
-      debugPrint('🗄️ PowerSync.initialize: path=$path, dbExists=$dbExists');
+      Log.d(_tag, '🗄️ PowerSync.initialize: path=$path, dbExists=$dbExists');
 
       // Provision the SQLCipher encryption key (device-only, not backed up)
       final keyResult = await _keyService.getOrCreateEncryptedAtRestKey();
-      debugPrint('🗄️ PowerSync.initialize: cipherKey wasCreated=${keyResult.wasCreated}');
+      Log.d(_tag, '🗄️ PowerSync.initialize: cipherKey wasCreated=${keyResult.wasCreated}');
       if (!kIsWeb && keyResult.wasCreated && await File(path).exists()) {
-        debugPrint('🗄️ PowerSync.initialize: DELETING stale DB file (cipher key was recreated)');
+        Log.d(_tag, '🗄️ PowerSync.initialize: DELETING stale DB file (cipher key was recreated)');
         await File(path).delete();
       }
 
@@ -175,9 +179,9 @@ class PowerSyncRepository implements IPowerSyncRepository {
   @override
   Future<void> connect(Client serverpodClient, AppSyncingMode mode) {
     return tryMethod(() async {
-      debugPrint('🔌 PowerSync.connect: mode=$mode, _isConnected=$_isConnected');
+      Log.d(_tag, '🔌 PowerSync.connect: mode=$mode, _isConnected=$_isConnected');
       if (_isConnected) {
-        debugPrint('🔌 PowerSync.connect: already connected, skipping');
+        Log.d(_tag, '🔌 PowerSync.connect: already connected, skipping');
         return;
       }
       final db = _powerSyncDb;
@@ -185,7 +189,7 @@ class PowerSyncRepository implements IPowerSyncRepository {
 
       // Check ps_crud count before connecting
       final crudCount = await db.execute('SELECT count(*) as cnt FROM ps_crud');
-      debugPrint('🔌 PowerSync.connect: ps_crud count BEFORE connect = ${crudCount.first['cnt']}');
+      Log.d(_tag, '🔌 PowerSync.connect: ps_crud count BEFORE connect = ${crudCount.first['cnt']}');
 
       // Disconnect first to avoid "Stream already listened to" on hot restart
       await db.disconnect();
@@ -196,7 +200,7 @@ class PowerSyncRepository implements IPowerSyncRepository {
       );
       await db.connect(connector: connector);
       _isConnected = true;
-      debugPrint('🔌 PowerSync.connect: connected successfully');
+      Log.d(_tag, '🔌 PowerSync.connect: connected successfully');
     }, PowerSyncException.new, 'connect');
   }
 
@@ -204,16 +208,16 @@ class PowerSyncRepository implements IPowerSyncRepository {
   @override
   Future<void> disconnect() {
     return tryMethod(() async {
-      debugPrint('🔌 PowerSync.disconnect: _isConnected=$_isConnected, db=${_powerSyncDb != null}');
+      Log.d(_tag, '🔌 PowerSync.disconnect: _isConnected=$_isConnected, db=${_powerSyncDb != null}');
       if (!_isConnected) {
-        debugPrint('🔌 PowerSync.disconnect: not connected, returning');
+        Log.d(_tag, '🔌 PowerSync.disconnect: not connected, returning');
         return;
       }
       final db = _powerSyncDb;
       if (db == null) throw PowerSyncException('PowerSync not initialized — call initialize() first');
-      debugPrint('🔌 PowerSync.disconnect: calling db.disconnect()...');
+      Log.d(_tag, '🔌 PowerSync.disconnect: calling db.disconnect()...');
       await db.disconnect();
-      debugPrint('🔌 PowerSync.disconnect: db.disconnect() done');
+      Log.d(_tag, '🔌 PowerSync.disconnect: db.disconnect() done');
       _isConnected = false;
     }, PowerSyncException.new, 'disconnect');
   }
@@ -241,9 +245,9 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
 
   @override
   Future<PowerSyncCredentials?> fetchCredentials() async {
-    debugPrint('🔑 PowerSync.fetchCredentials: isAuthenticated=${_client.auth.isAuthenticated}, mode=$_mode');
+    Log.d(_tag, '🔑 PowerSync.fetchCredentials: isAuthenticated=${_client.auth.isAuthenticated}, mode=$_mode');
     if (!_client.auth.isAuthenticated) {
-      debugPrint('🔑 PowerSync.fetchCredentials: not authenticated, returning null');
+      Log.d(_tag, '🔑 PowerSync.fetchCredentials: not authenticated, returning null');
       return null;
     }
 
@@ -255,14 +259,14 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
         final response = await _client.cloudPowerSync.getToken();
         token = response.token;
         endpoint = _resolveUrl(response.endpoint);
-        debugPrint('🔑 PowerSync.fetchCredentials: got cloud token, endpoint=$endpoint');
+        Log.d(_tag, '🔑 PowerSync.fetchCredentials: got cloud token, endpoint=$endpoint');
       case AppSyncingMode.selfHosted:
         final response = await _client.modules.community.powerSync.getToken();
         token = response.token;
         endpoint = _resolveUrl(response.endpoint);
-        debugPrint('🔑 PowerSync.fetchCredentials: got self-hosted token, endpoint=$endpoint');
+        Log.d(_tag, '🔑 PowerSync.fetchCredentials: got self-hosted token, endpoint=$endpoint');
       case AppSyncingMode.local:
-        debugPrint('🔑 PowerSync.fetchCredentials: local mode, returning null');
+        Log.d(_tag, '🔑 PowerSync.fetchCredentials: local mode, returning null');
         return null;
     }
 
@@ -277,9 +281,9 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
 
   @override
   Future<void> uploadData(PowerSyncDatabase database) async {
-    debugPrint('📤 PowerSync.uploadData called, isAuthenticated=${_client.auth.isAuthenticated}');
+    Log.d(_tag, '📤 PowerSync.uploadData called, isAuthenticated=${_client.auth.isAuthenticated}');
     if (!_client.auth.isAuthenticated) {
-      debugPrint('📤 PowerSync.uploadData: not authenticated, skipping');
+      Log.d(_tag, '📤 PowerSync.uploadData: not authenticated, skipping');
       return;
     }
 
@@ -288,22 +292,22 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
     while (true) {
       final transaction = await database.getNextCrudTransaction();
       if (transaction == null) {
-        debugPrint('📤 PowerSync.uploadData: done, processed $txCount transactions');
+        Log.d(_tag, '📤 PowerSync.uploadData: done, processed $txCount transactions');
         break;
       }
       txCount++;
 
       try {
-        debugPrint('📤 PowerSync.uploadData: transaction #${transaction.transactionId} with ${transaction.crud.length} ops');
+        Log.d(_tag, '📤 PowerSync.uploadData: transaction #${transaction.transactionId} with ${transaction.crud.length} ops');
         for (final op in transaction.crud) {
-          debugPrint('📤   ${op.op.name} ${op.table} id=${op.id}');
+          Log.d(_tag, '📤   ${op.op.name} ${op.table} id=${op.id}');
           await _syncOperation(op);
         }
 
         await transaction.complete();
-        debugPrint('📤   transaction #${transaction.transactionId} complete');
+        Log.d(_tag, '📤   transaction #${transaction.transactionId} complete');
       } catch (e, stack) {
-        debugPrint('📤   transaction #${transaction.transactionId} FAILED: $e');
+        Log.d(_tag, '📤   transaction #${transaction.transactionId} FAILED: $e');
         debugPrintStack(
           stackTrace: stack,
           label: 'PowerSync upload failed for transaction #${transaction.transactionId}: $e',
