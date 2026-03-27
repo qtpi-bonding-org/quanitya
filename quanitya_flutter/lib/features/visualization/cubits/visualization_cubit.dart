@@ -7,10 +7,9 @@ import '../../../data/repositories/data_retrieval_service.dart';
 import '../../../logic/analysis/services/analysis_engine.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import 'visualization_state.dart';
+export 'visualization_state.dart';
 
 const _tag = 'features/visualization/cubits/visualization_cubit';
-
-export 'visualization_state.dart';
 
 /// Cubit for loading visualization data with statistics.
 @injectable

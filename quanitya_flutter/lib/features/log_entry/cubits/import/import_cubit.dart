@@ -3,16 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
 import '../../../../infrastructure/config/debug_log.dart';
-
 import '../../../../logic/import/services/import_executor.dart';
-
-const _tag = 'features/log_entry/cubits/import/import_cubit';
 import '../../../../logic/import/services/timestamp_resolver.dart';
 import '../../../../logic/llm/services/local_llm_service.dart';
 import '../../../../logic/ocr/services/ocr_service.dart';
 import '../../../../logic/ocr/services/template_extraction_schema_builder.dart';
 import '../../../../logic/templates/models/shared/tracker_template.dart';
 import 'import_state.dart';
+
+const _tag = 'features/log_entry/cubits/import/import_cubit';
 
 @injectable
 class ImportCubit extends Cubit<ImportState> {
@@ -33,77 +32,112 @@ class ImportCubit extends Cubit<ImportState> {
     required TrackerTemplateModel template,
   }) async {
     try {
-      emit(const ImportState.picking());
-      final image = await _picker.pickImage(source: source);
-      if (image == null) {
-        emit(const ImportState.idle());
+      // Check if model needs downloading before starting
+      final downloaded = await _llmService.isModelDownloaded();
+      if (!downloaded) {
+        emit(ImportState.modelRequired(source: source, template: template));
         return;
       }
 
-      emit(const ImportState.processing());
-      final extractionFields =
-          TemplateExtractionSchemaBuilder.buildExtractionFields(template.fields);
-      if (extractionFields.isEmpty) {
-        emit(const ImportState.error(message: 'No extractable fields in template'));
-        return;
-      }
-
-      final grammar = TemplateExtractionSchemaBuilder.buildGrammar(extractionFields);
-      final ocrText = await _ocrService.recognizeText(image.path);
-      if (ocrText.trim().isEmpty) {
-        emit(const ImportState.error(message: 'No text detected in image'));
-        return;
-      }
-
-      final prompt = TemplateExtractionSchemaBuilder.buildPrompt(
-        ocrText: ocrText,
-        fields: extractionFields,
-      );
-
-      if (!_llmService.isReady) {
-        await _llmService.loadModel();
-      }
-
-      final rawOutput = await _llmService.generate(
-        prompt: prompt,
-        grammar: grammar,
-      );
-
-      final decoded = jsonDecode(rawOutput);
-      List<Map<String, dynamic>> parsedItems;
-      if (decoded is List) {
-        parsedItems = decoded.cast<Map<String, dynamic>>();
-      } else if (decoded is Map<String, dynamic>) {
-        parsedItems = [decoded];
-      } else {
-        emit(const ImportState.error(message: 'Unexpected LLM output format'));
-        return;
-      }
-
-      final remapped = TemplateExtractionSchemaBuilder.remapLabelsToIds(
-        parsedItems,
-        extractionFields,
-      );
-
-      final nonEmpty = remapped.where((item) {
-        return item.values.any((v) =>
-            v != null && (v is! String || v.trim().isNotEmpty));
-      }).toList();
-
-      if (nonEmpty.isEmpty) {
-        emit(const ImportState.error(message: 'No items extracted from image'));
-        return;
-      }
-
-      Log.d(_tag,'=== ImportCubit: extracted ${nonEmpty.length} items ===');
-      if (nonEmpty.length == 1) {
-        emit(ImportState.singleResult(item: nonEmpty.first));
-      } else {
-        emit(ImportState.multipleResults(items: nonEmpty));
-      }
+      await _runImport(source: source, template: template);
     } catch (e) {
-      Log.d(_tag,'=== ImportCubit: error: $e ===');
+      Log.d(_tag, '=== ImportCubit: error: $e ===');
       emit(ImportState.error(message: 'Import failed: $e'));
+    }
+  }
+
+  /// Called after user confirms model download from the dialog.
+  Future<void> confirmDownloadAndImport({
+    required ImageSource source,
+    required TrackerTemplateModel template,
+  }) async {
+    try {
+      emit(const ImportState.downloading(progress: 0.0));
+
+      await _llmService.downloadModel(
+        onProgress: (progress) {
+          emit(ImportState.downloading(progress: progress));
+        },
+      );
+
+      await _runImport(source: source, template: template);
+    } catch (e) {
+      Log.d(_tag, '=== ImportCubit: download/import error: $e ===');
+      emit(ImportState.error(message: 'Import failed: $e'));
+    }
+  }
+
+  Future<void> _runImport({
+    required ImageSource source,
+    required TrackerTemplateModel template,
+  }) async {
+    emit(const ImportState.picking());
+    final image = await _picker.pickImage(source: source);
+    if (image == null) {
+      emit(const ImportState.idle());
+      return;
+    }
+
+    emit(const ImportState.processing());
+    final extractionFields =
+        TemplateExtractionSchemaBuilder.buildExtractionFields(template.fields);
+    if (extractionFields.isEmpty) {
+      emit(const ImportState.error(message: 'No extractable fields in template'));
+      return;
+    }
+
+    final grammar = TemplateExtractionSchemaBuilder.buildGrammar(extractionFields);
+    final ocrText = await _ocrService.recognizeText(image.path);
+    if (ocrText.trim().isEmpty) {
+      emit(const ImportState.error(message: 'No text detected in image'));
+      return;
+    }
+
+    final prompt = TemplateExtractionSchemaBuilder.buildPrompt(
+      ocrText: ocrText,
+      fields: extractionFields,
+    );
+
+    if (!_llmService.isReady) {
+      await _llmService.loadModel();
+    }
+
+    final rawOutput = await _llmService.generate(
+      prompt: prompt,
+      grammar: grammar,
+    );
+
+    final decoded = jsonDecode(rawOutput);
+    List<Map<String, dynamic>> parsedItems;
+    if (decoded is List) {
+      parsedItems = decoded.cast<Map<String, dynamic>>();
+    } else if (decoded is Map<String, dynamic>) {
+      parsedItems = [decoded];
+    } else {
+      emit(const ImportState.error(message: 'Unexpected LLM output format'));
+      return;
+    }
+
+    final remapped = TemplateExtractionSchemaBuilder.remapLabelsToIds(
+      parsedItems,
+      extractionFields,
+    );
+
+    final nonEmpty = remapped.where((item) {
+      return item.values.any((v) =>
+          v != null && (v is! String || v.trim().isNotEmpty));
+    }).toList();
+
+    if (nonEmpty.isEmpty) {
+      emit(const ImportState.error(message: 'No items extracted from image'));
+      return;
+    }
+
+    Log.d(_tag, '=== ImportCubit: extracted ${nonEmpty.length} items ===');
+    if (nonEmpty.length == 1) {
+      emit(ImportState.singleResult(item: nonEmpty.first));
+    } else {
+      emit(ImportState.multipleResults(items: nonEmpty));
     }
   }
 
@@ -133,7 +167,7 @@ class ImportCubit extends Cubit<ImportState> {
 
       emit(ImportState.done(count: count));
     } catch (e) {
-      Log.d(_tag,'=== ImportCubit: bulk import error: $e ===');
+      Log.d(_tag, '=== ImportCubit: bulk import error: $e ===');
       emit(ImportState.error(message: 'Import failed: $e'));
     }
   }

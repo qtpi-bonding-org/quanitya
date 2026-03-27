@@ -807,6 +807,10 @@
       "fieldName": { "type": "String" }
     }
   },
+  "importModelDownloadTitle": "Download AI Model",
+  "importModelDownloadMessage": "Image import requires a one-time 469 MB download.",
+  "importModelDownloadConfirm": "Download",
+  "importModelDownloading": "Downloading model…",
   "resultsAnalyzeFields": "Analyze",
   "resultsAnalyzeFieldsDescription": "Create or edit analysis scripts for this template",
   "resultsAnalysisResults": "Analysis Results",

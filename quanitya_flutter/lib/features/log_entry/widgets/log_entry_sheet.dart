@@ -14,6 +14,7 @@ import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dar
 import '../../../design_system/widgets/quanitya_action_dialog.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../design_system/widgets/quanitya_progress_bar.dart';
 import '../../../logic/import/services/import_executor.dart';
 import '../../../logic/llm/services/local_llm_service.dart';
 import '../../../logic/ocr/services/ocr_service.dart';
@@ -224,10 +225,15 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
             return BlocBuilder<ImportCubit, ImportState>(
               buildWhen: (prev, curr) =>
                   prev is ImportProcessing != (curr is ImportProcessing) ||
-                  prev is ImportImporting != (curr is ImportImporting),
+                  prev is ImportImporting != (curr is ImportImporting) ||
+                  prev is ImportDownloading != (curr is ImportDownloading) ||
+                  (prev is ImportDownloading &&
+                      curr is ImportDownloading &&
+                      prev.progress != curr.progress),
               builder: (context, importState) {
                 final isImportBusy = importState is ImportProcessing ||
-                    importState is ImportImporting;
+                    importState is ImportImporting ||
+                    importState is ImportDownloading;
 
                 return Stack(
                   children: [
@@ -270,8 +276,27 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
                             borderRadius:
                                 BorderRadius.circular(AppSizes.radiusSmall),
                           ),
-                          child: const Center(
-                            child: CircularProgressIndicator(),
+                          child: Center(
+                            child: importState is ImportDownloading
+                                ? Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: AppSizes.space * 4,
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          context.l10n.importModelDownloading,
+                                          style: context.text.bodyMedium,
+                                        ),
+                                        VSpace.x2,
+                                        QuanityaProgressBar(
+                                          progress: importState.progress,
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : const CircularProgressIndicator(),
                           ),
                         ),
                       ),
@@ -349,6 +374,25 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
 
   void _handleImportState(BuildContext context, ImportState importState) {
     switch (importState) {
+      case ImportModelRequired(:final source, :final template):
+        final importCubit = context.read<ImportCubit>();
+        QuanityaConfirmationDialog.show(
+          context: context,
+          title: context.l10n.importModelDownloadTitle,
+          message: context.l10n.importModelDownloadMessage,
+          confirmText: context.l10n.importModelDownloadConfirm,
+          onConfirm: () {
+            importCubit.confirmDownloadAndImport(
+              source: source,
+              template: template,
+            );
+          },
+        ).then((confirmed) {
+          if (confirmed != true) {
+            importCubit.reset();
+          }
+        });
+
       case ImportSingleResult(:final item):
         final cubit = context.read<DynamicTemplateCubit>();
         for (final entry in item.entries) {

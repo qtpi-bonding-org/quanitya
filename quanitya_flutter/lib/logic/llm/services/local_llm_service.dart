@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
+import 'dart:io';
 import '../../../infrastructure/config/debug_log.dart';
 import 'package:injectable/injectable.dart';
 import 'package:llamadart/llamadart.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 
 const _tag = 'logic/llm/services/local_llm_service';
+
+/// Build-time URL for the model file.
+const _modelDownloadUrl = String.fromEnvironment('MODEL_DOWNLOAD_URL');
 
 /// Manages the on-device LLM for structured extraction.
 ///
@@ -17,7 +19,6 @@ const _tag = 'logic/llm/services/local_llm_service';
 /// without the overhead of reloading the model each time.
 @lazySingleton
 class LocalLlmService {
-  static const _modelAssetPath = 'assets/models/NuExtract-1.5-tiny-Q4_K_M.gguf';
   static const _modelFileName = 'NuExtract-1.5-tiny-Q4_K_M.gguf';
   static const _modelLoadTimeout = Duration(seconds: 60);
   static const _contextCreateTimeout = Duration(seconds: 10);
@@ -34,14 +35,82 @@ class LocalLlmService {
   /// Whether the model is loaded and ready for inference.
   bool get isReady => _modelHandle != null;
 
-  /// Loads the LLM model from app assets.
+  /// Whether the model file exists on disk (downloaded previously).
+  Future<bool> isModelDownloaded() async {
+    final dir = await getApplicationSupportDirectory();
+    return File('${dir.path}/$_modelFileName').existsSync();
+  }
+
+  /// Downloads the model file from the configured URL.
   ///
-  /// Copies the model file on first use, then loads it into the backend.
+  /// [onProgress] is called with values from 0.0 to 1.0.
+  /// Throws [StateError] if MODEL_DOWNLOAD_URL is not configured.
+  Future<void> downloadModel({
+    required void Function(double progress) onProgress,
+  }) async {
+    if (_modelDownloadUrl.isEmpty) {
+      throw StateError(
+        'MODEL_DOWNLOAD_URL not configured. '
+        'Pass --dart-define=MODEL_DOWNLOAD_URL=<url> at build time.',
+      );
+    }
+
+    final dir = await getApplicationSupportDirectory();
+    final modelPath = '${dir.path}/$_modelFileName';
+    final modelFile = File(modelPath);
+
+    if (modelFile.existsSync()) {
+      Log.d(_tag, '=== LocalLlmService: model already downloaded ===');
+      onProgress(1.0);
+      return;
+    }
+
+    Log.d(_tag, '=== LocalLlmService: downloading model from $_modelDownloadUrl ===');
+
+    final client = HttpClient();
+    try {
+      final request = await client.getUrl(Uri.parse(_modelDownloadUrl));
+      final response = await request.close();
+
+      if (response.statusCode != 200) {
+        throw StateError(
+          'Model download failed with status ${response.statusCode}',
+        );
+      }
+
+      final contentLength = response.contentLength;
+      var bytesReceived = 0;
+
+      final tmpFile = File('$modelPath.tmp');
+      final sink = tmpFile.openWrite();
+
+      await for (final chunk in response) {
+        sink.add(chunk);
+        bytesReceived += chunk.length;
+        if (contentLength > 0) {
+          onProgress(bytesReceived / contentLength);
+        }
+      }
+
+      await sink.flush();
+      await sink.close();
+
+      // Atomic rename — avoids partial file if download is interrupted
+      await tmpFile.rename(modelPath);
+      Log.d(_tag, '=== LocalLlmService: download complete ($bytesReceived bytes) ===');
+    } finally {
+      client.close();
+    }
+  }
+
+  /// Loads the LLM model from disk.
+  ///
+  /// The model must have been downloaded first via [downloadModel].
   /// The model stays loaded across generate() calls — only the context
   /// is created/destroyed per call.
   ///
   /// Throws [TimeoutException] if loading exceeds 60 seconds.
-  /// Throws [StateError] if the model is already loaded.
+  /// Throws [StateError] if the model is already loaded or not downloaded.
   Future<void> loadModel() async {
     if (_modelHandle != null) {
       throw StateError('Model is already loaded. Call unloadModel() first.');
@@ -49,16 +118,14 @@ class LocalLlmService {
 
     Log.d(_tag, '=== LocalLlmService: starting model load ===');
 
-    // Copy model from assets to file system
     final dir = await getApplicationSupportDirectory();
     final modelPath = '${dir.path}/$_modelFileName';
     final modelFile = File(modelPath);
 
     if (!modelFile.existsSync()) {
-      Log.d(_tag, '=== LocalLlmService: copying model from assets (469MB)... ===');
-      final data = await rootBundle.load(_modelAssetPath);
-      await modelFile.writeAsBytes(data.buffer.asUint8List(), flush: true);
-      Log.d(_tag, '=== LocalLlmService: model copied ===');
+      throw StateError(
+        'Model file not found. Call downloadModel() first.',
+      );
     }
 
     final sw = Stopwatch()..start();

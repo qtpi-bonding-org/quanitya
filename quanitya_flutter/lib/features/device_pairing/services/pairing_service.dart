@@ -8,14 +8,14 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:webcrypto/webcrypto.dart';
 
 import '../../../features/app_syncing_mode/models/app_syncing_mode.dart';
-
-const _tag = 'features/device_pairing/services/pairing_service';
 import '../../../features/app_syncing_mode/repositories/app_syncing_repository.dart';
 import '../../../infrastructure/core/try_operation.dart';
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../infrastructure/crypto/data_encryption_service.dart';
 import '../../../infrastructure/crypto/utils/hashcash.dart';
 import '../models/pairing_qr_data.dart';
+
+const _tag = 'features/device_pairing/services/pairing_service';
 
 /// Describes why pairing failed.
 enum PairingFailure {

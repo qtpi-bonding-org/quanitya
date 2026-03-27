@@ -317,7 +317,7 @@ import 'package:quanitya_flutter/logic/analysis/services/ai/ai_analysis_orchestr
 import 'package:quanitya_flutter/logic/analysis/services/analysis_engine.dart'
     as _i820;
 import 'package:quanitya_flutter/logic/analysis/services/field_shape_resolver.dart'
-    as _i34b;
+    as _i939;
 import 'package:quanitya_flutter/logic/analysis/services/streaming_analytics_service.dart'
     as _i60;
 import 'package:quanitya_flutter/logic/analysis/services/wasm_analysis_service.dart'
@@ -477,9 +477,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i894.AnalysisBuilderMessageMapper>(
       () => _i894.AnalysisBuilderMessageMapper(),
     );
-    gh.factory<_i34b.FieldShapeResolver>(
-      () => _i34b.FieldShapeResolver(gh<_i870.TemplateQueryDao>()),
-    );
     gh.factory<_i205.ModelRuntimeConverter>(
       () => _i205.ModelRuntimeConverter(),
     );
@@ -599,9 +596,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i246.KeyExportService>(
       () => _i246.KeyExportService(gh<_i83.ISecureStorage>()),
     );
-    gh.lazySingleton<_i637.LlmService>(
-      () => _i637.LlmService(gh<_i519.Client>(), gh<_i711.Client>(), gh<_i7.AuthAccountOrchestrator>()),
-    );
     gh.factory<_i195.TemplateSharingExportCubit>(
       () => _i195.TemplateSharingExportCubit(gh<_i399.TemplateExportService>()),
     );
@@ -611,28 +605,11 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i303.UnifiedSchemaGenerator>(),
       ),
     );
-    gh.factory<_i294.LlmChatService>(
-      () => _i294.LlmChatService(gh<_i637.LlmService>()),
-    );
-    gh.factory<_i670.AiTemplateOrchestrator>(
-      () => _i670.AiTemplateOrchestrator(
-        gh<_i637.LlmService>(),
-        gh<_i953.JsonToModelParser>(),
-        gh<_i808.AiTemplateGenerator>(),
-      ),
-    );
     gh.factory<_i560.PlatformLocalAuth>(
       () => _i560.PlatformLocalAuth(gh<_i548.PlatformCapabilityService>()),
     );
     gh.lazySingleton<_i453.ICrossDeviceKeyStorage>(
       () => crossDeviceKeyModule.crossDeviceStorage(gh<_i83.ISecureStorage>()),
-    );
-    gh.factory<_i867.AiTemplateService>(
-      () => _i867.AiTemplateService(
-        gh<_i637.LlmService>(),
-        gh<_i953.JsonToModelParser>(),
-        gh<_i808.AiTemplateGenerator>(),
-      ),
     );
     gh.lazySingleton<_i145.AnalysisScriptQueryDao>(
       () => _i145.AnalysisScriptQueryDao(gh<_i147.AppDatabase>()),
@@ -702,9 +679,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i523.FtsSearchDao>(),
         gh<_i95.LogEntryQueryDao>(),
       ),
-    );
-    gh.factory<_i790.AiAnalysisOrchestrator>(
-      () => _i790.AiAnalysisOrchestrator(gh<_i637.LlmService>()),
     );
     gh.lazySingleton<_i922.GuidedTourService>(
       () => _i922.GuidedTourService(gh<_i788.SecurePreferences>()),
@@ -783,6 +757,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i743.AnalyticsInboxRepository>(
       () => _i743.AnalyticsInboxRepository(gh<_i302.AnalyticsInboxDao>()),
+    );
+    gh.factory<_i939.FieldShapeResolver>(
+      () => _i939.FieldShapeResolver(gh<_i870.TemplateQueryDao>()),
     );
     gh.lazySingleton<_i258.IPairingService>(
       () => _i258.PairingService(
@@ -978,6 +955,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i34.ILogEntryRepository>(),
       ),
     );
+    gh.lazySingleton<_i637.LlmService>(
+      () => _i637.LlmService(
+        gh<_i519.Client>(),
+        gh<_i711.Client>(),
+        gh<_i7.AuthAccountOrchestrator>(),
+      ),
+    );
     gh.lazySingleton<_i25.SyncStatusCubit>(
       () => _i25.SyncStatusCubit(
         gh<_i475.IPowerSyncRepository>(),
@@ -1007,6 +991,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i874.ImportExecutor>(
       () => _i874.ImportExecutor(gh<_i75.DataIngestionService>()),
     );
+    gh.factory<_i790.AiAnalysisOrchestrator>(
+      () => _i790.AiAnalysisOrchestrator(gh<_i637.LlmService>()),
+    );
     gh.factory<_i810.IAnalysisScriptRepository>(
       () => _i141.AnalysisScriptRepository(
         gh<_i886.AnalysisScriptDualDao>(),
@@ -1029,6 +1016,16 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i581.WebhookService>(),
       ),
     );
+    gh.factory<_i294.LlmChatService>(
+      () => _i294.LlmChatService(gh<_i637.LlmService>()),
+    );
+    gh.factory<_i670.AiTemplateOrchestrator>(
+      () => _i670.AiTemplateOrchestrator(
+        gh<_i637.LlmService>(),
+        gh<_i953.JsonToModelParser>(),
+        gh<_i808.AiTemplateGenerator>(),
+      ),
+    );
     gh.lazySingleton<_i330.DevSeederService>(
       () => _i330.DevSeederService(
         gh<_i147.AppDatabase>(),
@@ -1039,6 +1036,13 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i810.IAnalysisScriptRepository>(),
       ),
       registerFor: {_dev},
+    );
+    gh.factory<_i867.AiTemplateService>(
+      () => _i867.AiTemplateService(
+        gh<_i637.LlmService>(),
+        gh<_i953.JsonToModelParser>(),
+        gh<_i808.AiTemplateGenerator>(),
+      ),
     );
     gh.factory<_i143.ImportCubit>(
       () => _i143.ImportCubit(
@@ -1160,7 +1164,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i810.IAnalysisScriptRepository>(),
         gh<_i554.TemplateWithAestheticsRepository>(),
         gh<_i790.AiAnalysisOrchestrator>(),
-        gh<_i34b.FieldShapeResolver>(),
+        gh<_i939.FieldShapeResolver>(),
         gh<_i60.StreamingAnalyticsService>(),
         gh<_i193.IWasmAnalysisService>(),
       ),
