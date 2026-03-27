@@ -1,9 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:mocktail/mocktail.dart';
+import 'package:quanitya_flutter/infrastructure/auth/auth_account_orchestrator.dart';
 import 'package:quanitya_flutter/infrastructure/llm/services/llm_service.dart';
 import 'package:quanitya_flutter/infrastructure/llm/models/llm_types.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'live_api_test_helper.dart';
+
+class _MockAuthOrchestrator extends Mock implements AuthAccountOrchestrator {}
 
 void main() {
   group('Dartantic AI Verification', () {
@@ -15,7 +19,7 @@ void main() {
       await LiveApiTestHelper.loadEnv();
       openRouterApiKey = LiveApiTestHelper.openRouterApiKey;
       hasKey = LiveApiTestHelper.hasOpenRouterKey;
-      llmService = LlmService(http.Client(), Client('http://localhost:8080/'));
+      llmService = LlmService(http.Client(), Client('http://localhost:8080/'), _MockAuthOrchestrator());
     });
 
     test('Structured Output with OpenRouter', () async {

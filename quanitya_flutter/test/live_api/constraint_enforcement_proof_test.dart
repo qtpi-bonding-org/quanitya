@@ -2,12 +2,16 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
+import 'package:mocktail/mocktail.dart';
 
+import 'package:quanitya_flutter/infrastructure/auth/auth_account_orchestrator.dart';
 import 'package:quanitya_flutter/infrastructure/llm/services/llm_service.dart';
 import 'package:quanitya_flutter/infrastructure/llm/models/llm_types.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 import 'live_api_test_helper.dart';
+
+class _MockAuthOrchestrator extends Mock implements AuthAccountOrchestrator {}
 
 @Tags(['live_api'])
 void main() {
@@ -29,7 +33,7 @@ void main() {
       testGetIt.registerLazySingleton<http.Client>(() => http.Client());
       testGetIt.registerLazySingleton<Client>(() => Client('http://localhost:8080/'));
       testGetIt.registerLazySingleton<LlmService>(
-        () => LlmService(testGetIt<http.Client>(), testGetIt<Client>()),
+        () => LlmService(testGetIt<http.Client>(), testGetIt<Client>(), _MockAuthOrchestrator()),
       );
       
       llmService = testGetIt<LlmService>();

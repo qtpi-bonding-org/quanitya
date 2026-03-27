@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:mocktail/mocktail.dart';
+import 'package:quanitya_flutter/infrastructure/auth/auth_account_orchestrator.dart';
 import 'package:quanitya_flutter/infrastructure/llm/services/llm_service.dart';
 import 'package:quanitya_flutter/infrastructure/llm/models/llm_types.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
@@ -8,6 +10,8 @@ import 'package:quanitya_flutter/logic/templates/services/engine/symbolic_combin
 import 'package:quanitya_flutter/logic/templates/services/engine/unified_schema_generator.dart';
 
 import 'live_api_test_helper.dart';
+
+class _MockAuthOrchestrator extends Mock implements AuthAccountOrchestrator {}
 
 /// End-to-End Script Test.
 /// Skipped automatically if GEMINI_API_KEY is not found in .env
@@ -33,7 +37,7 @@ void main() {
       final combinationGenerator = SymbolicCombinationGenerator();
       final unifiedSchemaGenerator = UnifiedSchemaGenerator();
       aiGenerator = AiTemplateGenerator(combinationGenerator, unifiedSchemaGenerator);
-      llmService = LlmService(http.Client(), Client('http://localhost:8080/'));
+      llmService = LlmService(http.Client(), Client('http://localhost:8080/'), _MockAuthOrchestrator());
     });
 
     test('Script Test - Multiple User Prompts', () async {

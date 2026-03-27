@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_it/get_it.dart';
+import 'package:mocktail/mocktail.dart';
 
+import 'package:quanitya_flutter/infrastructure/auth/auth_account_orchestrator.dart';
 import 'package:quanitya_flutter/logic/templates/enums/measurement_unit.dart';
 import 'package:quanitya_flutter/logic/templates/services/ai/ai_template_generator.dart';
 import 'package:quanitya_flutter/logic/templates/services/engine/symbolic_combination_generator.dart';
@@ -14,6 +16,8 @@ import 'package:quanitya_flutter/logic/templates/services/engine/unified_schema_
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 import 'live_api_test_helper.dart';
+
+class _MockAuthOrchestrator extends Mock implements AuthAccountOrchestrator {}
 
 @Tags(['live_api'])
 void main() {
@@ -43,7 +47,7 @@ void main() {
         ),
       );
       testGetIt.registerLazySingleton<Client>(() => Client('http://localhost:8080/'));
-      testGetIt.registerLazySingleton<LlmService>(() => LlmService(testGetIt<http.Client>(), testGetIt<Client>()));
+      testGetIt.registerLazySingleton<LlmService>(() => LlmService(testGetIt<http.Client>(), testGetIt<Client>(), _MockAuthOrchestrator()));
       
       aiGenerator = testGetIt<AiTemplateGenerator>();
       llmService = testGetIt<LlmService>();

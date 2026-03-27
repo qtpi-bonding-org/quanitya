@@ -11,7 +11,7 @@ import 'package:quanitya_flutter/logic/analysis/enums/analysis_output_mode.dart'
 import 'package:quanitya_flutter/logic/analysis/models/analysis_enums.dart';
 import 'package:quanitya_flutter/logic/analysis/models/analysis_script.dart';
 import 'package:quanitya_flutter/logic/analysis/services/ai/ai_analysis_orchestrator.dart';
-import 'package:quanitya_flutter/logic/analysis/services/field_context_service.dart';
+import 'package:quanitya_flutter/logic/analysis/services/field_shape_resolver.dart';
 import 'package:quanitya_flutter/logic/analysis/services/streaming_analytics_service.dart';
 import 'package:quanitya_flutter/logic/analysis/services/wasm_analysis_service.dart';
 
@@ -22,7 +22,7 @@ class MockTemplateRepository extends Mock
 
 class MockAiOrchestrator extends Mock implements AiAnalysisOrchestrator {}
 
-class MockFieldContextService extends Mock implements FieldContextService {}
+class MockFieldShapeResolver extends Mock implements FieldShapeResolver {}
 
 class MockStreamingService extends Mock implements StreamingAnalyticsService {}
 
@@ -34,7 +34,7 @@ void main() {
   late MockScriptRepository mockScriptRepo;
   late MockTemplateRepository mockTemplateRepo;
   late MockAiOrchestrator mockAiOrchestrator;
-  late MockFieldContextService mockFieldContextService;
+  late MockFieldShapeResolver mockFieldShapeResolver;
   late MockStreamingService mockStreamingService;
   late MockWasmService mockWasmService;
 
@@ -48,7 +48,7 @@ void main() {
     mockScriptRepo = MockScriptRepository();
     mockTemplateRepo = MockTemplateRepository();
     mockAiOrchestrator = MockAiOrchestrator();
-    mockFieldContextService = MockFieldContextService();
+    mockFieldShapeResolver = MockFieldShapeResolver();
     mockStreamingService = MockStreamingService();
     mockWasmService = MockWasmService();
   });
@@ -57,7 +57,7 @@ void main() {
         mockScriptRepo,
         mockTemplateRepo,
         mockAiOrchestrator,
-        mockFieldContextService,
+        mockFieldShapeResolver,
         mockStreamingService,
         mockWasmService,
       );
@@ -398,7 +398,7 @@ void main() {
           mockScriptRepo,
           mockTemplateRepo,
           mockAiOrchestrator,
-          mockFieldContextService,
+          mockFieldShapeResolver,
           mockStreamingService,
           localWasm,
         );
