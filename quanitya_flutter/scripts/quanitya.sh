@@ -176,7 +176,11 @@ get_dart_defines() {
     if [[ -n "$TEMPLATE_CATALOG_URL" ]]; then
         dart_defines+=("--dart-define=TEMPLATE_CATALOG_URL=$TEMPLATE_CATALOG_URL")
     fi
-    
+
+    if [[ -n "$MODEL_DOWNLOAD_URL" ]]; then
+        dart_defines+=("--dart-define=MODEL_DOWNLOAD_URL=$MODEL_DOWNLOAD_URL")
+    fi
+
     echo "${dart_defines[@]}"
 }
 

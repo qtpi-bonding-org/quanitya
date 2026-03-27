@@ -1,4 +1,5 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -240,15 +241,16 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: QuanityaIconButtonSizes.medium(
-                            icon: Icons.camera_alt_outlined,
-                            onPressed: isImportBusy
-                                ? null
-                                : () => _showSourcePicker(context),
+                        if (!kIsWeb)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: QuanityaIconButtonSizes.medium(
+                              icon: Icons.camera_alt_outlined,
+                              onPressed: isImportBusy
+                                  ? null
+                                  : () => _showSourcePicker(context),
+                            ),
                           ),
-                        ),
                         Flexible(
                           child: TemplatePreview(
                             template: widget.template!,
