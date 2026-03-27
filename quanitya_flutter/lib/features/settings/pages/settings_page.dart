@@ -22,7 +22,6 @@ import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../../infrastructure/webhooks/models/webhook_model.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
-import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../cubits/data_export/data_export_cubit.dart';
 import '../cubits/recovery_key/recovery_key_cubit.dart';
@@ -768,20 +767,18 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
           }
 
           if (mounted) {
-            PostItToast.show(
-              context,
+            GetIt.instance<IFeedbackService>().show(FeedbackMessage(
               message: context.l10n.deleteAccountSuccess,
-              type: PostItType.info,
-            );
+              type: MessageType.info,
+            ));
           }
         } catch (e, stack) {
           await ErrorPrivserver.captureError(e, stack, source: 'SettingsPage.deleteAccount');
           if (mounted) {
-            PostItToast.show(
-              context,
+            GetIt.instance<IFeedbackService>().show(FeedbackMessage(
               message: context.l10n.deleteAccountFailed,
-              type: PostItType.error,
-            );
+              type: MessageType.error,
+            ));
           }
         } finally {
           if (mounted) setState(() => _isLoading = false);

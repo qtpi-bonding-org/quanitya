@@ -372,7 +372,7 @@
       }
     }
   },
-  "enableICloudSync": "Activar sincronización iCloud",
+  "createPlatformDeviceKey": "Crear clave de dispositivo {platform}",
   "webhooksCreateTemplateFirst": "Crea una plantilla primero para añadir webhooks",
   "devToolsTitle": "Herramientas de Desarrollador",
   "devSeedFakeData": "Añadir Datos Falsos",
@@ -606,7 +606,7 @@
   "templateContainerStyleDescription": "La forma de tus elementos.",
   "templateAccentLabel": "Acento",
   "templateToneLabel": "Tono",
-  "aiGeneratorTitle": "Generador de Plantillas IA",
+  "aiGeneratorTitle": "Diseñador de Plantillas IA",
   "aiGeneratorHint": "Describe lo que quieres monitorizar",
   "aiAddApiKeyTitle": "Añadir Clave de API de OpenRouter",
   "aiAddApiKeyDescription": "Necesitas una clave de OpenRouter. Consiguela en openrouter.ai",

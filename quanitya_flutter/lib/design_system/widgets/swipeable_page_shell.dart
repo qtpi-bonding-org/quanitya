@@ -207,6 +207,9 @@ class _SwipeablePageShellState extends State<SwipeablePageShell> {
 
   Widget _buildLabelsRow() {
     final row = Row(
+      mainAxisSize: widget.labelsKey != null
+          ? MainAxisSize.min
+          : MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         for (int i = 0; i < widget.labels.length; i++)
@@ -237,7 +240,9 @@ class _SwipeablePageShellState extends State<SwipeablePageShell> {
     );
 
     if (widget.labelsKey != null) {
-      return KeyedSubtree(key: widget.labelsKey!, child: row);
+      return Center(
+        child: KeyedSubtree(key: widget.labelsKey!, child: row),
+      );
     }
     return row;
   }

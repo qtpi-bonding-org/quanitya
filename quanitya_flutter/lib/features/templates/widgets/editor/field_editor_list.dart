@@ -33,7 +33,6 @@ class FieldEditorList extends StatefulWidget {
 }
 
 class _FieldEditorListState extends State<FieldEditorList> {
-  String? _editingFieldId;
   bool _isGroupMode = false;
   final Set<String> _selectedFieldIds = {};
 
@@ -70,21 +69,6 @@ class _FieldEditorListState extends State<FieldEditorList> {
               separatorBuilder: (_, _) => VSpace.x1,
               itemBuilder: (context, index) {
                 final field = state.fields[index];
-
-                if (_editingFieldId == field.id) {
-                  return InlineFieldEditor(
-                    fieldType: field.type,
-                    existingField: field,
-                    onSave: (updatedField) {
-                      context.read<TemplateEditorCubit>().updateField(
-                        field.id,
-                        updatedField,
-                      );
-                      setState(() => _editingFieldId = null);
-                    },
-                    onCancel: () => setState(() => _editingFieldId = null),
-                  );
-                }
 
                 if (field.type == FieldEnum.group) {
                   return _buildGroupItem(context, field);
@@ -229,13 +213,13 @@ class _FieldEditorListState extends State<FieldEditorList> {
     );
   }
 
-  /// Normal mode: edit + delete + enter-group-mode
+  /// Normal mode: edit + delete
   Widget _buildNormalTrailing(BuildContext context, TemplateField field) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         QuanityaIconButton(
-          onPressed: () => setState(() => _editingFieldId = field.id),
+          onPressed: () => _showEditFieldSheet(context, field),
           icon: Icons.edit,
           color: context.colors.interactableColor,
         ),
@@ -292,9 +276,34 @@ class _FieldEditorListState extends State<FieldEditorList> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              end: QuanityaTextButton(
-                text: context.l10n.ungroupAction,
-                onPressed: () => context.read<TemplateEditorCubit>().ungroupField(group.id),
+              end: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    context.l10n.allowMultipleLabel,
+                    style: context.text.bodySmall?.copyWith(
+                      color: borderColor,
+                    ),
+                  ),
+                  HSpace.x05,
+                  QuanityaToggle(
+                    value: group.isList,
+                    onChanged: (_) {
+                      final updated = group.copyWith(isList: !group.isList);
+                      context.read<TemplateEditorCubit>().updateField(group.id, updated);
+                    },
+                    semanticLabel: context.l10n.allowMultipleLabel,
+                    activeTrackColor: context.colors.interactableColor,
+                    activeThumbColor: context.colors.backgroundPrimary,
+                    inactiveTrackColor: borderColor,
+                    inactiveThumbColor: context.colors.backgroundPrimary,
+                  ),
+                  HSpace.x1,
+                  QuanityaTextButton(
+                    text: context.l10n.ungroupAction,
+                    onPressed: () => context.read<TemplateEditorCubit>().ungroupField(group.id),
+                  ),
+                ],
               ),
             ),
           ),
@@ -416,9 +425,25 @@ class _FieldEditorListState extends State<FieldEditorList> {
   void _pruneStaleState(List<TemplateField> fields) {
     final fieldIds = fields.map((f) => f.id).toSet();
     _selectedFieldIds.removeWhere((id) => !fieldIds.contains(id));
-    if (_editingFieldId != null && !fieldIds.contains(_editingFieldId)) {
-      _editingFieldId = null;
-    }
+  }
+
+  void _showEditFieldSheet(BuildContext context, TemplateField field) {
+    final cubit = context.read<TemplateEditorCubit>();
+    LooseInsertSheet.show(
+      context: context,
+      title: context.l10n.editFieldType(field.type.displayName),
+      builder: (sheetContext) => SingleChildScrollView(
+        child: InlineFieldEditor(
+          fieldType: field.type,
+          existingField: field,
+          onSave: (updatedField) {
+            cubit.updateField(field.id, updatedField);
+            Navigator.pop(sheetContext);
+          },
+          onCancel: () => Navigator.pop(sheetContext),
+        ),
+      ),
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────

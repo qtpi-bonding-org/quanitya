@@ -372,7 +372,7 @@
       }
     }
   },
-  "enableICloudSync": "Ativar sincronização iCloud",
+  "createPlatformDeviceKey": "Criar chave de dispositivo {platform}",
   "webhooksCreateTemplateFirst": "Crie um modelo primeiro para adicionar webhooks",
   "devToolsTitle": "Ferramentas de Desenvolvedor",
   "devSeedFakeData": "Gerar Dados Falsos",
@@ -606,7 +606,7 @@
   "templateContainerStyleDescription": "Controla o formato dos contêineres de campo.",
   "templateAccentLabel": "Destaque",
   "templateToneLabel": "Tom",
-  "aiGeneratorTitle": "Gerador de Modelos IA",
+  "aiGeneratorTitle": "Designer de Modelos IA",
   "aiGeneratorHint": "Descreva o que deseja rastrear",
   "aiAddApiKeyTitle": "Adicionar Chave de API OpenRouter",
   "aiAddApiKeyDescription": "Uma chave de API OpenRouter é necessária para geração com IA. Obtenha uma em openrouter.ai",

@@ -10,7 +10,6 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/structures/row.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
-import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_action_dialog.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
@@ -76,11 +75,10 @@ class LogEntrySheet extends StatefulWidget {
     final data = await repo.findById(templateId);
     if (!context.mounted) return;
     if (data == null) {
-      PostItToast.show(
-        context,
+      GetIt.I<IFeedbackService>().show(FeedbackMessage(
         message: context.l10n.errorTemplateNotFound,
-        type: PostItType.error,
-      );
+        type: MessageType.error,
+      ));
       return;
     }
 
@@ -440,8 +438,8 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
 
           final fieldContent = _isEditing
               ? preview
-              : AbsorbPointer(
-                  absorbing: true,
+              : IgnorePointer(
+                  ignoring: true,
                   child: AnimatedOpacity(
                     opacity: 0.85,
                     duration: const Duration(milliseconds: 200),

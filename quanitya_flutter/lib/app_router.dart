@@ -12,6 +12,7 @@ import 'data/repositories/template_with_aesthetics_repository.dart';
 import 'features/home/pages/notebook_shell.dart';
 import 'design_system/widgets/quanitya/general/zen_paper_background.dart';
 import 'features/catalog/pages/template_gallery_page.dart';
+import 'dev/pages/ocr_test_page.dart';
 import 'features/onboarding/pages/onboarding_page.dart';
 import 'features/onboarding/pages/about_page.dart';
 import 'features/onboarding/pages/recovery_key_backup_page.dart';
@@ -200,6 +201,11 @@ class AppRouter {
             },
           ),
           GoRoute(
+            path: AppRoutes.ocrTest,
+            name: RouteNames.ocrTest,
+            builder: (context, state) => const OcrTestPage(),
+          ),
+          GoRoute(
             path: AppRoutes.scriptBuilder,
             name: RouteNames.scriptBuilder,
             builder: (context, state) {
@@ -243,6 +249,7 @@ class AppRoutes {
   static const String connectDevice = '/connect-device';
   static const String scriptBuilder = '/script-builder';
   static const String templateGallery = '/template-gallery';
+  static const String ocrTest = '/ocr-test';
 }
 
 class RouteNames {
@@ -258,6 +265,7 @@ class RouteNames {
   static const String connectDevice = 'connectDevice';
   static const String scriptBuilder = 'scriptBuilder';
   static const String templateGallery = 'templateGallery';
+  static const String ocrTest = 'ocrTest';
 }
 
 class AppNavigation {

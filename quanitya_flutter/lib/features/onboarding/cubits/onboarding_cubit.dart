@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
@@ -68,34 +67,22 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
   /// - Account with publicMasterKey + encrypted recovery blob
   /// - This device with deviceSigningPublicKeyHex + encrypted device blob
   Future<void> createAccount() async {
-    debugPrint('OnboardingCubit: createAccount() called');
     await tryOperation(() async {
-      debugPrint('OnboardingCubit: Inside tryOperation, calling accountService.createAccount...');
-      
-      // Get device name automatically
       final deviceLabel = await _deviceInfoService.getDeviceName();
-      debugPrint('OnboardingCubit: Device label: $deviceLabel');
-      
-      // Create account on server (also generates all keys locally)
+
       final result = await _accountService.createAccount(
         deviceLabel: deviceLabel,
       );
-      debugPrint('OnboardingCubit: accountService.createAccount returned, recoveryKey length: ${result.ultimatePrivateKey.length}');
 
-      // Reset router key check since we now have keys
       AppRouter.resetKeyCheck();
-
       analytics?.trackAccountCreated();
 
-      final newState = state.copyWith(
+      return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: OnboardingOperation.createAccount,
         recoveryKeyJwk: result.ultimatePrivateKey,
       );
-      debugPrint('OnboardingCubit: Returning new state with hasAccount=${newState.hasAccount}');
-      return newState;
     }, emitLoading: true);
-    debugPrint('OnboardingCubit: createAccount() completed, current state hasAccount=${state.hasAccount}, status=${state.status}');
   }
 
   /// Create a local-only account (offline mode, no server registration)
@@ -159,8 +146,8 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
       );
 
       if (result == KeyExportResult.cancelled) {
-        // User cancelled - not an error, just return to idle
-        return state.copyWith(status: UiFlowStatus.idle);
+        // User cancelled - not an error, just return current state unchanged
+        return state;
       }
       if (result == KeyExportResult.failed) {
         throw const KeyStorageException('Failed to export recovery key');
@@ -171,7 +158,7 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
         lastOperation: OnboardingOperation.exportToFile,
         completedBackupMethods: {...state.completedBackupMethods, BackupMethod.file},
       );
-    }, emitLoading: true);
+    }, emitLoading: false);
   }
 
   /// Copy recovery key to clipboard
@@ -196,7 +183,7 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
     if (jwk == null) return;
 
     await tryOperation(() async {
-      // Authenticate first
+      // Authenticate first (shows system biometric dialog)
       final authResult = await _localAuthService.authenticate(
         reason: GetIt.I<AppLocalizationService>().l10n.authenticateStoreRecoveryKey,
       );
@@ -213,7 +200,7 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
         lastOperation: OnboardingOperation.storeWithBiometrics,
         completedBackupMethods: {...state.completedBackupMethods, BackupMethod.biometrics},
       );
-    }, emitLoading: true);
+    }, emitLoading: false);
   }
 
 }

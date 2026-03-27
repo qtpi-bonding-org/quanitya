@@ -4,10 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
-import '../../../../app/bootstrap.dart';
 import '../../../../app_router.dart';
-import '../../../guided_tour/guided_tour_service.dart';
-import '../../../guided_tour/home_tour.dart';
 import '../../../log_entry/widgets/log_entry_sheet.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
@@ -27,39 +24,6 @@ class TemplateListWidget extends StatefulWidget {
 }
 
 class _TemplateListWidgetState extends State<TemplateListWidget> {
-  bool _tourAttempted = false;
-
-  Future<void> _maybeShowHomeTour(BuildContext context) async {
-    final tourService = getIt<GuidedTourService>();
-    if (!await tourService.shouldShowTour(GuidedTourService.homeKey)) return;
-
-    // Wait two frames to ensure all keyed widgets are fully laid out
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted) return;
-
-        // All keys must be attached before the tour can highlight them
-        if (HomeTourKeys.temporalLabels.currentContext == null ||
-            HomeTourKeys.designerButton.currentContext == null ||
-            HomeTourKeys.resultsTab.currentContext == null ||
-            HomeTourKeys.postageTab.currentContext == null ||
-            HomeTourKeys.officeTab.currentContext == null) {
-          return;
-        }
-
-        showHomeTour(
-          context,
-          temporalLabelsKey: HomeTourKeys.temporalLabels,
-          designerButtonKey: HomeTourKeys.designerButton,
-          resultsTabKey: HomeTourKeys.resultsTab,
-          postageTabKey: HomeTourKeys.postageTab,
-          officeTabKey: HomeTourKeys.officeTab,
-          onFinish: () => tourService.markTourSeen(GuidedTourService.homeKey),
-        );
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -86,13 +50,6 @@ class _TemplateListWidgetState extends State<TemplateListWidget> {
             }
           }
 
-          // Trigger home tour once templates have loaded
-          if (!_tourAttempted &&
-              state.templates.isNotEmpty &&
-              !state.isLoading) {
-            _tourAttempted = true;
-            _maybeShowHomeTour(context);
-          }
         },
         builder: (context, state) {
           if (state.isLoading && state.templates.isEmpty) {

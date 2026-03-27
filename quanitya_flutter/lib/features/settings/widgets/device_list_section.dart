@@ -231,12 +231,14 @@ class _DeviceListSectionState extends State<DeviceListSection> {
                 VSpace.x2,
               ]),
 
-            // Show "Enable Cross-Device Sync" button if available and no entry exists
+            // Show "Create {platform} Device Key" button if available and no entry exists
             if (_showEnableCrossDeviceButton(state))
               Padding(
                 padding: EdgeInsets.only(bottom: AppSizes.space),
                 child: QuanityaTextButton(
-                  text: context.l10n.enableICloudSync,
+                  text: context.l10n.createPlatformDeviceKey(
+                    GetIt.instance<ICryptoKeyRepository>().crossDeviceLabel,
+                  ),
                   onPressed: () => context
                       .read<DeviceManagementCubit>()
                       .recreateCrossDeviceKey(),

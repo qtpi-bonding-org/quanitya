@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../app_router.dart';
 import '../../../app/bootstrap.dart';
@@ -13,12 +12,10 @@ import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/device_name_display.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../infrastructure/device/device_info_service.dart';
-import '../../../infrastructure/feedback/base_state_message_mapper.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
 import '../cubits/onboarding_cubit.dart';
 import '../cubits/onboarding_state.dart';
-import '../services/onboarding_message_mapper.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -43,13 +40,7 @@ class _AboutView extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: UiFlowStateListener<OnboardingCubit, OnboardingState>(
-        mapper: BaseStateMessageMapper<OnboardingState>(
-          exceptionMapper: getIt<IExceptionKeyMapper>(),
-          domainMapper: getIt<OnboardingMessageMapper>(),
-        ),
-        uiService: getIt<IUiFlowService>(),
-        child: BlocConsumer<OnboardingCubit, OnboardingState>(
+      body: BlocConsumer<OnboardingCubit, OnboardingState>(
           listenWhen: (prev, curr) => !prev.hasAccount && curr.hasAccount,
           listener: (context, state) {
             AppNavigation.toRecoveryKeyBackup(
@@ -81,7 +72,6 @@ class _AboutView extends StatelessWidget {
             );
           },
         ),
-      ),
     );
   }
 }

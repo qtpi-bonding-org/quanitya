@@ -15,6 +15,7 @@ import '../../purchase/cubits/purchase_state.dart';
 import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../postage/pages/postage_page.dart';
 import '../../guided_tour/guided_tour_service.dart';
+import '../../guided_tour/home_tour.dart';
 import '../../postage/widgets/folder_tab_bar.dart';
 import '../../results/pages/results_section.dart';
 import '../../office/pages/office_page.dart';
@@ -36,6 +37,35 @@ class _NotebookShellState extends State<NotebookShell>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _maybeShowHomeTour();
+  }
+
+  Future<void> _maybeShowHomeTour() async {
+    final tourService = GetIt.instance<GuidedTourService>();
+    if (!await tourService.shouldShowTour(GuidedTourService.homeKey)) return;
+
+    // Wait one frame for IndexedStack children + FolderTabBar to attach keys
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      if (HomeTourKeys.temporalLabels.currentContext == null ||
+          HomeTourKeys.designerButton.currentContext == null ||
+          HomeTourKeys.resultsTab.currentContext == null ||
+          HomeTourKeys.postageTab.currentContext == null ||
+          HomeTourKeys.officeTab.currentContext == null) {
+        return;
+      }
+
+      showHomeTour(
+        context,
+        temporalLabelsKey: HomeTourKeys.temporalLabels,
+        designerButtonKey: HomeTourKeys.designerButton,
+        resultsTabKey: HomeTourKeys.resultsTab,
+        postageTabKey: HomeTourKeys.postageTab,
+        officeTabKey: HomeTourKeys.officeTab,
+        onFinish: () => tourService.markTourSeen(GuidedTourService.homeKey),
+      );
+    });
   }
 
   @override
