@@ -162,6 +162,7 @@ class TrackerTemplateProcessor
       fieldsJson: Value(entity.fieldsJson),
       updatedAt: Value(entity.updatedAt),
       isArchived: Value(entity.isArchived),
+      isHidden: Value(entity.isHidden),
     );
   }
 
