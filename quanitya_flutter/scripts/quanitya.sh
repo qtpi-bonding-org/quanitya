@@ -573,7 +573,7 @@ EOF
                 flutter build ipa --release "${dart_defines[@]}"
                 log_success "iOS .ipa build completed!"
                 log_info "File: build/ios/ipa/*.ipa"
-                log_info "Next: Open Transporter and drag the .ipa to upload"
+                log_info "Next: Run scripts/patch-ios-ipa.sh then upload via Transporter"
             else
                 log_info "Building iOS for development..."
                 flutter build ios "${dart_defines[@]}"
