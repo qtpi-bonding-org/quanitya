@@ -18,6 +18,9 @@ class AccountIdDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Trigger load if not yet loaded
+    context.read<AccountInfoCubit>().loadAccountInfo();
+
     return BlocBuilder<AccountInfoCubit, AccountInfoState>(
       builder: (context, state) {
         final keyHex = state.accountPublicKeyHex;

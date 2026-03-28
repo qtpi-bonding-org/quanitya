@@ -9,11 +9,13 @@ import 'account_info_state.dart';
 class AccountInfoCubit extends QuanityaCubit<AccountInfoState> {
   final AuthService _authService;
 
-  AccountInfoCubit(this._authService) : super(const AccountInfoState()) {
-    loadAccountInfo();
-  }
+  AccountInfoCubit(this._authService) : super(const AccountInfoState());
 
+  /// Load account info. Safe to call multiple times — only emits if key found.
   Future<void> loadAccountInfo() async {
+    // Skip if already loaded
+    if (state.accountPublicKeyHex != null) return;
+
     await tryOperation(() async {
       final accountKeyHex = await _authService.getAccountPublicKeyHex();
       return state.copyWith(
