@@ -5,3 +5,4 @@ NSFaceIDUsageDescription = "Autentícate para acceder a plantillas ocultas y dat
 NSHealthShareUsageDescription = "Quanitya lee datos de salud para registrar automáticamente tus seguimientos.";
 NSHealthUpdateUsageDescription = "Quanitya puede escribir datos de salud desde tus seguimientos.";
 NSLocationWhenInUseUsageDescription = "Quanitya registra tu ubicación cuando tocas el botón de ubicación.";
+NSLocationAlwaysAndWhenInUseUsageDescription = "Quanitya registra tu ubicación cuando tocas el botón de ubicación.";

@@ -59,6 +59,8 @@
 		<string>Quanitya can write health data from your trackers.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>Quanitya records your location when you tap the location button.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Quanitya records your location when you tap the location button.</string>
 		<key>ITSAppUsesNonExemptEncryption</key>
 		<false/>
 	</dict>

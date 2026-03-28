@@ -5,3 +5,4 @@ NSFaceIDUsageDescription = "Authentifiez-vous pour accéder aux modèles masqué
 NSHealthShareUsageDescription = "Quanitya lit les données de santé pour alimenter vos suivis.";
 NSHealthUpdateUsageDescription = "Quanitya peut écrire des données de santé depuis vos suivis.";
 NSLocationWhenInUseUsageDescription = "Quanitya enregistre votre position lorsque vous appuyez sur le bouton de localisation.";
+NSLocationAlwaysAndWhenInUseUsageDescription = "Quanitya enregistre votre position lorsque vous appuyez sur le bouton de localisation.";
