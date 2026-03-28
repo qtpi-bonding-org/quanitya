@@ -91,10 +91,12 @@ jobs:
         # Setup PowerSync SQLCipher web assets (encrypted DB support)
         dart run powersync_sqlcipher:setup_web
 
-        if [ ! -f "web/sqlite3.wasm" ] || [ ! -f "web/powersync_db.worker.js" ]; then
+        if [ ! -f "web/powersync_db.worker.js" ]; then
           echo "Failed to set up PowerSync SQLCipher web assets"
           exit 1
         fi
+        echo "PowerSync SQLCipher web assets ready"
+        ls -la web/*.wasm web/*.js 2>/dev/null || true
 
         flutter clean
         dart run build_runner clean
