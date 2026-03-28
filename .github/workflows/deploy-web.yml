@@ -117,31 +117,31 @@ jobs:
           --dart-define=SERVERPOD_URL=$SERVERPOD_URL \
           --dart-define=GIT_COMMIT_HASH=${{ github.sha }}
 
-        # Security headers for Cloudflare Pages
-        cat > build/web/_headers << 'EOF'
-        /*
-          Cross-Origin-Opener-Policy: same-origin
-          Cross-Origin-Embedder-Policy: require-corp
-          Cross-Origin-Resource-Policy: cross-origin
-          Referrer-Policy: strict-origin-when-cross-origin
-          X-Content-Type-Options: nosniff
-          X-Frame-Options: DENY
+        # Security headers for Cloudflare Pages (no leading whitespace!)
+        cat > build/web/_headers << 'HEADERS'
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Resource-Policy: cross-origin
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
 
-        /*.wasm
-          Content-Type: application/wasm
-          Cross-Origin-Resource-Policy: cross-origin
-          Cache-Control: public, max-age=31536000, immutable
+/*.wasm
+  Content-Type: application/wasm
+  Cross-Origin-Resource-Policy: cross-origin
+  Cache-Control: public, max-age=31536000, immutable
 
-        /*.js
-          Cross-Origin-Resource-Policy: cross-origin
-          Cache-Control: public, max-age=31536000, immutable
+/*.js
+  Cross-Origin-Resource-Policy: cross-origin
+  Cache-Control: public, max-age=31536000, immutable
 
-        /flutter_service_worker.js
-          Cache-Control: no-cache, no-store, must-revalidate
+/flutter_service_worker.js
+  Cache-Control: no-cache, no-store, must-revalidate
 
-        /main.dart.js
-          Cross-Origin-Resource-Policy: cross-origin
-        EOF
+/main.dart.js
+  Cross-Origin-Resource-Policy: cross-origin
+HEADERS
 
     - name: Deploy to Cloudflare Pages
       uses: cloudflare/pages-action@v1
