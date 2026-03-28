@@ -104,11 +104,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       }
 
       // Load existing scripts for this field
-      var existing = await _repository.getScriptsForField(fieldId);
-      if (existing.isEmpty && templateId != null) {
-        // Fallback: show all scripts for this template
-        existing = await _repository.getScriptsForTemplate(templateId);
-      }
+      final existing = await _repository.getScriptsForField(fieldId);
       final script = existing.isNotEmpty ? existing.first : null;
 
       // Get entry count for hint text
@@ -351,10 +347,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       await _repository.saveScript(script);
 
       // Reload scripts list so the new/updated one appears in the selector
-      var scripts = await _repository.getScriptsForField(state.fieldId ?? '');
-      if (scripts.isEmpty && state.templateId != null) {
-        scripts = await _repository.getScriptsForTemplate(state.templateId!);
-      }
+      final scripts = await _repository.getScriptsForField(state.fieldId ?? '');
 
       return state.copyWith(
         availableScripts: scripts,
@@ -374,10 +367,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       await _repository.deleteScript(scriptId);
 
       // Reload scripts list
-      var scripts = await _repository.getScriptsForField(state.fieldId ?? '');
-      if (scripts.isEmpty && state.templateId != null) {
-        scripts = await _repository.getScriptsForTemplate(state.templateId!);
-      }
+      final scripts = await _repository.getScriptsForField(state.fieldId ?? '');
 
       return state.copyWith(
         availableScripts: scripts,
