@@ -19,10 +19,10 @@ class TemplateSharingExportCubit
   TemplateSharingExportCubit(this._exportService)
       : super(const TemplateSharingExportState());
 
-  /// Load available analysis scripts for a template field.
-  Future<void> loadAvailableScripts(String fieldId) async {
+  /// Load available analysis scripts for a template.
+  Future<void> loadAvailableScripts(String templateId) async {
     await tryOperation(() async {
-      final scripts = await _exportService.getAvailableScripts(fieldId);
+      final scripts = await _exportService.getAvailableScripts(templateId);
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: TemplateSharingExportOperation.loadScripts,

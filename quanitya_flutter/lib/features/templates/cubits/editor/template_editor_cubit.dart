@@ -9,7 +9,9 @@ import '../../../../logic/schedules/models/schedule.dart';
 import '../../../../logic/schedules/services/schedule_service.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../../data/repositories/schedule_repository.dart';
+import '../../../../data/interfaces/analysis_script_interface.dart';
 import '../../../../infrastructure/permissions/permission_service.dart';
+import '../../../../logic/templates/services/sharing/shareable_template_staging.dart';
 import '../../../../logic/templates/enums/field_enum.dart';
 import '../../widgets/editor/schedule_section.dart';
 import 'template_editor_state.dart';
@@ -25,8 +27,10 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   final ScheduleRepository _scheduleRepository;
   final PermissionService _permissionService;
   final ScheduleService _scheduleService;
+  final ShareableTemplateStaging _staging;
+  final IAnalysisScriptRepository _scriptRepository;
 
-  TemplateEditorCubit(this._repository, this._scheduleRepository, this._permissionService, this._scheduleService) : super(const TemplateEditorState());
+  TemplateEditorCubit(this._repository, this._scheduleRepository, this._permissionService, this._scheduleService, this._staging, this._scriptRepository) : super(const TemplateEditorState());
 
   // ─────────────────────────────────────────────────────────────────────────
   // Entry Points
@@ -442,7 +446,11 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   // Save & Discard
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Save the template to the repository
+  /// Save the template to the repository.
+  ///
+  /// If a shareable template was staged (from gallery/URL import),
+  /// persists its analysis scripts with remapped field IDs after
+  /// saving the template.
   Future<void> save() async {
     await tryOperation(() async {
       final completeTemplate = state.completeTemplate;
@@ -451,6 +459,20 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
       }
 
       await _repository.save(completeTemplate);
+
+      // Persist staged analysis scripts — only for fields that survived editing
+      if (_staging.hasStaged && _staging.hasScripts) {
+        final templateId = completeTemplate.template.id;
+        final savedFieldIds = completeTemplate.template.fields
+            .map((f) => f.id)
+            .toSet();
+        for (final script in _staging.remappedScripts(templateId: templateId)) {
+          if (savedFieldIds.contains(script.fieldId)) {
+            await _scriptRepository.saveScript(script);
+          }
+        }
+      }
+      _staging.clear();
 
       // Save or delete schedule (request notification permission if creating one)
       if (state.scheduleFrequency != ScheduleFrequency.off) {

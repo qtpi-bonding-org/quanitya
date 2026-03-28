@@ -3,10 +3,12 @@ import 'package:injectable/injectable.dart';
 
 import '../../../infrastructure/core/try_operation.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
+import '../../../data/interfaces/analysis_script_interface.dart';
+import '../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../models/catalog_data.dart';
 import '../services/template_catalog_service.dart';
 import '../../../logic/templates/models/shared/shareable_template.dart';
-import '../../../logic/templates/services/sharing/template_import_service.dart';
+import '../../../logic/templates/services/sharing/shareable_template_staging.dart';
 import 'template_gallery_state.dart';
 
 export 'template_gallery_state.dart';
@@ -18,10 +20,16 @@ export 'template_gallery_state.dart';
 @injectable
 class TemplateGalleryCubit extends QuanityaCubit<TemplateGalleryState> {
   final TemplateCatalogService _catalogService;
-  final TemplateImportService _importService;
+  final ShareableTemplateStaging _staging;
+  final TemplateWithAestheticsRepository _templateRepository;
+  final IAnalysisScriptRepository _scriptRepository;
 
-  TemplateGalleryCubit(this._catalogService, this._importService)
-      : super(const TemplateGalleryState());
+  TemplateGalleryCubit(
+    this._catalogService,
+    this._staging,
+    this._templateRepository,
+    this._scriptRepository,
+  ) : super(const TemplateGalleryState());
 
   /// Load the template catalog from the remote repository.
   Future<void> loadCatalog() => tryOperation(() async {
@@ -104,16 +112,24 @@ class TemplateGalleryCubit extends QuanityaCubit<TemplateGalleryState> {
         var imported = 0;
         var failed = 0;
         for (final slug in state.selectedSlugs) {
-          final url = _catalogService.getTemplateUrl(slug);
           try {
             await tryMethod(
-              () => _importService.importFromUrl(url),
+              () async {
+                final shareable = await _catalogService.fetchTemplate(slug);
+                _staging.stage(shareable);
+                final converted = _staging.templateWithAesthetics!;
+                await _templateRepository.save(converted);
+                final templateId = converted.template.id;
+                for (final script in _staging.remappedScripts(templateId: templateId)) {
+                  await _scriptRepository.saveScript(script);
+                }
+                _staging.clear();
+              },
               (message, [cause]) => Exception('$message (slug: $slug)'),
               'importTemplate',
             );
             imported++;
           } catch (_) {
-            // tryMethod already logged the error — just track the count
             failed++;
           }
         }

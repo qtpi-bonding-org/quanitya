@@ -276,7 +276,10 @@ class AnalysisScripts extends Table {
   /// User-friendly name for the analysis
   TextColumn get name => text()();
 
-  /// Primary field ID this analysis is associated with
+  /// Template this script belongs to (UUID)
+  TextColumn get templateId => text().named('template_id')();
+
+  /// Field this script analyses (UUID)
   TextColumn get fieldId => text().named('field_id')();
 
   /// The structural commitment of the output: scalar, vector, or matrix

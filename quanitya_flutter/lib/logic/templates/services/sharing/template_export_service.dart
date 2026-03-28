@@ -83,7 +83,7 @@ class TemplateExportService {
   ///
   /// Returns list of script IDs and names for selection UI.
   Future<List<AnalysisScriptInfo>> getAvailableScripts(
-    String fieldId,
+    String templateId,
   ) async {
     if (_scriptRepository == null) return [];
 
@@ -91,13 +91,13 @@ class TemplateExportService {
       return await tryMethod(
         () async {
           final scripts =
-              await _scriptRepository.getScriptsForField(fieldId);
+              await _scriptRepository.getScriptsForTemplate(templateId);
           return scripts
               .map(
                 (p) => AnalysisScriptInfo(
                   id: p.id,
                   name: p.name,
-                  description: 'Analysis script for ${p.fieldId}',
+                  description: 'Analysis script for ${p.name}',
                 ),
               )
               .toList();

@@ -21,37 +21,28 @@ class FieldShapeResolver {
 
   /// Resolve the shape description for a field's `data.values`.
   ///
-  /// [fieldId] format: "templateId:fieldLabel"
+  /// [templateId] The template UUID
+  /// [fieldId] The field UUID
   ///
   /// Returns a string like `number[]`, `string[]`,
   /// or `{exercise: string, weight: number, reps: number}[][]` for groups.
-  Future<FieldShapeResult> resolve(String fieldId) async {
-    Log.d(_tag,'🔍 FieldShapeResolver.resolve: fieldId="$fieldId"');
-    final parts = fieldId.split(':');
-    if (parts.length != 2) {
-      Log.d(_tag,'🔍 FieldShapeResolver.resolve: INVALID format');
-      throw AnalysisException('Invalid fieldId format: $fieldId');
-    }
-    final templateId = parts[0];
-    final fieldLabel = parts[1];
+  Future<FieldShapeResult> resolve(String templateId, String fieldId) async {
+    Log.d(_tag, 'FieldShapeResolver.resolve: templateId="$templateId" fieldId="$fieldId"');
 
     final template = await _templateDao.findById(templateId);
     if (template == null) {
-      Log.d(_tag,'🔍 FieldShapeResolver.resolve: template NOT FOUND');
       throw AnalysisException('Template not found: $templateId');
     }
-    Log.d(_tag,'🔍 FieldShapeResolver.resolve: template="${template.name}", fields=${template.fields.map((f) => f.label).toList()}');
 
-    final field = template.fields.where((f) => f.label == fieldLabel).firstOrNull;
+    final field = template.fields.where((f) => f.id == fieldId).firstOrNull;
     if (field == null) {
-      Log.d(_tag,'🔍 FieldShapeResolver.resolve: field "$fieldLabel" NOT FOUND');
       throw AnalysisException(
-        'Field "$fieldLabel" not found in template "${template.name}"',
+        'Field "$fieldId" not found in template "${template.name}"',
       );
     }
 
     final shape = _describeShape(field);
-    Log.d(_tag,'🔍 FieldShapeResolver.resolve: field="${field.label}" type=${field.type} shape=$shape');
+    Log.d(_tag, 'FieldShapeResolver.resolve: field="${field.label}" type=${field.type} shape=$shape');
     return FieldShapeResult(
       fieldName: field.label,
       fieldType: field.type,

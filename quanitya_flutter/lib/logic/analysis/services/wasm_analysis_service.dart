@@ -43,6 +43,7 @@ class WasmAnalysisService implements IWasmAnalysisService {
     try {
       // 1. Parallel: Fetch data + ensure assets loaded
       final dataFuture = _repo.fetchFieldTimeSeries(
+        script.templateId,
         script.fieldId,
         entryRangeStart: script.entryRangeStart,
         entryRangeEnd: script.entryRangeEnd,

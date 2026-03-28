@@ -65,6 +65,7 @@ void main() {
         final script = AnalysisScriptModel(
           id: 'original-script-id',
           name: 'Volume Over Time',
+          templateId: template.id,
           fieldId: setsFieldId,
           outputMode: AnalysisOutputMode.matrix,
           snippetLanguage: AnalysisSnippetLanguage.js,
@@ -224,6 +225,7 @@ void main() {
         final script = AnalysisScriptModel(
           id: 'real-uuid-123',
           name: 'Volume',
+          templateId: template.id,
           fieldId: setsFieldId,
           outputMode: AnalysisOutputMode.scalar,
           snippetLanguage: AnalysisSnippetLanguage.js,

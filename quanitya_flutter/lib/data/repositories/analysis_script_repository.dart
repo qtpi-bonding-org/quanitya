@@ -67,6 +67,15 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
   }
 
   @override
+  Future<List<AnalysisScriptModel>> getScriptsForTemplate(String templateId) {
+    return tryMethod(
+      () => _queryDao.findByTemplateId(templateId),
+      AnalysisException.new,
+      'getScriptsForTemplate',
+    );
+  }
+
+  @override
   Future<void> saveScript(AnalysisScriptModel script) {
     return tryMethod(
       () async {
@@ -131,29 +140,21 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
 
   @override
   Future<FieldTimeSeries> fetchFieldTimeSeries(
+    String templateId,
     String fieldId, {
     int? entryRangeStart,
     int? entryRangeEnd,
   }) {
     return tryMethod(
       () async {
-        // Parse fieldId format: "templateId:fieldName"
-        final parts = fieldId.split(':');
-        if (parts.length != 2) {
-          throw AnalysisException('Invalid fieldId format: $fieldId');
-        }
-        final templateId = parts[0];
-        final fieldName = parts[1];
-
-        // Resolve display name → field UUID
         final template = await _templateDao.findById(templateId);
         if (template == null) {
           throw AnalysisException('Template not found: $templateId');
         }
-        final field = template.fields.where((f) => f.label == fieldName).firstOrNull;
+        final field = template.fields.where((f) => f.id == fieldId).firstOrNull;
         if (field == null) {
           throw AnalysisException(
-            'Field "$fieldName" not found in template "${template.name}"',
+            'Field "$fieldId" not found in template "${template.name}"',
           );
         }
 

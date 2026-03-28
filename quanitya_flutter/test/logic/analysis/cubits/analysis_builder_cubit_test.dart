@@ -87,7 +87,8 @@ void main() {
           final script = AnalysisScriptModel(
             id: 'script-1',
             name: 'Mean',
-            fieldId: 'tmpl-1:Mood',
+            templateId: 'tmpl-1',
+            fieldId: 'Mood',
             outputMode: AnalysisOutputMode.scalar,
             snippetLanguage: AnalysisSnippetLanguage.js,
             snippet: 'return mean(values);',
@@ -97,7 +98,7 @@ void main() {
 
           when(() => mockTemplateRepo.findById('tmpl-1'))
               .thenAnswer((_) async => null);
-          when(() => mockScriptRepo.getScriptsForField('tmpl-1:Mood'))
+          when(() => mockScriptRepo.getScriptsForField('Mood'))
               .thenAnswer((_) async => [script]);
           when(() => mockScriptRepo.countEntriesForTemplate('tmpl-1'))
               .thenAnswer((_) async => 42);
@@ -132,9 +133,9 @@ void main() {
         build: () {
           when(() => mockTemplateRepo.findById('tmpl-1'))
               .thenAnswer((_) async => null);
-          when(() => mockScriptRepo.getScriptsForField('tmpl-1:Mood'))
+          when(() => mockScriptRepo.getScriptsForField('Mood'))
               .thenAnswer((_) async => []);
-          when(() => mockScriptRepo.getAllScripts())
+          when(() => mockScriptRepo.getScriptsForTemplate('tmpl-1'))
               .thenAnswer((_) async => []);
           when(() => mockScriptRepo.countEntriesForTemplate('tmpl-1'))
               .thenAnswer((_) async => 0);
@@ -165,7 +166,8 @@ void main() {
         final script = AnalysisScriptModel(
           id: 'script-1',
           name: 'Mean',
-          fieldId: 'tmpl-1:Mood',
+          templateId: 'tmpl-1',
+          fieldId: 'Mood',
           outputMode: AnalysisOutputMode.vector,
           snippetLanguage: AnalysisSnippetLanguage.js,
           snippet: 'return timeSeries(values);',
@@ -352,12 +354,13 @@ void main() {
         build: () {
           when(() => mockScriptRepo.saveScript(any()))
               .thenAnswer((_) async {});
-          when(() => mockScriptRepo.getScriptsForField('tmpl-1:Mood'))
+          when(() => mockScriptRepo.getScriptsForField('Mood'))
               .thenAnswer((_) async => [
                     AnalysisScriptModel(
                       id: 'new-id',
                       name: 'My Script',
-                      fieldId: 'tmpl-1:Mood',
+                      templateId: 'tmpl-1',
+                      fieldId: 'Mood',
                       outputMode: AnalysisOutputMode.scalar,
                       snippetLanguage: AnalysisSnippetLanguage.js,
                       snippet: 'return mean(values);',

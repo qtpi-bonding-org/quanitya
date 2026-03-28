@@ -13,11 +13,6 @@ import '../services/analysis_engine.dart';
 ///
 /// Streams script definitions and log entries from database,
 /// calculates results in real-time, and emits results.
-///
-/// Follows data flow consistency pattern:
-/// - Database as single source of truth
-/// - No stored calculation results
-/// - Always fresh calculations from source data
 @injectable
 class StreamingAnalyticsService {
   final IAnalysisScriptRepository _scriptRepo;
@@ -31,10 +26,6 @@ class StreamingAnalyticsService {
   );
 
   /// Stream scalar results for a saved script.
-  ///
-  /// Combines script definition stream with template data stream,
-  /// executes script in real-time when either changes,
-  /// and emits only scalar results.
   Stream<Map<String, double>> streamScalarResults(String scriptId) {
     return _scriptRepo
         .watchAllScripts()
@@ -47,10 +38,7 @@ class StreamingAnalyticsService {
             return Stream.value(<String, double>{});
           }
 
-          // Extract templateId from fieldId (format: "templateId:fieldName")
-          final templateId = _extractTemplateId(script.fieldId);
-
-          return _streamTemplateData(templateId)
+          return _streamTemplateData(script.templateId)
               .asyncMap((_) => _executeAndExtractScalars(script))
               .handleError((error) {
                 throw AnalysisException('streamScalarResults failed: $error');
@@ -58,11 +46,7 @@ class StreamingAnalyticsService {
         });
   }
 
-  /// Stream full results for current script being built.
-  ///
-  /// Used by script builder for live preview functionality.
-  /// Takes current steps and field info, streams template data,
-  /// and calculates results in real-time.
+  /// Stream full results for current script being built (live preview).
   Stream<AnalysisOutput> streamResultsForLivePreview({
     required String snippet,
     required String fieldId,
@@ -71,20 +55,20 @@ class StreamingAnalyticsService {
     String? templateId,
   }) {
     if (snippet.isEmpty) {
-      // Return a dummy empty result
       return Stream.value(const AnalysisOutput.scalar([]));
     }
 
-    // Extract templateId from fieldId if not provided
-    final actualTemplateId = templateId ?? _extractTemplateId(fieldId);
+    if (templateId == null || templateId.isEmpty) {
+      return Stream.value(const AnalysisOutput.scalar([]));
+    }
 
-    return _streamTemplateData(actualTemplateId)
+    return _streamTemplateData(templateId)
         .asyncMap((_) async {
           try {
-            // Create a temporary script model for execution
             final script = AnalysisScriptModel(
               id: 'temp-${DateTime.now().millisecondsSinceEpoch}',
               name: 'Live Preview',
+              templateId: templateId,
               fieldId: fieldId,
               outputMode: outputMode,
               snippetLanguage: snippetLanguage,
@@ -104,44 +88,24 @@ class StreamingAnalyticsService {
         });
   }
 
-  /// Execute script and extract scalar results.
   Future<Map<String, double>> _executeAndExtractScalars(
     AnalysisScriptModel script,
   ) async {
     try {
-      // Execute script using AnalysisEngine
       final result = await _analysisEngine.execute(script);
-
-      // Extract results into a labeled map for UI consumption
       return result.when(
         scalar: (scalars) => {for (final s in scalars) s.label: s.value},
-        vector: (vectors) => {}, // Vectors are charts, not scalar summaries
-        matrix: (matrices) => {}, // Matrices are complex
+        vector: (vectors) => {},
+        matrix: (matrices) => {},
       );
     } catch (error) {
       throw AnalysisException('Script execution failed: $error');
     }
   }
 
-  /// Stream template data changes by watching actual log entries.
-  ///
-  /// Emits whenever log entries for the given template change,
-  /// triggering recalculation only when data actually changes
-  /// (instead of polling every 5 seconds).
   Stream<void> _streamTemplateData(String templateId) {
     return _logEntryRepo
         .watchPastEntries(templateId: templateId)
-        .map((_) {}); // Discard data, just need the change signal
-  }
-
-  /// Extract templateId from fieldId format "templateId:fieldName"
-  String _extractTemplateId(String fieldId) {
-    final parts = fieldId.split(':');
-    if (parts.length != 2) {
-      throw AnalysisException(
-        'Invalid fieldId format: $fieldId. Expected "templateId:fieldName"',
-      );
-    }
-    return parts[0];
+        .map((_) {});
   }
 }

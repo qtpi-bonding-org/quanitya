@@ -119,7 +119,6 @@ class DataExportRepository {
       final result = await Share.shareXFiles(
         [file],
         subject: 'Quanitya Data Export',
-        text: 'Your Quanitya data backup',
       );
 
       switch (result.status) {

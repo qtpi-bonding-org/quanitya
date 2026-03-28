@@ -12,6 +12,7 @@ abstract class AnalysisScriptModel with _$AnalysisScriptModel {
   const factory AnalysisScriptModel({
     required String id,
     required String name,
+    required String templateId,
     required String fieldId,
     required AnalysisOutputMode outputMode,
     required AnalysisSnippetLanguage snippetLanguage,

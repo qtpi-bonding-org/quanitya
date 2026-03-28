@@ -669,8 +669,8 @@ class DevSeederService {
       ).firstOrNull;
 
       if (numericField != null) {
-        final fieldLabel = numericField['label'] as String;
-        await _seedAnalysisScriptsForField(template.id, fieldLabel);
+        final fieldUuid = numericField['id'] as String;
+        await _seedAnalysisScriptsForField(template.id, fieldUuid);
         seeded = true;
       }
     }
@@ -682,14 +682,14 @@ class DevSeederService {
 
   Future<void> _seedAnalysisScriptsForField(
     String templateId,
-    String fieldLabel,
+    String fieldId,
   ) async {
     final now = DateTime.now();
-    final fieldId = '$templateId:$fieldLabel';
 
     await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Mood Statistics',
+      templateId: templateId,
       fieldId: fieldId,
       outputMode: AnalysisOutputMode.scalar,
       snippetLanguage: AnalysisSnippetLanguage.js,
@@ -707,6 +707,7 @@ return [
     await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Smoothed + Residuals',
+      templateId: templateId,
       fieldId: fieldId,
       outputMode: AnalysisOutputMode.vector,
       snippetLanguage: AnalysisSnippetLanguage.js,
@@ -736,6 +737,7 @@ return [
     await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Smoothed Time Series',
+      templateId: templateId,
       fieldId: fieldId,
       outputMode: AnalysisOutputMode.matrix,
       snippetLanguage: AnalysisSnippetLanguage.js,
@@ -753,6 +755,7 @@ return { values: smoothed };''',
     await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Rolling Statistics',
+      templateId: templateId,
       fieldId: fieldId,
       outputMode: AnalysisOutputMode.matrix,
       snippetLanguage: AnalysisSnippetLanguage.js,
@@ -788,14 +791,15 @@ return [
     List<TemplateField> fields,
   ) async {
     // Use "Flow Intensity" as the numeric field binding
-    final fieldLabel = 'Flow Intensity';
-    final fieldId = '$templateId:$fieldLabel';
+    final field = fields.where((f) => f.label == 'Flow Intensity').firstOrNull;
+    if (field == null) return;
     final now = DateTime.now();
 
     await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Period Predictor (Bayesian)',
-      fieldId: fieldId,
+      templateId: templateId,
+      fieldId: field.id,
       outputMode: AnalysisOutputMode.scalar,
       snippetLanguage: AnalysisSnippetLanguage.js,
       snippet: _periodPredictorSnippet,

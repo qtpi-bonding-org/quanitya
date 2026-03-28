@@ -10,6 +10,7 @@ import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.da
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../logic/templates/services/sharing/template_import_service.dart';
+import '../../../../logic/templates/services/sharing/shareable_template_staging.dart';
 import '../../../catalog/cubits/template_gallery_cubit.dart';
 import '../../../catalog/widgets/template_gallery_widget.dart';
 import '../../cubits/editor/template_editor_cubit.dart';
@@ -51,6 +52,7 @@ class _BrowseContent extends StatefulWidget {
 class _BrowseContentState extends State<_BrowseContent> {
   final _urlController = TextEditingController();
   final _importService = GetIt.I<TemplateImportService>();
+  final _staging = GetIt.I<ShareableTemplateStaging>();
   bool _isLoadingUrl = false;
   String? _urlError;
 
@@ -170,8 +172,8 @@ class _BrowseContentState extends State<_BrowseContent> {
 
     try {
       final shareable = await _importService.previewFromUrl(url);
-      final local = _importService.convertShareableTemplate(shareable);
-      widget.editorCubit.populateFromTemplate(local);
+      _staging.stage(shareable);
+      widget.editorCubit.populateFromTemplate(_staging.templateWithAesthetics!);
       widget.onDone();
     } catch (e) {
       if (mounted) {
@@ -192,8 +194,8 @@ class _BrowseContentState extends State<_BrowseContent> {
       final preview = galleryCubit.state.previewCache[slug];
       if (preview == null) return;
 
-      final local = _importService.convertShareableTemplate(preview);
-      widget.editorCubit.populateFromTemplate(local);
+      _staging.stage(preview);
+      widget.editorCubit.populateFromTemplate(_staging.templateWithAesthetics!);
       widget.onDone();
     } catch (_) {
       // Gallery cubit handles its own error state

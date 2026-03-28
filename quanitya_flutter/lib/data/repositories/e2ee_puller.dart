@@ -296,6 +296,7 @@ class AnalysisScriptProcessor
     return AnalysisScript(
       id: json['id'] as String,
       name: json['name'] as String,
+      templateId: json['templateId'] as String? ?? '',
       fieldId: json['fieldId'] as String,
       outputMode: AnalysisOutputMode.values.byName(json['outputMode'] as String),
       snippetLanguage: AnalysisSnippetLanguage.values.byName(json['snippetLanguage'] as String),

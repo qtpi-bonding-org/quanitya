@@ -38,12 +38,8 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
       final loggedDays = data.loggedDates.length;
       final consistencyRate = totalDays > 0 ? loggedDays / totalDays : 0.0;
 
-      // Load and execute analysis scripts for this template's fields
-      // Script fieldIds use "templateId:fieldLabel" format
-      final scripts = await _scriptRepo.getAllScripts();
-      final relevantScripts = scripts.where(
-        (s) => s.fieldId.startsWith('$templateId:'),
-      ).toList();
+      // Load and execute analysis scripts for this template
+      final relevantScripts = await _scriptRepo.getScriptsForTemplate(templateId);
 
       final analysisResults = <String, ScriptResult>{};
       final failedScriptNames = <String>[];

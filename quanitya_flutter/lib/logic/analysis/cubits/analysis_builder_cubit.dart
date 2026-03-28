@@ -103,15 +103,11 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         }
       }
 
-      // Load existing scripts for this field using composite fieldId
-      final compositeFieldId = templateId != null
-          ? '$templateId:$fieldId'
-          : fieldId;
-      var existing = await _repository.getScriptsForField(compositeFieldId);
+      // Load existing scripts for this field
+      var existing = await _repository.getScriptsForField(fieldId);
       if (existing.isEmpty && templateId != null) {
         // Fallback: show all scripts for this template
-        final all = await _repository.getAllScripts();
-        existing = all.where((p) => p.fieldId.startsWith('$templateId:')).toList();
+        existing = await _repository.getScriptsForTemplate(templateId);
       }
       final script = existing.isNotEmpty ? existing.first : null;
 
@@ -190,22 +186,11 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     if (state.snippet.isEmpty) return;
 
     await tryOperation(() async {
-      // Use selected script's fieldId (already in templateId:fieldName format),
-      // or construct it from state if editing a new script.
-      final selectedScript = state.selectedScriptId != null
-          ? state.availableScripts
-              .where((p) => p.id == state.selectedScriptId)
-              .firstOrNull
-          : null;
-      final effectiveFieldId = selectedScript?.fieldId ??
-          (state.templateId != null && state.fieldId != null
-              ? '${state.templateId}:${state.fieldId}'
-              : state.fieldId ?? '');
-
       final script = AnalysisScriptModel(
         id: state.selectedScriptId ?? 'temp-${DateTime.now().millisecondsSinceEpoch}',
         name: 'Preview',
-        fieldId: effectiveFieldId,
+        templateId: state.templateId ?? '',
+        fieldId: state.fieldId ?? '',
         outputMode: state.outputMode,
         snippetLanguage: state.snippetLanguage,
         snippet: state.snippet,
@@ -347,17 +332,13 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
   /// Save script
   Future<void> saveScript(String name) async {
     await tryOperation(() async {
-      // Build the composite fieldId (templateId:fieldName) if possible
-      final effectiveFieldId = state.templateId != null && state.fieldId != null
-          ? '${state.templateId}:${state.fieldId}'
-          : state.fieldId ?? '';
-
       final scriptId = state.selectedScriptId ?? const Uuid().v4();
 
       final script = AnalysisScriptModel(
         id: scriptId,
         name: name,
-        fieldId: effectiveFieldId,
+        templateId: state.templateId ?? '',
+        fieldId: state.fieldId ?? '',
         outputMode: state.outputMode,
         snippetLanguage: state.snippetLanguage,
         snippet: state.snippet,
@@ -370,9 +351,9 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       await _repository.saveScript(script);
 
       // Reload scripts list so the new/updated one appears in the selector
-      var scripts = await _repository.getScriptsForField(effectiveFieldId);
-      if (scripts.isEmpty) {
-        scripts = await _repository.getAllScripts();
+      var scripts = await _repository.getScriptsForField(state.fieldId ?? '');
+      if (scripts.isEmpty && state.templateId != null) {
+        scripts = await _repository.getScriptsForTemplate(state.templateId!);
       }
 
       return state.copyWith(
@@ -395,7 +376,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         throw Exception('Template ID is required for AI suggestions');
       }
 
-      final fieldShape = await _fieldShapeResolver.resolve('${state.templateId}:$fieldId');
+      final fieldShape = await _fieldShapeResolver.resolve(state.templateId!, fieldId);
 
       final suggestion = await _aiOrchestrator.generateSuggestion(
         intent: userIntent,

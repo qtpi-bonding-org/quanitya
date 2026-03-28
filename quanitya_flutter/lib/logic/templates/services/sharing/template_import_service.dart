@@ -236,15 +236,22 @@ class TemplateImportService {
   Future<TemplateWithAesthetics> _importShareableTemplate(
     ShareableTemplate shareableTemplate,
   ) async {
-    // Build field ID mapping for script remapping
-    final fieldIdMap = <String, String>{};
     final templateWithAesthetics = convertShareableTemplate(shareableTemplate);
+    final templateId = templateWithAesthetics.template.id;
 
-    // Track old → new field ID mapping for scripts
+    // Build field ID mapping: old UUID → new UUID
+    final fieldIdMap = <String, String>{};
     final originalFields = shareableTemplate.template.fields;
     final newFields = templateWithAesthetics.template.fields;
     for (var i = 0; i < originalFields.length && i < newFields.length; i++) {
       fieldIdMap[originalFields[i].id] = newFields[i].id;
+      final origSubs = originalFields[i].subFields;
+      final newSubs = newFields[i].subFields;
+      if (origSubs != null && newSubs != null) {
+        for (var j = 0; j < origSubs.length && j < newSubs.length; j++) {
+          fieldIdMap[origSubs[j].id] = newSubs[j].id;
+        }
+      }
     }
 
     // Save template and aesthetics
@@ -257,6 +264,7 @@ class TemplateImportService {
       await _importAnalysisScripts(
         shareableTemplate.analysisScripts!,
         fieldIdMap,
+        templateId,
       );
     }
 
@@ -267,6 +275,7 @@ class TemplateImportService {
   Future<void> _importAnalysisScripts(
     List<AnalysisScriptModel> scripts,
     Map<String, String> fieldIdMap,
+    String templateId,
   ) async {
     if (_scriptRepository == null) return;
 
@@ -277,6 +286,7 @@ class TemplateImportService {
             final newFieldId = fieldIdMap[script.fieldId] ?? script.fieldId;
             final localScript = script.copyWith(
               id: const Uuid().v4(),
+              templateId: templateId,
               fieldId: newFieldId,
               updatedAt: DateTime.now(),
             );

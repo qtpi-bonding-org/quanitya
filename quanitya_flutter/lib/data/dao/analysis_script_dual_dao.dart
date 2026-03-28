@@ -32,6 +32,7 @@ class AnalysisScriptDualDao
     return AnalysisScriptsCompanion.insert(
       id: entity.id,
       name: entity.name,
+      templateId: entity.templateId,
       fieldId: entity.fieldId,
       outputMode: entity.outputMode,
       snippetLanguage: entity.snippetLanguage,
@@ -66,6 +67,7 @@ class AnalysisScriptDualDao
     return AnalysisScript(
       id: model.id,
       name: model.name,
+      templateId: model.templateId,
       fieldId: model.fieldId,
       outputMode: model.outputMode,
       snippetLanguage: model.snippetLanguage,
@@ -83,6 +85,7 @@ class AnalysisScriptDualDao
     return AnalysisScriptModel(
       id: entity.id,
       name: entity.name,
+      templateId: entity.templateId,
       fieldId: entity.fieldId,
       outputMode: entity.outputMode,
       snippetLanguage: entity.snippetLanguage,
