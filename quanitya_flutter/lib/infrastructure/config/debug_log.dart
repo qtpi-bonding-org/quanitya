@@ -41,6 +41,7 @@ class Log {
 
     // Auth
     'infrastructure/auth/auth_account_orchestrator': true,
+    'infrastructure/auth/auth_service': true,
     'infrastructure/auth/account_service': true,
     'infrastructure/auth/delete_orchestrator': true,
 

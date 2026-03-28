@@ -6,10 +6,13 @@ import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
 import 'package:anonaccount_client/anonaccount_client.dart'
     show AuthenticationResult, DeviceMethods;
 
+import '../config/debug_log.dart';
 import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
 import '../crypto/data_encryption_service.dart';
 import '../crypto/utils/hashcash.dart';
+
+const _tag = 'infrastructure/auth/auth_service';
 
 /// Result of account creation - contains the ultimate private key for user backup
 class AccountCreationResult {
@@ -194,6 +197,7 @@ class AuthService {
     return tryMethod(
       () async {
         // Get device public key
+        Log.d(_tag, 'authenticateDevice: getting device key...');
         final devicePublicKeyHex = await _keyRepository
             .getDeviceSigningPublicKeyHex();
         if (devicePublicKeyHex == null) {
@@ -201,10 +205,12 @@ class AuthService {
             'Device public key not found',
           );
         }
+        Log.d(_tag, 'authenticateDevice: key found=${devicePublicKeyHex.substring(0, 12)}..., getting challenge...');
 
         // 1. Get PoW challenge, then generate auth challenge
         final powChallengeResponse =
             await _client.modules.anonaccount.entrypoint.getChallenge();
+        Log.d(_tag, 'authenticateDevice: challenge received, mining PoW...');
         final powProof = await _computeProofOfWork(
           powChallengeResponse.challenge,
           powChallengeResponse.difficulty,
@@ -213,15 +219,24 @@ class AuthService {
             '${powChallengeResponse.challenge}:${DeviceMethods.signIn}:$devicePublicKeyHex';
         final powSignature =
             await _encryption.signWithDeviceKey(powSignPayload);
+        Log.d(_tag, 'authenticateDevice: PoW mined, signing in...');
 
         // 2. Sign in with server (PoW + signature verification)
-        final result = await _client.modules.anonaccount.device
-            .signIn(
-          challenge: powChallengeResponse.challenge,
-          proofOfWork: powProof,
-          signature: powSignature,
-          devicePublicKeyHex: devicePublicKeyHex,
-        );
+        final AuthenticationResult result;
+        try {
+          result = await _client.modules.anonaccount.device
+              .signIn(
+            challenge: powChallengeResponse.challenge,
+            proofOfWork: powProof,
+            signature: powSignature,
+            devicePublicKeyHex: devicePublicKeyHex,
+          );
+        } catch (e, stack) {
+          Log.d(_tag, 'authenticateDevice: signIn THREW ${e.runtimeType}: $e');
+          Log.d(_tag, 'authenticateDevice: stack: $stack');
+          rethrow;
+        }
+        Log.d(_tag, 'authenticateDevice: signIn result success=${result.success}');
 
         if (!result.success) {
           throw DeviceAuthenticationException(
@@ -231,6 +246,7 @@ class AuthService {
 
         // 3. Store JWT in Serverpod's session manager
         await _storeAuthSession(result);
+        Log.d(_tag, 'authenticateDevice: session stored');
 
         return result;
       },

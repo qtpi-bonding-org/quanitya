@@ -68,8 +68,10 @@ class AuthAccountOrchestrator {
   Future<void> _authenticate() async {
     try {
       await _authService.ensureAuthenticated();
-    } on DeviceAuthenticationException {
-      Log.d(_tag,'AuthAccountOrchestrator: device auth failed — re-registering');
+    } on DeviceAuthenticationException catch (e) {
+      Log.d(_tag,'AuthAccountOrchestrator: device auth failed — $e');
+      Log.d(_tag,'AuthAccountOrchestrator: cause: ${e.cause}');
+      Log.d(_tag,'AuthAccountOrchestrator: re-registering...');
       await _accountService.ensureRegistered(deviceLabel: 'auto', force: true);
       await _authService.ensureAuthenticated();
     }
