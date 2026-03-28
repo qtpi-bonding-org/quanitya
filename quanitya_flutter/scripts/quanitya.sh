@@ -569,10 +569,11 @@ EOF
             ;;
         ios)
             if [[ "$RELEASE" == true ]]; then
-                log_info "Building iOS for App Store release..."
-                flutter build ios --release "${dart_defines[@]}"
-                log_success "iOS release build completed!"
-                log_info "Next: Open ios/Runner.xcworkspace in Xcode to archive"
+                log_info "Building iOS .ipa for App Store..."
+                flutter build ipa --release "${dart_defines[@]}"
+                log_success "iOS .ipa build completed!"
+                log_info "File: build/ios/ipa/*.ipa"
+                log_info "Next: Open Transporter and drag the .ipa to upload"
             else
                 log_info "Building iOS for development..."
                 flutter build ios "${dart_defines[@]}"
