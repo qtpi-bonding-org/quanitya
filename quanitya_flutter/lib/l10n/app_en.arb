@@ -294,11 +294,8 @@
   "onboardingStoredBiometrics": "Stored on device with biometrics.",
   "backupMethodsTitle": "Backup Methods",
   "backupICloudSubtitle": "Syncs across your Apple devices.",
-  "backupFileSubtitle": "Save to Files, AirDrop, or other apps.",
+  "backupFileSubtitle": "Save to Files or other apps.",
   "backupClipboardSubtitle": "Paste into a password manager.",
-  "backupDeviceAuthTitle": "Store on Device",
-  "backupDeviceAuthSubtitle": "Protected by your device passcode.",
-  "backupDeviceAuthWarning": "If you lose this device, you'll lose this backup.",
   "backupRequiredMessage": "At least one backup method is required.",
   "backupCompleteMessage": "{count, plural, =1{1 backup method completed} other{{count} backup methods completed}}",
   "@backupCompleteMessage": {

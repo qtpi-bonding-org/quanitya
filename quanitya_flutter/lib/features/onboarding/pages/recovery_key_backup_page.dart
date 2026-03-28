@@ -149,16 +149,6 @@ class _BackupMethodsList extends StatelessWidget {
           isCompleted: state.completedBackupMethods.contains(BackupMethod.clipboard),
           onTap: state.isLoading ? null : () async => await cubit.copyToClipboard(),
         ),
-        // Device authentication (if available)
-        if (state.deviceAuthAvailable)
-          _BackupMethodTile(
-            icon: Icons.phonelink_lock_outlined,
-            title: context.l10n.backupDeviceAuthTitle,
-            subtitle: context.l10n.backupDeviceAuthSubtitle,
-            isCompleted: state.completedBackupMethods.contains(BackupMethod.biometrics),
-            onTap: state.isLoading ? null : () async => await cubit.storeWithBiometrics(),
-            warning: context.l10n.backupDeviceAuthWarning,
-          ),
       ],
     );
   }
