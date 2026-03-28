@@ -282,12 +282,15 @@ class _GroupAnalysisCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-            onTap: () {
-              AppNavigation.toAnalysisBuilder(
+            onTap: () async {
+              await AppNavigation.toAnalysisBuilder(
                 context,
                 fieldId: groupData.field.label,
                 templateId: templateId,
               );
+              if (context.mounted) {
+                context.read<VisualizationCubit>().loadForTemplate(templateId);
+              }
             },
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -362,12 +365,15 @@ class _FieldAnalysisCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-            onTap: () {
-              AppNavigation.toAnalysisBuilder(
+            onTap: () async {
+              await AppNavigation.toAnalysisBuilder(
                 context,
                 fieldId: fieldData.field.label,
                 templateId: templateId,
               );
+              if (context.mounted) {
+                context.read<VisualizationCubit>().loadForTemplate(templateId);
+              }
             },
             child: ConstrainedBox(
               constraints: BoxConstraints(

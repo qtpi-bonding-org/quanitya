@@ -309,8 +309,8 @@ class AppNavigation {
     context.pushNamed(RouteNames.templateGallery);
   }
 
-  static void toAnalysisBuilder(BuildContext context, {String? fieldId, String? templateId}) {
-    context.pushNamed(
+  static Future<Object?> toAnalysisBuilder(BuildContext context, {String? fieldId, String? templateId}) {
+    return context.pushNamed(
       RouteNames.scriptBuilder,
       extra: {
         'fieldId': fieldId ?? 'demo-field',

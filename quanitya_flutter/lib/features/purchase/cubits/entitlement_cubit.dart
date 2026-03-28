@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import '../../../infrastructure/config/debug_log.dart';
@@ -42,7 +44,7 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
     }
 
     if (state.hasPurchased) {
-      await loadStorageUsage();
+      _watchStorageUsage();
     }
     Log.d(_tag, 'EntitlementCubit: Initialization complete (hasPurchased=${state.hasPurchased})');
     return state;
@@ -65,28 +67,28 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
     }, emitLoading: true);
   }
 
-  /// Loads storage usage from local encrypted entries.
-  /// Multiplies by 4 to estimate server-side PostgreSQL cost
-  /// (PowerSync oplog, indexes, row overhead, WAL).
+  /// Start watching if not already. Called by callers that previously used loadStorageUsage().
   Future<void> loadStorageUsage() async {
-    await tryOperation(() async {
-      final result = await _db.customSelect(
-        'SELECT '
-        'COUNT(*) AS cnt, '
-        'COALESCE(SUM(LENGTH(encrypted_data)), 0) AS total_bytes '
-        'FROM encrypted_entries',
-      ).getSingle();
+    _watchStorageUsage();
+  }
 
-      final count = result.read<int>('cnt');
-      final rawBytes = result.read<int>('total_bytes');
+  StreamSubscription<({int count, int bytes})>? _storageWatch;
 
-      return state.copyWith(
-        status: UiFlowStatus.success,
-        lastOperation: EntitlementOperation.loadStorageUsage,
-        entryCount: count,
-        storageBytes: rawBytes * 4, // ×4 for PostgreSQL + PowerSync overhead
-      );
-    }, emitLoading: false);
+  /// Watch encrypted_entries table and update storage usage reactively.
+  void _watchStorageUsage() {
+    _storageWatch?.cancel();
+    _storageWatch = _db.watchEncryptedStorageUsage().listen((usage) {
+      emit(state.copyWith(
+        entryCount: usage.count,
+        storageBytes: usage.bytes * 4, // ×4 for PostgreSQL + PowerSync overhead
+      ));
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _storageWatch?.cancel();
+    return super.close();
   }
 
   Future<void> markPurchased() => tryOperation(() async {

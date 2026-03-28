@@ -54,21 +54,7 @@ class PurchaseTabContent extends StatelessWidget {
             curr.status == UiFlowStatus.success &&
             prev.status != curr.status,
         listener: (context, state) async {
-          // PurchaseService already handled side effects (cache, markPurchased, LLM).
-          // Refresh entitlement cubit for UI display.
-          final entitlementCubit = context.read<EntitlementCubit>();
-          await entitlementCubit.loadEntitlements();
-          await entitlementCubit.loadStorageUsage();
-        },
-        child: RefreshIndicator(
-        onRefresh: () async {
-          final purchaseCubit = context.read<PurchaseCubit>();
-          final entitlementCubit = context.read<EntitlementCubit>();
-          await purchaseCubit.loadProducts();
-          if (entitlementCubit.hasPurchased) {
-            await entitlementCubit.loadEntitlements();
-            await entitlementCubit.loadStorageUsage();
-          }
+          await context.read<EntitlementCubit>().loadEntitlements();
         },
         child: ListView(
           padding: AppPadding.verticalSingle,
@@ -97,16 +83,6 @@ class PurchaseTabContent extends StatelessWidget {
             // Products section
             BlocBuilder<PurchaseCubit, PurchaseState>(
               builder: (context, state) {
-                if (state.status == UiFlowStatus.loading &&
-                    state.lastOperation == PurchaseOperation.loadProducts) {
-                  return Center(
-                    child: Padding(
-                      padding: AppPadding.allTriple,
-                      child: const CircularProgressIndicator(),
-                    ),
-                  );
-                }
-
                 if (state.status == UiFlowStatus.failure &&
                     state.lastOperation == PurchaseOperation.loadProducts) {
                   return Center(
@@ -166,7 +142,6 @@ class PurchaseTabContent extends StatelessWidget {
             VSpace.x3,
           ],
         ),
-      ),
       ),
     );
   }

@@ -92,7 +92,7 @@ Future<void> bootstrap() async {
 
     // 4. Initialize Serverpod client auth
     Log.d(_tag, 'Bootstrap: Initializing Serverpod client auth...');
-    _initializeClientAuth();
+    await _initializeClientAuth();
     Log.d(_tag, 'Bootstrap: Serverpod client auth initialized');
 
     // 5. Initialize AuthService
@@ -224,11 +224,17 @@ void _registerUiFlowService() {
   }
 }
 
-void _initializeClientAuth() {
+Future<void> _initializeClientAuth() async {
   // Client is already created by DI, just initialize auth
   final c = getIt<Client>();
   c.authSessionManager = FlutterAuthSessionManager();
-  c.auth.initialize();
+  try {
+    await c.auth.initialize();
+  } catch (e) {
+    // Stale JWT in Keychain — clear it so our auth orchestrator can start fresh.
+    Log.d(_tag, 'Bootstrap: auth.initialize failed ($e), clearing stale session');
+    await c.auth.updateSignedInUser(null);
+  }
 }
 
 // AppSyncingCubit self-hydrates in constructor — no init function needed
