@@ -86,17 +86,15 @@ jobs:
     - name: Build Flutter Web
       working-directory: quanitya_flutter
       run: |
-        # Setup PowerSync web assets
-        mkdir -p web
-        curl -L -o web/sqlite3.wasm "https://github.com/powersync-ja/powersync.dart/releases/download/powersync-v1.17.0/sqlite3.wasm"
-        curl -L -o web/powersync_db.worker.js "https://github.com/powersync-ja/powersync.dart/releases/download/powersync-v1.17.0/powersync_db.worker.js"
+        flutter pub get
+
+        # Setup PowerSync SQLCipher web assets (encrypted DB support)
+        dart run powersync_sqlcipher:setup_web
 
         if [ ! -f "web/sqlite3.wasm" ] || [ ! -f "web/powersync_db.worker.js" ]; then
-          echo "Failed to download PowerSync web assets"
+          echo "Failed to set up PowerSync SQLCipher web assets"
           exit 1
         fi
-
-        flutter pub get
 
         flutter clean
         dart run build_runner clean
