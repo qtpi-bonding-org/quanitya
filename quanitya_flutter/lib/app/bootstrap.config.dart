@@ -856,6 +856,14 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i884.EntitlementRepository>(),
       ),
     );
+    gh.lazySingleton<_i50.EntitlementCubit>(
+      () => _i50.EntitlementCubit(
+        gh<_i636.IEntitlementService>(),
+        gh<_i884.EntitlementRepository>(),
+        gh<_i147.AppDatabase>(),
+        gh<_i515.AuthRepository>(),
+      ),
+    );
     gh.factory<_i431.WebhookCubit>(
       () => _i431.WebhookCubit(
         gh<_i305.WebhookRepository>(),
@@ -891,13 +899,6 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i285.TrackerTemplateDualDao(
         gh<_i147.AppDatabase>(),
         gh<_i549.IDataEncryption>(),
-      ),
-    );
-    gh.lazySingleton<_i50.EntitlementCubit>(
-      () => _i50.EntitlementCubit(
-        gh<_i636.IEntitlementService>(),
-        gh<_i884.EntitlementRepository>(),
-        gh<_i147.AppDatabase>(),
       ),
     );
     gh.factory<_i65.RecoveryKeyCubit>(

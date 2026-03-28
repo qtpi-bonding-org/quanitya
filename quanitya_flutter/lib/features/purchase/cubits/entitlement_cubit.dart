@@ -6,6 +6,7 @@ import '../../../infrastructure/config/debug_log.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
+import '../../../infrastructure/auth/auth_repository.dart';
 import '../../../infrastructure/purchase/entitlement_repository.dart';
 import '../../../infrastructure/purchase/i_entitlement_service.dart';
 import 'entitlement_state.dart';
@@ -17,11 +18,12 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
   final IEntitlementService _entitlementService;
   final EntitlementRepository _repo;
   final AppDatabase _db;
+  final AuthRepository _authRepo;
 
   DateTime? _lastRefresh;
   bool _isRefreshing = false;
 
-  EntitlementCubit(this._entitlementService, this._repo, this._db)
+  EntitlementCubit(this._entitlementService, this._repo, this._db, this._authRepo)
       : super(const EntitlementState()) {
     _initialize();
   }
@@ -32,10 +34,13 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
     final purchased = await _repo.hasEverPurchased();
     emit(state.copyWith(hasPurchased: purchased));
 
-    // Always try to fetch entitlements from server, even if local cache
-    // says "never purchased". Handles app reinstall where SecurePreferences
-    // is wiped but the server still has the user's entitlements.
-    await loadEntitlements();
+    // Only contact server if device is registered. Prevents accidental
+    // server registration for local-only users (the auth orchestrator's
+    // retry would register the device as a side effect).
+    final isRegistered = await _authRepo.isRegisteredWithServer;
+    if (isRegistered) {
+      await loadEntitlements();
+    }
 
     // If server returned entitlements but local flag was wiped, fix it.
     if (!purchased && state.entitlements.isNotEmpty) {
