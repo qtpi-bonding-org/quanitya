@@ -14,14 +14,14 @@ import 'package:serverpod_client/serverpod_client.dart' as _i1;
 
 enum Feature implements _i1.SerializableModel {
   cloudSync,
-  llm;
+  ai;
 
   static Feature fromJson(String name) {
     switch (name) {
       case 'cloudSync':
         return Feature.cloudSync;
-      case 'llm':
-        return Feature.llm;
+      case 'ai':
+        return Feature.ai;
       default:
         throw ArgumentError('Value "$name" cannot be converted to "Feature"');
     }

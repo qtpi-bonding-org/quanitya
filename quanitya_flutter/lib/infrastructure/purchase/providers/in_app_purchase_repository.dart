@@ -93,11 +93,11 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
     );
   }
 
-  /// Fetch active product IDs from the server, updating the cache.
+  /// Fetch the server catalog for the current platform/rail.
   ///
-  /// Always fetches fresh data from the server so that disabled products
-  /// are removed. Uses the HashCash-protected productCatalog endpoint.
-  Future<Set<String>> _getProductIds() {
+  /// Returns a map of storeProductId → list of [ProductGrant] from the server.
+  /// Always fetches fresh data so that disabled products are removed.
+  Future<Map<String, List<ProductGrant>>> _fetchCatalog() {
     return tryMethod(() async {
       final platformName = _getPlatformName();
 
@@ -127,7 +127,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
         platformName,
       );
 
-      // 5. Extract product IDs for this provider's rail
+      // 5. Extract products for this provider's rail
       final railName = switch (rail) {
         PurchaseRail.appleIap => 'apple_iap',
         PurchaseRail.googleIap => 'google_iap',
@@ -139,8 +139,18 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
           .where((r) => r.rail == railName && r.status == RailStatus.active)
           .firstOrNull;
 
-      return matchingRail?.products.map((p) => p.storeProductId).toSet() ?? <String>{};
-    }, PurchaseException.new, '_getProductIds');
+      if (matchingRail == null) return <String, List<ProductGrant>>{};
+
+      return {
+        for (final p in matchingRail.products)
+          p.storeProductId: p.grants
+              .map((g) => ProductGrant(
+                    feature: g.feature.name,
+                    quantity: g.quantity,
+                  ))
+              .toList(),
+      };
+    }, PurchaseException.new, '_fetchCatalog');
   }
 
   /// Get platform name for the catalog endpoint.
@@ -158,7 +168,8 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
   Future<List<PurchaseProduct>> getAvailableProducts() {
     return tryMethod(
       () async {
-        final productIds = await _getProductIds();
+        final catalogMap = await _fetchCatalog();
+        final productIds = catalogMap.keys.toSet();
         final response = await _iapInstance.queryProductDetails(productIds);
 
         if (response.notFoundIDs.isNotEmpty) {
@@ -179,6 +190,7 @@ class InAppPurchaseRepository implements IDigitalPurchaseRepository {
                 _periodFromProductId(detail.id),
             localizedPrice: detail.price,
             currencyCode: detail.currencyCode,
+            grants: catalogMap[detail.id] ?? [],
           );
         }).toList();
       },

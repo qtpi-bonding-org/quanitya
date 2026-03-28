@@ -70,11 +70,11 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<bool> hasLlmAccess() {
+  Future<bool> hasAiAccess() {
     return tryMethod(
-      () async => await _cache.hasLlmAccess(),
+      () async => await _cache.hasAiAccess(),
       EntitlementException.new,
-      'hasLlmAccess',
+      'hasAiAccess',
     );
   }
 

@@ -58,15 +58,15 @@ class EntitlementRepository {
     );
   }
 
-  Future<bool> hasLlmAccess() {
+  Future<bool> hasAiAccess() {
     return tryMethod(
       () async {
         final entitlements = await load();
         return entitlements
-            .any((e) => e.feature == Feature.llm.name && e.balance > 0);
+            .any((e) => e.feature == Feature.ai.name && e.balance > 0);
       },
       EntitlementException.new,
-      'hasLlmAccess',
+      'hasAiAccess',
     );
   }
 

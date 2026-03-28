@@ -96,8 +96,8 @@ class EntitlementDisplay extends StatelessWidget {
       (grouped[e.feature] ??= []).add(e);
     }
 
-    // Stable display order: cloudSync first, then llm.
-    const featureOrder = [Feature.cloudSync, Feature.llm];
+    // Stable display order: cloudSync first, then ai.
+    const featureOrder = [Feature.cloudSync, Feature.ai];
 
     return [
       for (final feature in featureOrder)
@@ -115,7 +115,7 @@ class EntitlementDisplay extends StatelessWidget {
 
     final name = switch (feature) {
       Feature.cloudSync => context.l10n.featureCloudSync,
-      Feature.llm => context.l10n.featureLlm,
+      Feature.ai => context.l10n.featureAi,
     };
 
     // Subscriptions → boolean active/inactive

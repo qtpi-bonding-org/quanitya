@@ -53,14 +53,14 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
       final entitlements = await _entitlementService.getEntitlements();
       final purchased = await _repo.hasEverPurchased();
       final hasSyncAccess = await _entitlementService.hasSyncAccess();
-      final hasLlmAccess = await _entitlementService.hasLlmAccess();
+      final hasAiAccess = await _entitlementService.hasAiAccess();
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: EntitlementOperation.loadEntitlements,
         entitlements: entitlements,
         hasPurchased: purchased,
         hasSyncAccess: hasSyncAccess,
-        hasLlmAccess: hasLlmAccess,
+        hasAiAccess: hasAiAccess,
       );
     }, emitLoading: true);
   }
@@ -131,14 +131,14 @@ class EntitlementCubit extends QuanityaCubit<EntitlementState> {
       await tryOperation(() async {
         final entitlements = await _entitlementService.getEntitlements();
         final hasSyncAccess = await _entitlementService.hasSyncAccess();
-        final hasLlmAccess = await _entitlementService.hasLlmAccess();
+        final hasAiAccess = await _entitlementService.hasAiAccess();
         _lastRefresh = now;
         return state.copyWith(
           status: UiFlowStatus.success,
           lastOperation: EntitlementOperation.refreshIfStale,
           entitlements: entitlements,
           hasSyncAccess: hasSyncAccess,
-          hasLlmAccess: hasLlmAccess,
+          hasAiAccess: hasAiAccess,
         );
       }, emitLoading: false);
     } finally {

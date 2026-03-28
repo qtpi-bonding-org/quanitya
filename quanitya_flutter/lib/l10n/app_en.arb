@@ -699,7 +699,7 @@
   "entitlementActive": "Active",
   "entitlementInactive": "Inactive",
   "featureCloudSync": "Cloud Sync",
-  "featureLlm": "AI Credits",
+  "featureAi": "AI Credits",
   "outboxTitle": "Outbox",
   "outboxTabFeedback": "Feedback",
   "outboxTabAnalytics": "Analytics",

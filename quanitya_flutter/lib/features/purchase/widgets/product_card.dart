@@ -101,6 +101,27 @@ class ProductCard extends StatelessWidget {
     };
   }
 
+  /// Whether this product includes a cloud sync grant.
+  bool get _hasCloudSync =>
+      product.grants.any((g) => g.feature == 'cloudSync');
+
+  /// The AI credits grant quantity, or null if not included.
+  double? get _aiCredits {
+    final grant = product.grants.where((g) => g.feature == 'ai').firstOrNull;
+    return grant?.quantity;
+  }
+
+  /// Period suffix for AI credits display.
+  String _aiCreditsLabel(BuildContext context) {
+    final qty = _aiCredits;
+    if (qty == null) return '';
+    final count = qty.toInt();
+    final suffix = product.subscriptionPeriod == SubscriptionPeriod.yearly
+        ? '/${context.l10n.purchasePeriodYearly.toLowerCase()}'
+        : '/${context.l10n.purchasePeriodMonthly.toLowerCase()}';
+    return '$count ${context.l10n.featureAi}$suffix';
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
@@ -118,11 +139,18 @@ class ProductCard extends StatelessWidget {
         ? _resolveEstimate(context, parsed.entryEstimate!)
         : null;
 
+    final aiLabel = _aiCredits != null ? _aiCreditsLabel(context) : null;
+
+    final secondaryStyle = context.text.bodySmall?.copyWith(
+      color: palette.textSecondary,
+    );
+
     // Build a full semantic description for screen readers
     final semanticParts = <String>[
-      parsed.planName,
+      if (_hasCloudSync) context.l10n.featureCloudSync,
       if (parsed.capacity != null) parsed.capacity ?? '',
       if (entryEstimateLabel != null) entryEstimateLabel,
+      if (aiLabel != null) aiLabel,
       price,
       if (_isSubscription &&
           product.subscriptionPeriod == SubscriptionPeriod.monthly)
@@ -175,7 +203,20 @@ class ProductCard extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Capacity (prominent, if extractable)
+                // Feature header — "Cloud Sync" if bundle includes it
+                if (_hasCloudSync) ...[
+                  Text(
+                    context.l10n.featureCloudSync,
+                    style: context.text.headlineMedium?.copyWith(
+                      color: palette.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  VSpace.x05,
+                ],
+
+                // Capacity (e.g. "500 MB")
                 if (parsed.capacity != null) ...[
                   Text(
                     parsed.capacity ?? '',
@@ -189,26 +230,35 @@ class ProductCard extends StatelessWidget {
                     VSpace.x025,
                     Text(
                       entryEstimateLabel,
-                      style: context.text.bodySmall?.copyWith(
-                        color: palette.textSecondary,
-                      ),
+                      style: secondaryStyle,
                       textAlign: TextAlign.center,
                     ),
                   ],
-                  VSpace.x05,
                 ],
 
-                // Plan name
-                Text(
-                  parsed.planName,
-                  style: context.text.headlineMedium?.copyWith(
-                    color: palette.textPrimary,
-                    fontWeight: FontWeight.w700,
+                // AI credits line
+                if (aiLabel != null) ...[
+                  VSpace.x05,
+                  Text(
+                    aiLabel,
+                    style: secondaryStyle,
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                ],
+
+                // Fallback: plan name if no grants to display
+                if (!_hasCloudSync && parsed.capacity == null) ...[
+                  Text(
+                    parsed.planName,
+                    style: context.text.headlineMedium?.copyWith(
+                      color: palette.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
 
                 VSpace.x2,
 

@@ -18,7 +18,7 @@ abstract class EntitlementState with _$EntitlementState, UiFlowStateMixin implem
     EntitlementOperation? lastOperation,
     @Default([]) List<AccountFeatureEntitlement> entitlements,
     @Default(false) bool hasSyncAccess,
-    @Default(false) bool hasLlmAccess,
+    @Default(false) bool hasAiAccess,
     @Default(false) bool hasPurchased,
     /// Estimated storage used in bytes (encrypted blobs × 2 for oplog).
     int? storageBytes,

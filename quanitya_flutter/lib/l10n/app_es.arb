@@ -558,7 +558,7 @@
   "entitlementActive": "Activo",
   "entitlementInactive": "Inactivo",
   "featureCloudSync": "Sincronización en la nube",
-  "featureLlm": "Créditos IA",
+  "featureAi": "Créditos IA",
   "outboxTitle": "Bandeja de salida",
   "outboxTabFeedback": "Comentarios",
   "outboxTabAnalytics": "Análisis",

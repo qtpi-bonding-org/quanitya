@@ -113,7 +113,7 @@ class _NotebookShellState extends State<NotebookShell>
           ),
           BlocListener<EntitlementCubit, EntitlementState>(
             listenWhen: (prev, curr) =>
-                !prev.hasLlmAccess && curr.hasLlmAccess,
+                !prev.hasAiAccess && curr.hasAiAccess,
             listener: (context, state) async {
               try {
                 await GetIt.instance<LlmProviderCubit>().selectQuanitya();

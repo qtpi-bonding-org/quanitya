@@ -11,27 +11,27 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'feature.dart' as _i2;
+import 'catalog_grant.dart' as _i2;
 import 'package:quanitya_cloud_client/src/protocol/protocol.dart' as _i3;
 
 abstract class CatalogProduct implements _i1.SerializableModel {
   CatalogProduct._({
     required this.storeProductId,
-    required this.features,
+    required this.grants,
     required this.serverValidated,
   });
 
   factory CatalogProduct({
     required String storeProductId,
-    required List<_i2.Feature> features,
+    required List<_i2.CatalogGrant> grants,
     required bool serverValidated,
   }) = _CatalogProductImpl;
 
   factory CatalogProduct.fromJson(Map<String, dynamic> jsonSerialization) {
     return CatalogProduct(
       storeProductId: jsonSerialization['storeProductId'] as String,
-      features: _i3.Protocol().deserialize<List<_i2.Feature>>(
-        jsonSerialization['features'],
+      grants: _i3.Protocol().deserialize<List<_i2.CatalogGrant>>(
+        jsonSerialization['grants'],
       ),
       serverValidated: _i1.BoolJsonExtension.fromJson(
         jsonSerialization['serverValidated'],
@@ -41,7 +41,7 @@ abstract class CatalogProduct implements _i1.SerializableModel {
 
   String storeProductId;
 
-  List<_i2.Feature> features;
+  List<_i2.CatalogGrant> grants;
 
   bool serverValidated;
 
@@ -50,7 +50,7 @@ abstract class CatalogProduct implements _i1.SerializableModel {
   @_i1.useResult
   CatalogProduct copyWith({
     String? storeProductId,
-    List<_i2.Feature>? features,
+    List<_i2.CatalogGrant>? grants,
     bool? serverValidated,
   });
   @override
@@ -58,7 +58,7 @@ abstract class CatalogProduct implements _i1.SerializableModel {
     return {
       '__className__': 'CatalogProduct',
       'storeProductId': storeProductId,
-      'features': features.toJson(valueToJson: (v) => v.toJson()),
+      'grants': grants.toJson(valueToJson: (v) => v.toJson()),
       'serverValidated': serverValidated,
     };
   }
@@ -72,11 +72,11 @@ abstract class CatalogProduct implements _i1.SerializableModel {
 class _CatalogProductImpl extends CatalogProduct {
   _CatalogProductImpl({
     required String storeProductId,
-    required List<_i2.Feature> features,
+    required List<_i2.CatalogGrant> grants,
     required bool serverValidated,
   }) : super._(
          storeProductId: storeProductId,
-         features: features,
+         grants: grants,
          serverValidated: serverValidated,
        );
 
@@ -86,12 +86,12 @@ class _CatalogProductImpl extends CatalogProduct {
   @override
   CatalogProduct copyWith({
     String? storeProductId,
-    List<_i2.Feature>? features,
+    List<_i2.CatalogGrant>? grants,
     bool? serverValidated,
   }) {
     return CatalogProduct(
       storeProductId: storeProductId ?? this.storeProductId,
-      features: features ?? this.features.map((e0) => e0).toList(),
+      grants: grants ?? this.grants.map((e0) => e0.copyWith()).toList(),
       serverValidated: serverValidated ?? this.serverValidated,
     );
   }

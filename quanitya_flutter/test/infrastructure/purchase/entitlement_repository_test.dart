@@ -152,32 +152,32 @@ void main() {
   });
 
   // -------------------------------------------------------------------------
-  // hasLlmAccess
+  // hasAiAccess
   // -------------------------------------------------------------------------
 
-  group('hasLlmAccess', () {
+  group('hasAiAccess', () {
     test('returns true when llm feature has balance > 0', () async {
       await repo.store([
         const CachedEntitlement(
-          tag: 'llm_calls',
+          tag: 'ai_credits',
           balance: 10.0,
-          feature: 'llm',
+          feature: 'ai',
           type: 'consumable',
         ),
       ]);
-      expect(await repo.hasLlmAccess(), isTrue);
+      expect(await repo.hasAiAccess(), isTrue);
     });
 
     test('returns false when llm feature balance is 0', () async {
       await repo.store([
         const CachedEntitlement(
-          tag: 'llm_calls',
+          tag: 'ai_credits',
           balance: 0.0,
-          feature: 'llm',
+          feature: 'ai',
           type: 'consumable',
         ),
       ]);
-      expect(await repo.hasLlmAccess(), isFalse);
+      expect(await repo.hasAiAccess(), isFalse);
     });
 
     test('returns false when no llm entitlements present', () async {
@@ -189,7 +189,7 @@ void main() {
           type: 'time_balance',
         ),
       ]);
-      expect(await repo.hasLlmAccess(), isFalse);
+      expect(await repo.hasAiAccess(), isFalse);
     });
   });
 
@@ -219,19 +219,19 @@ void main() {
           type: 'time_balance',
         ),
       ]);
-      expect(await repo.hasFeature('llm'), isFalse);
+      expect(await repo.hasFeature('ai'), isFalse);
     });
 
     test('returns false when feature balance is 0', () async {
       await repo.store([
         const CachedEntitlement(
-          tag: 'llm_calls',
+          tag: 'ai_credits',
           balance: 0.0,
-          feature: 'llm',
+          feature: 'ai',
           type: 'consumable',
         ),
       ]);
-      expect(await repo.hasFeature('llm'), isFalse);
+      expect(await repo.hasFeature('ai'), isFalse);
     });
   });
 

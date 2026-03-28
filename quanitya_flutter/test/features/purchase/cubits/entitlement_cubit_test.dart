@@ -35,7 +35,7 @@ void main() {
         .thenAnswer((_) async => hasPurchased);
     when(() => mockService.getEntitlements()).thenAnswer((_) async => []);
     when(() => mockService.hasSyncAccess()).thenAnswer((_) async => false);
-    when(() => mockService.hasLlmAccess()).thenAnswer((_) async => false);
+    when(() => mockService.hasAiAccess()).thenAnswer((_) async => false);
 
     final mockRow = MockQueryRow();
     when(() => mockRow.read<int>('cnt')).thenReturn(0);
@@ -83,7 +83,7 @@ void main() {
       // Calling it again should still work and include sync access.
       when(() => mockService.hasSyncAccess())
           .thenAnswer((_) async => true);
-      when(() => mockService.hasLlmAccess())
+      when(() => mockService.hasAiAccess())
           .thenAnswer((_) async => false);
       await cubit.loadEntitlements();
       expect(cubit.state.status, UiFlowStatus.success);
@@ -124,7 +124,7 @@ void main() {
       );
       when(() => mockService.hasSyncAccess())
           .thenAnswer((_) async => true);
-      when(() => mockService.hasLlmAccess())
+      when(() => mockService.hasAiAccess())
           .thenAnswer((_) async => false);
 
       final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
@@ -169,7 +169,7 @@ void main() {
       );
       when(() => mockService.hasSyncAccess())
           .thenAnswer((_) async => true);
-      when(() => mockService.hasLlmAccess())
+      when(() => mockService.hasAiAccess())
           .thenAnswer((_) async => false);
       when(() => mockRepo.markPurchased()).thenAnswer((_) async {});
 
@@ -206,7 +206,7 @@ void main() {
       );
       when(() => mockService.hasSyncAccess())
           .thenAnswer((_) async => true);
-      when(() => mockService.hasLlmAccess())
+      when(() => mockService.hasAiAccess())
           .thenAnswer((_) async => false);
 
       await cubit.refreshIfStale();

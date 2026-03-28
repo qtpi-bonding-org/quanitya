@@ -18,6 +18,19 @@ enum StoreProductType { consumable, subscription, unknown }
 /// Subscription billing period as reported by the store.
 enum SubscriptionPeriod { monthly, yearly }
 
+/// A grant included in a product (feature + quantity from server catalog).
+@freezed
+abstract class ProductGrant with _$ProductGrant {
+  const ProductGrant._();
+  const factory ProductGrant({
+    required String feature,
+    required double quantity,
+  }) = _ProductGrant;
+
+  factory ProductGrant.fromJson(Map<String, dynamic> json) =>
+      _$ProductGrantFromJson(json);
+}
+
 /// A product available for purchase.
 @freezed
 abstract class PurchaseProduct with _$PurchaseProduct {
@@ -32,6 +45,7 @@ abstract class PurchaseProduct with _$PurchaseProduct {
     SubscriptionPeriod? subscriptionPeriod,
     String? localizedPrice,
     String? currencyCode,
+    @Default([]) List<ProductGrant> grants,
   }) = _PurchaseProduct;
 
   factory PurchaseProduct.fromJson(Map<String, dynamic> json) =>
