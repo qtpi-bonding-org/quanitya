@@ -61,6 +61,18 @@ class AnalysisScriptQueryDao {
     return entities.map(_entityToModel).toList();
   }
 
+  /// Find all scripts for a template
+  Future<List<AnalysisScriptModel>> findByTemplateId(String templateId) async {
+    final query = _db.select(_db.analysisScripts)
+      ..where((t) => t.templateId.equals(templateId))
+      ..orderBy([
+        (t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc),
+      ]);
+
+    final entities = await query.get();
+    return entities.map(_entityToModel).toList();
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // Stream Queries (Reactive UI)
   // ─────────────────────────────────────────────────────────────────────────
@@ -86,6 +98,17 @@ class AnalysisScriptQueryDao {
   Stream<List<AnalysisScriptModel>> watchByFieldId(String fieldId) {
     final query = _db.select(_db.analysisScripts)
       ..where((t) => t.fieldId.equals(fieldId))
+      ..orderBy([
+        (t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc),
+      ]);
+
+    return query.watch().map((rows) => rows.map(_entityToModel).toList());
+  }
+
+  /// Watch all scripts for a template
+  Stream<List<AnalysisScriptModel>> watchByTemplateId(String templateId) {
+    final query = _db.select(_db.analysisScripts)
+      ..where((t) => t.templateId.equals(templateId))
       ..orderBy([
         (t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc),
       ]);
@@ -123,6 +146,7 @@ class AnalysisScriptQueryDao {
     return AnalysisScriptModel(
       id: entity.id,
       name: entity.name,
+      templateId: entity.templateId,
       fieldId: entity.fieldId,
       outputMode: entity.outputMode,
       snippetLanguage: entity.snippetLanguage,

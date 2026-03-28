@@ -33,6 +33,7 @@
 
 # Web related - PowerSync WASM/Worker assets (downloaded by setup_powersync_web.sh)
 web/sqlite3.wasm
+web/sqlite3mc.wasm
 web/powersync_db.worker.js
 web/powersync_sync.worker.js
 

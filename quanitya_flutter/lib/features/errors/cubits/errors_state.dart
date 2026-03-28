@@ -15,7 +15,7 @@ enum ErrorsOperation {
 }
 
 @freezed
-class ErrorsState with _$ErrorsState, UiFlowStateMixin implements IUiFlowState {
+abstract class ErrorsState with _$ErrorsState, UiFlowStateMixin implements IUiFlowState {
   const ErrorsState._();
 
   const factory ErrorsState({

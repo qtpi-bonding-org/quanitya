@@ -10,7 +10,8 @@ part 'field_value.g.dart';
 /// - Numeric: mood scores, heart rate, temperature
 /// - Categorical: mood labels, exercise types, weather conditions
 @freezed
-class FieldValue with _$FieldValue {
+abstract class FieldValue with _$FieldValue {
+  const FieldValue._();
   const factory FieldValue.numeric(Numeric value) = _NumericFieldValue;
   const factory FieldValue.categorical(String value) = _CategoricalFieldValue;
   

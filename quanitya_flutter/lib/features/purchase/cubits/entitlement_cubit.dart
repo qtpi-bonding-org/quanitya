@@ -1,65 +1,150 @@
+import 'dart:async';
+
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import '../../../infrastructure/config/debug_log.dart';
 
 import '../../../data/db/app_database.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
+import '../../../infrastructure/purchase/entitlement_repository.dart';
 import '../../../infrastructure/purchase/i_entitlement_service.dart';
-import '../../app_syncing_mode/models/app_syncing_mode.dart';
 import 'entitlement_state.dart';
 
-@injectable
+const _tag = 'features/purchase/cubits/entitlement_cubit';
+
+@lazySingleton
 class EntitlementCubit extends QuanityaCubit<EntitlementState> {
   final IEntitlementService _entitlementService;
+  final EntitlementRepository _repo;
   final AppDatabase _db;
 
-  EntitlementCubit(this._entitlementService, this._db)
-      : super(const EntitlementState());
+  DateTime? _lastRefresh;
+  bool _isRefreshing = false;
 
-  Future<void> loadEntitlements({required AppSyncingMode mode}) async {
+  EntitlementCubit(this._entitlementService, this._repo, this._db)
+      : super(const EntitlementState()) {
+    _initialize();
+  }
+
+  bool get hasPurchased => state.hasPurchased;
+
+  Future<void> _initialize() => tryOperation(() async {
+    final purchased = await _repo.hasEverPurchased();
+    emit(state.copyWith(hasPurchased: purchased));
+
+    // Always try to fetch entitlements from server, even if local cache
+    // says "never purchased". Handles app reinstall where SecurePreferences
+    // is wiped but the server still has the user's entitlements.
+    await loadEntitlements();
+
+    // If server returned entitlements but local flag was wiped, fix it.
+    if (!purchased && state.entitlements.isNotEmpty) {
+      await _repo.markPurchased();
+      emit(state.copyWith(hasPurchased: true));
+    }
+
+    if (state.hasPurchased) {
+      _watchStorageUsage();
+    }
+    Log.d(_tag, 'EntitlementCubit: Initialization complete (hasPurchased=${state.hasPurchased})');
+    return state;
+  }, emitLoading: false);
+
+  Future<void> loadEntitlements() async {
     await tryOperation(() async {
-      final entitlements = await _entitlementService.getEntitlements(mode);
+      final entitlements = await _entitlementService.getEntitlements();
+      final purchased = await _repo.hasEverPurchased();
+      final hasSyncAccess = await _entitlementService.hasSyncAccess();
+      final hasAiAccess = await _entitlementService.hasAiAccess();
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: EntitlementOperation.loadEntitlements,
         entitlements: entitlements,
+        hasPurchased: purchased,
+        hasSyncAccess: hasSyncAccess,
+        hasAiAccess: hasAiAccess,
       );
     }, emitLoading: true);
   }
 
-  Future<void> checkSyncAccess({required AppSyncingMode mode}) async {
-    await tryOperation(() async {
-      final hasAccess = await _entitlementService.hasSyncAccess(mode);
-      return state.copyWith(
-        status: UiFlowStatus.success,
-        lastOperation: EntitlementOperation.checkSyncAccess,
-        hasSyncAccess: hasAccess,
-      );
-    }, emitLoading: true);
+  /// Start watching if not already. Called by callers that previously used loadStorageUsage().
+  Future<void> loadStorageUsage() async {
+    _watchStorageUsage();
   }
 
-  /// Loads storage usage from local encrypted entries.
-  /// Multiplies by 4 to estimate server-side PostgreSQL cost
-  /// (PowerSync oplog, indexes, row overhead, WAL).
-  /// Mode parameter accepted for interface consistency but not used
-  /// (this is a local DB query).
-  Future<void> loadStorageUsage({required AppSyncingMode mode}) async {
-    await tryOperation(() async {
-      final result = await _db.customSelect(
-        'SELECT '
-        'COUNT(*) AS cnt, '
-        'COALESCE(SUM(LENGTH(encrypted_data)), 0) AS total_bytes '
-        'FROM encrypted_entries',
-      ).getSingle();
+  StreamSubscription<({int count, int bytes})>? _storageWatch;
 
-      final count = result.read<int>('cnt');
-      final rawBytes = result.read<int>('total_bytes');
+  /// Watch encrypted_entries table and update storage usage reactively.
+  void _watchStorageUsage() {
+    _storageWatch?.cancel();
+    _storageWatch = _db.watchEncryptedStorageUsage().listen((usage) {
+      emit(state.copyWith(
+        entryCount: usage.count,
+        storageBytes: usage.bytes * 4, // ×4 for PostgreSQL + PowerSync overhead
+      ));
+    });
+  }
 
-      return state.copyWith(
-        status: UiFlowStatus.success,
-        lastOperation: EntitlementOperation.loadStorageUsage,
-        entryCount: count,
-        storageBytes: rawBytes * 4, // ×4 for PostgreSQL + PowerSync overhead
-      );
-    }, emitLoading: false);
+  @override
+  Future<void> close() {
+    _storageWatch?.cancel();
+    return super.close();
+  }
+
+  Future<void> markPurchased() => tryOperation(() async {
+    if (state.hasPurchased) return state;
+    await _repo.markPurchased();
+    return state.copyWith(
+      hasPurchased: true,
+      status: UiFlowStatus.success,
+      lastOperation: EntitlementOperation.markPurchased,
+    );
+  });
+
+  Future<void> reset() => tryOperation(() async {
+    await _repo.clear();
+    return state.copyWith(
+      hasPurchased: false,
+      entitlements: [],
+      hasSyncAccess: false,
+      storageBytes: null,
+      entryCount: null,
+      status: UiFlowStatus.success,
+      lastOperation: EntitlementOperation.reset,
+    );
+  });
+
+  /// Refresh entitlements from server and re-check sync access.
+  ///
+  /// Called on app resume and by the reactive sync listener.
+  /// No-op if the user has never purchased or if refreshed within the last 60s
+  /// (debounce to avoid spamming server on rapid app switches).
+  Future<void> refreshIfStale() async {
+    if (!state.hasPurchased || _isRefreshing) return;
+
+    final now = DateTime.now();
+    final lastRefresh = _lastRefresh;
+    if (lastRefresh != null && now.difference(lastRefresh).inSeconds < 60) {
+      return;
+    }
+
+    _isRefreshing = true;
+    try {
+      await tryOperation(() async {
+        final entitlements = await _entitlementService.getEntitlements();
+        final hasSyncAccess = await _entitlementService.hasSyncAccess();
+        final hasAiAccess = await _entitlementService.hasAiAccess();
+        _lastRefresh = now;
+        return state.copyWith(
+          status: UiFlowStatus.success,
+          lastOperation: EntitlementOperation.refreshIfStale,
+          entitlements: entitlements,
+          hasSyncAccess: hasSyncAccess,
+          hasAiAccess: hasAiAccess,
+        );
+      }, emitLoading: false);
+    } finally {
+      _isRefreshing = false;
+    }
   }
 }

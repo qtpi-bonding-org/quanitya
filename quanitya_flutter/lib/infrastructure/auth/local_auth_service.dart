@@ -3,7 +3,7 @@ import 'package:injectable/injectable.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../core/try_operation.dart';
-import 'exceptions/local_auth_exception.dart';
+import '../platform/exceptions/device_auth_exception.dart';
 
 /// Result of a device authentication attempt.
 enum LocalAuthResult {

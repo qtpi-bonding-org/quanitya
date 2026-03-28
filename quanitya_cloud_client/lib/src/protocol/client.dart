@@ -20,15 +20,17 @@ import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_response
 import 'package:quanitya_cloud_client/src/protocol/cloud_llm_structured_request.dart'
     as _i6;
 import 'package:quanitya_client/quanitya_client.dart' as _i7;
-import 'package:quanitya_cloud_client/src/protocol/feedback_type.dart' as _i8;
+import 'package:quanitya_cloud_client/src/protocol/account_feature_entitlement.dart'
+    as _i8;
+import 'package:quanitya_cloud_client/src/protocol/feedback_type.dart' as _i9;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i9;
-import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
     as _i10;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:quanitya_cloud_client/src/protocol/platform_catalog_response.dart'
     as _i11;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i12;
-import 'protocol.dart' as _i13;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _i12;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i13;
+import 'protocol.dart' as _i14;
 
 /// A simple cloud-specific endpoint to verify the cloud server is working.
 /// {@category Endpoint}
@@ -435,6 +437,26 @@ class EndpointErrorReport extends _i3.EndpointSignedPow {
   );
 }
 
+/// JWT-protected endpoint that returns entitlements enriched with Feature mapping.
+///
+/// This replaces the client's direct call to anonaccred's CommerceEndpoint.getEntitlements()
+/// by joining AccountEntitlement → Entitlement → AppEntitlement to include the Feature enum.
+/// {@category Endpoint}
+class EndpointFeatureEntitlement extends _i3.EndpointJwt {
+  EndpointFeatureEntitlement(_i1.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'featureEntitlement';
+
+  /// Get entitlements for the authenticated account, enriched with Feature mapping.
+  _i2.Future<List<_i8.AccountFeatureEntitlement>> getMyEntitlements() =>
+      caller.callServerEndpoint<List<_i8.AccountFeatureEntitlement>>(
+        'featureEntitlement',
+        'getMyEntitlements',
+        {},
+      );
+}
+
 /// Feedback Endpoint for privacy-preserving user feedback
 ///
 /// Receives anonymous feedback (feature requests, bug reports, general feedback)
@@ -476,7 +498,7 @@ class EndpointFeedback extends _i3.EndpointSignedPow {
     required String publicKeyHex,
     required String signature,
     required String feedbackText,
-    required _i8.FeedbackType feedbackType,
+    required _i9.FeedbackType feedbackType,
     String? metadata,
   }) => caller.callServerEndpoint<void>(
     'feedback',
@@ -554,7 +576,7 @@ class EndpointFeedback extends _i3.EndpointSignedPow {
 /// By extending [RefreshJwtTokensEndpoint], the JWT token refresh endpoint
 /// is made available on the server and enables automatic token refresh on the client.
 /// {@category Endpoint}
-class EndpointJwtRefresh extends _i9.EndpointRefreshJwtTokens {
+class EndpointJwtRefresh extends _i10.EndpointRefreshJwtTokens {
   EndpointJwtRefresh(_i1.EndpointCaller caller) : super(caller);
 
   @override
@@ -579,9 +601,9 @@ class EndpointJwtRefresh extends _i9.EndpointRefreshJwtTokens {
   /// This endpoint is unauthenticated, meaning the client won't include any
   /// authentication information with the call.
   @override
-  _i2.Future<_i9.AuthSuccess> refreshAccessToken({
+  _i2.Future<_i10.AuthSuccess> refreshAccessToken({
     required String refreshToken,
-  }) => caller.callServerEndpoint<_i9.AuthSuccess>(
+  }) => caller.callServerEndpoint<_i10.AuthSuccess>(
     'jwtRefresh',
     'refreshAccessToken',
     {'refreshToken': refreshToken},
@@ -605,7 +627,7 @@ class EndpointProductCatalog extends _i3.EndpointSignedPow {
 
   /// Get the product catalog for a platform.
   ///
-  /// Returns rail statuses and active product IDs for each rail
+  /// Returns rail statuses and enriched product details for each rail
   /// configured for the given platform.
   ///
   /// Parameters:
@@ -615,14 +637,14 @@ class EndpointProductCatalog extends _i3.EndpointSignedPow {
   /// - [signature]: ECDSA signature of "challenge:platformName"
   /// - [platformName]: Platform identifier (e.g. 'ios', 'android', 'web')
   ///
-  /// Returns: PlatformCatalogResponse with rails and their product IDs.
-  _i2.Future<_i10.PlatformCatalogResponse> getCatalog(
+  /// Returns: PlatformCatalogResponse with rails and their enriched products.
+  _i2.Future<_i11.PlatformCatalogResponse> getCatalog(
     String challenge,
     String proofOfWork,
     String publicKeyHex,
     String signature,
     String platformName,
-  ) => caller.callServerEndpoint<_i10.PlatformCatalogResponse>(
+  ) => caller.callServerEndpoint<_i11.PlatformCatalogResponse>(
     'productCatalog',
     'getCatalog',
     {
@@ -695,22 +717,22 @@ class EndpointProductCatalog extends _i3.EndpointSignedPow {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i11.Caller(client);
-    serverpod_auth_core = _i9.Caller(client);
+    serverpod_auth_idp = _i12.Caller(client);
+    serverpod_auth_core = _i10.Caller(client);
     community = _i7.Caller(client);
     anonaccount = _i3.Caller(client);
-    anonaccred = _i12.Caller(client);
+    anonaccred = _i13.Caller(client);
   }
 
-  late final _i11.Caller serverpod_auth_idp;
+  late final _i12.Caller serverpod_auth_idp;
 
-  late final _i9.Caller serverpod_auth_core;
+  late final _i10.Caller serverpod_auth_core;
 
   late final _i7.Caller community;
 
   late final _i3.Caller anonaccount;
 
-  late final _i12.Caller anonaccred;
+  late final _i13.Caller anonaccred;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -733,7 +755,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i13.Protocol(),
+         _i14.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -749,6 +771,7 @@ class Client extends _i1.ServerpodClientShared {
     cloudLlm = EndpointCloudLlm(this);
     cloudPowerSync = EndpointCloudPowerSync(this);
     errorReport = EndpointErrorReport(this);
+    featureEntitlement = EndpointFeatureEntitlement(this);
     feedback = EndpointFeedback(this);
     jwtRefresh = EndpointJwtRefresh(this);
     productCatalog = EndpointProductCatalog(this);
@@ -769,6 +792,8 @@ class Client extends _i1.ServerpodClientShared {
 
   late final EndpointErrorReport errorReport;
 
+  late final EndpointFeatureEntitlement featureEntitlement;
+
   late final EndpointFeedback feedback;
 
   late final EndpointJwtRefresh jwtRefresh;
@@ -786,6 +811,7 @@ class Client extends _i1.ServerpodClientShared {
     'cloudLlm': cloudLlm,
     'cloudPowerSync': cloudPowerSync,
     'errorReport': errorReport,
+    'featureEntitlement': featureEntitlement,
     'feedback': feedback,
     'jwtRefresh': jwtRefresh,
     'productCatalog': productCatalog,

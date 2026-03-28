@@ -131,7 +131,7 @@ class _BackupMethodsList extends StatelessWidget {
             title: context.l10n.exportToICloud,
             subtitle: context.l10n.backupICloudSubtitle,
             isCompleted: state.completedBackupMethods.contains(BackupMethod.iCloud),
-            onTap: state.isLoading ? null : cubit.exportToICloud,
+            onTap: state.isLoading ? null : () async => await cubit.exportToICloud(),
           ),
         // Export to file
         _BackupMethodTile(
@@ -139,7 +139,7 @@ class _BackupMethodsList extends StatelessWidget {
           title: context.l10n.exportToFile,
           subtitle: context.l10n.backupFileSubtitle,
           isCompleted: state.completedBackupMethods.contains(BackupMethod.file),
-          onTap: state.isLoading ? null : cubit.exportToFile,
+          onTap: state.isLoading ? null : () async => await cubit.exportToFile(),
         ),
         // Copy to clipboard
         _BackupMethodTile(
@@ -147,18 +147,8 @@ class _BackupMethodsList extends StatelessWidget {
           title: context.l10n.copyToClipboard,
           subtitle: context.l10n.backupClipboardSubtitle,
           isCompleted: state.completedBackupMethods.contains(BackupMethod.clipboard),
-          onTap: state.isLoading ? null : cubit.copyToClipboard,
+          onTap: state.isLoading ? null : () async => await cubit.copyToClipboard(),
         ),
-        // Device authentication (if available)
-        if (state.deviceAuthAvailable)
-          _BackupMethodTile(
-            icon: Icons.phonelink_lock_outlined,
-            title: context.l10n.backupDeviceAuthTitle,
-            subtitle: context.l10n.backupDeviceAuthSubtitle,
-            isCompleted: state.completedBackupMethods.contains(BackupMethod.biometrics),
-            onTap: state.isLoading ? null : cubit.storeWithBiometrics,
-            warning: context.l10n.backupDeviceAuthWarning,
-          ),
       ],
     );
   }
@@ -229,7 +219,7 @@ class _BackupMethodTile extends StatelessWidget {
                     HSpace.x05,
                     Expanded(
                       child: Text(
-                        warning!,
+                        warning ?? '',
                         style: context.text.bodySmall?.copyWith(
                           color: context.colors.cautionColor,
                         ),
@@ -296,7 +286,7 @@ class _ContinueSection extends StatelessWidget {
         QuanityaTextButton(
           text: context.l10n.continueAction,
           onPressed: state.canContinue
-              ? () => AppNavigation.toHome(context)
+              ? () => AppNavigation.toTemplateGallery(context)
               : null,
         ),
       ],

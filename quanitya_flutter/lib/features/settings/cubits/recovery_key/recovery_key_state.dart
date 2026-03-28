@@ -12,7 +12,7 @@ enum RecoveryKeyOperation {
 }
 
 @freezed
-class RecoveryKeyState with _$RecoveryKeyState, UiFlowStateMixin implements IUiFlowState {
+abstract class RecoveryKeyState with _$RecoveryKeyState, UiFlowStateMixin implements IUiFlowState {
   const RecoveryKeyState._();
 
   const factory RecoveryKeyState({

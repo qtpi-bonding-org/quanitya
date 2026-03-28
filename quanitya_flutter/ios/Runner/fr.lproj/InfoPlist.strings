@@ -1,0 +1,7 @@
+CFBundleDisplayName = "Quanitya";
+NSCameraUsageDescription = "Cette app a besoin de la caméra pour scanner les QR codes de jumelage.";
+NSPhotoLibraryUsageDescription = "Cette app a besoin de la photothèque pour scanner les QR codes depuis des images.";
+NSFaceIDUsageDescription = "Authentifiez-vous pour accéder aux modèles masqués et aux données protégées.";
+NSHealthShareUsageDescription = "Quanitya lit les données de santé pour alimenter vos suivis.";
+NSHealthUpdateUsageDescription = "Quanitya peut écrire des données de santé depuis vos suivis.";
+NSLocationWhenInUseUsageDescription = "Quanitya enregistre votre position lorsque vous appuyez sur le bouton de localisation.";

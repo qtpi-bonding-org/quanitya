@@ -31,7 +31,7 @@ class DeviceKeyNotProvisionedException implements Exception {
 }
 
 /// Interface for all cryptographic operations.
-abstract class IDataEncryptionService {
+abstract class IDataEncryption {
   Future<bool> isKeyProvisioned();
   Future<Uint8List> encryptData(String plaintext);
   Future<String> decryptData(Uint8List ciphertext);
@@ -45,11 +45,11 @@ abstract class IDataEncryptionService {
   Future<String> signWithKeyDuo(String data, KeyDuo keyDuo);
 }
 
-@Injectable(as: IDataEncryptionService)
-class DataEncryptionService implements IDataEncryptionService {
+@Injectable(as: IDataEncryption)
+class DataEncryption implements IDataEncryption {
   final ICryptoKeyRepository _keyRepository;
 
-  DataEncryptionService(this._keyRepository);
+  DataEncryption(this._keyRepository);
   
   @override
   Future<bool> isKeyProvisioned() {

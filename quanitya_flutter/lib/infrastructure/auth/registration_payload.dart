@@ -12,7 +12,8 @@ part 'registration_payload.g.dart';
 /// Created during [AuthService.createAccount] and stored in secure storage.
 /// Retrieved and sent during [AuthService.registerAccountWithServer].
 @freezed
-class RegistrationPayload with _$RegistrationPayload {
+abstract class RegistrationPayload with _$RegistrationPayload {
+  const RegistrationPayload._();
   const factory RegistrationPayload({
     /// Device signing public key (ECDSA P-256, 128-char hex)
     /// Used as the account's publicMasterKey on server

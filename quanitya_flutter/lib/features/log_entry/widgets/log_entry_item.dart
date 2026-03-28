@@ -5,6 +5,7 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../logic/log_entries/models/log_entry.dart';
 import '../../../../logic/templates/models/shared/tracker_template.dart';
+import '../../../../design_system/primitives/quanitya_date_format.dart';
 import '../../../../design_system/structures/column.dart';
 import '../../../../design_system/structures/row.dart';
 import '../../../../design_system/structures/group.dart';
@@ -25,7 +26,8 @@ class LogEntryItem extends StatelessWidget {
     final date = entry.displayTimestamp;
     final now = DateTime.now();
     final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
-    final timeStr = "${isToday ? context.l10n.logEntryToday : '${date.month}/${date.day}'}, ${date.hour}:${date.minute.toString().padLeft(2, '0')}";
+    final dateLabel = isToday ? context.l10n.logEntryToday : QuanityaDateFormat.monthDayCompact(date);
+    final timeStr = '$dateLabel, ${QuanityaDateFormat.time(date)}';
 
     final headerRow = Text(
       timeStr,

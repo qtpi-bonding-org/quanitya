@@ -7,6 +7,7 @@ import '../../../../logic/log_entries/services/log_entry_service.dart';
 import '../../../../logic/templates/models/shared/template_field.dart';
 import '../../../../logic/templates/models/shared/tracker_template.dart';
 import '../../../../logic/templates/services/shared/default_value_handler.dart';
+import '../../../../logic/templates/models/shared/field_validator.dart';
 import '../../../../logic/templates/services/shared/field_validators.dart';
 import 'dynamic_template_state.dart';
 
@@ -100,6 +101,7 @@ class DynamicTemplateCubit extends QuanityaCubit<DynamicTemplateState> {
       if (!validate()) {
         return state.copyWith(
           status: UiFlowStatus.failure,
+          lastOperation: DynamicTemplateOperation.submit,
           error: 'Please fix validation errors',
         );
       }
@@ -140,10 +142,13 @@ class DynamicTemplateCubit extends QuanityaCubit<DynamicTemplateState> {
 
   /// Validate a single field using centralized FieldValidators.
   String? _validateField(TemplateField field, dynamic value) {
+    final isOptional = field.validators.any(
+      (v) => v.validatorType == ValidatorType.optional,
+    );
     final validator = FieldValidators.forField(
       label: field.label,
       validators: field.validators,
-      isRequired: true, // All fields required by default
+      isRequired: !isOptional,
     );
     return validator(value);
   }

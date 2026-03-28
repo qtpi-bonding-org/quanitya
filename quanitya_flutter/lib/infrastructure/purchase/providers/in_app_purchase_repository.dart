@@ -1,0 +1,618 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import 'package:in_app_purchase/in_app_purchase.dart' as iap;
+import '../../config/debug_log.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
+import 'package:injectable/injectable.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
+
+import '../../auth/auth_account_orchestrator.dart';
+import '../../core/try_operation.dart';
+import '../../crypto/crypto_key_repository.dart';
+import '../../crypto/data_encryption_service.dart';
+import '../../crypto/utils/hashcash.dart';
+import '../i_digital_purchase_repository.dart';
+import '../purchase_exception.dart';
+import '../purchase_models.dart';
+
+const _tag = 'infrastructure/purchase/providers/in_app_purchase_repository';
+
+/// Repository for Apple/Google In-App Purchases.
+///
+/// Handles ONLY platform IAP operations: product listing, purchase initiation,
+/// server validation, and purchase completion. No side effects (no cubits,
+/// no cache updates, no LLM switching). Callers handle side effects.
+@LazySingleton(as: IDigitalPurchaseRepository)
+class InAppPurchaseRepository implements IDigitalPurchaseRepository {
+  final Client _client;
+  final ICryptoKeyRepository _keyRepository;
+  final IDataEncryption _encryption;
+  final AuthAccountOrchestrator _authOrchestrator;
+
+  InAppPurchaseRepository(
+    this._client,
+    this._keyRepository,
+    this._encryption,
+    this._authOrchestrator,
+  );
+
+  final iap.InAppPurchase _iapInstance = iap.InAppPurchase.instance;
+  StreamSubscription<List<iap.PurchaseDetails>>? _purchaseSubscription;
+
+  final StreamController<void> _entitlementGrantedController =
+      StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get onEntitlementGranted => _entitlementGrantedController.stream;
+
+  /// Pending purchase completers keyed by product ID.
+  final Map<String, Completer<PurchaseResult>> _pendingCompleters = {};
+
+  /// Store the raw PurchaseDetails for completePurchase calls.
+  final Map<String, iap.PurchaseDetails> _rawPurchaseDetails = {};
+
+  @override
+  PurchaseRail get rail {
+    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) return PurchaseRail.appleIap;
+    if (!kIsWeb && Platform.isAndroid) return PurchaseRail.googleIap;
+    return PurchaseRail.appleIap;
+  }
+
+  @override
+  PurchaseUiMode get uiMode => PurchaseUiMode.storeManaged;
+
+  @override
+  Future<bool> isAvailable() {
+    return tryMethod(
+      () async => await _iapInstance.isAvailable(),
+      PurchaseException.new,
+      'isAvailable',
+    );
+  }
+
+  @override
+  Future<void> initialize() {
+    return tryMethod(
+      () async {
+        _purchaseSubscription?.cancel();
+        _purchaseSubscription = _iapInstance.purchaseStream.listen(
+          _handlePurchaseUpdates,
+          onError: (error) {
+            Log.d(_tag, 'InAppPurchaseProvider: Purchase stream error: $error');
+          },
+        );
+      },
+      PurchaseException.new,
+      'initialize',
+    );
+  }
+
+  /// Fetch the server catalog for the current platform/rail.
+  ///
+  /// Returns a map of storeProductId → list of [ProductGrant] from the server.
+  /// Always fetches fresh data so that disabled products are removed.
+  Future<Map<String, List<ProductGrant>>> _fetchCatalog() {
+    return tryMethod(() async {
+      final platformName = _getPlatformName();
+
+      // 1. Get challenge from server
+      final challengeResponse = await _client.modules.anonaccount.entrypoint.getChallenge();
+      final challenge = challengeResponse.challenge;
+      final difficulty = challengeResponse.difficulty;
+
+      // 2. Mine proof-of-work
+      final proofOfWork = await Hashcash.mint(challenge, difficulty: difficulty);
+
+      // 3. Sign payload with device key
+      final publicKeyHex =
+          await _keyRepository.getDeviceSigningPublicKeyHex();
+      if (publicKeyHex == null) {
+        throw const PurchaseException('Device key not found');
+      }
+      final payload = '$challenge:$platformName';
+      final signature = await _encryption.signWithDeviceKey(payload);
+
+      // 4. Call platform catalog endpoint
+      final catalog = await _client.productCatalog.getCatalog(
+        challenge,
+        proofOfWork,
+        publicKeyHex,
+        signature,
+        platformName,
+      );
+
+      // 5. Extract products for this provider's rail
+      final railName = switch (rail) {
+        PurchaseRail.appleIap => 'apple_iap',
+        PurchaseRail.googleIap => 'google_iap',
+        PurchaseRail.monero => 'monero',
+        PurchaseRail.x402Http => 'x402_http',
+      };
+
+      final matchingRail = catalog.rails
+          .where((r) => r.rail == railName && r.status == RailStatus.active)
+          .firstOrNull;
+
+      if (matchingRail == null) return <String, List<ProductGrant>>{};
+
+      return {
+        for (final p in matchingRail.products)
+          p.storeProductId: p.grants
+              .map((g) => ProductGrant(
+                    feature: g.feature.name,
+                    quantity: g.quantity,
+                  ))
+              .toList(),
+      };
+    }, PurchaseException.new, '_fetchCatalog');
+  }
+
+  /// Get platform name for the catalog endpoint.
+  String _getPlatformName() {
+    if (kIsWeb) return 'web';
+    if (Platform.isIOS) return 'ios';
+    if (Platform.isAndroid) return 'android';
+    if (Platform.isMacOS) return 'macos';
+    if (Platform.isWindows) return 'windows';
+    if (Platform.isLinux) return 'linux';
+    return 'unknown';
+  }
+
+  @override
+  Future<List<PurchaseProduct>> getAvailableProducts() {
+    return tryMethod(
+      () async {
+        final catalogMap = await _fetchCatalog();
+        final productIds = catalogMap.keys.toSet();
+        final response = await _iapInstance.queryProductDetails(productIds);
+
+        if (response.notFoundIDs.isNotEmpty) {
+          Log.d(_tag,
+            'InAppPurchaseProvider: Products not found: ${response.notFoundIDs}',
+          );
+        }
+
+        return response.productDetails.map((detail) {
+          return PurchaseProduct(
+            productId: detail.id,
+            title: detail.title,
+            description: detail.description,
+            priceUsd: detail.rawPrice,
+            rail: rail,
+            productType: _detectProductType(detail),
+            subscriptionPeriod: _detectSubscriptionPeriod(detail) ??
+                _periodFromProductId(detail.id),
+            localizedPrice: detail.price,
+            currencyCode: detail.currencyCode,
+            grants: catalogMap[detail.id] ?? [],
+          );
+        }).toList();
+      },
+      PurchaseException.new,
+      'getAvailableProducts',
+    );
+  }
+
+  @override
+  Future<PurchaseResult> initiatePurchase(PurchaseRequest request) {
+    return tryMethod(
+      () async {
+        final response =
+            await _iapInstance.queryProductDetails({request.productId});
+        if (response.productDetails.isEmpty) {
+          throw PurchaseException('Product not found: ${request.productId}');
+        }
+
+        final productDetails = response.productDetails.first;
+        final completer = Completer<PurchaseResult>();
+        _pendingCompleters[request.productId] = completer;
+
+        final purchaseParam = iap.PurchaseParam(
+          productDetails: productDetails,
+        );
+
+        final isSubscription =
+            _detectProductType(productDetails) == StoreProductType.subscription;
+
+        final bool started;
+        if (isSubscription) {
+          started = await _iapInstance.buyNonConsumable(
+            purchaseParam: purchaseParam,
+          );
+        } else {
+          started = await _iapInstance.buyConsumable(
+            purchaseParam: purchaseParam,
+          );
+        }
+
+        if (!started) {
+          _pendingCompleters.remove(request.productId);
+          return PurchaseResult(
+            status: PurchaseStatus.failed,
+            rail: rail,
+            productId: request.productId,
+            errorMessage: 'Failed to start purchase',
+          );
+        }
+
+        return await completer.future.timeout(
+          const Duration(minutes: 2),
+          onTimeout: () {
+            _pendingCompleters.remove(request.productId);
+            return PurchaseResult(
+              status: PurchaseStatus.failed,
+              rail: rail,
+              productId: request.productId,
+              errorMessage: 'Purchase timed out',
+            );
+          },
+        );
+      },
+      PurchaseException.new,
+      'initiatePurchase',
+    );
+  }
+
+  @override
+  Future<PurchaseValidationResult> validateWithServer(
+    PurchaseResult purchase,
+  ) {
+    return tryMethod(
+      () async {
+        Log.d(_tag, 'validateWithServer: starting for '
+            'rail=${purchase.rail}, '
+            'productId=${purchase.productId}, '
+            'transactionId=${purchase.transactionId}, '
+            'status=${purchase.status}');
+
+        // Ensure JWT session (orchestrator handles re-registration if needed).
+        await _authOrchestrator.ensureAuthenticated();
+
+        Log.d(_tag, 'validateWithServer: authenticated, validating...');
+        // ignore: prefer_typing_uninitialized_variables
+        final result;
+
+        if (purchase.rail == PurchaseRail.appleIap) {
+          final txnId = purchase.transactionId ?? '';
+          Log.d(_tag, 'validateWithServer: calling validateAppleTransaction '
+              'txnId=$txnId, '
+              'productId=${purchase.productId}');
+          result =
+              await _client.modules.anonaccred.iAP.validateAppleTransaction(
+            txnId,
+            purchase.productId,
+            internalTransactionId: purchase.transactionId,
+          );
+        } else {
+          Log.d(_tag, 'validateWithServer: calling validateGooglePurchase '
+              'packageName=${purchase.packageName}, '
+              'productId=${purchase.productId}, '
+              'purchaseToken=${purchase.purchaseToken != null ? '${purchase.purchaseToken?.substring(0, 20)}...' : 'null'}');
+          final packageName = purchase.packageName;
+          final purchaseToken = purchase.purchaseToken;
+          if (packageName == null || purchaseToken == null) {
+            throw PurchaseException(
+              'Missing required Google purchase data: '
+              'packageName=${packageName != null ? "present" : "null"}, '
+              'purchaseToken=${purchaseToken != null ? "present" : "null"}',
+            );
+          }
+          result =
+              await _client.modules.anonaccred.iAP.validateGooglePurchase(
+            packageName,
+            purchase.productId,
+            purchaseToken,
+            internalTransactionId: purchase.transactionId,
+          );
+        }
+
+        Log.d(_tag, 'validateWithServer: server response=$result');
+
+        if (result.success) {
+          // Complete the platform purchase (clears Apple/Google queue)
+          final rawDetails = _rawPurchaseDetails.remove(purchase.productId);
+          if (rawDetails != null) {
+            await _iapInstance.completePurchase(rawDetails);
+            Log.d(_tag, 'validateWithServer: completePurchase called');
+          }
+        }
+
+        return PurchaseValidationResult(
+          success: result.success,
+          productId: result.productId,
+          tag: result.tag,
+          amount: result.amount,
+          errorMessage: result.error,
+        );
+      },
+      PurchaseException.new,
+      'validateWithServer',
+    );
+  }
+
+  @override
+  Future<void> recoverPendingPurchases() {
+    return tryMethod(
+      () async {
+        await _iapInstance.restorePurchases();
+        // Restored transactions arrive via the purchase stream.
+        // _handlePurchaseUpdates routes them to _recoverOrphanedPurchase
+        // which validates with server and calls completePurchase.
+      },
+      PurchaseException.new,
+      'recoverPendingPurchases',
+    );
+  }
+
+  @override
+  Future<void> reconcileSubscriptionEntitlements() {
+    return tryMethod(
+      () async {
+        if (kIsWeb) return;
+
+        if (Platform.isIOS || Platform.isMacOS) {
+          await _reconcileAppleSubscriptions();
+        } else if (Platform.isAndroid) {
+          await _reconcileGoogleSubscriptions();
+        }
+      },
+      PurchaseException.new,
+      'reconcileSubscriptionEntitlements',
+    );
+  }
+
+  /// iOS/macOS: query StoreKit 2 active transactions and re-validate
+  /// subscriptions with the server.
+  Future<void> _reconcileAppleSubscriptions() async {
+    Log.d(_tag, 'reconcileSubscriptionEntitlements: querying SK2 transactions...');
+    final allTransactions = await SK2Transaction.transactions();
+    final transactions = allTransactions.where(
+      (tx) => tx.subscriptionGroupID != null,
+    ).toList();
+    Log.d(_tag,
+      'reconcileSubscriptionEntitlements: found ${transactions.length} subscription transactions (${allTransactions.length} total)',
+    );
+
+    for (final transaction in transactions) {
+      try {
+        final result = PurchaseResult(
+          status: PurchaseStatus.success,
+          rail: PurchaseRail.appleIap,
+          productId: transaction.productId,
+          transactionId: transaction.id,
+        );
+
+        final validation = await validateWithServer(result);
+        Log.d(_tag,
+          'reconcileSubscriptionEntitlements: '
+          '${transaction.productId} → success=${validation.success}',
+        );
+      } catch (e, stack) {
+        Log.d(_tag,
+          'reconcileSubscriptionEntitlements: failed for '
+          '${transaction.productId}: $e',
+        );
+        await ErrorPrivserver.captureError(e, stack, source: 'InAppPurchaseRepository');
+      }
+    }
+  }
+
+  /// Android: query active subscriptions via Google Play Billing and
+  /// re-validate each with the server.
+  Future<void> _reconcileGoogleSubscriptions() async {
+    Log.d(_tag, 'reconcileSubscriptionEntitlements: querying Google Play subscriptions...');
+    final androidAddition = _iapInstance
+        .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
+
+    final response = await androidAddition.queryPastPurchases();
+    // Filter to subscription-type purchases only.
+    final subscriptions = response.pastPurchases.where(
+      (p) => p.productID.endsWith('_month') || p.productID.endsWith('_year'),
+    ).toList();
+    Log.d(_tag,
+      'reconcileSubscriptionEntitlements: found ${subscriptions.length} subscriptions (${response.pastPurchases.length} total)',
+    );
+
+    for (final purchase in subscriptions) {
+      try {
+        final result = PurchaseResult(
+          status: PurchaseStatus.success,
+          rail: PurchaseRail.googleIap,
+          productId: purchase.productID,
+          transactionId: purchase.purchaseID,
+          purchaseToken: purchase.billingClientPurchase.purchaseToken,
+          packageName: purchase.billingClientPurchase.packageName,
+        );
+
+        final validation = await validateWithServer(result);
+        Log.d(_tag,
+          'reconcileSubscriptionEntitlements: '
+          '${purchase.productID} → success=${validation.success}',
+        );
+      } catch (e, stack) {
+        Log.d(_tag,
+          'reconcileSubscriptionEntitlements: failed for '
+          '${purchase.productID}: $e',
+        );
+        await ErrorPrivserver.captureError(e, stack, source: 'InAppPurchaseRepository');
+      }
+    }
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _purchaseSubscription?.cancel();
+    _purchaseSubscription = null;
+    _pendingCompleters.clear();
+    _rawPurchaseDetails.clear();
+    await _entitlementGrantedController.close();
+  }
+
+  /// Detect product type from platform-specific store metadata.
+  ///
+  /// Cross-platform `ProductDetails` does not expose product type,
+  /// so we cast to iOS/Android subclasses.
+  /// iOS has two subclasses: `AppStoreProduct2Details` (StoreKit 2, has type)
+  /// and `AppStoreProductDetails` (StoreKit 1, no type field).
+  StoreProductType _detectProductType(iap.ProductDetails detail) {
+    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+      if (detail is AppStoreProduct2Details) {
+        return switch (detail.sk2Product.type) {
+          SK2ProductType.autoRenewable ||
+          SK2ProductType.nonRenewable =>
+            StoreProductType.subscription,
+          SK2ProductType.consumable ||
+          SK2ProductType.nonConsumable =>
+            StoreProductType.consumable,
+        };
+      }
+      // SK1 (AppStoreProductDetails) doesn't expose product type
+      return StoreProductType.unknown;
+    } else if (!kIsWeb && Platform.isAndroid) {
+      if (detail is GooglePlayProductDetails) {
+        return switch (detail.productDetails.productType) {
+          ProductType.subs => StoreProductType.subscription,
+          ProductType.inapp => StoreProductType.consumable,
+        };
+      }
+    }
+    return StoreProductType.unknown;
+  }
+
+  /// Detect subscription billing period from platform-specific metadata.
+  SubscriptionPeriod? _detectSubscriptionPeriod(iap.ProductDetails detail) {
+    if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+      if (detail is AppStoreProduct2Details) {
+        final period = detail.sk2Product.subscription?.subscriptionPeriod;
+        if (period == null) return null;
+        return switch (period.unit) {
+          SK2SubscriptionPeriodUnit.month => SubscriptionPeriod.monthly,
+          SK2SubscriptionPeriodUnit.year => SubscriptionPeriod.yearly,
+          _ => null,
+        };
+      }
+    } else if (!kIsWeb && Platform.isAndroid) {
+      if (detail is GooglePlayProductDetails) {
+        final offers = detail.productDetails.subscriptionOfferDetails;
+        if (offers != null && offers.isNotEmpty) {
+          final phases = offers.first.pricingPhases;
+          if (phases.isNotEmpty) {
+            final billingPeriod = phases.first.billingPeriod;
+            if (billingPeriod.contains('Y')) return SubscriptionPeriod.yearly;
+            if (billingPeriod.contains('M')) return SubscriptionPeriod.monthly;
+            return null;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Fallback: parse period from product ID naming convention.
+  /// Schema: q_{date}_{category}_{tier}_{period}
+  /// e.g. q_20260308_sync_500mb_month → monthly
+  static SubscriptionPeriod? _periodFromProductId(String productId) {
+    if (productId.endsWith('_month')) return SubscriptionPeriod.monthly;
+    if (productId.endsWith('_year')) return SubscriptionPeriod.yearly;
+    return null;
+  }
+
+  final Set<String> _recoveringTransactions = {};
+
+  void _handlePurchaseUpdates(List<iap.PurchaseDetails> purchaseDetailsList) {
+    for (final details in purchaseDetailsList) {
+      final result = _mapPurchaseDetails(details);
+      final completer = _pendingCompleters.remove(details.productID);
+
+      if (details.status == iap.PurchaseStatus.purchased ||
+          details.status == iap.PurchaseStatus.restored) {
+        _rawPurchaseDetails[details.productID] = details;
+      }
+
+      if (completer != null && !completer.isCompleted) {
+        completer.complete(result);
+      } else if (details.status == iap.PurchaseStatus.purchased ||
+          details.status == iap.PurchaseStatus.restored) {
+        // Orphaned transaction — no active purchase request waiting for this.
+        // Skip if already being recovered (prevents re-entry loop).
+        final txnId = result.transactionId ?? result.productId;
+        if (!_recoveringTransactions.contains(txnId)) {
+          unawaited(_recoverOrphanedPurchase(result));
+        }
+      }
+    }
+  }
+
+  Future<void> _recoverOrphanedPurchase(PurchaseResult result) async {
+    final txnId = result.transactionId ?? result.productId;
+    _recoveringTransactions.add(txnId);
+    try {
+      Log.d(_tag, '_recoverOrphanedPurchase: recovering '
+          'productId=${result.productId}, '
+          'transactionId=${result.transactionId}');
+      await validateWithServer(result);
+      Log.d(_tag, '_recoverOrphanedPurchase: recovered ${result.productId}');
+      _entitlementGrantedController.add(null);
+    } catch (e, stack) {
+      Log.d(_tag, '_recoverOrphanedPurchase: failed for '
+          '${result.productId}: $e');
+      await ErrorPrivserver.captureError(e, stack, source: 'InAppPurchaseRepository');
+      // Still try to complete the purchase to clear the queue
+      final rawDetails = _rawPurchaseDetails.remove(result.productId);
+      if (rawDetails != null) {
+        try {
+          await _iapInstance.completePurchase(rawDetails);
+          Log.d(_tag, '_recoverOrphanedPurchase: '
+              'completePurchase called for ${result.productId}');
+        } catch (e2, stack2) {
+          Log.d(_tag, '_recoverOrphanedPurchase: '
+              'completePurchase also failed: $e2');
+          await ErrorPrivserver.captureError(e2, stack2, source: 'InAppPurchaseRepository');
+        }
+      }
+    } finally {
+      _recoveringTransactions.remove(txnId);
+    }
+  }
+
+  PurchaseResult _mapPurchaseDetails(iap.PurchaseDetails details) {
+    final PurchaseStatus status;
+    switch (details.status) {
+      case iap.PurchaseStatus.purchased:
+      case iap.PurchaseStatus.restored:
+        status = PurchaseStatus.success;
+      case iap.PurchaseStatus.pending:
+        status = PurchaseStatus.pending;
+      case iap.PurchaseStatus.canceled:
+        status = PurchaseStatus.cancelled;
+      case iap.PurchaseStatus.error:
+        status = PurchaseStatus.failed;
+    }
+
+    // Extract Google Play-specific fields for server validation.
+    String? packageName;
+    String? purchaseToken;
+    if (details is GooglePlayPurchaseDetails) {
+      packageName = details.billingClientPurchase.packageName;
+      purchaseToken = details.billingClientPurchase.purchaseToken;
+    } else {
+      purchaseToken = details.verificationData.serverVerificationData;
+    }
+
+    return PurchaseResult(
+      status: status,
+      rail: rail,
+      productId: details.productID,
+      transactionId: details.purchaseID,
+      purchaseToken: purchaseToken,
+      packageName: packageName,
+      errorMessage: details.error?.message,
+    );
+  }
+}

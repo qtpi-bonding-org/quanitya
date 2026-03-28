@@ -14,7 +14,7 @@ part 'schedule.g.dart';
 /// - "Weekly workout summary every Sunday at 6pm"
 /// - "Medication reminder every 8 hours"
 @freezed
-class ScheduleModel with _$ScheduleModel {
+abstract class ScheduleModel with _$ScheduleModel {
   const ScheduleModel._();
   
   const factory ScheduleModel({

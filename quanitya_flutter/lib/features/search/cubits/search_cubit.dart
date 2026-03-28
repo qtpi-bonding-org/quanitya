@@ -20,6 +20,7 @@ class SearchCubit extends QuanityaCubit<SearchState> {
 
     await tryOperation(() async {
       final results = await _searchRepo.search(trimmed);
+      analytics?.trackSearchPerformed();
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: SearchOperation.search,

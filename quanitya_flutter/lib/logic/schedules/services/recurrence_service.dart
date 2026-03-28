@@ -1,7 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:rrule/rrule.dart';
 
+const _tag = 'logic/schedules/services/recurrence_service';
 
 /// Service for parsing and calculating recurrence rules (RRULE).
 /// 
@@ -12,7 +13,7 @@ import 'package:rrule/rrule.dart';
 /// - Validation
 @lazySingleton
 class RecurrenceService {
-  
+
   /// Try to parse an RRULE string. Returns null if invalid.
   ///
   /// Accepts both `RRULE:FREQ=...` and bare `FREQ=...` formats.
@@ -24,7 +25,7 @@ class RecurrenceService {
           : 'RRULE:$rruleString';
       return RecurrenceRule.fromString(normalized);
     } catch (e) {
-      debugPrint('RecurrenceService: Invalid RRULE "$rruleString": $e');
+      Log.d(_tag, 'RecurrenceService: Invalid RRULE "$rruleString": $e');
       return null;
     }
   }
@@ -34,13 +35,31 @@ class RecurrenceService {
     return tryParse(rruleString) != null;
   }
 
+  /// Reinterpret a local DateTime's wall-clock values as UTC.
+  ///
+  /// The rrule package requires UTC DateTimes, but our BYHOUR/BYMINUTE
+  /// values represent local wall-clock time (RFC 5545 "floating time").
+  /// This stamps the same hour/minute values as UTC so the package
+  /// matches BYHOUR=9 against hour 9 — without shifting by timezone offset.
+  DateTime _toWallClockUtc(DateTime dt) {
+    return DateTime.utc(
+      dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second,
+    );
+  }
+
+  /// Convert a wall-clock UTC DateTime back to a local DateTime,
+  /// preserving the wall-clock values (year, month, day, hour, minute).
+  DateTime _fromWallClockUtc(DateTime dt) {
+    return DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
+  }
+
   /// Get occurrences of a recurrence rule within a date range.
-  /// 
+  ///
   /// [rruleString] - The RRULE string (e.g., "FREQ=DAILY;BYHOUR=9")
   /// [start] - The start date for the recurrence (DTSTART equivalent)
   /// [after] - Only return occurrences after this date (exclusive)
   /// [before] - Only return occurrences before this date (exclusive)
-  /// 
+  ///
   /// Returns empty list if RRULE is invalid.
   List<DateTime> getOccurrences({
     required String rruleString,
@@ -52,16 +71,17 @@ class RecurrenceService {
     if (rule == null) return [];
 
     try {
-      // rrule package requires all datetimes to be UTC
+      // BYHOUR/BYMINUTE in our RRULEs are local wall-clock times.
+      // We fake UTC so the rrule package processes them correctly,
+      // then convert results back to local DateTimes.
       final results = rule.getInstances(
-        start: start.toUtc(),
-        after: after?.toUtc(),
-        before: before?.toUtc(),
+        start: _toWallClockUtc(start),
+        after: after != null ? _toWallClockUtc(after) : null,
+        before: before != null ? _toWallClockUtc(before) : null,
       ).toList();
-      // Convert back to local time for the rest of the app
-      return results.map((d) => d.toLocal()).toList();
+      return results.map(_fromWallClockUtc).toList();
     } catch (e) {
-      debugPrint('RecurrenceService: Error getting occurrences: $e');
+      Log.d(_tag, 'RecurrenceService: Error getting occurrences: $e');
       return [];
     }
   }
@@ -77,14 +97,13 @@ class RecurrenceService {
     if (rule == null) return [];
 
     try {
-      // rrule package requires all datetimes to be UTC
       final results = rule.getInstances(
-        start: start.toUtc(),
-        after: after?.toUtc(),
+        start: _toWallClockUtc(start),
+        after: after != null ? _toWallClockUtc(after) : null,
       ).take(count).toList();
-      return results.map((d) => d.toLocal()).toList();
+      return results.map(_fromWallClockUtc).toList();
     } catch (e) {
-      debugPrint('RecurrenceService: Error getting next occurrences: $e');
+      Log.d(_tag, 'RecurrenceService: Error getting next occurrences: $e');
       return [];
     }
   }
@@ -103,7 +122,7 @@ class RecurrenceService {
       // until the dependency is sorted.
       return 'Repeats ${rule.frequency.toString().split('.').last}';
     } catch (e) {
-      debugPrint('RecurrenceService: Error converting to text: $e');
+      Log.d(_tag, 'RecurrenceService: Error converting to text: $e');
       return rruleString;
     }
   }

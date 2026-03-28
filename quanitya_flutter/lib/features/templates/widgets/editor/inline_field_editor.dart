@@ -20,6 +20,7 @@ import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../design_system/widgets/quanitya_icon_button.dart';
+import '../../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
 import '../../../../support/extensions/context_extensions.dart';
 
 /// Inline field editor for adding or editing template fields.
@@ -65,6 +66,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   late bool _isList;
   late List<String> _options;
   MeasurementUnit? _selectedUnit;
+  late bool _isOptional;
 
   // Default value state (type varies by field)
   Object? _defaultValue;
@@ -77,15 +79,18 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     final generator = GetIt.I<SymbolicCombinationGenerator>();
     _defaultHandler = GetIt.I<DefaultValueHandler>();
     _validWidgets = generator.getValidUiElementsForField(widget.fieldType);
-    
+
     if (widget.isEditing) {
       final field = widget.existingField!;
       _labelController = TextEditingController(text: field.label);
-      _selectedWidget = field.uiElement ?? _validWidgets.first;
+      _selectedWidget = field.uiElement ?? (_validWidgets.isNotEmpty ? _validWidgets.first : UiElementEnum.textField);
       _isList = field.isList;
       _options = List.from(field.options ?? []);
       _selectedUnit = field.unit;
       _defaultValue = field.defaultValue;
+      _isOptional = field.validators.any(
+        (v) => v.validatorType == ValidatorType.optional,
+      );
       _defaultValueController = TextEditingController(
         text: _defaultValueToString(field.defaultValue),
       );
@@ -111,8 +116,9 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       );
     } else {
       _labelController = TextEditingController();
-      _selectedWidget = _validWidgets.first;
+      _selectedWidget = _validWidgets.isNotEmpty ? _validWidgets.first : UiElementEnum.textField;
       _isList = false;
+      _isOptional = false;
       _options = [];
       _selectedUnit = null;
       _defaultValue = null;
@@ -136,7 +142,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final isEnumerated = widget.fieldType == FieldEnum.enumerated;
+    final isEnumerated = widget.fieldType == FieldEnum.enumerated || widget.fieldType == FieldEnum.multiEnum;
     final draftColor = context.colors.textSecondary; // Blue-gray "pencil sketch"
     final supportsDefault = _defaultHandler.supportsManualDefault(widget.fieldType);
     
@@ -193,9 +199,15 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
           
           // isList toggle
           _buildListToggle(context, draftColor),
-          
+
+          // Optional toggle (text fields only)
+          if (widget.fieldType == FieldEnum.text) ...[
+            VSpace.x1,
+            _buildOptionalToggle(context, draftColor),
+          ],
+
           VSpace.x2,
-          
+
           // Action buttons
           _buildActions(context),
         ],
@@ -208,8 +220,6 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       widget.fieldType == FieldEnum.float ||
       widget.fieldType == FieldEnum.dimension;
 
-  bool get _rangeRequired => _isNumericField;
-
   Widget _buildRangeEditor(BuildContext context, Color draftColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,30 +231,32 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
           ),
         ),
         VSpace.x05,
-        QuanityaRow(
-          spacing: HSpace.x1,
-          start: Expanded(
-            child: QuanityaTextField(
-              controller: _minController,
-              hintText: context.l10n.fieldRangeMinHint,
-              keyboardType: widget.fieldType == FieldEnum.integer
-                  ? const TextInputType.numberWithOptions(signed: true)
-                  : const TextInputType.numberWithOptions(
-                      decimal: true, signed: true),
-              onChanged: (_) => setState(() {}),
+        Row(
+          children: [
+            Expanded(
+              child: QuanityaTextField(
+                controller: _minController,
+                hintText: context.l10n.fieldRangeMinHint,
+                keyboardType: widget.fieldType == FieldEnum.integer
+                    ? const TextInputType.numberWithOptions(signed: true)
+                    : const TextInputType.numberWithOptions(
+                        decimal: true, signed: true),
+                onChanged: (_) => setState(() {}),
+              ),
             ),
-          ),
-          end: Expanded(
-            child: QuanityaTextField(
-              controller: _maxController,
-              hintText: context.l10n.fieldRangeMaxHint,
-              keyboardType: widget.fieldType == FieldEnum.integer
-                  ? const TextInputType.numberWithOptions(signed: true)
-                  : const TextInputType.numberWithOptions(
-                      decimal: true, signed: true),
-              onChanged: (_) => setState(() {}),
+            HSpace.x1,
+            Expanded(
+              child: QuanityaTextField(
+                controller: _maxController,
+                hintText: context.l10n.fieldRangeMaxHint,
+                keyboardType: widget.fieldType == FieldEnum.integer
+                    ? const TextInputType.numberWithOptions(signed: true)
+                    : const TextInputType.numberWithOptions(
+                        decimal: true, signed: true),
+                onChanged: (_) => setState(() {}),
+              ),
             ),
-          ),
+          ],
         ),
       ],
     );
@@ -254,7 +266,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     return QuanityaRow(
       alignment: CrossAxisAlignment.center,
       start: Icon(
-        _getFieldIcon(),
+        widget.fieldType.icon,
         size: AppSizes.iconSmall,
         color: draftColor,
       ),
@@ -283,8 +295,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         Wrap(
           spacing: AppSizes.space,
           runSpacing: AppSizes.space * 0.5,
-          children: _validWidgets.map((w) => _DraftChip(
-            label: _getWidgetDisplayName(context, w),
+          children: _validWidgets.map((w) => PenCircledChip(
+            label: w.displayName(context),
             isSelected: _selectedWidget == w,
             onTap: () => setState(() => _selectedWidget = w),
           )).toList(),
@@ -335,6 +347,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
               controller: _optionController,
               hintText: context.l10n.addOptionHint,
               onSubmitted: (_) => _addOption(),
+              onChanged: (_) => setState(() {}),
             ),
           ),
           end: QuanityaIconButton(
@@ -375,7 +388,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
               spacing: AppSizes.space,
               runSpacing: AppSizes.space * 0.5,
               children: MeasurementUnit.unitsFor(dimension).map((unit) =>
-                _DraftChip(
+                PenCircledChip(
                   label: '${unit.fullName} (${unit.displayName})',
                   isSelected: _selectedUnit == unit,
                   onTap: () => setState(() => _selectedUnit = unit),
@@ -390,7 +403,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   Widget _buildListToggle(BuildContext context, Color draftColor) {
     return Semantics(
       toggled: _isList,
-      label: 'Allow multiple values',
+      label: context.l10n.accessibilityAllowMultipleValues,
       child: InkWell(
         onTap: () => setState(() => _isList = !_isList),
       borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
@@ -428,6 +441,27 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     );
   }
 
+  Widget _buildOptionalToggle(BuildContext context, Color draftColor) {
+    return QuanityaRow(
+      alignment: CrossAxisAlignment.center,
+      start: Text(
+        context.l10n.fieldOptionalLabel,
+        style: context.text.bodyMedium?.copyWith(
+          color: draftColor,
+        ),
+      ),
+      end: QuanityaToggle(
+        value: _isOptional,
+        onChanged: (val) => setState(() => _isOptional = val),
+        semanticLabel: context.l10n.fieldOptionalLabel,
+        activeTrackColor: context.colors.interactableColor,
+        activeThumbColor: context.colors.backgroundPrimary,
+        inactiveTrackColor: draftColor,
+        inactiveThumbColor: context.colors.backgroundPrimary,
+      ),
+    );
+  }
+
   Widget _buildDefaultValueEditor(BuildContext context, Color draftColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,6 +470,14 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
           context.l10n.fieldDefaultValueLabel,
           style: context.text.labelMedium?.copyWith(
             color: draftColor,
+          ),
+        ),
+        VSpace.x025,
+        Text(
+          context.l10n.fieldDefaultValueQuickLogHint,
+          style: context.text.bodySmall?.copyWith(
+            color: draftColor,
+            fontWeight: FontWeight.bold,
           ),
         ),
         VSpace.x05,
@@ -469,6 +511,10 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
         const SizedBox.shrink(), // No default for references
       FieldEnum.location =>
         const SizedBox.shrink(), // No default for locations
+      FieldEnum.group =>
+        const SizedBox.shrink(), // No default for groups
+      FieldEnum.multiEnum =>
+        const SizedBox.shrink(), // No default for multi-select
     };
   }
 
@@ -488,8 +534,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             _defaultValue = _defaultHandler.parseDefault(value, widget.fieldType);
             if (_defaultValue == null) {
               _defaultValueError = widget.fieldType == FieldEnum.integer
-                  ? 'Must be a whole number'
-                  : 'Must be a number';
+                  ? context.l10n.validationMustBeWholeNumber
+                  : context.l10n.validationMustBeNumber;
             } else {
               _defaultValueError = null;
             }
@@ -513,9 +559,12 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   }
 
   Widget _buildBooleanDefaultInput(BuildContext context, Color draftColor) {
-    return Row(
+    return Wrap(
+      spacing: AppSizes.space,
+      runSpacing: AppSizes.space * 0.5,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        _DraftChip(
+        PenCircledChip(
           label: context.l10n.booleanTrue,
           isSelected: _defaultValue == true,
           onTap: () => setState(() {
@@ -523,8 +572,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             _defaultValueError = null;
           }),
         ),
-        HSpace.x1,
-        _DraftChip(
+        PenCircledChip(
           label: context.l10n.booleanFalse,
           isSelected: _defaultValue == false,
           onTap: () => setState(() {
@@ -532,7 +580,6 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             _defaultValueError = null;
           }),
         ),
-        HSpace.x2,
         if (_defaultValue != null)
           QuanityaTextButton(
             text: context.l10n.actionClear,
@@ -547,7 +594,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
 
     return Semantics(
       button: true,
-      label: 'Set default date/time',
+      label: context.l10n.accessibilitySetDefaultDateTime,
       child: InkWell(
         onTap: () async {
         final now = DateTime.now();
@@ -562,7 +609,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             context: context,
             initialTime: TimeOfDay.now(),
           );
-          if (time != null) {
+          if (time != null && mounted) {
             final dateTime = DateTime(
               date.year, date.month, date.day,
               time.hour, time.minute,
@@ -626,7 +673,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     return Wrap(
       spacing: AppSizes.space,
       runSpacing: AppSizes.space * 0.5,
-      children: _options.map((option) => _DraftChip(
+      children: _options.map((option) => PenCircledChip(
         label: option,
         isSelected: _defaultValue == option,
         onTap: () => setState(() {
@@ -681,8 +728,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     final label = _labelController.text.trim();
     if (label.isEmpty) return false;
 
-    // Enumerated fields need at least one option
-    if (widget.fieldType == FieldEnum.enumerated && _options.isEmpty) {
+    // Enumerated and multiEnum fields need at least one option
+    if ((widget.fieldType == FieldEnum.enumerated || widget.fieldType == FieldEnum.multiEnum) && _options.isEmpty) {
       return false;
     }
 
@@ -712,7 +759,17 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   }
 
   List<FieldValidator> _buildValidators() {
-    if (!_isNumericField) return [];
+    final validators = <FieldValidator>[];
+
+    // Add optional validator for text fields
+    if (_isOptional) {
+      validators.add(FieldValidator.create(
+        validatorType: ValidatorType.optional,
+        validatorData: {},
+      ));
+    }
+
+    if (!_isNumericField) return validators;
 
     final minText = _minController.text.trim();
     final maxText = _maxController.text.trim();
@@ -721,17 +778,16 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     num? minVal = minText.isNotEmpty ? num.parse(minText) : null;
     num? maxVal = maxText.isNotEmpty ? num.parse(maxText) : null;
 
-    if (_rangeRequired) {
+    if (_isNumericField) {
       minVal ??= 0;
       maxVal ??= 10;
     }
 
-    // No values = no validator needed
-    if (minVal == null && maxVal == null) return [];
+    // No values = no numeric validator needed
+    if (minVal == null && maxVal == null) return validators;
 
     final isDimension = widget.fieldType == FieldEnum.dimension;
-    return [
-      FieldValidator.create(
+    validators.add(FieldValidator.create(
         validatorType:
             isDimension ? ValidatorType.dimension : ValidatorType.numeric,
         validatorData: isDimension
@@ -743,8 +799,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
                 if (minVal != null) 'min': minVal,
                 if (maxVal != null) 'max': maxVal,
               },
-      ),
-    ];
+      ));
+    return validators;
   }
 
   void _save() {
@@ -763,7 +819,7 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             uiElement: _selectedWidget,
             isList: _isList,
             unit: widget.fieldType == FieldEnum.dimension ? _selectedUnit : null,
-            options: widget.fieldType == FieldEnum.enumerated ? _options : null,
+            options: (widget.fieldType == FieldEnum.enumerated || widget.fieldType == FieldEnum.multiEnum) ? _options : null,
             defaultValue: effectiveDefault,
             validators: validators,
           )
@@ -773,26 +829,12 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
             uiElement: _selectedWidget,
             isList: _isList,
             unit: widget.fieldType == FieldEnum.dimension ? _selectedUnit : null,
-            options: widget.fieldType == FieldEnum.enumerated ? _options : null,
+            options: (widget.fieldType == FieldEnum.enumerated || widget.fieldType == FieldEnum.multiEnum) ? _options : null,
             defaultValue: effectiveDefault,
             validators: validators,
           );
 
     widget.onSave(field);
-  }
-
-  IconData _getFieldIcon() {
-    return switch (widget.fieldType) {
-      FieldEnum.integer => Icons.numbers,
-      FieldEnum.float => Icons.numbers,
-      FieldEnum.text => Icons.text_fields,
-      FieldEnum.boolean => Icons.toggle_on,
-      FieldEnum.datetime => Icons.calendar_today,
-      FieldEnum.enumerated => Icons.list,
-      FieldEnum.dimension => Icons.straighten,
-      FieldEnum.reference => Icons.link,
-      FieldEnum.location => Icons.location_on,
-    };
   }
 
   String _getDimensionDisplayName(BuildContext context, MeasurementDimension dimension) {
@@ -808,47 +850,4 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
     };
   }
 
-  String _getWidgetDisplayName(BuildContext context, UiElementEnum widget) {
-    return switch (widget) {
-      UiElementEnum.slider => context.l10n.widgetSlider,
-      UiElementEnum.stepper => context.l10n.widgetStepper,
-      UiElementEnum.textField => context.l10n.widgetTextField,
-      UiElementEnum.textArea => context.l10n.widgetTextArea,
-      UiElementEnum.dropdown => context.l10n.widgetDropdown,
-      UiElementEnum.radio => context.l10n.widgetRadio,
-      UiElementEnum.chips => context.l10n.widgetChips,
-      UiElementEnum.toggleSwitch => context.l10n.widgetToggleSwitch,
-      UiElementEnum.checkbox => context.l10n.widgetCheckbox,
-      UiElementEnum.datePicker => context.l10n.widgetDatePicker,
-      UiElementEnum.timePicker => context.l10n.widgetTimePicker,
-      UiElementEnum.datetimePicker => context.l10n.widgetDatetimePicker,
-      UiElementEnum.searchField => context.l10n.widgetSearchField,
-      UiElementEnum.locationPicker => context.l10n.widgetLocationPicker,
-      UiElementEnum.timer => context.l10n.widgetTimer,
-    };
-  }
-}
-
-
-/// Simple chip for draft state - all in blue-gray "pencil" color.
-/// Selected state just gets a border, no ink black.
-class _DraftChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _DraftChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return PenCircledChip(
-      label: label,
-      isSelected: isSelected,
-      onTap: onTap,
-    );
-  }
 }

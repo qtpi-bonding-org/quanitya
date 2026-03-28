@@ -276,7 +276,10 @@ class AnalysisScripts extends Table {
   /// User-friendly name for the analysis
   TextColumn get name => text()();
 
-  /// Primary field ID this analysis is associated with
+  /// Template this script belongs to (UUID)
+  TextColumn get templateId => text().named('template_id')();
+
+  /// Field this script analyses (UUID)
   TextColumn get fieldId => text().named('field_id')();
 
   /// The structural commitment of the output: scalar, vector, or matrix
@@ -343,20 +346,16 @@ class EncryptedTemplateAesthetics extends Table {
 /// AppOperatingSettings table - stores app operating mode configuration
 ///
 /// LOCAL-ONLY - never synced. Single row table for app-wide settings.
-/// Stores user's choice of local/self-hosted/cloud mode and connection status.
+/// Stores user's choice of local/self-hosted/cloud mode.
 class AppOperatingSettings extends Table {
   /// Primary key - auto-increment (single row table)
   IntColumn get id => integer().autoIncrement()();
 
   /// Operating mode: 'local', 'selfHosted', 'cloud'
-  TextColumn get mode => textEnum<AppOperatingMode>()();
+  TextColumn get mode => textEnum<AppSyncingMode>()();
 
   /// Self-hosted server URL (null for local/cloud modes)
   TextColumn get selfHostedUrl => text().named('self_hosted_url').nullable()();
-
-  /// Whether currently connected to server (false for local mode)
-  BoolColumn get isConnected =>
-      boolean().named('is_connected').withDefault(const Constant(false))();
 
   /// Last time connection was tested (null if never tested)
   DateTimeColumn get lastConnectionTest =>
@@ -413,4 +412,18 @@ class LlmProviderConfigs extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// Local-only checkpoint table for E2EEPuller.
+/// Tracks the most recent `updated_at` processed per encrypted table.
+/// NOT synced via PowerSync — purely local bookkeeping.
+class PullerCheckpoints extends Table {
+  /// Encrypted table name (e.g. 'encrypted_entries')
+  TextColumn get encryptedTable => text().named('encrypted_table')();
+
+  /// Most recent updated_at timestamp successfully processed
+  DateTimeColumn get lastProcessedAt => dateTime().named('last_processed_at')();
+
+  @override
+  Set<Column> get primaryKey => {encryptedTable};
 }

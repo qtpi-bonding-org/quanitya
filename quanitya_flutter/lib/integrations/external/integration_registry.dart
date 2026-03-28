@@ -309,12 +309,12 @@ class ExternalIntegrationRegistry {
         }
 
         // Sync all integrations for this provider
-        final futures = integrations.map((integration) => 
-          syncIntegration(integration.id).catchError((e) {
-            // Log error but don't fail the entire batch
-            // TODO: Add proper logging in future implementation
-            return -1;
-          }),
+        final futures = integrations.map((integration) =>
+          tryMethod(
+            () => syncIntegration(integration.id),
+            (message, [cause]) => Exception(message),
+            'syncIntegration',
+          ).catchError((_) => -1), // tryMethod already logged
         );
 
         await Future.wait(futures);

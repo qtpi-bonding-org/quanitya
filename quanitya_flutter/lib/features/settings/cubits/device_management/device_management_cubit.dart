@@ -1,9 +1,12 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
 
 import '../../../../support/extensions/cubit_ui_flow_extension.dart';
-import '../../../../infrastructure/auth/auth_service.dart';
+import '../../../../infrastructure/auth/account_service.dart';
+import '../../../../infrastructure/auth/auth_service.dart' show AuthException;
 import '../../../../infrastructure/crypto/crypto_key_repository.dart';
+import '../../../../infrastructure/device/device_info_service.dart';
 import 'device_management_state.dart';
 
 /// Cubit for managing registered devices
@@ -13,22 +16,24 @@ import 'device_management_state.dart';
 /// - Identify current device
 /// - Revoke other devices
 /// - Manage cross-device key (iCloud / Google Block Store)
+/// - Check/clear local keys (for recovery flow)
 @injectable
 class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
-  final AuthService _authService;
+  final AccountService _accountService;
   final ICryptoKeyRepository _keyRepository;
+  final DeviceInfoService _deviceInfoService;
 
-  DeviceManagementCubit(this._authService, this._keyRepository)
+  DeviceManagementCubit(this._accountService, this._keyRepository, this._deviceInfoService)
       : super(const DeviceManagementState());
 
   /// Load all devices for the current account
   Future<void> loadDevices() async {
     await tryOperation(() async {
       // Get current device's public key to identify it in the list
-      final currentPublicKey = await _authService.getCurrentDevicePublicKeyHex();
+      final currentPublicKey = await _accountService.getCurrentDevicePublicKeyHex();
       
       // Fetch devices from server
-      final devices = await _authService.listDevices();
+      final devices = await _accountService.listDevices();
 
       return state.copyWith(
         status: UiFlowStatus.success,
@@ -42,13 +47,13 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
   /// Revoke a device by ID
   /// 
   /// Cannot revoke the current device - user must sign out instead.
-  Future<void> revokeDevice(int deviceId) async {
+  Future<void> revokeDevice(UuidValue deviceId, {required String ultimateKeyJwk}) async {
     // Check if trying to revoke current device
     final device = state.devices.firstWhere(
       (d) => d.id == deviceId,
       orElse: () => throw const AuthException('Device not found'),
     );
-    
+
     if (state.isCurrentDevice(device)) {
       emit(state.copyWith(
         status: UiFlowStatus.failure,
@@ -60,7 +65,7 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
     await tryOperation(() async {
       emit(state.copyWith(revokingDeviceId: deviceId));
 
-      await _authService.revokeDevice(deviceId);
+      await _accountService.revokeDevice(deviceId, ultimateKeyJwk: ultimateKeyJwk);
 
       // If revoking the cross-device key, also delete from platform storage
       if (_keyRepository.isCrossDeviceStorageAvailable &&
@@ -69,7 +74,7 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
       }
 
       // Reload devices to get updated list
-      final devices = await _authService.listDevices();
+      final devices = await _accountService.listDevices();
 
       analytics?.trackDeviceRevoked();
 
@@ -88,10 +93,10 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
   /// and stores in platform storage.
   Future<void> recreateCrossDeviceKey() async {
     await tryOperation(() async {
-      await _authService.recreateCrossDeviceKey();
+      await _accountService.recreateCrossDeviceKey();
 
       // Reload devices to show new cross-device entry
-      final devices = await _authService.listDevices();
+      final devices = await _accountService.listDevices();
 
       analytics?.trackDevicePaired();
 
@@ -105,4 +110,18 @@ class DeviceManagementCubit extends QuanityaCubit<DeviceManagementState> {
 
   /// Refresh the device list
   Future<void> refresh() => loadDevices();
+
+  /// Load local device info for the recovery flow.
+  ///
+  /// Populates [deviceName] and [hasExistingKeys] in state.
+  Future<void> loadLocalDeviceInfo() => tryOperation(() async {
+    final deviceName = await _deviceInfoService.getDeviceName();
+    final hasKeys = await _keyRepository.hasExistingKeys();
+    return state.copyWith(
+      status: UiFlowStatus.success,
+      deviceName: deviceName,
+      hasExistingKeys: hasKeys,
+    );
+  }, emitLoading: false);
+
 }

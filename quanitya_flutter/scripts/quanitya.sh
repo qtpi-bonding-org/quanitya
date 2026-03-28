@@ -52,10 +52,10 @@ Options:
   -h, --help      Show this help
 "
     echo ""
-    echo -e "${YELLOW}Environment Variables:${NC}"
-    echo "  Automatically loads .env file and injects as --dart-define:"
-    echo "  • SERVERPOD_URL → SERVERPOD_URL"
-    echo "  • OPENROUTER_API_KEY, OPENROUTER_MODEL, GEMINI_API_KEY"
+    echo -e "${YELLOW}Build Flags (via --dart-define):${NC}"
+    echo "  Automatically loaded from .env file:"
+    echo "  • SERVERPOD_URL — API server URL"
+    echo "  • TEMPLATE_CATALOG_URL — GitHub raw URL for template catalog"
     echo ""
     echo -e "${YELLOW}Examples:${NC}"
     echo "  ./quanitya.sh setup                    # Setup all dependencies"
@@ -167,24 +167,20 @@ load_env() {
 get_dart_defines() {
     local dart_defines=()
     
-    # Map environment variables to dart-define arguments
+    # Map environment variables to dart-define build flags
+    # Only build-time config goes here — NOT user secrets (API keys stay in .env, loaded at runtime)
     if [[ -n "$SERVERPOD_URL" ]]; then
         dart_defines+=("--dart-define=SERVERPOD_URL=$SERVERPOD_URL")
     fi
-    
-    # Add other environment variables as needed
-    if [[ -n "$OPENROUTER_API_KEY" ]]; then
-        dart_defines+=("--dart-define=OPENROUTER_API_KEY=$OPENROUTER_API_KEY")
+
+    if [[ -n "$TEMPLATE_CATALOG_URL" ]]; then
+        dart_defines+=("--dart-define=TEMPLATE_CATALOG_URL=$TEMPLATE_CATALOG_URL")
     fi
-    
-    if [[ -n "$OPENROUTER_MODEL" ]]; then
-        dart_defines+=("--dart-define=OPENROUTER_MODEL=$OPENROUTER_MODEL")
+
+    if [[ -n "$MODEL_DOWNLOAD_URL" ]]; then
+        dart_defines+=("--dart-define=MODEL_DOWNLOAD_URL=$MODEL_DOWNLOAD_URL")
     fi
-    
-    if [[ -n "$GEMINI_API_KEY" ]]; then
-        dart_defines+=("--dart-define=GEMINI_API_KEY=$GEMINI_API_KEY")
-    fi
-    
+
     echo "${dart_defines[@]}"
 }
 

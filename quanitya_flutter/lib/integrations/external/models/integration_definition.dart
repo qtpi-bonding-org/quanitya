@@ -16,7 +16,7 @@ part 'integration_definition.freezed.dart';
 /// Each integration definition represents one specific data type from
 /// one service provider (e.g., "YNAB Transactions", "GitHub Commits").
 @freezed
-class IntegrationDefinition with _$IntegrationDefinition {
+abstract class IntegrationDefinition with _$IntegrationDefinition {
   const factory IntegrationDefinition({
     /// Unique identifier for this integration.
     /// Format: "{serviceProvider.name}.{dataType}"

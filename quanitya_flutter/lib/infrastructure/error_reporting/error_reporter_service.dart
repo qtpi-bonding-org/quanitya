@@ -1,12 +1,15 @@
 import 'dart:convert';
 
-import 'package:injectable/injectable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import 'package:injectable/injectable.dart';
+import '../config/debug_log.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'dart:io' show Platform;
 
 import '../public_submission/public_submission_service.dart';
+
+const _tag = 'infrastructure/error_reporting/error_reporter_service';
 
 /// Service for sending error reports to the server.
 ///
@@ -71,10 +74,10 @@ class ErrorReporterService {
         },
       );
 
-      debugPrint('📤 Error reports batch sent: ${entries.length}');
+      Log.d(_tag, 'Error reports batch sent: ${entries.length}');
       return entries.length;
     } catch (e) {
-      debugPrint('📤 Error sending reports batch: $e');
+      Log.d(_tag, 'Error sending reports batch: $e');
       return 0;
     }
   }

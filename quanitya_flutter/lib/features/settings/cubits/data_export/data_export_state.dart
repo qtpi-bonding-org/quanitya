@@ -6,16 +6,18 @@ part 'data_export_state.freezed.dart';
 /// Operations for data export/import
 enum DataExportOperation {
   export,
+  pickFile,
   importData,
 }
 
 @freezed
-class DataExportState with _$DataExportState, UiFlowStateMixin implements IUiFlowState {
+abstract class DataExportState with _$DataExportState, UiFlowStateMixin implements IUiFlowState {
   const DataExportState._();
 
   const factory DataExportState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,
     DataExportOperation? lastOperation,
+    @Default([]) List<String> pickedTableNames,
   }) = _DataExportState;
 }

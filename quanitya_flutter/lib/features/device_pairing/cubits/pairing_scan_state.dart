@@ -30,7 +30,8 @@ enum ScanStatus {
 
 /// Pending device info parsed from QR code
 @freezed
-class PendingDevice with _$PendingDevice {
+abstract class PendingDevice with _$PendingDevice {
+  const PendingDevice._();
   const factory PendingDevice({
     required String label,
     required String signingKeyHex,
@@ -39,7 +40,7 @@ class PendingDevice with _$PendingDevice {
 }
 
 @freezed
-class PairingScanState with _$PairingScanState, UiFlowStateMixin implements IUiFlowState {
+abstract class PairingScanState with _$PairingScanState, UiFlowStateMixin implements IUiFlowState {
   const PairingScanState._();
 
   const factory PairingScanState({

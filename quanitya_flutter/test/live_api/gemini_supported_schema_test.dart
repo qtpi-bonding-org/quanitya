@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import 'live_api_test_helper.dart';
 
+@Tags(['live_api'])
 void main() {
   group('Gemini Supported Schema Tests', () {
     String? geminiApiKey;

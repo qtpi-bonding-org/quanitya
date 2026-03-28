@@ -14,7 +14,7 @@ enum TemplateSharingImportOperation {
 }
 
 @freezed
-class TemplateSharingImportState
+abstract class TemplateSharingImportState
     with _$TemplateSharingImportState, UiFlowStateMixin
     implements IUiFlowState {
   const TemplateSharingImportState._();

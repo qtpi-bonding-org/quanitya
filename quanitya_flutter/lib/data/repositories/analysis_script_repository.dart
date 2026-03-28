@@ -8,6 +8,7 @@ import '../dao/template_query_dao.dart';
 import '../interfaces/analysis_script_interface.dart';
 import '../../infrastructure/core/try_operation.dart';
 import '../../logic/analysis/exceptions/analysis_exceptions.dart';
+import '../../logic/templates/enums/field_enum.dart';
 
 /// Repository for AnalysisScriptModel operations with encryption handling.
 ///
@@ -62,6 +63,15 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
       () => _queryDao.findByFieldId(fieldId),
       AnalysisException.new,
       'getScriptsForField',
+    );
+  }
+
+  @override
+  Future<List<AnalysisScriptModel>> getScriptsForTemplate(String templateId) {
+    return tryMethod(
+      () => _queryDao.findByTemplateId(templateId),
+      AnalysisException.new,
+      'getScriptsForTemplate',
     );
   }
 
@@ -130,29 +140,21 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
 
   @override
   Future<FieldTimeSeries> fetchFieldTimeSeries(
+    String templateId,
     String fieldId, {
     int? entryRangeStart,
     int? entryRangeEnd,
   }) {
     return tryMethod(
       () async {
-        // Parse fieldId format: "templateId:fieldName"
-        final parts = fieldId.split(':');
-        if (parts.length != 2) {
-          throw AnalysisException('Invalid fieldId format: $fieldId');
-        }
-        final templateId = parts[0];
-        final fieldName = parts[1];
-
-        // Resolve display name → field UUID
         final template = await _templateDao.findById(templateId);
         if (template == null) {
           throw AnalysisException('Template not found: $templateId');
         }
-        final field = template.fields.where((f) => f.label == fieldName).firstOrNull;
+        final field = template.fields.where((f) => f.id == fieldId).firstOrNull;
         if (field == null) {
           throw AnalysisException(
-            'Field "$fieldName" not found in template "${template.name}"',
+            'Field "$fieldId" not found in template "${template.name}"',
           );
         }
 
@@ -162,17 +164,28 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
         final clampedEnd = (entryRangeEnd ?? allEntries.length).clamp(clampedStart, allEntries.length);
         final sliced = allEntries.sublist(clampedStart, clampedEnd);
 
-        // Extract numeric values keyed by field UUID
-        final values = <double>[];
+        // Extract field values
+        final values = <dynamic>[];
         final timestamps = <DateTime>[];
+
+        // Build UUID → label map for group sub-fields
+        final subFieldLabelMap = <String, String>{};
+        if (field.type == FieldEnum.group && field.subFields != null) {
+          for (final sf in field.subFields!) {
+            subFieldLabelMap[sf.id] = sf.label;
+          }
+        }
 
         for (final entry in sliced) {
           final ts = entry.occurredAt ?? entry.scheduledFor;
           if (ts == null) continue;
 
-          final val = _extractNumericValue(entry.data, field.id);
+          final val = entry.data[field.id];
           if (val != null) {
-            values.add(val);
+            // Remap group sub-field UUIDs to labels for JS readability
+            values.add(subFieldLabelMap.isEmpty
+                ? val
+                : _remapGroupKeys(val, subFieldLabelMap));
             timestamps.add(ts);
           }
         }
@@ -184,18 +197,23 @@ class AnalysisScriptRepository implements IAnalysisScriptRepository {
     );
   }
 
-  static double? _extractNumericValue(
-    Map<String, dynamic> data,
-    String fieldUuid,
+  /// Remaps UUID keys to labels in group field values.
+  ///
+  /// Handles both single group objects and isList arrays of objects.
+  /// Non-group values pass through unchanged.
+  static dynamic _remapGroupKeys(
+    dynamic val,
+    Map<String, String> uuidToLabel,
   ) {
-    final value = data[fieldUuid];
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value);
-    if (value is Map) {
-      final v = value['value'] ?? value['Value'];
-      if (v is num) return v.toDouble();
-      if (v is String) return double.tryParse(v);
+    if (val is List) {
+      return val.map((item) => _remapGroupKeys(item, uuidToLabel)).toList();
     }
-    return null;
+    if (val is Map<String, dynamic>) {
+      return {
+        for (final entry in val.entries)
+          (uuidToLabel[entry.key] ?? entry.key): entry.value,
+      };
+    }
+    return val;
   }
 }

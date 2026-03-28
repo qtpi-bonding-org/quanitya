@@ -15,6 +15,7 @@ enum ScriptBuilderOperation {
   removeStep,
   updateStep,
   saveScript,
+  deleteScript,
   loadPreview,
   applyAiSuggestion,
 }
@@ -23,7 +24,8 @@ enum ScriptBuilderOperation {
 enum SlotPosition { leftBranch, rightBranch, combiner }
 
 @freezed
-class ScriptSlot with _$ScriptSlot {
+abstract class ScriptSlot with _$ScriptSlot {
+  const ScriptSlot._();
   const factory ScriptSlot({
     required SlotPosition position,
     required int slotIndex, // 0, 1, 2 (which slot in that position)
@@ -34,7 +36,8 @@ class ScriptSlot with _$ScriptSlot {
 
 /// Represents a branch in the parallel analysis
 @freezed
-class ScriptBranch with _$ScriptBranch {
+abstract class ScriptBranch with _$ScriptBranch {
+  const ScriptBranch._();
   const factory ScriptBranch({
     required SlotPosition position,
     required List<ScriptSlot> slots,
@@ -44,8 +47,8 @@ class ScriptBranch with _$ScriptBranch {
 }
 
 @freezed
-class AnalysisBuilderState
-    with _$AnalysisBuilderState
+abstract class AnalysisBuilderState
+    with _$AnalysisBuilderState, UiFlowStateMixin
     implements IUiFlowState {
   const factory AnalysisBuilderState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
@@ -101,16 +104,4 @@ class AnalysisBuilderState
   }) = _AnalysisBuilderState;
 
   const AnalysisBuilderState._();
-
-  // IUiFlowState implementation
-  @override
-  bool get isIdle => status == UiFlowStatus.idle;
-  @override
-  bool get isLoading => status == UiFlowStatus.loading;
-  @override
-  bool get isSuccess => status == UiFlowStatus.success;
-  @override
-  bool get isFailure => status == UiFlowStatus.failure;
-  @override
-  bool get hasError => error != null;
 }

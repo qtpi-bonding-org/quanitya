@@ -7,7 +7,8 @@ import 'package:quanitya_flutter/infrastructure/public_submission/public_submiss
 import 'package:quanitya_flutter/infrastructure/crypto/crypto_key_repository.dart';
 import 'package:quanitya_flutter/infrastructure/public_submission/exceptions/public_submission_exceptions.dart';
 import 'package:anonaccount_client/anonaccount_client.dart'
-    show PublicChallengeResponse;
+    show PublicChallengeResponse, EndpointEntrypoint;
+import 'package:anonaccount_client/anonaccount_client.dart' as aa;
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 
@@ -19,8 +20,44 @@ import 'package:dart_jwk_duo/dart_jwk_duo.dart';
 ])
 import 'public_submission_service_test.mocks.dart';
 
-// Fake Client that returns our fake endpoints
+// Fake entrypoint endpoint for challenge requests
+class FakeEndpointEntrypoint extends Fake implements EndpointEntrypoint {
+  Future<PublicChallengeResponse> Function()? _getChallengeImpl;
+
+  void setChallengeResponse(Future<PublicChallengeResponse> Function() impl) {
+    _getChallengeImpl = impl;
+  }
+
+  @override
+  Future<PublicChallengeResponse> getChallenge() async {
+    if (_getChallengeImpl != null) {
+      return _getChallengeImpl!();
+    }
+    throw UnimplementedError('getChallenge not stubbed');
+  }
+}
+
+// Fake anonaccount Caller with entrypoint
+class FakeAnonaccountCaller extends Fake implements aa.Caller {
+  @override
+  final FakeEndpointEntrypoint entrypoint = FakeEndpointEntrypoint();
+}
+
+// Fake Modules with anonaccount
+class FakeModules extends Fake implements Modules {
+  @override
+  final aa.Caller anonaccount = FakeAnonaccountCaller();
+}
+
+// Fake Client that returns our fake modules
 class FakeClient extends Fake implements Client {
+  @override
+  final FakeModules modules = FakeModules();
+
+  /// Access the fake entrypoint to stub challenge responses
+  FakeEndpointEntrypoint get fakeEntrypoint =>
+      (modules.anonaccount as FakeAnonaccountCaller).entrypoint;
+
   @override
   final FakeEndpointErrorReport errorReport = FakeEndpointErrorReport();
 
@@ -28,38 +65,9 @@ class FakeClient extends Fake implements Client {
   final FakeEndpointFeedback feedback = FakeEndpointFeedback();
 }
 
-// Fake endpoint classes that we can control
-class FakeEndpointErrorReport extends Fake implements EndpointErrorReport {
-  Future<PublicChallengeResponse> Function()? _getChallengeImpl;
-
-  void setChallengeResponse(Future<PublicChallengeResponse> Function() impl) {
-    _getChallengeImpl = impl;
-  }
-
-  @override
-  Future<PublicChallengeResponse> getChallenge() async {
-    if (_getChallengeImpl != null) {
-      return _getChallengeImpl!();
-    }
-    throw UnimplementedError('getChallenge not stubbed');
-  }
-}
-
-class FakeEndpointFeedback extends Fake implements EndpointFeedback {
-  Future<PublicChallengeResponse> Function()? _getChallengeImpl;
-
-  void setChallengeResponse(Future<PublicChallengeResponse> Function() impl) {
-    _getChallengeImpl = impl;
-  }
-
-  @override
-  Future<PublicChallengeResponse> getChallenge() async {
-    if (_getChallengeImpl != null) {
-      return _getChallengeImpl!();
-    }
-    throw UnimplementedError('getChallenge not stubbed');
-  }
-}
+// Fake endpoint classes (still needed for submitCallback verification)
+class FakeEndpointErrorReport extends Fake implements EndpointErrorReport {}
+class FakeEndpointFeedback extends Fake implements EndpointFeedback {}
 
 void main() {
   late PublicSubmissionService service;
@@ -78,7 +86,7 @@ void main() {
   group('PublicSubmissionService', () {
     test('submitWithVerification completes full flow successfully', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+      fakeClient.fakeEntrypoint.setChallengeResponse(() async => PublicChallengeResponse(
         challenge: 'test-challenge',
         difficulty: 16, // Lower difficulty for faster test
         expiresAt: 1234567890,
@@ -114,7 +122,7 @@ void main() {
 
     test('throws exception when device key not found', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+      fakeClient.fakeEntrypoint.setChallengeResponse(() async => PublicChallengeResponse(
         challenge: 'test-challenge',
         difficulty: 16,
         expiresAt: 1234567890,
@@ -137,7 +145,7 @@ void main() {
 
     test('throws exception when challenge request fails', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async {
+      fakeClient.fakeEntrypoint.setChallengeResponse(() async {
         throw Exception('Network error');
       });
 
@@ -154,7 +162,7 @@ void main() {
 
     test('throws exception when proof-of-work fails', () async {
       // Arrange - Use impossibly high difficulty to force failure
-      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+      fakeClient.fakeEntrypoint.setChallengeResponse(() async => PublicChallengeResponse(
         challenge: 'test-challenge',
         difficulty: 256, // Impossibly high difficulty
         expiresAt: 1234567890,
@@ -174,7 +182,7 @@ void main() {
 
     test('throws exception when signature fails', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+      fakeClient.fakeEntrypoint.setChallengeResponse(() async => PublicChallengeResponse(
         challenge: 'test-challenge',
         difficulty: 16,
         expiresAt: 1234567890,
@@ -201,7 +209,7 @@ void main() {
 
     test('translates ServerException with rateLimitExceeded to RateLimitExceededException', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+      fakeClient.fakeEntrypoint.setChallengeResponse(() async => PublicChallengeResponse(
         challenge: 'test-challenge',
         difficulty: 16,
         expiresAt: 1234567890,
@@ -237,7 +245,7 @@ void main() {
 
     test('handles network errors gracefully', () async {
       // Arrange
-      fakeClient.errorReport.setChallengeResponse(() async => PublicChallengeResponse(
+      fakeClient.fakeEntrypoint.setChallengeResponse(() async => PublicChallengeResponse(
         challenge: 'test-challenge',
         difficulty: 16,
         expiresAt: 1234567890,
@@ -270,7 +278,7 @@ void main() {
 
     test('works with feedback endpoint', () async {
       // Arrange
-      fakeClient.feedback.setChallengeResponse(() async => PublicChallengeResponse(
+      fakeClient.fakeEntrypoint.setChallengeResponse(() async => PublicChallengeResponse(
         challenge: 'feedback-challenge',
         difficulty: 16,
         expiresAt: 1234567890,

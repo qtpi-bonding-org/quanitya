@@ -28,7 +28,7 @@ class DevConfig {
 
   /// Controls PowerSync connection error messages
   ///
-  /// When true (default), connection errors from PowerSyncService are shown.
+  /// When true (default), connection errors from PowerSyncRepository are shown.
   /// When false, connection error messages are suppressed.
   ///
   /// This only affects debug builds.

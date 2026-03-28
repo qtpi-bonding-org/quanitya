@@ -1,71 +1,56 @@
 import 'dart:async';
 
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:injectable/injectable.dart';
 import 'package:powersync_sqlcipher/powersync.dart' show SyncStatus;
 
 import '../../../data/sync/powersync_service.dart';
+import '../../../infrastructure/sync/sync_service.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
-import '../../app_syncing_mode/models/app_syncing_mode.dart';
 import 'sync_status_state.dart';
 
-@injectable
+/// Observes PowerSync status stream and emits UI-friendly sync state.
+///
+/// Auto-subscribes in constructor — no explicit startListening() needed.
+/// Retry goes through [SyncService] so auth and entitlement checks run.
+@lazySingleton
 class SyncStatusCubit extends QuanityaCubit<SyncStatusState> {
-  final IPowerSyncService _powerSyncService;
+  final IPowerSyncRepository _powerSync;
+  final SyncService _syncService;
   StreamSubscription<SyncStatus>? _statusSubscription;
 
-  SyncStatusCubit(this._powerSyncService) : super(const SyncStatusState());
+  SyncStatusCubit(this._powerSync, this._syncService)
+      : super(const SyncStatusState()) {
+    _subscribe();
+  }
 
-  void startListening(AppSyncingMode mode) {
+  void _subscribe() {
     _statusSubscription?.cancel();
-
-    if (!mode.supportsSync) {
-      emit(const SyncStatusState(connectionState: SyncConnectionState.disabled));
-      return;
-    }
-
-    if (!_powerSyncService.isConnected) {
-      emit(const SyncStatusState(connectionState: SyncConnectionState.disconnected));
-    }
-
-    _statusSubscription = _powerSyncService.statusStream.listen(
-      (status) {
-        emit(_mapStatus(status));
-      },
-      onError: (error) {
-        emit(state.copyWith(
-          connectionState: SyncConnectionState.error,
-          errorMessage: error.toString(),
-        ));
-      },
+    _statusSubscription = _powerSync.statusStream.listen(
+      (status) => emit(_mapStatus(status)),
+      onError: (error) => emit(state.copyWith(
+        connectionState: SyncConnectionState.error,
+        errorMessage: error.toString(),
+      )),
     );
   }
 
-  void onModeChanged(AppSyncingMode mode) {
-    if (!mode.supportsSync) {
-      _statusSubscription?.cancel();
-      emit(const SyncStatusState(connectionState: SyncConnectionState.disabled));
-    } else {
-      startListening(mode);
-    }
-  }
-
-  Future<void> retrySync() => tryOperation(() async {
+  /// Retry sync connection through [SyncService] (checks auth + entitlements).
+  Future<void> retrySync() async {
     emit(state.copyWith(isRetrying: true));
     try {
-      await _powerSyncService.retrySync();
-      return state.copyWith(
-        isRetrying: false,
-        lastOperation: SyncStatusOperation.retrySync,
-      );
-    } catch (e) {
-      emit(state.copyWith(
-        isRetrying: false,
-        connectionState: SyncConnectionState.error,
-        errorMessage: 'Retry failed',
-      ));
-      rethrow;
+      await tryOperation(() async {
+        await _syncService.reconnect();
+        return state.copyWith(
+          isRetrying: false,
+          status: UiFlowStatus.success,
+          lastOperation: SyncStatusOperation.retrySync,
+        );
+      });
+    } finally {
+      if (state.isRetrying) emit(state.copyWith(isRetrying: false));
     }
-  });
+  }
 
   SyncStatusState _mapStatus(SyncStatus status) {
     final SyncConnectionState connectionState;

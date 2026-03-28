@@ -11,7 +11,7 @@ part 'purchase_state.freezed.dart';
 enum PurchaseOperation { loadProducts, purchase, recoverPurchases, loadRailCatalog }
 
 @freezed
-class PurchaseState with _$PurchaseState, UiFlowStateMixin implements IUiFlowState {
+abstract class PurchaseState with _$PurchaseState, UiFlowStateMixin implements IUiFlowState {
   const PurchaseState._();
 
   const factory PurchaseState({

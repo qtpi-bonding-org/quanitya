@@ -6,7 +6,7 @@ part 'hidden_visibility_state.freezed.dart';
 enum HiddenVisibilityOperation { toggleHidden }
 
 @freezed
-class HiddenVisibilityState
+abstract class HiddenVisibilityState
     with _$HiddenVisibilityState, UiFlowStateMixin
     implements IUiFlowState {
   const HiddenVisibilityState._();

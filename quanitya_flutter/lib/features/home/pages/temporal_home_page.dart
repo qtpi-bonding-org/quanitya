@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../app/bootstrap.dart';
 import '../../../app_router.dart';
 import '../../../design_system/primitives/app_sizes.dart';
+import '../../guided_tour/guided_tour_service.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
@@ -11,6 +12,8 @@ import '../../../design_system/widgets/swipeable_page_shell.dart';
 import '../../../dev/dev_module.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../hidden_visibility/cubits/hidden_visibility_cubit.dart';
+import '../../schedules/cubits/schedule_list_cubit.dart';
+import '../../schedules/widgets/add_schedule_sheet.dart';
 import '../cubits/temporal_timeline_cubit.dart';
 import '../cubits/temporal_timeline_state.dart';
 import '../cubits/timeline_data_cubit.dart';
@@ -20,7 +23,6 @@ import '../widgets/temporal_present_panel.dart';
 import '../widgets/temporal_future_panel.dart';
 import '../widgets/sort_options_sheet.dart';
 import '../widgets/template_filter_sheet.dart';
-import '../../schedules/cubits/schedule_list_cubit.dart';
 
 class TemporalHomePage extends StatefulWidget {
   const TemporalHomePage({super.key});
@@ -45,6 +47,22 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _addSchedule(BuildContext context) async {
+    final cubit = context.read<ScheduleListCubit>();
+    final scheduledIds = cubit.state.schedules
+        .map((s) => s.schedule.templateId)
+        .toSet();
+
+    final schedule = await AddScheduleSheet.show(
+      context,
+      scheduledTemplateIds: scheduledIds,
+    );
+
+    if (schedule != null && context.mounted) {
+      cubit.create(schedule);
+    }
   }
 
   Widget _buildTemporalLabel(BuildContext context, String text) {
@@ -107,10 +125,16 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
               TemporalPresentPanel(),
               TemporalFuturePanel(),
             ],
+            labelsKey: HomeTourKeys.temporalLabels,
             labels: [
               _buildTemporalLabel(context, '-t'),
               _buildTemporalLabel(context, 't'),
               _buildTemporalLabel(context, '+t'),
+            ],
+            semanticTabLabels: [
+              context.l10n.homePastDescription,
+              context.l10n.homePresentDescription,
+              context.l10n.homeFutureDescription,
             ],
             overlays: [
               // Action Buttons (Top Right) - contextual per page
@@ -158,12 +182,25 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
                           }
                         ),
                       if (_currentIndex == 1)
-                        QuanityaIconButton(
-                          icon: Icons.assignment_add,
-                          iconSize: AppSizes.iconMedium,
-                          color: palette.interactableColor,
-                          tooltip: context.l10n.createTemplateTitle,
-                          onPressed: () => AppNavigation.toTemplateDesigner(context),
+                        KeyedSubtree(
+                          key: HomeTourKeys.designerButton,
+                          child: QuanityaIconButton(
+                            icon: Icons.assignment_add,
+                            iconSize: AppSizes.iconMedium,
+                            color: palette.interactableColor,
+                            tooltip: context.l10n.createTemplateTitle,
+                            onPressed: () => AppNavigation.toTemplateDesigner(context),
+                          ),
+                        ),
+                      if (_currentIndex == 2)
+                        Builder(
+                          builder: (context) => QuanityaIconButton(
+                            icon: Icons.alarm_add,
+                            iconSize: AppSizes.iconMedium,
+                            color: palette.interactableColor,
+                            tooltip: context.l10n.addSchedule,
+                            onPressed: () => _addSchedule(context),
+                          ),
                         ),
                     ],
                   ),

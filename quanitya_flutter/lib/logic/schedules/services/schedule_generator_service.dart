@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../data/repositories/schedule_repository.dart';
@@ -10,6 +11,8 @@ import '../../../logic/log_entries/models/log_entry.dart';
 import '../exceptions/schedule_exceptions.dart';
 import '../models/schedule.dart';
 import 'recurrence_service.dart';
+
+const _tag = 'logic/schedules/services/schedule_generator_service';
 
 /// Result of a todo generation run.
 class GenerationResult {
@@ -87,15 +90,15 @@ class ScheduleGeneratorService {
   }) {
     return tryMethod(
       () async {
-        debugPrint('ScheduleGeneratorService: Starting generation (horizon: ${horizon.inDays} days)');
+        Log.d(_tag, 'ScheduleGeneratorService: Starting generation (horizon: ${horizon.inDays} days)');
         
         // Get all active schedules needing generation
         final cutoff = DateTime.now().subtract(horizon);
-        debugPrint('ScheduleGeneratorService: Looking for schedules needing generation since $cutoff');
+        Log.d(_tag, 'ScheduleGeneratorService: Looking for schedules needing generation since $cutoff');
         final activeSchedules = await _scheduleRepo.getSchedulesNeedingGeneration(cutoff);
 
         if (activeSchedules.isEmpty) {
-          debugPrint('ScheduleGeneratorService: No active schedules found');
+          Log.d(_tag, 'ScheduleGeneratorService: No active schedules found');
           return const GenerationResult(
             todosCreated: 0,
             schedulesProcessed: 0,
@@ -107,9 +110,9 @@ class ScheduleGeneratorService {
         int totalSkipped = 0;
         final failedIds = <String>[];
 
-        debugPrint('ScheduleGeneratorService: Found ${activeSchedules.length} active schedule(s)');
+        Log.d(_tag, 'ScheduleGeneratorService: Found ${activeSchedules.length} active schedule(s)');
         for (final schedule in activeSchedules) {
-          debugPrint('ScheduleGeneratorService: Processing schedule ${schedule.id} '
+          Log.d(_tag, 'ScheduleGeneratorService: Processing schedule ${schedule.id} '
               'for template ${schedule.templateId}, '
               'rule=${schedule.recurrenceRule}, '
               'hasReminder=${schedule.hasReminder}, '
@@ -119,14 +122,19 @@ class ScheduleGeneratorService {
             final result = await _generateForSchedule(schedule, horizon);
             totalCreated += result.created;
             totalSkipped += result.skipped;
-          } catch (e) {
-            debugPrint('ScheduleGeneratorService: Failed for ${schedule.id}: $e');
+          } catch (e, stack) {
+            Log.d(_tag, 'ScheduleGeneratorService: Failed for ${schedule.id}: $e');
+            await ErrorPrivserver.captureError(e, stack, source: 'ScheduleGeneratorService');
             failedIds.add(schedule.id);
           }
         }
 
-        debugPrint('ScheduleGeneratorService: Done - created $totalCreated, skipped $totalSkipped');
-        
+        Log.d(_tag, 'ScheduleGeneratorService: Done - created $totalCreated, skipped $totalSkipped');
+        if (failedIds.isNotEmpty) {
+          Log.d(_tag, 'ScheduleGeneratorService: WARNING - ${failedIds.length} '
+              'schedule(s) failed: ${failedIds.join(', ')}');
+        }
+
         return GenerationResult(
           todosCreated: totalCreated,
           schedulesProcessed: activeSchedules.length,
@@ -147,12 +155,12 @@ class ScheduleGeneratorService {
       () async {
         final schedule = await _scheduleRepo.getSchedule(scheduleId);
         if (schedule == null) {
-          debugPrint('ScheduleGeneratorService: Schedule $scheduleId not found');
+          Log.d(_tag, 'ScheduleGeneratorService: Schedule $scheduleId not found');
           return 0;
         }
 
         if (!schedule.isActive) {
-          debugPrint('ScheduleGeneratorService: Schedule $scheduleId is not active');
+          Log.d(_tag, 'ScheduleGeneratorService: Schedule $scheduleId is not active');
           return 0;
         }
 
@@ -174,7 +182,7 @@ class ScheduleGeneratorService {
     final startFrom = schedule.lastGeneratedAt ?? schedule.updatedAt;
     final endAt = DateTime.now().add(horizon);
 
-    debugPrint('ScheduleGeneratorService: Generation window: $startFrom → $endAt');
+    Log.d(_tag, 'ScheduleGeneratorService: Generation window: $startFrom → $endAt');
 
     // Get occurrences from RRULE
     final occurrences = _recurrenceService.getOccurrences(
@@ -184,12 +192,12 @@ class ScheduleGeneratorService {
       before: endAt,
     );
 
-    debugPrint('ScheduleGeneratorService: RRULE produced ${occurrences.length} occurrence(s)');
+    Log.d(_tag, 'ScheduleGeneratorService: RRULE produced ${occurrences.length} occurrence(s)');
 
     if (occurrences.isEmpty) {
       // Still update lastGeneratedAt to avoid re-processing
       await _scheduleRepo.markGenerated(schedule.id, DateTime.now());
-      debugPrint('ScheduleGeneratorService: No occurrences, marking as generated');
+      Log.d(_tag, 'ScheduleGeneratorService: No occurrences, marking as generated');
       return const _SingleScheduleResult(created: 0, skipped: 0);
     }
 
@@ -232,7 +240,7 @@ class ScheduleGeneratorService {
 
       await _logEntryRepo.saveLogEntry(todo);
       created++;
-      debugPrint('ScheduleGeneratorService: Created todo ${todo.id} for $occurrence');
+      Log.d(_tag, 'ScheduleGeneratorService: Created todo ${todo.id} for $occurrence');
 
       // Schedule notification if reminder is configured
       if (schedule.hasReminder && templateName != null) {
@@ -242,7 +250,7 @@ class ScheduleGeneratorService {
           templateName: templateName,
         );
       } else {
-        debugPrint('ScheduleGeneratorService: No notification - '
+        Log.d(_tag, 'ScheduleGeneratorService: No notification - '
             'hasReminder=${schedule.hasReminder}, templateName=$templateName');
       }
       
@@ -253,7 +261,7 @@ class ScheduleGeneratorService {
     // Update lastGeneratedAt
     await _scheduleRepo.markGenerated(schedule.id, DateTime.now());
 
-    debugPrint('ScheduleGeneratorService: Schedule ${schedule.id} - '
+    Log.d(_tag, 'ScheduleGeneratorService: Schedule ${schedule.id} - '
         'created $created, skipped $skipped');
 
     return _SingleScheduleResult(created: created, skipped: skipped);
@@ -268,7 +276,7 @@ class ScheduleGeneratorService {
     final scheduledFor = todo.scheduledFor;
     final reminderOffset = schedule.reminderOffsetMinutes;
     if (scheduledFor == null || reminderOffset == null) {
-      debugPrint('ScheduleGeneratorService: Skipping notification - '
+      Log.d(_tag, 'ScheduleGeneratorService: Skipping notification - '
           'scheduledFor=$scheduledFor, reminderOffset=$reminderOffset');
       return;
     }
@@ -280,7 +288,7 @@ class ScheduleGeneratorService {
 
     // Don't schedule notifications in the past
     if (notifyAt.isBefore(DateTime.now())) {
-      debugPrint('ScheduleGeneratorService: Skipping past notification - '
+      Log.d(_tag, 'ScheduleGeneratorService: Skipping past notification - '
           'notifyAt=$notifyAt is before now=${DateTime.now()}');
       return;
     }
@@ -288,7 +296,7 @@ class ScheduleGeneratorService {
     // Use todo ID hash as notification ID (stable, unique per todo)
     final notificationId = todo.id.hashCode;
 
-    debugPrint('ScheduleGeneratorService: Scheduling notification $notificationId '
+    Log.d(_tag, 'ScheduleGeneratorService: Scheduling notification $notificationId '
         'for "$templateName" at $notifyAt (todo=${todo.id})');
 
     await _notificationService.schedule(
@@ -315,7 +323,7 @@ class ScheduleGeneratorService {
         await _logEntryRepo.deleteLogEntry(todo.id);
       }
     }
-    debugPrint('ScheduleGeneratorService: Cancelled ${todos.length} notification(s) '
+    Log.d(_tag, 'ScheduleGeneratorService: Cancelled ${todos.length} notification(s) '
         'for template $templateId (deletedTodos=$deleteTodos)');
   }
 

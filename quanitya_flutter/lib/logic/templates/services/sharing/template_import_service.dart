@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:injectable/injectable.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../infrastructure/core/try_operation.dart';
+
 import '../../models/shared/shareable_template.dart';
 import '../../models/shared/template_aesthetics.dart';
 import '../../../analysis/models/analysis_script.dart';
@@ -193,25 +195,25 @@ class TemplateImportService {
     }
   }
 
-  /// Import shareable template to local database.
-  Future<TemplateWithAesthetics> _importShareableTemplate(
+  /// Convert a shareable template to local format with new UUIDs.
+  /// Pure conversion — no database writes, no side effects.
+  TemplateWithAesthetics convertShareableTemplate(
     ShareableTemplate shareableTemplate,
-  ) async {
-    // Generate new IDs for local storage
+  ) {
     final templateId = const Uuid().v4();
 
-    // Convert template with new ID
+    final newFields = shareableTemplate.template.fields.map((field) {
+      return field.copyWith(id: const Uuid().v4());
+    }).toList();
+
     final localTemplate = shareableTemplate.template.copyWith(
       id: templateId,
-      fields: shareableTemplate.template.fields
-          .map((field) => field.copyWith(id: const Uuid().v4()))
-          .toList(),
+      fields: newFields,
       updatedAt: DateTime.now(),
       isArchived: false,
       isHidden: false,
     );
 
-    // Convert aesthetics with new IDs if present
     TemplateAestheticsModel? localAesthetics;
     if (shareableTemplate.aesthetics != null) {
       localAesthetics = shareableTemplate.aesthetics!.copyWith(
@@ -221,13 +223,36 @@ class TemplateImportService {
       );
     }
 
-    // Create template with aesthetics
-    final templateWithAesthetics = TemplateWithAesthetics(
+    return TemplateWithAesthetics(
       template: localTemplate,
       aesthetics:
           localAesthetics ??
           TemplateAestheticsModel.defaults(templateId: templateId),
     );
+  }
+
+  /// Import shareable template to local database.
+  /// Converts, saves, and imports analysis scripts.
+  Future<TemplateWithAesthetics> _importShareableTemplate(
+    ShareableTemplate shareableTemplate,
+  ) async {
+    final templateWithAesthetics = convertShareableTemplate(shareableTemplate);
+    final templateId = templateWithAesthetics.template.id;
+
+    // Build field ID mapping: old UUID → new UUID
+    final fieldIdMap = <String, String>{};
+    final originalFields = shareableTemplate.template.fields;
+    final newFields = templateWithAesthetics.template.fields;
+    for (var i = 0; i < originalFields.length && i < newFields.length; i++) {
+      fieldIdMap[originalFields[i].id] = newFields[i].id;
+      final origSubs = originalFields[i].subFields;
+      final newSubs = newFields[i].subFields;
+      if (origSubs != null && newSubs != null) {
+        for (var j = 0; j < origSubs.length && j < newSubs.length; j++) {
+          fieldIdMap[origSubs[j].id] = newSubs[j].id;
+        }
+      }
+    }
 
     // Save template and aesthetics
     await _templateRepository.save(templateWithAesthetics);
@@ -236,29 +261,42 @@ class TemplateImportService {
     if (shareableTemplate.analysisScripts != null &&
         shareableTemplate.analysisScripts!.isNotEmpty &&
         _scriptRepository != null) {
-      await _importAnalysisScripts(shareableTemplate.analysisScripts!);
+      await _importAnalysisScripts(
+        shareableTemplate.analysisScripts!,
+        fieldIdMap,
+        templateId,
+      );
     }
 
     return templateWithAesthetics;
   }
 
-  /// Import analysis scripts for the template.
+  /// Import analysis scripts, remapping field IDs to match new template.
   Future<void> _importAnalysisScripts(
     List<AnalysisScriptModel> scripts,
+    Map<String, String> fieldIdMap,
+    String templateId,
   ) async {
     if (_scriptRepository == null) return;
 
     for (final script in scripts) {
       try {
-        // Create new script with new ID but preserve other data
-        final localScript = script.copyWith(
-          id: const Uuid().v4(),
-          updatedAt: DateTime.now(),
+        await tryMethod(
+          () async {
+            final newFieldId = fieldIdMap[script.fieldId] ?? script.fieldId;
+            final localScript = script.copyWith(
+              id: const Uuid().v4(),
+              templateId: templateId,
+              fieldId: newFieldId,
+              updatedAt: DateTime.now(),
+            );
+            await _scriptRepository.saveScript(localScript);
+          },
+          (message, [cause]) => TemplateImportException(message, TemplateImportErrorType.unknown),
+          'importScript',
         );
-
-        await _scriptRepository.saveScript(localScript);
-      } catch (e) {
-        // Skip failed script imports, don't fail entire template import
+      } catch (_) {
+        // tryMethod already logged — continue to next script
         continue;
       }
     }

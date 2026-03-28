@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_color_palette/flutter_color_palette.dart';
 import '../../primitives/app_spacings.dart';
 import '../../primitives/app_sizes.dart';
 import '../../primitives/quanitya_palette.dart';
@@ -35,10 +36,13 @@ class AiPromptWidget extends StatefulWidget {
   
   /// Maximum number of lines for the text input
   final int maxLines;
-  
+
   /// Minimum number of lines for the text input
   final int minLines;
-  
+
+  /// Optional key for guided tour targeting on the header.
+  final GlobalKey? tourKey;
+
   const AiPromptWidget({
     super.key,
     required this.title,
@@ -48,6 +52,7 @@ class AiPromptWidget extends StatefulWidget {
     this.additionalFields,
     this.maxLines = 2,
     this.minLines = 1,
+    this.tourKey,
   });
 
   @override
@@ -73,23 +78,7 @@ class _AiPromptWidgetState extends State<AiPromptWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header: AI Icon + Title
-        QuanityaRow(
-          spacing: HSpace.x1,
-          alignment: CrossAxisAlignment.center,
-          start: ExcludeSemantics(
-            child: Icon(
-              Icons.auto_awesome,
-              color: palette.interactableColor,
-              size: AppSizes.iconMedium,
-            ),
-          ),
-          middle: Text(
-            widget.title,
-            style: context.text.titleMedium?.copyWith(
-              color: palette.interactableColor,
-            ),
-          ),
-        ),
+        _buildHeader(palette),
         VSpace.x1,
         
         // Additional fields (field selector for analytics, etc.)
@@ -111,7 +100,7 @@ class _AiPromptWidgetState extends State<AiPromptWidget> {
           onSubmitted: (_) => _handleGenerate(),
           suffixIcon: widget.isLoading
               ? Semantics(
-                  label: 'Generating...',
+                  label: context.l10n.accessibilityGenerating,
                   child: Padding(
                     padding: EdgeInsets.all(AppSizes.space),
                     child: SizedBox(
@@ -139,6 +128,31 @@ class _AiPromptWidgetState extends State<AiPromptWidget> {
         ),
       ],
     );
+  }
+
+  Widget _buildHeader(IColorPalette palette) {
+    final row = QuanityaRow(
+      spacing: HSpace.x1,
+      alignment: CrossAxisAlignment.center,
+      start: ExcludeSemantics(
+        child: Icon(
+          Icons.auto_awesome,
+          color: palette.interactableColor,
+          size: AppSizes.iconMedium,
+        ),
+      ),
+      middle: Text(
+        widget.title,
+        style: context.text.titleMedium?.copyWith(
+          color: palette.interactableColor,
+        ),
+      ),
+    );
+
+    if (widget.tourKey != null) {
+      return KeyedSubtree(key: widget.tourKey!, child: row);
+    }
+    return row;
   }
 
   /// Handle prompt generation - validates input and triggers callback

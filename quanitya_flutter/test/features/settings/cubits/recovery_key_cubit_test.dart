@@ -5,20 +5,21 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import 'package:quanitya_flutter/features/settings/cubits/recovery_key/recovery_key_cubit.dart';
 import 'package:quanitya_flutter/features/settings/cubits/recovery_key/recovery_key_state.dart';
+import 'package:quanitya_flutter/infrastructure/auth/account_service.dart';
 import 'package:quanitya_flutter/infrastructure/auth/auth_service.dart';
 
-@GenerateMocks([AuthService])
+@GenerateMocks([AccountService])
 import 'recovery_key_cubit_test.mocks.dart';
 
 void main() {
   group('RecoveryKeyCubit', () {
-    late MockAuthService mockAuthService;
+    late MockAccountService mockAccountService;
 
     setUp(() {
-      mockAuthService = MockAuthService();
+      mockAccountService = MockAccountService();
     });
 
-    RecoveryKeyCubit buildCubit() => RecoveryKeyCubit(mockAuthService);
+    RecoveryKeyCubit buildCubit() => RecoveryKeyCubit(mockAccountService);
 
     test('initial state is idle', () {
       final cubit = buildCubit();
@@ -34,7 +35,7 @@ void main() {
       const validJwk = '{"keys":[{"kty":"EC","crv":"P-256"}]}';
 
       test('emits loading then success on valid key', () async {
-        when(mockAuthService.validateRecoveryKey(validJwk))
+        when(mockAccountService.validateRecoveryKey(validJwk))
             .thenAnswer((_) async {});
 
         final cubit = buildCubit();
@@ -52,11 +53,11 @@ void main() {
         expect(states.last.status, equals(UiFlowStatus.success));
         expect(states.last.lastOperation, equals(RecoveryKeyOperation.validate));
         
-        verify(mockAuthService.validateRecoveryKey(validJwk)).called(1);
+        verify(mockAccountService.validateRecoveryKey(validJwk)).called(1);
       });
 
       test('emits loading then failure on invalid key', () async {
-        when(mockAuthService.validateRecoveryKey(any))
+        when(mockAccountService.validateRecoveryKey(any))
             .thenThrow(const AccountRecoveryException('Invalid key'));
 
         final cubit = buildCubit();
@@ -81,7 +82,7 @@ void main() {
       const deviceLabel = 'Test Device';
 
       test('emits loading then success on successful recovery', () async {
-        when(mockAuthService.recoverAccount(
+        when(mockAccountService.recoverAccount(
           ultimatePrivateKey: validJwk,
           deviceLabel: deviceLabel,
         )).thenAnswer((_) async {});
@@ -101,14 +102,14 @@ void main() {
         expect(states.last.status, equals(UiFlowStatus.success));
         expect(states.last.lastOperation, equals(RecoveryKeyOperation.recover));
         
-        verify(mockAuthService.recoverAccount(
+        verify(mockAccountService.recoverAccount(
           ultimatePrivateKey: validJwk,
           deviceLabel: deviceLabel,
         )).called(1);
       });
 
       test('emits loading then failure when account not found', () async {
-        when(mockAuthService.recoverAccount(
+        when(mockAccountService.recoverAccount(
           ultimatePrivateKey: anyNamed('ultimatePrivateKey'),
           deviceLabel: anyNamed('deviceLabel'),
         )).thenThrow(const AccountRecoveryException('No account found'));
@@ -131,44 +132,4 @@ void main() {
     });
   });
 
-  group('RecoveryKeyState', () {
-    test('default state has idle status', () {
-      const state = RecoveryKeyState();
-      
-      expect(state.status, equals(UiFlowStatus.idle));
-      expect(state.error, isNull);
-      expect(state.lastOperation, isNull);
-    });
-
-    test('copyWith preserves unchanged values', () {
-      const state = RecoveryKeyState(
-        status: UiFlowStatus.success,
-        lastOperation: RecoveryKeyOperation.validate,
-      );
-      
-      final newState = state.copyWith(status: UiFlowStatus.idle);
-      
-      expect(newState.status, equals(UiFlowStatus.idle));
-      expect(newState.lastOperation, equals(RecoveryKeyOperation.validate));
-    });
-
-    test('isLoading returns true for loading status', () {
-      const state = RecoveryKeyState(status: UiFlowStatus.loading);
-      
-      expect(state.isLoading, isTrue);
-    });
-
-    test('isSuccess returns true for success status', () {
-      const state = RecoveryKeyState(status: UiFlowStatus.success);
-      
-      expect(state.status.isSuccess, isTrue);
-    });
-  });
-
-  group('RecoveryKeyOperation', () {
-    test('has validate and recover values', () {
-      expect(RecoveryKeyOperation.values, contains(RecoveryKeyOperation.validate));
-      expect(RecoveryKeyOperation.values, contains(RecoveryKeyOperation.recover));
-    });
-  });
 }

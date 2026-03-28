@@ -1,13 +1,15 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
+import '../config/debug_log.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../core/try_operation.dart';
 import 'exceptions/notification_exception.dart';
 import 'notification_action_handler.dart';
+
+const _tag = 'infrastructure/notifications/notification_service';
 
 /// Notification category IDs.
 abstract final class NotificationCategories {
@@ -23,7 +25,7 @@ void _dispatchResponse(NotificationResponse response) {
 
   // Try to get the action handler from GetIt
   if (!GetIt.instance.isRegistered<INotificationActionHandler>()) {
-    debugPrint('NotificationService: INotificationActionHandler not registered, '
+    Log.d(_tag, 'NotificationService: INotificationActionHandler not registered, '
         'cannot handle action');
     return;
   }
@@ -31,14 +33,14 @@ void _dispatchResponse(NotificationResponse response) {
   final handler = GetIt.instance<INotificationActionHandler>();
 
   if (actionId != null && actionId.isNotEmpty) {
-    debugPrint('NotificationService: Dispatching action "$actionId" to handler');
+    Log.d(_tag, 'NotificationService: Dispatching action "$actionId" to handler');
     handler.handle(
       actionId: actionId,
       payload: payload,
       inputText: input,
     );
   } else {
-    debugPrint('NotificationService: Plain tap, dispatching as open_entry');
+    Log.d(_tag, 'NotificationService: Plain tap, dispatching as open_entry');
     handler.handle(
       actionId: NotificationActionIds.openEntry,
       payload: payload,
@@ -126,7 +128,7 @@ class NotificationService {
   Future<bool> initialize() {
     return tryMethod(
       () async {
-        debugPrint('NotificationService: Initializing...');
+        Log.d(_tag, 'NotificationService: Initializing...');
 
         // Initialize timezone data
         tz_data.initializeTimeZones();
@@ -160,7 +162,7 @@ class NotificationService {
             ),
           ],
         );
-        debugPrint('NotificationService: Registered reminder category with '
+        Log.d(_tag, 'NotificationService: Registered reminder category with '
             '${NotificationActionIds.quickLog} and '
             '${NotificationActionIds.openEntry} actions');
 
@@ -175,7 +177,7 @@ class NotificationService {
           onDidReceiveNotificationResponse: _onForegroundResponse,
         );
 
-        debugPrint('NotificationService: Initialized = $result');
+        Log.d(_tag, 'NotificationService: Initialized = $result');
         return result ?? false;
       },
       NotificationException.new,
@@ -191,14 +193,14 @@ class NotificationService {
   Future<bool> requestPermissions() {
     return tryMethod(
       () async {
-        debugPrint('NotificationService: Requesting permissions...');
+        Log.d(_tag, 'NotificationService: Requesting permissions...');
 
         // Android 13+ permission request
         final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
         if (androidPlugin != null) {
           final granted = await androidPlugin.requestNotificationsPermission();
-          debugPrint('NotificationService: Android permission = $granted');
+          Log.d(_tag, 'NotificationService: Android permission = $granted');
           if (granted != true) return false;
         }
 
@@ -211,7 +213,7 @@ class NotificationService {
             badge: true,
             sound: true,
           );
-          debugPrint('NotificationService: iOS permission = $granted');
+          Log.d(_tag, 'NotificationService: iOS permission = $granted');
           return granted ?? false;
         }
 
@@ -224,7 +226,7 @@ class NotificationService {
             badge: true,
             sound: true,
           );
-          debugPrint('NotificationService: macOS permission = $granted');
+          Log.d(_tag, 'NotificationService: macOS permission = $granted');
           return granted ?? false;
         }
 
@@ -249,7 +251,7 @@ class NotificationService {
   }) {
     return tryMethod(
       () async {
-        debugPrint('NotificationService: Showing notification $id');
+        Log.d(_tag, 'NotificationService: Showing notification $id');
         await _plugin.show(
             id, title, body, _notificationDetails, payload: payload);
       },
@@ -278,7 +280,7 @@ class NotificationService {
       () async {
         // Don't schedule notifications in the past
         if (scheduledAt.isBefore(DateTime.now())) {
-          debugPrint('NotificationService: Skipping past notification $id');
+          Log.d(_tag, 'NotificationService: Skipping past notification $id');
           return;
         }
 
@@ -289,7 +291,7 @@ class NotificationService {
             ? _reminderNotificationDetails
             : _notificationDetails;
 
-        debugPrint(
+        Log.d(_tag,
             'NotificationService: Scheduling notification $id for $scheduledAt'
             '${category != null ? ' (category: $category)' : ''}');
 
@@ -312,7 +314,7 @@ class NotificationService {
   Future<void> cancel(int id) {
     return tryMethod(
       () async {
-        debugPrint('NotificationService: Canceling notification $id');
+        Log.d(_tag, 'NotificationService: Canceling notification $id');
         await _plugin.cancel(id);
       },
       NotificationException.new,
@@ -324,7 +326,7 @@ class NotificationService {
   Future<void> cancelAll() {
     return tryMethod(
       () async {
-        debugPrint('NotificationService: Canceling all notifications');
+        Log.d(_tag, 'NotificationService: Canceling all notifications');
         await _plugin.cancelAll();
       },
       NotificationException.new,
@@ -346,7 +348,7 @@ class NotificationService {
   /// Foreground callback when a notification is tapped or action is pressed
   /// while the app is open.
   static void _onForegroundResponse(NotificationResponse response) {
-    debugPrint('NotificationService [foreground]: Response received - '
+    Log.d(_tag, 'NotificationService [foreground]: Response received - '
         'id=${response.id}, '
         'actionId=${response.actionId ?? "(none)"}, '
         'payload=${response.payload ?? "(none)"}');

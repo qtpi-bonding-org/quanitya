@@ -4,7 +4,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 part 'temporal_timeline_state.freezed.dart';
 
 @freezed
-class TemporalTimelineState
+abstract class TemporalTimelineState
     with _$TemporalTimelineState, UiFlowStateMixin
     implements IUiFlowState {
   const TemporalTimelineState._();

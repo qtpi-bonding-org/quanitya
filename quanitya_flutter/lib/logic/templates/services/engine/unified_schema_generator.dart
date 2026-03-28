@@ -80,12 +80,20 @@ class UnifiedSchemaGenerator {
   Map<String, dynamic> _generateFieldsArraySchema(
     List<(FieldEnum, UiElementEnum, List<ValidatorType>)> combinations,
   ) {
+    final scalarOptions = combinations
+        .map(_convertEnumTupleToSchemaOption)
+        .toList();
+
+    // Group fields are excluded from AI schema generation — the recursive
+    // subFields anyOf roughly doubles schema size and exceeds structured
+    // output limits on smaller models (e.g., gpt-4o-mini). Group fields
+    // can still be created manually or via the template editor.
+    // _generateGroupFieldSchema is retained for future use.
+
     return {
       'type': 'array',
       'items': {
-        'anyOf': combinations
-            .map(_convertEnumTupleToSchemaOption)
-            .toList(),
+        'anyOf': scalarOptions,
       },
       'minItems': 1,
       'maxItems': 10,
@@ -192,8 +200,8 @@ class UnifiedSchemaGenerator {
       required.add('unit');
     }
 
-    // Add options for enumerated fields
-    if (fieldType == FieldEnum.enumerated) {
+    // Add options for enumerated and multiEnum fields
+    if (fieldType == FieldEnum.enumerated || fieldType == FieldEnum.multiEnum) {
       properties['options'] = {
         'type': 'array',
         'items': {'type': 'string', 'minLength': 1, 'maxLength': 50},
@@ -210,6 +218,68 @@ class UnifiedSchemaGenerator {
     // we omit it from AI generation. Users can set defaults manually in the editor.
 
     return schemaOption;
+  }
+
+  /// Generates the JSON Schema option for group fields.
+  ///
+  /// Group fields contain sub-fields that reuse the scalar field schemas.
+  /// The group itself has no uiElement — sub-fields define their own.
+  Map<String, dynamic> _generateGroupFieldSchema(
+    List<Map<String, dynamic>> scalarFieldSchemas,
+  ) {
+    return {
+      'type': 'object',
+      'properties': {
+        'label': {
+          'type': 'string',
+          'description':
+              'Human-readable label for this group (e.g., "Sets", "Ingredients")',
+          'minLength': 1,
+          'maxLength': 50,
+        },
+        'fieldType': {
+          'type': 'string',
+          'const': 'group',
+        },
+        'isList': {
+          'type': 'boolean',
+          'description':
+              'If true, field accepts multiple grouped entries (e.g., multiple sets in a workout)',
+        },
+        'listMinItems': {
+          'type': 'integer',
+          'minimum': 0,
+          'maximum': 10,
+          'description':
+              'Minimum number of group items when isList is true. Use 0 for no minimum.',
+        },
+        'listMaxItems': {
+          'type': 'integer',
+          'minimum': 1,
+          'maximum': 10,
+          'description':
+              'Maximum number of group items when isList is true. Use 10 for no maximum.',
+        },
+        'subFields': {
+          'type': 'array',
+          'items': {
+            'anyOf': scalarFieldSchemas,
+          },
+          'minItems': 1,
+          'maxItems': 10,
+          'description': 'Sub-fields within this group',
+        },
+      },
+      'required': [
+        'label',
+        'fieldType',
+        'isList',
+        'listMinItems',
+        'listMaxItems',
+        'subFields',
+      ],
+      'additionalProperties': false,
+    };
   }
 
   /// Generates color configuration schema from QuanityaWidgetRegistry.

@@ -9,7 +9,8 @@ import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
-import '../../../design_system/widgets/quanitya/general/post_it_toast.dart';
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:get_it/get_it.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart' as btn;
 
@@ -188,9 +189,9 @@ class _ErrorDetails extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
-    PostItToast.show(context,
+    GetIt.instance<IFeedbackService>().show(FeedbackMessage(
         message: context.l10n.stackTraceCopied,
-        type: PostItType.success);
+        type: MessageType.success));
   }
 }
 

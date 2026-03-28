@@ -1,5 +1,9 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:injectable/injectable.dart';
+import '../config/debug_log.dart';
+
+const _tag = 'infrastructure/platform/app_lifecycle_service';
 
 /// General-purpose app lifecycle hook registry.
 ///
@@ -33,8 +37,9 @@ class AppLifecycleService {
 
   void _handleResume() {
     for (final entry in _onResumeCallbacks.entries) {
-      entry.value().catchError((e) {
-        debugPrint('AppLifecycleService: ${entry.key} onResume failed: $e');
+      entry.value().catchError((Object e, StackTrace stack) {
+        Log.d(_tag, 'AppLifecycleService: ${entry.key} onResume failed: $e');
+        ErrorPrivserver.captureError(e, stack, source: 'AppLifecycleService.${entry.key}');
       });
     }
   }

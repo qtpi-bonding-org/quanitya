@@ -2,9 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' as cubit_ui_flow;
+import '../config/debug_log.dart';
 
 import '../../app/root_navigator_key.dart';
 import '../../design_system/widgets/quanitya/general/post_it_toast.dart';
+
+const _tag = 'infrastructure/feedback/feedback_service';
 
 /// Toast feedback service using Quanitya palette colors and overlay.
 @LazySingleton(as: cubit_ui_flow.IFeedbackService)
@@ -19,13 +22,13 @@ class ToastFeedbackService implements cubit_ui_flow.IFeedbackService {
       try {
         // Remove existing toast if showing
         if (_overlayEntry != null) {
-          debugPrint('⚠️ FeedbackService: Replacing existing toast.');
+          Log.d(_tag, 'FeedbackService: Replacing existing toast.');
           _removeOverlay();
         }
 
         final overlayState = rootNavigatorKey.currentState?.overlay;
         if (overlayState == null) {
-          debugPrint('❌ FeedbackService Error: Navigator overlay is null.');
+          Log.d(_tag, 'FeedbackService Error: Navigator overlay is null.');
           return;
         }
 
@@ -54,7 +57,7 @@ class ToastFeedbackService implements cubit_ui_flow.IFeedbackService {
         );
 
         overlayState.insert(_overlayEntry!);
-        debugPrint('✅ FeedbackService: Toast shown: "${message.message}"');
+        Log.d(_tag, 'FeedbackService: Toast shown: "${message.message}"');
 
         // Auto-dismiss after duration
         final duration = message.type == cubit_ui_flow.MessageType.error
@@ -63,7 +66,7 @@ class ToastFeedbackService implements cubit_ui_flow.IFeedbackService {
         
         Future.delayed(duration, _removeOverlay);
       } catch (e, stackTrace) {
-        debugPrint('❌ FeedbackService show() failed: $e\n$stackTrace');
+        Log.d(_tag, 'FeedbackService show() failed: $e\n$stackTrace');
         _removeOverlay();
       }
     });
@@ -71,7 +74,7 @@ class ToastFeedbackService implements cubit_ui_flow.IFeedbackService {
 
   void _removeOverlay() {
     if (_overlayEntry != null) {
-      debugPrint('⚪ FeedbackService: Toast removed.');
+      Log.d(_tag, 'FeedbackService: Toast removed.');
       _overlayEntry!.remove();
       _overlayEntry = null;
     }

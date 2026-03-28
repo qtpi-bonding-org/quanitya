@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../infrastructure/config/debug_log.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     as quanitya_cloud_client;
 import 'package:serverpod_flutter/serverpod_flutter.dart';
@@ -13,6 +14,8 @@ import '../data/dao/template_query_dao.dart';
 import '../data/dao/dual_dao.dart';
 import '../data/repositories/template_with_aesthetics_repository.dart';
 import '../infrastructure/webhooks/webhook_repository.dart';
+
+const _tag = 'app/app_module';
 
 @module
 abstract class AppModule {
@@ -35,7 +38,7 @@ abstract class AppModule {
       serverUrl = 'http://$localhost:8080/';
     }
 
-    debugPrint('🔗 Serverpod Client connecting to: $serverUrl');
+    Log.d(_tag, '🔗 Serverpod Client connecting to: $serverUrl');
 
     final client = quanitya_cloud_client.Client(serverUrl)
       ..connectivityMonitor = FlutterConnectivityMonitor();
@@ -45,10 +48,10 @@ abstract class AppModule {
 
   @preResolve
   @singleton
-  Future<AppDatabase> getDatabase(IPowerSyncService powerSync) async {
-    debugPrint('AppModule: Initializing PowerSync...');
+  Future<AppDatabase> getDatabase(IPowerSyncRepository powerSync) async {
+    Log.d(_tag, 'AppModule: Initializing PowerSync...');
     await powerSync.initialize();
-    debugPrint('AppModule: PowerSync initialized, returning driftDb');
+    Log.d(_tag, 'AppModule: PowerSync initialized, returning driftDb');
     return powerSync.driftDb;
   }
 

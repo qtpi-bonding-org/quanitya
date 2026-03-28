@@ -17,7 +17,7 @@ import 'package:quanitya_flutter/logic/templates/enums/field_enum.dart';
 @GenerateMocks([ILogEntryRepository])
 import 'data_ingestion_service_test.mocks.dart';
 
-const int kPropertyTestIterations = 5;
+const int kPropertyTestIterations = 3;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test Adapters

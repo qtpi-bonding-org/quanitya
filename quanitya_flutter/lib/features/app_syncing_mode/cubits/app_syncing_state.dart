@@ -9,14 +9,19 @@ enum AppSyncingOperation {
   testConnection,
   switchMode,
   configure,
+  startSyncAfterRecovery, // Bootstrap sync after account recovery
   externalChange, // Mode changed by external source (e.g., AuthService)
 }
 
 /// Typedef for backward compatibility
-typedef AppOperatingOperation = AppSyncingOperation;
 
+/// Sync mode preference state.
+///
+/// Sync requires BOTH `mode.supportsSync` (user chose cloud/selfHosted)
+/// AND `EntitlementState.hasSyncAccess` (server grants sync entitlement).
+/// Live connection status comes from PowerSync's status stream, not this state.
 @freezed
-class AppSyncingState with _$AppSyncingState implements IUiFlowState {
+abstract class AppSyncingState with _$AppSyncingState, UiFlowStateMixin implements IUiFlowState {
   const factory AppSyncingState({
     @Default(UiFlowStatus.idle) UiFlowStatus status,
     Object? error,
@@ -24,7 +29,6 @@ class AppSyncingState with _$AppSyncingState implements IUiFlowState {
 
     // Core state
     @Default(AppSyncingMode.local) AppSyncingMode mode,
-    @Default(false) bool isConnected,
     @Default(false) bool hasTriedConnection,
 
     // Server URLs
@@ -36,33 +40,14 @@ class AppSyncingState with _$AppSyncingState implements IUiFlowState {
     DateTime? lastConnectionTest,
   }) = _AppSyncingState;
 
-  // IUiFlowState implementations
   const AppSyncingState._();
-
-  @override
-  bool get isIdle => status == UiFlowStatus.idle;
-
-  @override
-  bool get isLoading => status == UiFlowStatus.loading;
-
-  @override
-  bool get isSuccess => status == UiFlowStatus.success;
-
-  @override
-  bool get isFailure => status == UiFlowStatus.failure;
-
-  @override
-  bool get hasError => error != null;
 }
 
 /// Typedef for backward compatibility
-typedef AppOperatingState = AppSyncingState;
 
 extension AppSyncingStateExtension on AppSyncingState {
-  /// Current server URL based on mode and connection status
+  /// Current server URL based on mode
   String? get currentServerUrl {
-    if (!isConnected) return null;
-
     return switch (mode) {
       AppSyncingMode.local => null,
       AppSyncingMode.selfHosted => selfHostedUrl,
@@ -77,20 +62,20 @@ extension AppSyncingStateExtension on AppSyncingState {
     return '${uri.scheme}://${uri.host}${uri.hasPort ? ':${uri.port}' : ''}';
   }
 
-  /// Can create accounts (requires server connection or local mode)
+  /// Can create accounts (requires server mode or local mode)
   bool get canCreateAccount => switch (mode) {
     AppSyncingMode.local => true, // Always can create locally
-    AppSyncingMode.selfHosted || AppSyncingMode.cloud => isConnected,
+    AppSyncingMode.selfHosted || AppSyncingMode.cloud => true,
   };
 
   /// Should show sync features in UI
-  bool get showSyncFeatures => mode.supportsSync && isConnected;
+  bool get showSyncFeatures => mode.supportsSync;
 
-  /// Needs configuration (server modes without connection)
+  /// Needs configuration (self-hosted mode without URL)
   bool get needsConfiguration => switch (mode) {
     AppSyncingMode.local => false,
-    AppSyncingMode.selfHosted => selfHostedUrl == null || !isConnected,
-    AppSyncingMode.cloud => !isConnected,
+    AppSyncingMode.selfHosted => selfHostedUrl == null,
+    AppSyncingMode.cloud => false,
   };
 }
 

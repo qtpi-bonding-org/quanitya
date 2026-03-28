@@ -11,6 +11,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/analysis_output/analysis_output.dart';
 import '../../../logic/analysis/models/analysis_output.dart';
+import '../../../logic/analysis/models/analysis_script.dart';
 import '../../../logic/analysis/models/matrix_vector_scalar/time_series_matrix.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/widgets/quanitya_empty_state.dart';
@@ -38,7 +39,7 @@ class ResultsAnalysisPage extends StatelessWidget {
             context.watch<HiddenVisibilityCubit>().state.showingHidden;
         final analyzable = state.templates
             .where((item) =>
-                item.hasGraphableFields &&
+                item.hasAnalyzableFields &&
                 (showHidden || !item.isHidden))
             .toList();
 
@@ -80,8 +81,9 @@ class _AnalysisFoldBody extends StatelessWidget {
         final data = state.data;
         if (data == null) return const SizedBox.shrink();
 
-        // Show placeholder if no analysis results and no numeric fields
-        if (state.analysisResults.isEmpty && data.numericFields.isEmpty) {
+        if (state.analysisResults.isEmpty &&
+            data.numericFields.isEmpty &&
+            data.groupFields.isEmpty) {
           return const QuanityaEmptyState();
         }
 
@@ -93,9 +95,11 @@ class _AnalysisFoldBody extends StatelessWidget {
                   analysisResults: state.analysisResults),
               VSpace.x4,
             ],
-            if (data.numericFields.isNotEmpty) ...[
+            if (data.numericFields.isNotEmpty ||
+                data.groupFields.isNotEmpty) ...[
               _AnalyzeFieldsSection(
                 numericFields: data.numericFields,
+                groupFields: data.groupFields,
                 templateId: data.template.id,
               ),
             ],
@@ -108,10 +112,12 @@ class _AnalysisFoldBody extends StatelessWidget {
 
 class _AnalyzeFieldsSection extends StatelessWidget {
   final List<NumericFieldData> numericFields;
+  final List<GroupFieldData> groupFields;
   final String templateId;
 
   const _AnalyzeFieldsSection({
     required this.numericFields,
+    required this.groupFields,
     required this.templateId,
   });
 
@@ -121,28 +127,21 @@ class _AnalyzeFieldsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(Icons.functions,
-                size: AppSizes.iconMedium, color: palette.textPrimary),
-            HSpace.x1,
-            Text(
-              context.l10n.resultsAnalyzeFields,
-              style: context.text.titleLarge?.copyWith(
-                color: palette.textPrimary,
-              ),
+        Center(
+          child: Text(
+            context.l10n.resultsAnalyzeFields,
+            style: context.text.titleLarge?.copyWith(
+              color: palette.textSecondary,
             ),
-          ],
-        ),
-        VSpace.x1,
-        Text(
-          context.l10n.resultsAnalyzeFieldsDescription,
-          style:
-              context.text.bodyMedium?.copyWith(color: palette.textSecondary),
+          ),
         ),
         VSpace.x2,
         ...numericFields.map((fieldData) => _FieldAnalysisCard(
               fieldData: fieldData,
+              templateId: templateId,
+            )),
+        ...groupFields.map((groupData) => _GroupAnalysisCard(
+              groupData: groupData,
               templateId: templateId,
             )),
       ],
@@ -152,60 +151,28 @@ class _AnalyzeFieldsSection extends StatelessWidget {
 
 /// Displays executed analysis pipeline results.
 class _AnalysisResultsSection extends StatelessWidget {
-  final Map<String, dynamic> analysisResults;
+  final Map<String, ScriptResult> analysisResults;
 
   const _AnalysisResultsSection({required this.analysisResults});
 
   @override
   Widget build(BuildContext context) {
-    final palette = QuanityaPalette.primary;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.insights,
-              size: AppSizes.iconMedium,
-              color: palette.textPrimary,
-            ),
-            HSpace.x1,
-            Text(
-              context.l10n.resultsAnalysisResults,
-              style: context.text.titleLarge?.copyWith(
-                color: palette.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        VSpace.x1,
-        Text(
-          context.l10n.resultsAnalysisResultsDescription,
-          style: context.text.bodyMedium?.copyWith(
-            color: palette.textSecondary,
-          ),
-        ),
-        VSpace.x3,
-        ...analysisResults.entries.map((entry) {
-          final scriptData = entry.value as Map<String, dynamic>;
-          final script = scriptData['script'];
-          final result = scriptData['result'];
-
-          return _AnalysisResultCard(
-            script: script,
-            result: result,
-          );
-        }),
-      ],
+      children: analysisResults.entries.map((entry) {
+        return _AnalysisResultCard(
+          script: entry.value.script,
+          result: entry.value.result,
+        );
+      }).toList(),
     );
   }
 }
 
 /// Individual analysis result card.
 class _AnalysisResultCard extends StatelessWidget {
-  final dynamic script;
-  final dynamic result;
+  final AnalysisScriptModel script;
+  final AnalysisOutput result;
 
   const _AnalysisResultCard({
     required this.script,
@@ -238,7 +205,7 @@ class _AnalysisResultCard extends StatelessWidget {
           if (script.reasoning != null) ...[
             VSpace.x05,
             Text(
-              script.reasoning,
+              script.reasoning!,
               style: context.text.bodyMedium?.copyWith(
                 color: palette.textSecondary,
               ),
@@ -251,7 +218,7 @@ class _AnalysisResultCard extends StatelessWidget {
     );
   }
 
-  Widget _buildResultDisplay(BuildContext context, dynamic result) {
+  Widget _buildResultDisplay(BuildContext context, AnalysisOutput result) {
     return result.when(
       scalar: (scalars) => _buildScalarDisplay(context, scalars),
       vector: (vectors) => _buildVectorDisplay(context, vectors),
@@ -285,6 +252,96 @@ class _AnalysisResultCard extends StatelessWidget {
   }
 }
 
+/// Card for selecting a group field to run analysis on.
+///
+/// Groups are passed as whole objects to the WASM engine (e.g.
+/// `[{sleep: 7, mood: "ok"}, ...]`), so they appear as a single entry.
+class _GroupAnalysisCard extends StatelessWidget {
+  final GroupFieldData groupData;
+  final String templateId;
+
+  const _GroupAnalysisCard({
+    required this.groupData,
+    required this.templateId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    final subFieldLabels = groupData.field.subFields
+            ?.map((sf) => sf.label)
+            .join(', ') ??
+        '';
+
+    return Container(
+      margin: EdgeInsets.only(bottom: AppSizes.space),
+      child: Semantics(
+        button: true,
+        label: context.l10n.resultsAnalyzeField(groupData.field.label),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+            onTap: () async {
+              await AppNavigation.toAnalysisBuilder(
+                context,
+                fieldId: groupData.field.id,
+                templateId: templateId,
+              );
+              if (context.mounted) {
+                context.read<VisualizationCubit>().loadForTemplate(templateId);
+              }
+            },
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: AppSizes.buttonHeight,
+              ),
+              child: Container(
+                padding: AppPadding.allDouble,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: palette.textSecondary.withValues(alpha: 0.2),
+                  ),
+                  borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            groupData.field.label,
+                            style: context.text.titleMedium?.copyWith(
+                              color: palette.textPrimary,
+                            ),
+                          ),
+                          VSpace.x05,
+                          Text(
+                            '${context.l10n.resultsDataPoints(groupData.entryCount)} · $subFieldLabels',
+                            style: context.text.bodyMedium?.copyWith(
+                              color: palette.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: palette.textSecondary,
+                      size: AppSizes.iconMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Card for selecting a numeric field to run analysis on.
 class _FieldAnalysisCard extends StatelessWidget {
   final NumericFieldData fieldData;
@@ -308,12 +365,15 @@ class _FieldAnalysisCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-            onTap: () {
-              AppNavigation.toAnalysisBuilder(
+            onTap: () async {
+              await AppNavigation.toAnalysisBuilder(
                 context,
-                fieldId: fieldData.field.label,
+                fieldId: fieldData.field.id,
                 templateId: templateId,
               );
+              if (context.mounted) {
+                context.read<VisualizationCubit>().loadForTemplate(templateId);
+              }
             },
             child: ConstrainedBox(
               constraints: BoxConstraints(

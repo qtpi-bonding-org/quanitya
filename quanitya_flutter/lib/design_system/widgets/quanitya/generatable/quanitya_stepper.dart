@@ -4,6 +4,7 @@ import 'package:flutter_colorable/flutter_colorable.dart';
 import '../../../primitives/app_sizes.dart';
 import '../../../primitives/app_spacings.dart';
 import '../../../primitives/quanitya_fonts.dart';
+import '../../../../support/extensions/context_extensions.dart';
 
 /// Zen-styled stepper - minimal buttons with accent color, no heavy backgrounds.
 ///
@@ -58,7 +59,7 @@ class QuanityaStepper extends StatelessWidget {
         // Decrement button
         Semantics(
           button: true,
-          label: 'Decrease',
+          label: context.l10n.accessibilityDecrease,
           child: _ZenStepperButton(
             icon: Icons.remove,
             color: buttonColor,
@@ -87,7 +88,7 @@ class QuanityaStepper extends StatelessWidget {
         // Increment button
         Semantics(
           button: true,
-          label: 'Increase',
+          label: context.l10n.accessibilityIncrease,
           child: _ZenStepperButton(
             icon: Icons.add,
             color: buttonColor,

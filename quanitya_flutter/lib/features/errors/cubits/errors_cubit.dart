@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import '../../../infrastructure/config/debug_log.dart';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../../../data/repositories/error_box_repository.dart';
@@ -10,7 +11,9 @@ import '../../../features/app_syncing_mode/repositories/app_syncing_repository.d
 import '../../../infrastructure/error_reporting/error_reporter_service.dart';
 import 'errors_state.dart';
 
-@injectable
+const _tag = 'features/errors/cubits/errors_cubit';
+
+@lazySingleton
 class ErrorsCubit extends QuanityaCubit<ErrorsState> {
   final ErrorBoxRepository _repo;
   final ErrorReporterService _reporter;
@@ -19,7 +22,18 @@ class ErrorsCubit extends QuanityaCubit<ErrorsState> {
   StreamSubscription<List<ErrorBoxEntry>>? _errorsSub;
 
   ErrorsCubit(this._repo, this._reporter, this._settingsRepo)
-      : super(const ErrorsState());
+      : super(const ErrorsState()) {
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      await load();
+      Log.d(_tag, 'ErrorsCubit: Initialization complete');
+    } catch (e) {
+      Log.d(_tag, 'ErrorsCubit: Initialization failed (non-critical): $e');
+    }
+  }
 
   /// Start watching unsent errors and load auto-send preference.
   Future<void> load() async {

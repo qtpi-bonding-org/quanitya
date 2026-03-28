@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:get_it/get_it.dart';
 
 import '../../../app_router.dart';
 import '../../../app/bootstrap.dart';
+import '../../purchase/cubits/entitlement_cubit.dart';
+import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
@@ -12,10 +16,10 @@ import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/device_name_display.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
-import '../../../infrastructure/crypto/crypto_key_repository.dart';
-import '../../../infrastructure/device/device_info_service.dart';
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
 import '../../../support/extensions/context_extensions.dart';
+import '../../settings/cubits/device_management/device_management_cubit.dart';
+import '../../settings/cubits/device_management/device_management_state.dart';
 import '../../settings/cubits/recovery_key/recovery_key_cubit.dart';
 import '../../settings/cubits/recovery_key/recovery_key_state.dart';
 import '../../settings/cubits/recovery_key/recovery_key_message_mapper.dart';
@@ -32,35 +36,7 @@ class AccountRecoveryPage extends StatefulWidget {
 class _AccountRecoveryPageState extends State<AccountRecoveryPage> {
   final _recoveryKeyController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  String _deviceName = '';
-  bool _hasExistingKeys = false;
   bool _confirmEraseKeys = false;
-  bool _checkingKeys = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadDeviceName();
-    _checkExistingKeys();
-  }
-
-  Future<void> _loadDeviceName() async {
-    final deviceName = await getIt<DeviceInfoService>().getDeviceName();
-    if (mounted) {
-      setState(() => _deviceName = deviceName);
-    }
-  }
-
-  Future<void> _checkExistingKeys() async {
-    final keyRepo = getIt<ICryptoKeyRepository>();
-    final hasKeys = await keyRepo.hasExistingKeys();
-    if (mounted) {
-      setState(() {
-        _hasExistingKeys = hasKeys;
-        _checkingKeys = false;
-      });
-    }
-  }
 
   @override
   void dispose() {
@@ -70,8 +46,13 @@ class _AccountRecoveryPageState extends State<AccountRecoveryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<RecoveryKeyCubit>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => getIt<RecoveryKeyCubit>()),
+        BlocProvider(
+          create: (_) => getIt<DeviceManagementCubit>()..loadLocalDeviceInfo(),
+        ),
+      ],
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -83,10 +64,7 @@ class _AccountRecoveryPageState extends State<AccountRecoveryPage> {
           child: _RecoveryForm(
             formKey: _formKey,
             recoveryKeyController: _recoveryKeyController,
-            deviceName: _deviceName,
-            hasExistingKeys: _hasExistingKeys,
             confirmEraseKeys: _confirmEraseKeys,
-            checkingKeys: _checkingKeys,
             onConfirmEraseChanged: (value) {
               setState(() => _confirmEraseKeys = value);
             },
@@ -100,19 +78,13 @@ class _AccountRecoveryPageState extends State<AccountRecoveryPage> {
 class _RecoveryForm extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController recoveryKeyController;
-  final String deviceName;
-  final bool hasExistingKeys;
   final bool confirmEraseKeys;
-  final bool checkingKeys;
   final ValueChanged<bool> onConfirmEraseChanged;
 
   const _RecoveryForm({
     required this.formKey,
     required this.recoveryKeyController,
-    required this.deviceName,
-    required this.hasExistingKeys,
     required this.confirmEraseKeys,
-    required this.checkingKeys,
     required this.onConfirmEraseChanged,
   });
 
@@ -129,43 +101,68 @@ class _RecoveryForm extends StatelessWidget {
             prev.status != curr.status &&
             curr.status.isSuccess &&
             curr.lastOperation == RecoveryKeyOperation.recover,
-        listener: (context, state) {
+        listener: (context, state) async {
           AppRouter.resetKeyCheck();
-          AppNavigation.toHome(context);
+
+          // Keep loading visible during post-recovery sync
+          final loadingService = GetIt.instance<IUiFlowService>();
+          loadingService.showLoading();
+
+          try {
+            // Post-recovery: mark purchased + refresh entitlements via cubit
+            final entitlementCubit = GetIt.instance<EntitlementCubit>();
+            await entitlementCubit.markPurchased();
+            await entitlementCubit.loadEntitlements();
+
+            // Bootstrap sync for this device (recovery restores same key, not rotation)
+            await GetIt.instance<AppSyncingCubit>().startSyncAfterRecovery();
+          } catch (e, stack) {
+            await ErrorPrivserver.captureError(e, stack, source: 'AccountRecoveryPage.postRecovery');
+          } finally {
+            loadingService.hideLoading();
+          }
+
+          if (context.mounted) {
+            AppNavigation.toHome(context);
+          }
         },
-        child: BlocBuilder<RecoveryKeyCubit, RecoveryKeyState>(
-          builder: (context, state) {
-            return SingleChildScrollView(
-              padding: AppPadding.page,
-              child: Form(
-                key: formKey,
-                child: QuanityaColumn(
-                  spacing: VSpace.x2,
-                  crossAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _HeaderSection(),
-                    _RecoveryKeyInput(controller: recoveryKeyController),
-                    DeviceNameDisplay(
-                      label: context.l10n.deviceLabelLabel,
-                      deviceName: deviceName,
+        child: BlocBuilder<DeviceManagementCubit, DeviceManagementState>(
+          builder: (context, deviceState) {
+            final checkingKeys = deviceState.deviceName == null;
+            return BlocBuilder<RecoveryKeyCubit, RecoveryKeyState>(
+              builder: (context, recoveryState) {
+                return SingleChildScrollView(
+                  padding: AppPadding.page,
+                  child: Form(
+                    key: formKey,
+                    child: QuanityaColumn(
+                      spacing: VSpace.x2,
+                      crossAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _HeaderSection(),
+                        _RecoveryKeyInput(controller: recoveryKeyController),
+                        DeviceNameDisplay(
+                          label: context.l10n.deviceLabelLabel,
+                          deviceName: deviceState.deviceName ?? '',
+                        ),
+                        // Show warning and checkbox if keys exist
+                        if (deviceState.hasExistingKeys && !checkingKeys)
+                          _ExistingKeysWarning(
+                            confirmEraseKeys: confirmEraseKeys,
+                            onChanged: onConfirmEraseChanged,
+                          ),
+                        _RecoverButton(
+                          formKey: formKey,
+                          recoveryKeyController: recoveryKeyController,
+                          isLoading: recoveryState.isLoading || checkingKeys,
+                          hasExistingKeys: deviceState.hasExistingKeys,
+                          confirmEraseKeys: confirmEraseKeys,
+                        ),
+                      ],
                     ),
-                    // Show warning and checkbox if keys exist
-                    if (hasExistingKeys && !checkingKeys)
-                      _ExistingKeysWarning(
-                        confirmEraseKeys: confirmEraseKeys,
-                        onChanged: onConfirmEraseChanged,
-                      ),
-                    _RecoverButton(
-                      formKey: formKey,
-                      recoveryKeyController: recoveryKeyController,
-                      deviceName: deviceName,
-                      isLoading: state.isLoading || checkingKeys,
-                      hasExistingKeys: hasExistingKeys,
-                      confirmEraseKeys: confirmEraseKeys,
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             );
           },
         ),
@@ -318,7 +315,6 @@ class _ExistingKeysWarning extends StatelessWidget {
 class _RecoverButton extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController recoveryKeyController;
-  final String deviceName;
   final bool isLoading;
   final bool hasExistingKeys;
   final bool confirmEraseKeys;
@@ -326,7 +322,6 @@ class _RecoverButton extends StatelessWidget {
   const _RecoverButton({
     required this.formKey,
     required this.recoveryKeyController,
-    required this.deviceName,
     required this.isLoading,
     required this.hasExistingKeys,
     required this.confirmEraseKeys,
@@ -346,18 +341,12 @@ class _RecoverButton extends StatelessWidget {
         onPressed: canRecover
             ? () async {
                 if (formKey.currentState?.validate() ?? false) {
-                  // If keys exist, clear them first
-                  if (hasExistingKeys) {
-                    final keyRepo = getIt<ICryptoKeyRepository>();
-                    await keyRepo.clearKeys();
-                  }
-
-                  if (context.mounted) {
-                    context.read<RecoveryKeyCubit>().recoverAccount(
-                      jwk: recoveryKeyController.text.trim(),
-                      deviceLabel: deviceName,
-                    );
-                  }
+                  final deviceName = context.read<DeviceManagementCubit>().state.deviceName ?? '';
+                  await context.read<RecoveryKeyCubit>().recoverAccount(
+                    jwk: recoveryKeyController.text.trim(),
+                    deviceLabel: deviceName,
+                    eraseExisting: hasExistingKeys,
+                  );
                 }
               }
             : null,

@@ -14,7 +14,7 @@ import '../cubits/sharing/template_sharing_export_cubit.dart';
 import '../../../logic/templates/models/shared/shareable_template.dart';
 import '../widgets/editor/template_editor_form.dart';
 import '../widgets/shared/template_preview.dart';
-import 'template_import_page.dart';
+import '../widgets/editor/template_browse_sheet.dart';
 
 /// Template designer page — create or edit tracker templates.
 ///
@@ -46,6 +46,8 @@ class TemplateDesignerPage extends StatelessWidget {
         child: Scaffold(
           appBar: _buildAppBar(context),
           body: BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+            buildWhen: (p, c) =>
+                p.completeTemplate != c.completeTemplate,
             builder: (context, state) {
               return TemplateEditorForm(
                 onPreview: state.completeTemplate != null
@@ -64,6 +66,7 @@ class TemplateDesignerPage extends StatelessWidget {
     return AppBar(
       centerTitle: true,
       title: BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+        buildWhen: (p, c) => p.template != c.template,
         builder: (context, state) {
           final title = state.template != null
               ? context.l10n.editTemplateTitle
@@ -73,18 +76,19 @@ class TemplateDesignerPage extends StatelessWidget {
       ),
       actions: [
         BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+          buildWhen: (p, c) => p.template != c.template,
           builder: (context, state) {
             if (state.template != null) {
               // Edit mode: show share
               return QuanityaIconButton(
-                icon: Icons.share,
+                icon: Icons.ios_share,
                 onPressed: () => _shareTemplate(context, state),
               );
             } else {
               // Create mode: show import
               return QuanityaIconButton(
                 icon: Icons.download,
-                onPressed: () => TemplateImportSheet.show(context),
+                onPressed: () => TemplateBrowseSheet.show(context),
               );
             }
           },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
+import '../../../../infrastructure/config/debug_log.dart';
 
 import '../../enums/ai/template_preset.dart';
 import '../../enums/field_enum.dart';
@@ -12,6 +13,8 @@ import '../../models/shared/tracker_template.dart';
 import '../../exceptions/template_parsing_exception.dart';
 import '../shared/default_value_handler.dart';
 import '../shared/wcag_compliance_validator.dart';
+
+const _tag = 'logic/templates/services/engine/json_to_model_parser';
 
 /// Result of parsing AI-generated JSON into data models.
 ///
@@ -200,8 +203,8 @@ class JsonToModelParser {
     final uiElementName = fieldJson['uiElement'] as String?;
     final uiElement = _parseUiElementFromName(uiElementName);
     
-    // Parse options for enumerated fields
-    final options = fieldType == FieldEnum.enumerated
+    // Parse options for enumerated and multiEnum fields
+    final options = (fieldType == FieldEnum.enumerated || fieldType == FieldEnum.multiEnum)
         ? (fieldJson['options'] as List<dynamic>?)?.cast<String>()
         : null;
     
@@ -224,6 +227,28 @@ class JsonToModelParser {
       unit = null;
     }
 
+    // Parse sub-fields for group type
+    List<TemplateField>? parsedSubFields;
+    if (fieldType == FieldEnum.group) {
+      final subFieldsJson = fieldJson['subFields'] as List<dynamic>?;
+      if (subFieldsJson == null || subFieldsJson.isEmpty) {
+        throw TemplateParsingException(
+          'Group field "$label" requires subFields',
+          jsonPath: 'subFields',
+        );
+      }
+      parsedSubFields = _parseFields(subFieldsJson);
+      // Enforce one-level nesting
+      for (final sf in parsedSubFields) {
+        if (sf.type == FieldEnum.group) {
+          throw TemplateParsingException(
+            'Nested groups not allowed: "${sf.label}" inside "$label"',
+            jsonPath: 'subFields',
+          );
+        }
+      }
+    }
+
     // Parse and validate defaultValue (AI only sends for int/float/text)
     final rawDefault = fieldJson['defaultValue'];
     final defaultValue = _defaultHandler.parseDefault(rawDefault, fieldType);
@@ -238,6 +263,7 @@ class JsonToModelParser {
       validators: validators,
       options: options,
       defaultValue: defaultValue,
+      subFields: parsedSubFields,
     );
     
     // Validate default if present
@@ -322,6 +348,7 @@ class JsonToModelParser {
         }
 
       case FieldEnum.enumerated:
+      case FieldEnum.multiEnum:
         final options = fieldJson['options'] as List<dynamic>?;
         if (options != null) {
           validators.add(
@@ -351,6 +378,7 @@ class JsonToModelParser {
       case FieldEnum.datetime:
       case FieldEnum.reference:
       case FieldEnum.location:
+      case FieldEnum.group:
         // No additional validators needed
         break;
     }
@@ -449,13 +477,13 @@ class JsonToModelParser {
 
   /// Parses template container style from AI JSON
   TemplateContainerStyle? _parseTemplateContainerStyle(String? styleName) {
-    debugPrint('🎨 Parsing templateContainerStyle: $styleName');
+    Log.d(_tag, 'Parsing templateContainerStyle: $styleName');
     if (styleName == null) {
-      debugPrint('🎨 templateContainerStyle is null');
+      Log.d(_tag, 'templateContainerStyle is null');
       return null;
     }
     final result = TemplateContainerStyleX.fromName(styleName);
-    debugPrint('🎨 Parsed templateContainerStyle result: $result');
+    Log.d(_tag, 'Parsed templateContainerStyle result: $result');
     return result;
   }
 

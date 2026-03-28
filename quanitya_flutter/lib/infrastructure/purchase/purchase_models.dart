@@ -18,9 +18,23 @@ enum StoreProductType { consumable, subscription, unknown }
 /// Subscription billing period as reported by the store.
 enum SubscriptionPeriod { monthly, yearly }
 
+/// A grant included in a product (feature + quantity from server catalog).
+@freezed
+abstract class ProductGrant with _$ProductGrant {
+  const ProductGrant._();
+  const factory ProductGrant({
+    required String feature,
+    required double quantity,
+  }) = _ProductGrant;
+
+  factory ProductGrant.fromJson(Map<String, dynamic> json) =>
+      _$ProductGrantFromJson(json);
+}
+
 /// A product available for purchase.
 @freezed
-class PurchaseProduct with _$PurchaseProduct {
+abstract class PurchaseProduct with _$PurchaseProduct {
+  const PurchaseProduct._();
   const factory PurchaseProduct({
     required String productId,
     required String title,
@@ -31,6 +45,7 @@ class PurchaseProduct with _$PurchaseProduct {
     SubscriptionPeriod? subscriptionPeriod,
     String? localizedPrice,
     String? currencyCode,
+    @Default([]) List<ProductGrant> grants,
   }) = _PurchaseProduct;
 
   factory PurchaseProduct.fromJson(Map<String, dynamic> json) =>
@@ -39,7 +54,8 @@ class PurchaseProduct with _$PurchaseProduct {
 
 /// A request to purchase a product.
 @freezed
-class PurchaseRequest with _$PurchaseRequest {
+abstract class PurchaseRequest with _$PurchaseRequest {
+  const PurchaseRequest._();
   const factory PurchaseRequest({
     required String productId,
     required PurchaseRail rail,
@@ -52,7 +68,8 @@ class PurchaseRequest with _$PurchaseRequest {
 
 /// The result of a purchase attempt from the store.
 @freezed
-class PurchaseResult with _$PurchaseResult {
+abstract class PurchaseResult with _$PurchaseResult {
+  const PurchaseResult._();
   const factory PurchaseResult({
     required PurchaseStatus status,
     required PurchaseRail rail,
@@ -70,7 +87,8 @@ class PurchaseResult with _$PurchaseResult {
 
 /// The result of server-side validation of a purchase.
 @freezed
-class PurchaseValidationResult with _$PurchaseValidationResult {
+abstract class PurchaseValidationResult with _$PurchaseValidationResult {
+  const PurchaseValidationResult._();
   const factory PurchaseValidationResult({
     required bool success,
     String? productId,

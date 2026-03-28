@@ -1,7 +1,19 @@
 import 'package:injectable/injectable.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 
+import '../../infrastructure/core/try_operation.dart';
 import '../dao/error_box_dao.dart';
+
+/// Exception type for error box operations.
+class ErrorBoxException implements Exception {
+  final String message;
+  final Object? cause;
+
+  const ErrorBoxException(this.message, [this.cause]);
+
+  @override
+  String toString() => 'ErrorBoxException: $message';
+}
 
 /// Repository for error box operations.
 ///
@@ -32,60 +44,83 @@ class ErrorBoxRepository implements ErrorBoxStorage {
   // ─────────────────────────────────────────────────────────────────────────
 
   @override
-  Future<void> saveError(ErrorEntry error) async {
-    await _dao.saveError(error);
-  }
+  Future<void> saveError(ErrorEntry error) => tryMethod(
+    () => _dao.saveError(error),
+    ErrorBoxException.new,
+    'saveError',
+  );
 
   @override
-  Future<List<ErrorBoxEntry>> getUnsentErrors() async {
-    return _dao.getUnsentErrors();
-  }
+  Future<List<ErrorBoxEntry>> getUnsentErrors() => tryMethod(
+    () => _dao.getUnsentErrors(),
+    ErrorBoxException.new,
+    'getUnsentErrors',
+  );
 
   @override
-  Future<int> getUnsentCount() async {
-    final errors = await _dao.getUnsentErrors();
-    return errors.length;
-  }
+  Future<int> getUnsentCount() => tryMethod(
+    () async {
+      final errors = await _dao.getUnsentErrors();
+      return errors.length;
+    },
+    ErrorBoxException.new,
+    'getUnsentCount',
+  );
 
   @override
-  Future<ErrorBoxEntry?> getErrorById(String id) async {
-    return _dao.getErrorById(id);
-  }
+  Future<ErrorBoxEntry?> getErrorById(String id) => tryMethod(
+    () => _dao.getErrorById(id),
+    ErrorBoxException.new,
+    'getErrorById',
+  );
 
   @override
-  Future<void> markAsSent(String id) async {
-    await _dao.markAsSent(id);
-  }
+  Future<void> markAsSent(String id) => tryMethod(
+    () => _dao.markAsSent(id),
+    ErrorBoxException.new,
+    'markAsSent',
+  );
 
   @override
-  Future<void> deleteError(String id) async {
-    await _dao.deleteError(id);
-  }
+  Future<void> deleteError(String id) => tryMethod(
+    () => _dao.deleteError(id),
+    ErrorBoxException.new,
+    'deleteError',
+  );
 
   /// Clear all sent errors (convenience method, not in interface)
-  Future<void> clearSentErrors() async {
-    await _dao.clearSentErrors();
-  }
+  Future<void> clearSentErrors() => tryMethod(
+    () => _dao.clearSentErrors(),
+    ErrorBoxException.new,
+    'clearSentErrors',
+  );
 
   // ─────────────────────────────────────────────────────────────────────────
   // Convenience operations
   // ─────────────────────────────────────────────────────────────────────────
 
   /// Send an error and mark it as sent
-  Future<void> sendError(String id, Future<void> Function(ErrorEntry) reporter) async {
-    final errorBoxEntry = await _dao.getErrorById(id);
-    if (errorBoxEntry == null) return;
-    
-    await reporter(errorBoxEntry.errorData);
-    await _dao.markAsSent(id);
-  }
+  Future<void> sendError(String id, Future<void> Function(ErrorEntry) reporter) => tryMethod(
+    () async {
+      final errorBoxEntry = await _dao.getErrorById(id);
+      if (errorBoxEntry == null) return;
+      await reporter(errorBoxEntry.errorData);
+      await _dao.markAsSent(id);
+    },
+    ErrorBoxException.new,
+    'sendError',
+  );
 
   /// Send all unsent errors
-  Future<void> sendAllErrors(Future<void> Function(ErrorEntry) reporter) async {
-    final errors = await _dao.getUnsentErrors();
-    for (final error in errors) {
-      await reporter(error.errorData);
-      await _dao.markAsSent(error.id);
-    }
-  }
+  Future<void> sendAllErrors(Future<void> Function(ErrorEntry) reporter) => tryMethod(
+    () async {
+      final errors = await _dao.getUnsentErrors();
+      for (final error in errors) {
+        await reporter(error.errorData);
+        await _dao.markAsSent(error.id);
+      }
+    },
+    ErrorBoxException.new,
+    'sendAllErrors',
+  );
 }

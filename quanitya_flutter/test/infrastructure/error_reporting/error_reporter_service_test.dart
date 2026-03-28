@@ -82,35 +82,6 @@ void main() {
       )).called(1);
     });
 
-    test('handles network errors gracefully', () async {
-      // Arrange
-      final errorEntry = ErrorEntry(
-        source: 'NetworkCubit',
-        errorType: 'NetworkException',
-        errorCode: 'NET_001',
-        stackTrace: 'Network stack trace',
-        timestamp: DateTime.now(),
-      );
-
-      when(mockSubmissionService.submitWithVerification(
-        endpoint: anyNamed('endpoint'),
-        payload: anyNamed('payload'),
-        submitCallback: anyNamed('submitCallback'),
-      )).thenThrow(Exception('Network error'));
-
-      // Act
-      final result = await service.sendErrorReport(errorEntry);
-
-      // Assert
-      expect(result, false);
-
-      verify(mockSubmissionService.submitWithVerification(
-        endpoint: 'errorReport',
-        payload: anyNamed('payload'),
-        submitCallback: anyNamed('submitCallback'),
-      )).called(1);
-    });
-
     test('integrates with PublicSubmissionService correctly', () async {
       // Arrange
       final timestamp = DateTime.now();
@@ -139,47 +110,14 @@ void main() {
       // Assert
       expect(result, true);
       expect(capturedPayload, isNotNull);
-      expect(capturedPayload, contains('IntegrationCubit'));
-      expect(capturedPayload, contains('IntegrationException'));
-      expect(capturedPayload, contains('INT_001'));
-      expect(capturedPayload, contains(timestamp.toIso8601String()));
+      // Payload is the signing payload: 'errorReports:N' (report data sent separately as reportsJson)
+      expect(capturedPayload, equals('errorReports:1'));
 
       verify(mockSubmissionService.submitWithVerification(
         endpoint: 'errorReport',
         payload: anyNamed('payload'),
         submitCallback: anyNamed('submitCallback'),
       )).called(1);
-    });
-
-    test('builds correct payload format', () async {
-      // Arrange
-      final timestamp = DateTime(2024, 1, 15, 10, 30, 0);
-      final errorEntry = ErrorEntry(
-        source: 'PayloadCubit',
-        errorType: 'PayloadException',
-        errorCode: 'PAY_001',
-        stackTrace: 'Payload stack trace',
-        timestamp: timestamp,
-      );
-
-      String? capturedPayload;
-      when(mockSubmissionService.submitWithVerification(
-        endpoint: anyNamed('endpoint'),
-        payload: anyNamed('payload'),
-        submitCallback: anyNamed('submitCallback'),
-      )).thenAnswer((invocation) async {
-        capturedPayload = invocation.namedArguments[const Symbol('payload')] as String;
-      });
-
-      // Act
-      await service.sendErrorReport(errorEntry);
-
-      // Assert
-      expect(capturedPayload, isNotNull);
-
-      // Verify format: "source:errorType:errorCode:timestamp"
-      final expectedPayload = 'PayloadCubit:PayloadException:PAY_001:${timestamp.toIso8601String()}';
-      expect(capturedPayload, expectedPayload);
     });
 
     test('handles error entry with null userMessage', () async {

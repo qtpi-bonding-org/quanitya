@@ -10,6 +10,7 @@ class ResultsTemplateItem {
   final int entryCount;
   final DateTime? lastLoggedAt;
   final bool hasGraphableFields;
+  final bool hasAnalyzableFields;
   final bool isHidden;
   final String? icon;
   final String? emoji;
@@ -21,6 +22,7 @@ class ResultsTemplateItem {
     required this.entryCount,
     this.lastLoggedAt,
     this.hasGraphableFields = true,
+    this.hasAnalyzableFields = false,
     this.isHidden = false,
     this.icon,
     this.emoji,
@@ -29,7 +31,7 @@ class ResultsTemplateItem {
 }
 
 @freezed
-class ResultsListState
+abstract class ResultsListState
     with _$ResultsListState, UiFlowStateMixin
     implements IUiFlowState {
   const ResultsListState._();

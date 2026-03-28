@@ -1,19 +1,23 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
+import '../../../infrastructure/config/debug_log.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:health/health.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../data/dao/template_query_dao.dart';
 import '../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../infrastructure/core/try_operation.dart';
-import '../../../infrastructure/crypto/interfaces/i_secure_storage.dart';
 import '../../../infrastructure/platform/app_lifecycle_service.dart';
+import '../../../infrastructure/platform/secure_preferences.dart';
 import '../../../logic/ingestion/exceptions/ingestion_exception.dart';
 import '../../../logic/ingestion/services/data_ingestion_service.dart';
 import '../../../logic/ingestion/adapters/flutter_data_source_adapter.dart';
 import '../../../logic/templates/models/shared/template_aesthetics.dart';
 import 'health_adapter_factory.dart';
+
+const _tag = 'integrations/flutter/health/health_sync_service';
 
 /// Default health data types to sync.
 const defaultHealthTypes = [
@@ -39,7 +43,7 @@ class HealthSyncService {
   final DataIngestionService _ingestionService;
   final TemplateQueryDao _templateQueryDao;
   final TemplateWithAestheticsRepository _templateRepo;
-  final ISecureStorage _storage;
+  final SecurePreferences _prefs;
   final AppLifecycleService _lifecycleService;
 
   final Health _health;
@@ -49,7 +53,7 @@ class HealthSyncService {
     this._ingestionService,
     this._templateQueryDao,
     this._templateRepo,
-    this._storage,
+    this._prefs,
     this._lifecycleService,
   ) : _health = Health();
 
@@ -59,20 +63,19 @@ class HealthSyncService {
     this._ingestionService,
     this._templateQueryDao,
     this._templateRepo,
-    this._storage,
+    this._prefs,
     this._lifecycleService,
     this._health,
   );
 
   /// Whether the user has enabled automatic health sync on resume.
   Future<bool> isEnabled() async {
-    final value = await _storage.getSecureData(_enabledKey);
-    return value == 'true';
+    return (await _prefs.getBool(_enabledKey)) == true;
   }
 
   /// Persist the enabled flag and register/unregister the resume hook.
   Future<void> setEnabled(bool enabled) async {
-    await _storage.storeSecureData(_enabledKey, enabled.toString());
+    await _prefs.setBool(_enabledKey, enabled);
     if (enabled) {
       _lifecycleService.registerOnResume(
         _lifecycleKey,
@@ -101,8 +104,9 @@ class HealthSyncService {
       if (!await isEnabled()) return;
       if (!await hasPermissions(types)) return;
       await sync(types);
-    } catch (e) {
-      debugPrint('HealthSyncService: syncIfEnabled failed: $e');
+    } catch (e, stack) {
+      Log.d(_tag, 'HealthSyncService: syncIfEnabled failed: $e');
+      await ErrorPrivserver.captureError(e, stack, source: 'HealthSyncService');
     }
   }
 
@@ -144,7 +148,7 @@ class HealthSyncService {
           permissions: List.filled(types.length, HealthDataAccess.READ),
         );
         // hasPermissions returns bool? — null means undetermined (iOS READ)
-        return result ?? (Platform.isIOS ? true : false);
+        return result ?? (!kIsWeb && Platform.isIOS ? true : false);
       },
       IngestionException.new,
       'hasPermissions',

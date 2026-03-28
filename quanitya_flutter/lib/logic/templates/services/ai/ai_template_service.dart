@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:injectable/injectable.dart';
 
 import '../engine/json_to_model_parser.dart';
@@ -19,6 +22,17 @@ class AiTemplateService {
 
   AiTemplateService(this._llm, this._parser, this._schemaGenerator);
 
+  String? _cachedSystemPrompt;
+
+  /// Loads system prompt from assets/template_prompt.json.
+  Future<String> _loadSystemPrompt() async {
+    if (_cachedSystemPrompt != null) return _cachedSystemPrompt!;
+    final raw = await rootBundle.loadString('assets/template_prompt.json');
+    final config = jsonDecode(raw) as Map<String, dynamic>;
+    _cachedSystemPrompt = config['system_prompt'] as String;
+    return _cachedSystemPrompt!;
+  }
+
   /// Generates a template from user description.
   ///
   /// Returns [ParsedAiTemplate] containing:
@@ -33,13 +47,13 @@ class AiTemplateService {
     String? systemPrompt,
   }) async {
     try {
-      // Generate schema using existing script
       final schema = _schemaGenerator.generateSchema();
+      final prompt = systemPrompt ?? await _loadSystemPrompt();
 
       final response = await _llm.execute(
         config,
         LlmRequest(
-          systemPrompt: systemPrompt ?? _getDefaultSystemPrompt(),
+          systemPrompt: prompt,
           userPrompt: description,
           jsonSchema: schema,
         ),
@@ -60,33 +74,5 @@ class AiTemplateService {
         context: {'description': description, 'templateName': templateName},
       );
     }
-  }
-
-  String _getDefaultSystemPrompt() {
-    return '''You are an expert at creating tracker templates for Quanitya, a privacy-first mood and habit tracking app.
-
-Your job is to create structured templates that help users track their emotional well-being, habits, and personal metrics.
-
-Key principles:
-- Templates should be intuitive and easy to use
-- Field types must match the supported widget types
-- Consider accessibility and user experience
-- Templates should encourage consistent daily tracking
-- Create visually appealing color palettes that work well together
-- Choose appropriate UI elements for each field type
-
-List fields (isList: true):
-- Use isList: true when users need to record MULTIPLE values of the same type
-- Examples: workout sets (multiple reps/weights), meal ingredients, medication doses, symptoms
-- Set listMinItems/listMaxItems to constrain the list (0 = no min, 10 = no max)
-- Most fields should be isList: false (single value) - only use lists when truly needed
-
-Create a complete template specification including:
-- 1-10 fields with appropriate types and widgets
-- A cohesive color palette (2-4 accent colors, 2-3 neutrals as hex values)
-- Color configuration for each widget type
-- Optional font configuration
-
-Always return valid JSON matching the provided schema.''';
   }
 }

@@ -25,6 +25,9 @@ class IconResolver {
     return _materialIcons[iconName];
   }
   
+  /// All available icons organized by name → IconData
+  static Map<String, IconData> get allIcons => _materialIcons;
+
   /// Common material icons used in the app
   /// Add more as needed - this is a subset of Flutter's Icons class
   static const Map<String, IconData> _materialIcons = {

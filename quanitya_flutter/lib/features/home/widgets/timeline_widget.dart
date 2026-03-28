@@ -5,6 +5,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya_empty_or.dart';
 import '../../../design_system/widgets/template_icon_bubble.dart';
 import '../../../data/dao/log_entry_query_dao.dart';
+import '../../../support/extensions/context_extensions.dart';
 import '../cubits/timeline_data_state.dart';
 
 class TimelineWidget extends StatelessWidget {
@@ -38,6 +39,7 @@ class TimelineWidget extends StatelessWidget {
           return item.when(
             entry: (entryWithContext, isFirst, isLast, showTimeOnly, timeString, dateString, dataPreview, iconString, emoji, accentColorHex) {
               return _buildTimelineEntry(
+                context,
                 entryWithContext,
                 isFirst,
                 isLast,
@@ -50,7 +52,7 @@ class TimelineWidget extends StatelessWidget {
               );
             },
             dateDivider: (dateKey, isFirst, formattedDate) {
-              return _buildDateDivider(formattedDate, isFirst);
+              return _buildDateDivider(context, formattedDate, isFirst);
             },
           );
         },
@@ -60,6 +62,7 @@ class TimelineWidget extends StatelessWidget {
 
   /// Build optimized timeline entry using pre-computed values
   Widget _buildTimelineEntry(
+    BuildContext context,
     LogEntryWithContext entryWithContext,
     bool isFirst,
     bool isLast,
@@ -74,7 +77,7 @@ class TimelineWidget extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'View log entry',
+      label: context.l10n.logEntryViewLabel,
       child: GestureDetector(
         onTap: onItemTap != null ? () => onItemTap!(item) : null,
         child: IntrinsicHeight(
@@ -126,9 +129,7 @@ class TimelineWidget extends StatelessWidget {
                         Expanded(
                           child: Text(
                             template.name,
-                            style: TextStyle(
-                              fontSize: AppSizes.fontBig,
-                              fontWeight: FontWeight.bold,
+                            style: context.text.titleMedium?.copyWith(
                               color: QuanityaPalette.primary.textPrimary,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -136,8 +137,7 @@ class TimelineWidget extends StatelessWidget {
                         ),
                         Text(
                           timeString, // Always show time only since we have date dividers
-                          style: TextStyle(
-                            fontSize: AppSizes.fontSmall,
+                          style: context.text.bodySmall?.copyWith(
                             color: QuanityaPalette.primary.textSecondary,
                           ),
                         ),
@@ -148,8 +148,7 @@ class TimelineWidget extends StatelessWidget {
                     if (dataPreview.isNotEmpty)
                       Text(
                         dataPreview,
-                        style: TextStyle(
-                          fontSize: AppSizes.fontStandard,
+                        style: context.text.bodyMedium?.copyWith(
                           color: QuanityaPalette.primary.textPrimary,
                         ),
                         maxLines: 1,
@@ -167,7 +166,7 @@ class TimelineWidget extends StatelessWidget {
   }
 
   /// Build a date divider with pre-computed formatted date
-  Widget _buildDateDivider(String formattedDate, bool isFirst) {
+  Widget _buildDateDivider(BuildContext context, String formattedDate, bool isFirst) {
     final palette = QuanityaPalette.primary;
     
     return SizedBox(
@@ -199,10 +198,8 @@ class TimelineWidget extends StatelessWidget {
                 HSpace.x2,
                 Text(
                   formattedDate,
-                  style: TextStyle(
-                    fontSize: AppSizes.fontMini,
+                  style: context.text.labelSmall?.copyWith(
                     color: palette.textSecondary,
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 HSpace.x2,

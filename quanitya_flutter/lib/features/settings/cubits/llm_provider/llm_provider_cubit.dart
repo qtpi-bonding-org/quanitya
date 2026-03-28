@@ -13,7 +13,7 @@ import '../../repositories/open_router_model_repository.dart';
 import '../../services/tested_models_service.dart';
 import 'llm_provider_state.dart';
 
-@injectable
+@lazySingleton
 class LlmProviderCubit extends QuanityaCubit<LlmProviderState> {
   final LlmProviderConfigRepository _configRepo;
   final OpenRouterModelRepository _modelRepo;
@@ -27,7 +27,9 @@ class LlmProviderCubit extends QuanityaCubit<LlmProviderState> {
     this._apiKeyRepo,
     this._testedModelsService,
     this._httpClient,
-  ) : super(const LlmProviderState());
+  ) : super(const LlmProviderState()) {
+    load();
+  }
 
   Future<void> load() async {
     await tryOperation(() async {

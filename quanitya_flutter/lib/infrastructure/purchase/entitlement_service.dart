@@ -1,34 +1,45 @@
-import 'package:anonaccred_client/anonaccred_client.dart'
-    show AccountEntitlement;
 import 'package:injectable/injectable.dart';
-import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
+    show AccountFeatureEntitlement, Client;
+import '../config/debug_log.dart';
 
-import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
-import '../auth/auth_service.dart';
+import '../auth/auth_account_orchestrator.dart';
 import '../core/try_operation.dart';
+import 'entitlement_repository.dart';
 import 'entitlement_exception.dart';
 import 'i_entitlement_service.dart';
 
-/// Entitlement tags for cloud sync access (one per storage tier).
-const List<String> syncEntitlementTags = [
-  'sync_500mb_days',
-  'sync_1gb_days',
-];
+const _tag = 'infrastructure/purchase/entitlement_service';
 
 @LazySingleton(as: IEntitlementService)
 class EntitlementService implements IEntitlementService {
   final Client _client;
-  final AuthService _authService;
+  final AuthAccountOrchestrator _authOrchestrator;
+  final EntitlementRepository _cache;
 
-  EntitlementService(this._client, this._authService);
+  EntitlementService(this._client, this._authOrchestrator, this._cache);
 
   @override
-  Future<List<AccountEntitlement>> getEntitlements(AppSyncingMode mode) {
-    if (!mode.requiresServer) return Future.value([]);
+  Future<List<AccountFeatureEntitlement>> getEntitlements() {
     return tryMethod(
       () async {
-        await _authService.ensureAuthenticated();
-        return await _client.modules.anonaccred.commerce.getEntitlements();
+        await _authOrchestrator.ensureAuthenticated();
+        final entitlements =
+            await _client.featureEntitlement.getMyEntitlements();
+        Log.d(_tag, 'EntitlementService: server returned ${entitlements.length} entitlements');
+        for (final e in entitlements) {
+          Log.d(_tag, '  tag=${e.tag} feature=${e.feature.name} balance=${e.balance} type=${e.type.name}');
+        }
+        final cached = entitlements.map((e) => CachedEntitlement(
+          tag: e.tag,
+          balance: e.balance,
+          feature: e.feature.name,
+          type: e.type.name,
+          name: e.tag,
+        )).toList();
+        Log.d(_tag, 'EntitlementService: cached ${cached.length} entitlements');
+        await _cache.store(cached);
+        return entitlements;
       },
       EntitlementException.new,
       'getEntitlements',
@@ -36,11 +47,10 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<double> getEntitlementBalance(String tag, AppSyncingMode mode) {
-    if (!mode.requiresServer) return Future.value(0);
+  Future<double> getEntitlementBalance(String tag) {
     return tryMethod(
       () async {
-        await _authService.ensureAuthenticated();
+        await _authOrchestrator.ensureAuthenticated();
         return await _client.modules.anonaccred.commerce.getEntitlementBalance(
           tag,
         );
@@ -51,27 +61,28 @@ class EntitlementService implements IEntitlementService {
   }
 
   @override
-  Future<bool> hasSyncAccess(AppSyncingMode mode) {
-    if (!mode.requiresServer) return Future.value(false);
+  Future<bool> hasSyncAccess() {
     return tryMethod(
-      () async {
-        for (final tag in syncEntitlementTags) {
-          final balance = await getEntitlementBalance(tag, mode);
-          if (balance > 0) return true;
-        }
-        return false;
-      },
+      () async => await _cache.hasSyncAccess(),
       EntitlementException.new,
       'hasSyncAccess',
     );
   }
 
   @override
-  Future<void> consumeEntitlement(String tag, double quantity, AppSyncingMode mode) {
-    if (!mode.requiresServer) return Future.value();
+  Future<bool> hasAiAccess() {
+    return tryMethod(
+      () async => await _cache.hasAiAccess(),
+      EntitlementException.new,
+      'hasAiAccess',
+    );
+  }
+
+  @override
+  Future<void> consumeEntitlement(String tag, double quantity) {
     return tryMethod(
       () async {
-        await _authService.ensureAuthenticated();
+        await _authOrchestrator.ensureAuthenticated();
         await _client.modules.anonaccred.commerce.consumeEntitlement(
           tag,
           quantity,

@@ -37,6 +37,7 @@ class _SortOptionsContent extends StatelessWidget {
     final palette = QuanityaPalette.primary;
 
     return BlocBuilder<TimelineDataCubit, TimelineDataState>(
+      buildWhen: (p, c) => p.pastSort != c.pastSort || p.filters != c.filters,
       builder: (context, dataState) {
         final cubit = context.read<TimelineDataCubit>();
 
@@ -141,8 +142,7 @@ class _SectionHeader extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: AppSizes.fontMini,
+        style: context.text.labelSmall?.copyWith(
           fontWeight: FontWeight.bold,
           color: palette.textPrimary,
         ),

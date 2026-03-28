@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:injectable/injectable.dart';
 import 'package:share_plus/share_plus.dart';
@@ -71,7 +72,7 @@ class KeyExportService {
   // ─────────────────────────────────────────────────────────────────────────────
 
   /// Check if iCloud Keychain sync is available.
-  bool get isICloudAvailable => Platform.isIOS;
+  bool get isICloudAvailable => !kIsWeb && Platform.isIOS;
 
   /// Export key to iCloud Keychain (iOS only).
   ///
@@ -91,7 +92,7 @@ class KeyExportService {
   }) {
     return tryMethod(
       () async {
-        if (!Platform.isIOS) {
+        if (kIsWeb || !Platform.isIOS) {
           CryptoLogger.logSecurityEvent(
               'iCloud Keychain not available (not iOS)');
           return KeyExportResult.unavailable;
@@ -130,7 +131,7 @@ class KeyExportService {
   Future<String?> getFromICloudKeychain() {
     return tryMethod(
       () async {
-        if (!Platform.isIOS) {
+        if (kIsWeb || !Platform.isIOS) {
           return null;
         }
 

@@ -9,7 +9,8 @@ part 'field_validator.g.dart';
 /// applied to user input. This is nested within TemplateField, so no ID or
 /// field reference is needed.
 @freezed
-class FieldValidator with _$FieldValidator {
+abstract class FieldValidator with _$FieldValidator {
+  const FieldValidator._();
   const factory FieldValidator({
     /// Type of validation rule (required, numeric, text, etc.)
     required ValidatorType validatorType,

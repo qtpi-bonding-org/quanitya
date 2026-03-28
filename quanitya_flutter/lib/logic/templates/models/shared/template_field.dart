@@ -14,7 +14,8 @@ part 'template_field.g.dart';
 /// for individual form fields in tracker templates. UI presentation
 /// is handled separately via TemplateTheme.
 @freezed
-class TemplateField with _$TemplateField {
+abstract class TemplateField with _$TemplateField {
+  const TemplateField._();
   const factory TemplateField({
     /// Unique identifier for this field (UUID format)
     required String id,
@@ -52,6 +53,11 @@ class TemplateField with _$TemplateField {
     /// Type depends on field type: String, int, double, bool, DateTime (ISO string), etc.
     /// Null means no default (user must enter value or field is empty)
     Object? defaultValue,
+
+    /// Sub-fields for group type. Required when type == group.
+    /// Each sub-field is a full TemplateField with its own validators and defaults.
+    /// Sub-fields must not have type == group (one level of nesting).
+    List<TemplateField>? subFields,
   }) = _TemplateField;
 
   /// Creates a TemplateField from JSON map
@@ -70,6 +76,7 @@ class TemplateField with _$TemplateField {
     List<String>? options,
     List<FieldValidator> validators = const [],
     Object? defaultValue,
+    List<TemplateField>? subFields,
   }) {
     return TemplateField(
       id: const Uuid().v4(),
@@ -83,6 +90,7 @@ class TemplateField with _$TemplateField {
       options: options,
       validators: validators,
       defaultValue: defaultValue,
+      subFields: subFields,
     );
   }
 }

@@ -37,12 +37,12 @@ dependencies:
   anonaccount_client:
     git:
       url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
-      ref: a6b2c36c58f0096dd4bb941d06f320c86dc6a0e9
+      ref: dce09352cf0e0d629b9418c63e48774572ee26cc
       path: anonaccount_client
   anonaccred_client:
     git:
       url: https://github.com/qtpi-bonding-org/serverpod_anonaccred.git
-      ref: a6b2c36c58f0096dd4bb941d06f320c86dc6a0e9
+      ref: dce09352cf0e0d629b9418c63e48774572ee26cc
       path: anonaccred_client
   flutter_color_palette:
     git: https://github.com/qtpi-bonding-org/flutter_color_palette.git
@@ -61,10 +61,10 @@ dependencies:
   flutter_error_privserver:
     git:
       url: https://github.com/qtpi-bonding-org/flutter_error_privserver.git
-      ref: 387f27214876840071d3c6173c52cf9317503bfe
+      ref: e0e100dbc869a8a3ea7b1ea7be50c9d952f95858
   
   # Code Generation
-  freezed_annotation: ^2.4.1
+  freezed_annotation: ^3.1.0
   json_annotation: ^4.8.1
   
   # Utilities
@@ -124,9 +124,9 @@ dependencies:
   flutter_colorable:
     git:
       url: https://github.com/qtpi-bonding-org/flutter_colorable.git
-      ref: 6b1367355620a4e3621815f27d4a21a0896d59a0
+      ref: 85626e6c5bfe47bb9560ec6af022b534f584fea5
   flutter_colorpicker: ^1.1.0
-  flutter_iconpicker: ^3.6.0
+  flutter_iconpicker: ^4.0.3
   rrule: ^0.2.17
   
   # Local Notifications
@@ -152,7 +152,7 @@ dependencies:
 
   # QR Code
   qr_flutter: ^4.1.0
-  mobile_scanner: ^6.0.0
+  mobile_scanner: ^7.0.0
   dartantic_ai: ^1.1.0
   dartantic_interface: 1.1.0
   permission_handler: ^12.0.1
@@ -162,6 +162,16 @@ dependencies:
   flutter_code_editor: ^0.3.5
   highlight: ^0.7.0
   flutter_highlight: ^0.7.0
+  tutorial_coach_mark: ^1.2.11
+
+  # OCR & Image
+  google_mlkit_text_recognition: ^0.15.1
+  image_picker: ^1.1.2
+
+  # On-device LLM (llama.cpp via Native Assets)
+  llamadart: ^0.6.8
+  csv: ^6.0.0
+
 
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'
@@ -170,7 +180,7 @@ dev_dependencies:
   
   # Code Generation
   build_runner: ^2.4.7
-  freezed: ^2.4.6
+  freezed: ^3.2.5
   json_serializable: ^6.7.1
   injectable_generator: ^2.4.1
   drift_dev: ^2.14.1
@@ -179,20 +189,20 @@ dev_dependencies:
   faker: ^2.1.0
   
   # Testing mocks
-  mockito: ^5.4.2
+  mockito: ^5.6.4
   
   # Colorable Widget Generator
   flutter_colorable_generator:
     git:
       url: https://github.com/qtpi-bonding-org/flutter_colorable.git
-      ref: 6b1367355620a4e3621815f27d4a21a0896d59a0
+      ref: 85626e6c5bfe47bb9560ec6af022b534f584fea5
       path: flutter_colorable_generator
   
   # L10n Key Resolver Generator
   l10n_key_resolver:
     git:
       url: https://github.com/qtpi-bonding-org/dart_l10n_key_resolver.git
-      ref: 2e5c947f6dc39037a7323409f42e1532b8502e5f
+      ref: d7a30dfc7922a9903c07dcb0ae15e8a6d606ea6b
   bloc_test: ^9.1.7
   mocktail: ^1.0.4
   flutter_launcher_icons: ^0.14.3
@@ -214,6 +224,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/quanitya.png
+    - assets/prompt.json
+    - assets/template_prompt.json
     - assets/scripts/
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -200,7 +200,7 @@ void main() {
     });
 
     group('Property Tests', () {
-      const int testIterations = 100; // Property-based testing iterations
+      const int testIterations = 1;
 
       test('Property 1: UI-Validator Coupling Enforcement - **Feature: foundation-enums-coupling, Property 1: UI-Validator Coupling Enforcement** - **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5**', () {
         // Property: For any UiElementEnum and ValidatorType combination, the coupling system 

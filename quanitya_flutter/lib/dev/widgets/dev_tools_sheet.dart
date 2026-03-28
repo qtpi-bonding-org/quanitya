@@ -1,29 +1,18 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' as cubit_ui_flow;
 
 import '../../app_router.dart';
-import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
-
 import '../../data/db/app_database.dart';
-import '../../data/sync/powersync_service.dart';
 import '../../design_system/primitives/app_sizes.dart';
 import '../../design_system/primitives/app_spacings.dart';
 import '../../design_system/primitives/quanitya_palette.dart';
 import '../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../design_system/widgets/quanitya_confirmation_dialog.dart';
-import '../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../support/extensions/context_extensions.dart';
-import '../../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../../infrastructure/auth/auth_service.dart';
-import '../../data/dao/template_query_dao.dart';
-import '../../data/interfaces/log_entry_interface.dart';
+import '../../infrastructure/auth/delete_orchestrator.dart';
 import '../../infrastructure/notifications/notification_service.dart';
-import '../../logic/log_entries/models/log_entry.dart';
-import '../../logic/schedules/services/schedule_generator_service.dart';
 import '../services/dev_seeder_service.dart';
 
 /// Shows a bottom sheet with dev tools
@@ -86,7 +75,7 @@ class DevToolsSheet extends StatelessWidget {
               ),
               VSpace.x3,
 
-              // Seed fake data (includes analysis scripts)
+              // Seed fake data
               _DevToolRow(
                 label: l10n.devSeedFakeData,
                 child: _DevActionButton(
@@ -115,85 +104,14 @@ class DevToolsSheet extends StatelessWidget {
               ),
               VSpace.x2,
 
-              // Wipe crypto keys
-              _DevToolRow(
-                label: l10n.devWipeCryptoKeys,
-                child: _DevWipeKeysButton(),
-              ),
-              VSpace.x2,
-
-              // Factory reset — simulate fresh install
+              // Factory reset
               _DevToolRow(
                 label: 'Factory Reset',
                 child: _DevFactoryResetButton(),
               ),
               VSpace.x2,
 
-              // Connect to cloud (with entitlement check)
-              _DevToolRow(
-                label: l10n.devConnectToCloud,
-                child: _DevActionButton(
-                  text: l10n.devConnect,
-                  onPressed: () async {
-                    final cubit = GetIt.instance<AppSyncingCubit>();
-                    await cubit.switchToCloud();
-                    if (cubit.state.status == cubit_ui_flow.UiFlowStatus.failure) {
-                      throw cubit.state.error ?? Exception('switchToCloud failed');
-                    }
-                  },
-                  successMessage: 'Cloud mode enabled',
-                ),
-              ),
-              VSpace.x2,
-
-              // PowerSync connect (bypasses entitlement)
-              _DevToolRow(
-                label: 'PowerSync Connect',
-                child: _DevActionButton(
-                  text: 'Sync',
-                  onPressed: () async {
-                    final powerSync = GetIt.instance<IPowerSyncService>();
-                    final client = GetIt.instance<Client>();
-                    final mode = GetIt.instance<AppSyncingCubit>().state.mode;
-                    await powerSync.connect(client, mode);
-                    if (!powerSync.isConnected) {
-                      throw Exception('PowerSync failed to connect — check logs');
-                    }
-                  },
-                  successMessage: 'PowerSync connected',
-                ),
-              ),
-              VSpace.x2,
-
-              // Create account
-              _DevToolRow(
-                label: l10n.devCreateAccount,
-                child: _DevActionButton(
-                  text: l10n.devCreate,
-                  onPressed: () async {
-                    final authService = GetIt.instance<AuthService>();
-                    await authService.createAccount(deviceLabel: 'Dev Test Device');
-                  },
-                  successMessage: l10n.devAccountCreated,
-                ),
-              ),
-              VSpace.x2,
-
-              // Register account
-              _DevToolRow(
-                label: l10n.devRegisterAccount,
-                child: _DevActionButton(
-                  text: l10n.devRegister,
-                  onPressed: () async {
-                    final authService = GetIt.instance<AuthService>();
-                    await authService.registerAccountWithServer(deviceLabel: 'Dev Test Device');
-                  },
-                  successMessage: l10n.devAccountRegistered,
-                ),
-              ),
-              VSpace.x2,
-
-              // Test local notification
+              // Test notification
               _DevToolRow(
                 label: 'Test Notification',
                 child: _DevActionButton(
@@ -211,99 +129,28 @@ class DevToolsSheet extends StatelessWidget {
               ),
               VSpace.x2,
 
-              // Test actionable notification (Quick Log)
-              _DevToolRow(
-                label: 'Test Quick Log Notification',
-                child: _DevActionButton(
-                  text: 'Send',
-                  onPressed: () async {
-                    // Find the Sleep Log template
-                    final templateDao = GetIt.instance<TemplateQueryDao>();
-                    final template = await templateDao.findByName('Sleep Log');
-                    if (template == null) {
-                      throw Exception('Seed data first — Sleep Log template not found');
-                    }
-
-                    // Create a todo entry for the notification to reference
-                    final logEntryRepo = GetIt.instance<ILogEntryRepository>();
-                    final todo = LogEntryModel.createTodo(
-                      templateId: template.id,
-                      scheduledFor: DateTime.now().add(const Duration(seconds: 10)),
-                    );
-                    await logEntryRepo.saveLogEntry(todo);
-
-                    // Schedule reminder notification in 5 seconds with action buttons
-                    final notificationService = GetIt.instance<NotificationService>();
-                    await notificationService.schedule(
-                      id: todo.id.hashCode,
-                      title: 'Sleep Log',
-                      body: 'Time to log your Sleep Log',
-                      scheduledAt: DateTime.now().add(const Duration(seconds: 5)),
-                      payload: todo.id,
-                      category: NotificationCategories.reminder,
-                    );
-                  },
-                  successMessage: 'Reminder in 5s with Quick Log action',
-                ),
-              ),
-              VSpace.x2,
-
-              // Run schedule generation manually
-              _DevToolRow(
-                label: 'Run Schedule Generation',
-                child: _DevActionButton(
-                  text: 'Generate',
-                  onPressed: () async {
-                    final generator = GetIt.instance<ScheduleGeneratorService>();
-                    final result = await generator.generatePendingTodos();
-                    if (result.todosCreated == 0 && result.schedulesProcessed == 0) {
-                      throw Exception('No active schedules found');
-                    }
-                    // Show result as success message
-                    GetIt.instance<cubit_ui_flow.IFeedbackService>().show(
-                      cubit_ui_flow.FeedbackMessage(
-                        message: 'Created ${result.todosCreated} todos from '
-                            '${result.schedulesProcessed} schedules '
-                            '(${result.skippedDuplicates} dupes)',
-                        type: cubit_ui_flow.MessageType.info,
-                      ),
-                    );
-                  },
-                  successMessage: null, // Custom message above
-                ),
-              ),
-              VSpace.x2,
-
-              // Show pending notifications
+              // Pending notifications
               _DevToolRow(
                 label: 'Pending Notifications',
                 child: _PendingNotificationsButton(),
               ),
               VSpace.x2,
 
-              // Measure encrypted entry sizes
+              // Encrypted entry sizes
               _DevToolRow(
                 label: 'Encrypted Entry Sizes',
                 child: _MeasureEntrySizesButton(),
               ),
               VSpace.x2,
 
-              // Navigation shortcuts
+              // Navigation
               const Divider(),
-              VSpace.x2,
-              Text(
-                'NAVIGATION',
-                style: context.text.titleMedium?.copyWith(
-                  color: context.colors.textPrimary,
-                ),
-              ),
               VSpace.x2,
               Wrap(
                 spacing: AppSizes.space,
                 runSpacing: AppSizes.space,
                 children: [
                   _NavChip(label: 'Onboarding', route: AppRoutes.onboarding),
-                  _NavChip(label: 'About', route: AppRoutes.about),
                 ],
               ),
               VSpace.x4,
@@ -358,14 +205,7 @@ class _NavChip extends StatelessWidget {
   }
 
   void _navigateToRoute(BuildContext context, String route) {
-    switch (route) {
-      case AppRoutes.onboarding:
-        context.go(route); // Use go for onboarding to reset stack
-      case AppRoutes.about:
-        AppNavigation.toAbout(context);
-      default:
-        context.go(route);
-    }
+    context.go(route);
   }
 }
 
@@ -432,64 +272,7 @@ class _DevActionButtonState extends State<_DevActionButton> {
   }
 }
 
-/// Wipe keys needs special handling (confirmation dialog + navigation).
-class _DevWipeKeysButton extends StatefulWidget {
-  @override
-  State<_DevWipeKeysButton> createState() => _DevWipeKeysButtonState();
-}
-
-class _DevWipeKeysButtonState extends State<_DevWipeKeysButton> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return SizedBox(
-        width: AppSizes.iconMedium,
-        height: AppSizes.iconMedium,
-        child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
-      );
-    }
-
-    final l10n = context.l10n;
-    return QuanityaTextButton(
-      text: l10n.devWipe,
-      isDestructive: true,
-      onPressed: () async {
-        final navigator = Navigator.of(context);
-        final goRouter = GoRouter.of(context);
-
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (c) => QuanityaConfirmationDialog(
-            title: l10n.devWipeKeysTitle,
-            message: l10n.devWipeKeysMessage,
-            onConfirm: () {},
-            isDestructive: true,
-            confirmText: l10n.devWipeKeysConfirm,
-          ),
-        );
-
-        if (confirmed != true || !mounted) return;
-
-        setState(() => _isLoading = true);
-        try {
-          final keyRepo = GetIt.instance<ICryptoKeyRepository>();
-          await keyRepo.clearKeys();
-          AppRouter.resetKeyCheck();
-          if (mounted) {
-            navigator.pop();
-            goRouter.goNamed(RouteNames.onboarding);
-          }
-        } finally {
-          if (mounted) setState(() => _isLoading = false);
-        }
-      },
-    );
-  }
-}
-
-/// Factory reset — clears all data, keys (including iCloud), and navigates to onboarding.
+/// Factory reset — clears all data, keys, and navigates to onboarding.
 /// Simulates a completely fresh app install.
 class _DevFactoryResetButton extends StatefulWidget {
   @override
@@ -533,32 +316,11 @@ class _DevFactoryResetButtonState extends State<_DevFactoryResetButton> {
 
         setState(() => _isLoading = true);
         try {
-          // 1. Disconnect PowerSync and delete its local database file
-          //    (prevents stale encrypted records from being re-synced)
-          if (GetIt.instance.isRegistered<IPowerSyncService>()) {
-            final ps = GetIt.instance<IPowerSyncService>();
-            await ps.disconnect();
-            final dbPath = ps.dbPath;
-            if (dbPath != null) {
-              final dbFile = File(dbPath);
-              if (await dbFile.exists()) await dbFile.delete();
-              // WAL and SHM journal files
-              final wal = File('$dbPath-wal');
-              final shm = File('$dbPath-shm');
-              if (await wal.exists()) await wal.delete();
-              if (await shm.exists()) await shm.delete();
-            }
-          }
+          // Factory reset (disconnects PowerSync, clears secure storage + iCloud key)
+          // DB file is deleted on next cold start when cipher key is missing.
+          await GetIt.instance<DeleteOrchestrator>().factoryReset();
 
-          // 2. Clear all Drift database tables
-          final seeder = GetIt.instance<DevSeederService>();
-          await seeder.clearAll();
-
-          // 3. Sign out (clears all crypto keys including iCloud Keychain)
-          final authService = GetIt.instance<AuthService>();
-          await authService.signOut();
-
-          // 4. Reset router key check and navigate to onboarding
+          // 3. Reset router key check and navigate to onboarding
           AppRouter.resetKeyCheck();
           if (mounted) {
             navigator.pop();

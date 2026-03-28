@@ -14,7 +14,7 @@
 /// - `WasmAnalysisService`: Executes JS in QuickJS WASM sandbox
 /// - `StreamingAnalyticsService`: Real-time streaming results
 /// - `AiAnalysisOrchestrator`: LLM-powered JS snippet generation
-/// - `FieldContextService`: Field metadata for AI context
+/// - `FieldShapeResolver`: Resolves field data shapes for AI prompts
 ///
 /// ### Cubits
 /// - `AnalysisBuilderCubit`: Script builder state management

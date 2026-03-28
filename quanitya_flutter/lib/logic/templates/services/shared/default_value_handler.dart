@@ -49,6 +49,8 @@ class DefaultValueHandler {
       FieldEnum.dimension => 0.0,
       FieldEnum.reference => null,
       FieldEnum.location => null,
+      FieldEnum.group => null,
+      FieldEnum.multiEnum => <String>[],
     };
   }
 
@@ -111,6 +113,8 @@ class DefaultValueHandler {
       FieldEnum.dimension => value is num ? null : 'Must be a number',
       FieldEnum.reference => 'References cannot have defaults',
       FieldEnum.location => 'Locations cannot have defaults',
+      FieldEnum.group => 'Groups cannot have defaults',
+      FieldEnum.multiEnum => value is List ? null : 'Must be a list',
     };
   }
 
@@ -134,6 +138,8 @@ class DefaultValueHandler {
       FieldEnum.dimension => _parseDouble(raw),
       FieldEnum.reference => null,
       FieldEnum.location => null,
+      FieldEnum.group => null,
+      FieldEnum.multiEnum => null,
     };
   }
 

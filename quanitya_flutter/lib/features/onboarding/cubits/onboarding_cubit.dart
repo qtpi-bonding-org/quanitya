@@ -1,13 +1,14 @@
-import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../app_router.dart';
-import '../../../infrastructure/auth/auth_service.dart';
+import '../../../infrastructure/auth/account_service.dart';
 import '../../../infrastructure/feedback/localization_service.dart';
 import '../../../infrastructure/platform/platform_local_auth.dart';
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
+import '../../../infrastructure/crypto/exceptions/crypto_exceptions.dart';
+import '../../../infrastructure/platform/exceptions/device_auth_exception.dart';
 import '../../../infrastructure/crypto/key_export_service.dart';
 import '../../../infrastructure/device/device_info_service.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
@@ -26,28 +27,34 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
   final ICryptoKeyRepository _keyRepository;
   final KeyExportService _keyExportService;
   final PlatformLocalAuth _localAuthService;
-  final AuthService _authService;
+  final AccountService _accountService;
   final DeviceInfoService _deviceInfoService;
 
   OnboardingCubit(
     this._keyRepository,
     this._keyExportService,
     this._localAuthService,
-    this._authService,
+    this._accountService,
     this._deviceInfoService,
   ) : super(const OnboardingState());
 
   /// Check if user already has keys (skip onboarding)
-  Future<bool> checkExistingAccount() async {
+  Future<void> checkExistingAccount() => tryOperation(() async {
     final status = await _keyRepository.getKeyStatus();
-    return status == CryptoKeyStatus.ready;
-  }
+    return state.copyWith(
+      status: UiFlowStatus.success,
+      hasExistingAccount: status == CryptoKeyStatus.ready,
+    );
+  }, emitLoading: false);
 
   /// Initialize backup page - check device authentication availability
-  Future<void> initBackupPage() async {
+  Future<void> initBackupPage() => tryOperation(() async {
     final deviceAuthAvailable = await _localAuthService.isDeviceAuthAvailable();
-    emit(state.copyWith(deviceAuthAvailable: deviceAuthAvailable));
-  }
+    return state.copyWith(
+      status: UiFlowStatus.success,
+      deviceAuthAvailable: deviceAuthAvailable,
+    );
+  }, emitLoading: false);
 
   /// Create account with server registration and all encryption keys.
   /// 
@@ -60,34 +67,22 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
   /// - Account with publicMasterKey + encrypted recovery blob
   /// - This device with deviceSigningPublicKeyHex + encrypted device blob
   Future<void> createAccount() async {
-    debugPrint('OnboardingCubit: createAccount() called');
     await tryOperation(() async {
-      debugPrint('OnboardingCubit: Inside tryOperation, calling authService.createAccount...');
-      
-      // Get device name automatically
       final deviceLabel = await _deviceInfoService.getDeviceName();
-      debugPrint('OnboardingCubit: Device label: $deviceLabel');
-      
-      // Create account on server (also generates all keys locally)
-      final result = await _authService.createAccount(
+
+      final result = await _accountService.createAccount(
         deviceLabel: deviceLabel,
       );
-      debugPrint('OnboardingCubit: authService.createAccount returned, recoveryKey length: ${result.ultimatePrivateKey.length}');
 
-      // Reset router key check since we now have keys
       AppRouter.resetKeyCheck();
-
       analytics?.trackAccountCreated();
 
-      final newState = state.copyWith(
+      return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: OnboardingOperation.createAccount,
         recoveryKeyJwk: result.ultimatePrivateKey,
       );
-      debugPrint('OnboardingCubit: Returning new state with hasAccount=${newState.hasAccount}');
-      return newState;
     }, emitLoading: true);
-    debugPrint('OnboardingCubit: createAccount() completed, current state hasAccount=${state.hasAccount}, status=${state.status}');
   }
 
   /// Create a local-only account (offline mode, no server registration)
@@ -101,7 +96,7 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
       // Get the recovery key (one-time retrieval, wipes from memory)
       final recoveryKeyJwk = await _keyRepository.getUltimateKeyJwkOnce();
       if (recoveryKeyJwk == null) {
-        throw Exception('Failed to retrieve recovery key');
+        throw const KeyRetrievalException('Failed to retrieve recovery key');
       }
 
       // Reset router key check since we now have keys
@@ -117,18 +112,19 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
 
   /// Export recovery key to iCloud Keychain (iOS only)
   Future<void> exportToICloud() async {
-    if (state.recoveryKeyJwk == null) return;
+    final jwk = state.recoveryKeyJwk;
+    if (jwk == null) return;
 
     await tryOperation(() async {
       final result = await _keyExportService.saveToICloudKeychain(
-        jwk: state.recoveryKeyJwk!,
+        jwk: jwk,
       );
 
       if (result == KeyExportResult.unavailable) {
-        throw Exception('iCloud Keychain not available on this device');
+        throw const KeyStorageException('iCloud Keychain not available on this device');
       }
       if (result == KeyExportResult.failed) {
-        throw Exception('Failed to save to iCloud Keychain');
+        throw const KeyStorageException('Failed to save to iCloud Keychain');
       }
 
       return state.copyWith(
@@ -141,19 +137,20 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
 
   /// Export recovery key via share sheet as file
   Future<void> exportToFile() async {
-    if (state.recoveryKeyJwk == null) return;
+    final jwk = state.recoveryKeyJwk;
+    if (jwk == null) return;
 
     await tryOperation(() async {
       final result = await _keyExportService.shareAsFile(
-        jwk: state.recoveryKeyJwk!,
+        jwk: jwk,
       );
 
       if (result == KeyExportResult.cancelled) {
-        // User cancelled - not an error, just return to idle
-        return state.copyWith(status: UiFlowStatus.idle);
+        // User cancelled - not an error, just return current state unchanged
+        return state;
       }
       if (result == KeyExportResult.failed) {
-        throw Exception('Failed to export recovery key');
+        throw const KeyStorageException('Failed to export recovery key');
       }
 
       return state.copyWith(
@@ -161,15 +158,16 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
         lastOperation: OnboardingOperation.exportToFile,
         completedBackupMethods: {...state.completedBackupMethods, BackupMethod.file},
       );
-    }, emitLoading: true);
+    }, emitLoading: false);
   }
 
   /// Copy recovery key to clipboard
   Future<void> copyToClipboard() async {
-    if (state.recoveryKeyJwk == null) return;
+    final jwk = state.recoveryKeyJwk;
+    if (jwk == null) return;
 
     await tryOperation(() async {
-      await _keyExportService.copyToClipboard(jwk: state.recoveryKeyJwk!);
+      await _keyExportService.copyToClipboard(jwk: jwk);
 
       return state.copyWith(
         status: UiFlowStatus.success,
@@ -181,27 +179,28 @@ class OnboardingCubit extends QuanityaCubit<OnboardingState> {
 
   /// Store recovery key on device with biometric protection
   Future<void> storeWithBiometrics() async {
-    if (state.recoveryKeyJwk == null) return;
+    final jwk = state.recoveryKeyJwk;
+    if (jwk == null) return;
 
     await tryOperation(() async {
-      // Authenticate first
+      // Authenticate first (shows system biometric dialog)
       final authResult = await _localAuthService.authenticate(
         reason: GetIt.I<AppLocalizationService>().l10n.authenticateStoreRecoveryKey,
       );
 
       if (!authResult) {
-        throw Exception('Biometric authentication failed');
+        throw const DeviceAuthException('Biometric authentication failed');
       }
 
       // Store in secure storage (already encrypted by platform)
-      await _keyExportService.storeInSecureStorage(jwk: state.recoveryKeyJwk!);
+      await _keyExportService.storeInSecureStorage(jwk: jwk);
 
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: OnboardingOperation.storeWithBiometrics,
         completedBackupMethods: {...state.completedBackupMethods, BackupMethod.biometrics},
       );
-    }, emitLoading: true);
+    }, emitLoading: false);
   }
 
 }

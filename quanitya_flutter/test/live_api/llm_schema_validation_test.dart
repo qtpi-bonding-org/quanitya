@@ -1,7 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_it/get_it.dart';
+import 'package:mocktail/mocktail.dart';
 
+import 'package:quanitya_flutter/infrastructure/auth/auth_account_orchestrator.dart';
 import 'package:quanitya_flutter/logic/templates/enums/measurement_unit.dart';
 import 'package:quanitya_flutter/logic/templates/services/ai/ai_template_generator.dart';
 import 'package:quanitya_flutter/logic/templates/services/engine/symbolic_combination_generator.dart';
@@ -12,6 +17,9 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
 import 'live_api_test_helper.dart';
 
+class _MockAuthOrchestrator extends Mock implements AuthAccountOrchestrator {}
+
+@Tags(['live_api'])
 void main() {
   // Load env synchronously so skip: checks work at test registration time
   LiveApiTestHelper.loadEnvSync();
@@ -39,7 +47,7 @@ void main() {
         ),
       );
       testGetIt.registerLazySingleton<Client>(() => Client('http://localhost:8080/'));
-      testGetIt.registerLazySingleton<LlmService>(() => LlmService(testGetIt<http.Client>(), testGetIt<Client>()));
+      testGetIt.registerLazySingleton<LlmService>(() => LlmService(testGetIt<http.Client>(), testGetIt<Client>(), _MockAuthOrchestrator()));
       
       aiGenerator = testGetIt<AiTemplateGenerator>();
       llmService = testGetIt<LlmService>();
@@ -160,17 +168,19 @@ void main() {
       }
     }, timeout: const Timeout(Duration(seconds: 30)), skip: !hasApiKey ? 'OPENROUTER_API_KEY not found in .env' : null);
 
-    test('Test complete schema with LLM', () async {
+    test('Test complete schema with real template prompt', () async {
       final schema = aiGenerator.generateSchema();
-      
-      final request = LlmRequest(
-        systemPrompt: '''You are a UI template generator. Create a complete template configuration with:
-- A color palette with 3 main colors and 2 neutral colors
-- Font configuration with appropriate weights
-- Field combinations for a user registration form
 
-Follow the schema constraints exactly.''',
-        userPrompt: 'Generate a modern, accessible template for a user registration form.',
+      // Load the real prompt from assets
+      final promptFile = File('assets/template_prompt.json');
+      expect(promptFile.existsSync(), isTrue,
+          reason: 'assets/template_prompt.json must exist');
+      final promptConfig = jsonDecode(promptFile.readAsStringSync()) as Map<String, dynamic>;
+      final systemPrompt = promptConfig['system_prompt'] as String;
+
+      final request = LlmRequest(
+        systemPrompt: systemPrompt,
+        userPrompt: 'Create a daily mood and energy tracker with sliders for mood (1-10) and energy (1-10), plus a notes field.',
         jsonSchema: schema,
       );
       
@@ -212,7 +222,7 @@ Follow the schema constraints exactly.''',
           }
         }
       }
-    }, timeout: const Timeout(Duration(seconds: 45)), skip: !hasApiKey ? 'OPENROUTER_API_KEY not found in .env' : null);
+    }, timeout: const Timeout(Duration(seconds: 90)), skip: !hasApiKey ? 'OPENROUTER_API_KEY not found in .env' : null);
 
     test('Test LLM generates dimension fields with valid measurement units', () async {
       final schema = aiGenerator.generateSchema();
@@ -301,6 +311,84 @@ Follow the schema constraints exactly.''',
               reason: 'Options in "$label" must not be empty');
         }
       }
+    }, timeout: const Timeout(Duration(seconds: 45)), skip: !hasApiKey ? 'OPENROUTER_API_KEY not found in .env' : null);
+
+    test('Test analysis prompt generates valid JS script for numeric field', () async {
+      // Load the real analysis prompt
+      final promptFile = File('assets/prompt.json');
+      expect(promptFile.existsSync(), isTrue,
+          reason: 'assets/prompt.json must exist');
+      final promptConfig = jsonDecode(promptFile.readAsStringSync()) as Map<String, dynamic>;
+
+      // Render the Jinja2 template with test values
+      final systemPromptTemplate = promptConfig['system_prompt'] as String;
+      final systemPrompt = systemPromptTemplate
+          .replaceAll('{{ user_intent }}', 'Calculate basic statistics for my mood scores')
+          .replaceAll('{{ value_shape }}', 'number[] (integers from 1-10)');
+
+      // Extract inner schema (LlmService expects raw JSON Schema, not OpenAI wrapper)
+      final schemaWrapper = promptConfig['json_schema'] as Map<String, dynamic>;
+      final jsonSchema = schemaWrapper['schema'] as Map<String, dynamic>;
+
+      final request = LlmRequest(
+        systemPrompt: systemPrompt,
+        userPrompt: 'Calculate basic statistics for my mood scores',
+        jsonSchema: jsonSchema,
+      );
+
+      final response = await llmService.execute(llmConfig, request);
+
+      expect(response.data.containsKey('insight_name'), isTrue);
+      expect(response.data.containsKey('output_mode'), isTrue);
+      expect(response.data.containsKey('logic_fragment'), isTrue);
+      expect(response.data.containsKey('reasoning'), isTrue);
+
+      final outputMode = response.data['output_mode'] as String;
+      expect(['scalar', 'vector', 'matrix'], contains(outputMode));
+
+      final logicFragment = response.data['logic_fragment'] as String;
+      expect(logicFragment, isNotEmpty);
+      // Should reference data.values since we told it the shape is number[]
+      expect(logicFragment.contains('data.values') || logicFragment.contains('data.timestamps'),
+          isTrue,
+          reason: 'Script should use the data API');
+    }, timeout: const Timeout(Duration(seconds: 45)), skip: !hasApiKey ? 'OPENROUTER_API_KEY not found in .env' : null);
+
+    test('Test analysis prompt generates valid JS script for group field', () async {
+      // Load the real analysis prompt
+      final promptFile = File('assets/prompt.json');
+      final promptConfig = jsonDecode(promptFile.readAsStringSync()) as Map<String, dynamic>;
+
+      final systemPromptTemplate = promptConfig['system_prompt'] as String;
+      final systemPrompt = systemPromptTemplate
+          .replaceAll('{{ user_intent }}', 'Find my max bench press weight across all sessions')
+          .replaceAll('{{ value_shape }}', '{exercise: string, weight: number, reps: number}[][] (array of arrays of set objects per entry)');
+
+      // Extract inner schema
+      final schemaWrapper = promptConfig['json_schema'] as Map<String, dynamic>;
+      final jsonSchema = schemaWrapper['schema'] as Map<String, dynamic>;
+
+      final request = LlmRequest(
+        systemPrompt: systemPrompt,
+        userPrompt: 'Find my max bench press weight across all sessions',
+        jsonSchema: jsonSchema,
+      );
+
+      final response = await llmService.execute(llmConfig, request);
+
+      expect(response.data.containsKey('logic_fragment'), isTrue);
+
+      final logicFragment = response.data['logic_fragment'] as String;
+      expect(logicFragment, isNotEmpty);
+      // Should reference filtering or accessing group properties
+      expect(
+        logicFragment.contains('data.values') ||
+        logicFragment.contains('weight') ||
+        logicFragment.contains('bench') ||
+        logicFragment.contains('Bench'),
+        isTrue,
+        reason: 'Script should work with group field data shape',
+      );
     }, timeout: const Timeout(Duration(seconds: 45)), skip: !hasApiKey ? 'OPENROUTER_API_KEY not found in .env' : null);
   });
 }

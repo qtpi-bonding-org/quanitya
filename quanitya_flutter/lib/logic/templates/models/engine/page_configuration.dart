@@ -7,7 +7,7 @@ part 'page_configuration.freezed.dart';
 ///
 /// Converted from FontConfigData (DB storage) via extension method.
 @freezed
-class FontsConfig with _$FontsConfig {
+abstract class FontsConfig with _$FontsConfig {
   const FontsConfig._();
 
   const factory FontsConfig({
@@ -43,7 +43,8 @@ class FontsConfig with _$FontsConfig {
 /// Converted from TrackerTemplateModel.name + TemplateAestheticsModel.emoji
 /// via ModelRuntimeConverter.
 @freezed
-class PageTemplateConfig with _$PageTemplateConfig {
+abstract class PageTemplateConfig with _$PageTemplateConfig {
+  const PageTemplateConfig._();
   const factory PageTemplateConfig({
     /// Page title (from TrackerTemplateModel.name)
     required String title,

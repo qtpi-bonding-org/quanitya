@@ -23,6 +23,7 @@ class FeedbackCubit extends QuanityaCubit<FeedbackState> {
         feedbackType: feedbackType,
       );
       
+      analytics?.trackFeedbackSubmitted();
       return state.copyWith(
         status: UiFlowStatus.success, // ⚠️ REQUIRED - must set explicitly!
         lastOperation: FeedbackOperation.submit,

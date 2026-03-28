@@ -13,7 +13,8 @@ class AnalysisBuilderMessageMapper implements IStateMessageMapper<AnalysisBuilde
         ScriptBuilderOperation.removeStep => MessageKey.success(L10nKeys.analysisStepRemoved),
         ScriptBuilderOperation.updateStep => MessageKey.success(L10nKeys.analysisStepUpdated),
         ScriptBuilderOperation.saveScript => MessageKey.success(L10nKeys.analysisSaved),
-        ScriptBuilderOperation.loadPreview => null, // No message for preview loads
+        ScriptBuilderOperation.deleteScript => MessageKey.success(L10nKeys.analysisDeleted),
+        ScriptBuilderOperation.loadPreview => null,
         ScriptBuilderOperation.applyAiSuggestion => MessageKey.success(L10nKeys.aiSuggestionsApplied),
       };
     }

@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:go_router/go_router.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
-import '../../../../app_router.dart';
-import '../../../../infrastructure/auth/auth_service.dart';
+import '../../../../infrastructure/auth/delete_orchestrator.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
@@ -17,8 +17,9 @@ import '../../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
+import '../../guided_tour/guided_tour_service.dart';
+import '../../sync_status/widgets/sync_status_indicator.dart';
 import '../../../../data/repositories/template_with_aesthetics_repository.dart';
-import '../../../../infrastructure/crypto/crypto_key_repository.dart';
 import '../../../../infrastructure/webhooks/models/api_key_model.dart';
 import '../../../../infrastructure/webhooks/models/webhook_model.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
@@ -31,6 +32,7 @@ import '../cubits/webhook/webhook_state.dart';
 import '../widgets/import_recovery_key_sheet.dart';
 import '../widgets/device_list_section.dart';
 import '../widgets/webhook_sheet.dart';
+import '../../account/widgets/account_id_display.dart';
 import '../widgets/llm_provider_section.dart';
 import '../widgets/api_key_sheet.dart';
 import '../widgets/table_selection_sheet.dart';
@@ -39,6 +41,8 @@ import '../../../integrations/flutter/health/health_sync_cubit.dart';
 import '../../../integrations/flutter/health/health_sync_service.dart'
     show defaultHealthTypes;
 import '../../../integrations/flutter/health/health_sync_state.dart';
+
+const _tag = 'features/settings/pages/settings_page';
 
 bool get _supportsHealthData => !kIsWeb && (Platform.isIOS || Platform.isAndroid);
 
@@ -57,11 +61,25 @@ class SettingsContent extends StatelessWidget {
         children: [
           NotebookFold(
             header: Row(children: [
-              Icon(Icons.devices, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+              Icon(Icons.person_outline, size: AppSizes.iconMedium, color: context.colors.textPrimary),
               HSpace.x2,
-              Text(context.l10n.settingsDevicesSection, style: context.text.titleMedium),
+              Text(context.l10n.settingsAccountSection, style: context.text.titleMedium),
             ]),
-            child: const DeviceListSection(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const AccountIdDisplay(),
+                VSpace.x2,
+                const SyncStatusIndicator(),
+                VSpace.x2,
+                const DeviceListSection(),
+                VSpace.x3,
+                QuanityaTextButton(
+                  text: context.l10n.validateRecoveryKey,
+                  onPressed: () => _showValidateRecoveryKeyDialog(context),
+                ),
+              ],
+            ),
           ),
           VSpace.x3,
 
@@ -119,6 +137,16 @@ class SettingsContent extends StatelessWidget {
 
           NotebookFold(
             header: Row(children: [
+              Icon(Icons.school_outlined, size: AppSizes.iconMedium, color: context.colors.textPrimary),
+              HSpace.x2,
+              Text(context.l10n.settingsTutorialSection, style: context.text.titleMedium),
+            ]),
+            child: const _TutorialSection(),
+          ),
+          VSpace.x3,
+
+          NotebookFold(
+            header: Row(children: [
               Icon(Icons.delete_forever, size: AppSizes.iconMedium, color: context.colors.destructiveColor),
               HSpace.x2,
               Text(context.l10n.deleteAccountTitle, style: context.text.titleMedium?.copyWith(
@@ -130,6 +158,68 @@ class SettingsContent extends StatelessWidget {
           VSpace.x2,
         ],
       ),
+    );
+  }
+}
+
+void _showValidateRecoveryKeyDialog(BuildContext context) {
+  ImportRecoveryKeySheet.show(
+    context: context,
+    cubit: context.read<RecoveryKeyCubit>(),
+  );
+}
+
+class _TutorialSection extends StatefulWidget {
+  const _TutorialSection();
+
+  @override
+  State<_TutorialSection> createState() => _TutorialSectionState();
+}
+
+class _TutorialSectionState extends State<_TutorialSection> {
+  bool _showTours = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadState();
+  }
+
+  Future<void> _loadState() async {
+    final tourService = GetIt.instance<GuidedTourService>();
+    final shouldShow = await tourService.shouldShowTour(GuidedTourService.homeKey);
+    if (mounted) setState(() => _showTours = shouldShow);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            context.l10n.settingsShowTour,
+            style: context.text.bodyMedium,
+          ),
+        ),
+        QuanityaToggle(
+          value: _showTours,
+          onChanged: (enabled) async {
+            try {
+              final tourService = GetIt.instance<GuidedTourService>();
+              if (enabled) {
+                await tourService.resetAllTours();
+              } else {
+                await tourService.markTourSeen(GuidedTourService.homeKey);
+                await tourService.markTourSeen(GuidedTourService.designerKey);
+              }
+              if (mounted) setState(() => _showTours = enabled);
+            } catch (e, stack) {
+              Log.d(_tag, 'Tour toggle failed: $e');
+              await ErrorPrivserver.captureError(e, stack, source: 'SettingsPage.tourToggle');
+            }
+          },
+        ),
+      ],
     );
   }
 }
@@ -214,11 +304,6 @@ class _DataSection extends StatelessWidget {
           text: context.l10n.importData,
           onPressed: () => _startImport(context),
         ),
-        VSpace.x3,
-        QuanityaTextButton(
-          text: context.l10n.importRecoveryKey,
-          onPressed: () => _showImportRecoveryKeyDialog(context),
-        ),
       ],
     );
   }
@@ -235,15 +320,17 @@ class _DataSection extends StatelessWidget {
     );
 
     if (selected == null || !context.mounted) return;
-    cubit.exportData(selected);
+    await cubit.exportData(selected);
   }
 
   Future<void> _startImport(BuildContext context) async {
     final cubit = context.read<DataExportCubit>();
 
     // 1. Pick file and get available table names.
-    final availableTables = await cubit.pickImportFile();
-    if (availableTables == null || !context.mounted) return;
+    await cubit.pickImportFile();
+    if (!context.mounted) return;
+    final availableTables = cubit.state.pickedTableNames;
+    if (availableTables.isEmpty || cubit.state.status == UiFlowStatus.failure) return;
 
     // 2. Let user select which tables to import.
     final selected = await TableSelectionSheet.show(
@@ -266,15 +353,9 @@ class _DataSection extends StatelessWidget {
     if (confirmed != true || !context.mounted) return;
 
     // 4. Execute import.
-    cubit.importData(selected);
+    await cubit.importData(selected);
   }
 
-  void _showImportRecoveryKeyDialog(BuildContext context) {
-    ImportRecoveryKeySheet.show(
-      context: context,
-      cubit: context.read<RecoveryKeyCubit>(),
-    );
-  }
 }
 
 /// API Keys section
@@ -425,7 +506,8 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
           _templateLoadFailed = false;
         });
       }
-    } catch (_) {
+    } catch (e) {
+      Log.d(_tag, 'SettingsPage: Failed to load templates: $e');
       if (mounted) {
         setState(() => _templateLoadFailed = true);
       }
@@ -491,25 +573,30 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
                 ),
               )
             else ...[
-              Center(
-                child: QuanityaTextButton(
-                  text: context.l10n.addWebhook,
-                  onPressed: _templates!.isNotEmpty
-                      ? () => _showWebhookDialog(context, null)
-                      : null,
-                ),
-              ),
-              if (_templates!.isEmpty) ...[
-                VSpace.x1,
-                Center(
-                  child: Text(
-                    context.l10n.webhooksCreateTemplateFirst,
-                    style: context.text.bodySmall?.copyWith(
-                      color: context.colors.textSecondary,
+              Builder(builder: (context) {
+                final templates = _templates;
+                return Column(children: [
+                  Center(
+                    child: QuanityaTextButton(
+                      text: context.l10n.addWebhook,
+                      onPressed: templates != null && templates.isNotEmpty
+                          ? () => _showWebhookDialog(context, null)
+                          : null,
                     ),
                   ),
-                ),
-              ],
+                  if (templates != null && templates.isEmpty) ...[
+                    VSpace.x1,
+                    Center(
+                      child: Text(
+                        context.l10n.webhooksCreateTemplateFirst,
+                        style: context.text.bodySmall?.copyWith(
+                          color: context.colors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ]);
+              }),
             ],
           ],
         );
@@ -518,12 +605,13 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
   }
 
   void _showWebhookDialog(BuildContext context, WebhookModel? webhook) {
-    if (_templates == null) return;
+    final templates = _templates;
+    if (templates == null) return;
 
     WebhookSheet.show(
       context: context,
       cubit: context.read<WebhookCubit>(),
-      templates: _templates!.map((t) => t.template).toList(),
+      templates: templates.map((t) => t.template).toList(),
       webhook: webhook,
     );
   }
@@ -550,8 +638,9 @@ class _WebhookRow extends StatelessWidget {
         ? '${webhook.url.substring(0, 35)}...' 
         : webhook.url;
     
-    final lastTriggered = webhook.lastTriggeredAt != null
-        ? QuanityaDateFormat.timestamp(webhook.lastTriggeredAt!)
+    final dt = webhook.lastTriggeredAt;
+    final lastTriggered = dt != null
+        ? QuanityaDateFormat.timestamp(dt)
         : context.l10n.webhookNeverTriggered;
 
     return Semantics(
@@ -664,9 +753,7 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
-    final goRouter = GoRouter.of(context);
-
-    QuanityaConfirmationDialog.show(
+    await QuanityaConfirmationDialog.show(
       context: context,
       title: context.l10n.deleteAccountTitle,
       message: context.l10n.deleteAccountMessage,
@@ -677,24 +764,27 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
         setState(() => _isLoading = true);
 
         try {
-          // Delete server-side data if auth service is available
-          if (GetIt.instance.isRegistered<AuthService>()) {
-            try {
-              await GetIt.instance<AuthService>().deleteAccount();
-            } catch (_) {
-              // Server deletion may fail if offline or local-only mode.
-              // Still proceed with local wipe so the user can reset.
-            }
+          // Delete server-side account and clean up all local state
+          await GetIt.instance<DeleteOrchestrator>().deleteAccount();
+
+          // Switch back to local mode (UI state — not owned by DeleteOrchestrator)
+          if (GetIt.instance.isRegistered<AppSyncingCubit>()) {
+            await GetIt.instance<AppSyncingCubit>().switchToLocal();
           }
 
-          // Wipe local keys (this also clears secure storage)
-          final keyRepo = GetIt.instance<ICryptoKeyRepository>();
-          await keyRepo.clearKeys();
-
-          AppRouter.resetKeyCheck();
-
           if (mounted) {
-            goRouter.goNamed(RouteNames.onboarding);
+            GetIt.instance<IFeedbackService>().show(FeedbackMessage(
+              message: context.l10n.deleteAccountSuccess,
+              type: MessageType.info,
+            ));
+          }
+        } catch (e, stack) {
+          await ErrorPrivserver.captureError(e, stack, source: 'SettingsPage.deleteAccount');
+          if (mounted) {
+            GetIt.instance<IFeedbackService>().show(FeedbackMessage(
+              message: context.l10n.deleteAccountFailed,
+              type: MessageType.error,
+            ));
           }
         } finally {
           if (mounted) setState(() => _isLoading = false);

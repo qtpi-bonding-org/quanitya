@@ -24,7 +24,7 @@ enum SyncStatusOperation {
 }
 
 @freezed
-class SyncStatusState with _$SyncStatusState, UiFlowStateMixin implements IUiFlowState {
+abstract class SyncStatusState with _$SyncStatusState, UiFlowStateMixin implements IUiFlowState {
   const SyncStatusState._();
 
   const factory SyncStatusState({

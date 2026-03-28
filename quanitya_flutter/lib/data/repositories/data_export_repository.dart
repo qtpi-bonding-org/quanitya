@@ -4,9 +4,21 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../../infrastructure/config/debug_log.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../db/app_database.dart';
+
+const _tag = 'data/repositories/data_export_repository';
+
+/// Current export schema version. Bump when table structure changes.
+const exportSchemaVersion = 1;
+
+/// Schema URL prefix for Quanitya export files.
+const _schemaPrefix = 'https://quanitya.com/schemas/export/';
+
+/// Full schema URL for the current version.
+const _schemaUrl = '${_schemaPrefix}v$exportSchemaVersion';
 
 /// Result of a data export operation.
 enum DataExportResult {
@@ -48,19 +60,33 @@ class DataExportRepository {
   /// Returns an [XFile] ready to share. This is the heavy/async part
   /// (DB queries + JSON encoding) that should run under a loading overlay.
   Future<XFile> prepareExportFile(Set<String> tableNames) async {
-    debugPrint('📤 DataExportRepository: Starting export...');
+    Log.d(_tag, 'DataExportRepository: Starting export...');
 
-    final exportData = <String, dynamic>{
-      'exportedAt': DateTime.now().toIso8601String(),
-      'schemaVersion': _db.schemaVersion,
-      'format': 'raw_tables',
-    };
-
+    final tables = <String, dynamic>{};
     for (final tableName in tableNames) {
       final rows = await _db.customSelect('SELECT * FROM $tableName').get();
-      exportData[tableName] = rows.map((r) => r.data).toList();
-      debugPrint('📤   $tableName: ${rows.length} rows');
+      tables[tableName] = rows.map((r) => r.data).toList();
+      Log.d(_tag, '  $tableName: ${rows.length} rows');
     }
+
+    final platform = kIsWeb
+        ? 'web'
+        : Platform.isIOS
+            ? 'ios'
+            : Platform.isAndroid
+                ? 'android'
+                : 'unknown';
+
+    final exportData = <String, dynamic>{
+      '\$schema': _schemaUrl,
+      'version': exportSchemaVersion,
+      'exportedAt': DateTime.now().toUtc().toIso8601String(),
+      'app': {
+        'name': 'Quanitya',
+        'platform': platform,
+      },
+      'tables': tables,
+    };
 
     final jsonString =
         const JsonEncoder.withIndent('  ').convert(exportData);
@@ -73,7 +99,7 @@ class DataExportRepository {
         .first;
     final filename = 'quanitya_export_$timestamp.json';
 
-    debugPrint('📤   Prepared file: $filename');
+    Log.d(_tag, '  Prepared file: $filename');
 
     return XFile.fromData(
       bytes,
@@ -88,34 +114,33 @@ class DataExportRepository {
   /// so callers must not hold a loading overlay while awaiting this.
   Future<DataExportResult> shareExportFile(XFile file) async {
     try {
-      debugPrint('📤   Sharing file: ${file.name}');
+      Log.d(_tag, '  Sharing file: ${file.name}');
 
       final result = await Share.shareXFiles(
         [file],
         subject: 'Quanitya Data Export',
-        text: 'Your Quanitya data backup',
       );
 
       switch (result.status) {
         case ShareResultStatus.success:
-          debugPrint('📤   Export successful');
+          Log.d(_tag, '  Export successful');
           return DataExportResult.success;
         case ShareResultStatus.dismissed:
-          debugPrint('📤   Export cancelled by user');
+          Log.d(_tag, '  Export cancelled by user');
           return DataExportResult.cancelled;
         case ShareResultStatus.unavailable:
-          debugPrint('📤   Share unavailable');
+          Log.d(_tag, '  Share unavailable');
           return DataExportResult.failed;
       }
     } catch (e, stack) {
-      debugPrint('❌ DataExportRepository: Share failed: $e');
-      debugPrint('❌ Stack: $stack');
+      Log.d(_tag, 'DataExportRepository: Share failed: $e');
+      Log.d(_tag, 'Stack: $stack');
       rethrow;
     }
   }
 
-  /// Parsed import data held between [parseImportFile] and [importData].
-  Map<String, dynamic>? _parsedImport;
+  /// Parsed import data held between parse and [importData].
+  Map<String, dynamic>? _parsedTables;
 
   /// Pick a file via FilePicker, parse it, and return the table names found.
   ///
@@ -123,8 +148,7 @@ class DataExportRepository {
   /// Throws [ImportFailedException] if the file is invalid.
   Future<List<String>> parseImportFile() async {
     final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['json'],
+      type: FileType.any,
     );
 
     if (result == null || result.files.isEmpty) {
@@ -141,6 +165,11 @@ class DataExportRepository {
       throw const ImportFailedException('Could not read selected file.');
     }
 
+    return _parseJsonString(jsonString);
+  }
+
+  /// Common JSON parsing and validation.
+  List<String> _parseJsonString(String jsonString) {
     final Map<String, dynamic> parsed;
     try {
       parsed = jsonDecode(jsonString) as Map<String, dynamic>;
@@ -150,27 +179,35 @@ class DataExportRepository {
       );
     }
 
-    if (parsed['format'] != 'raw_tables') {
+    // Validate schema
+    final schema = parsed['\$schema'] as String?;
+    if (schema == null || !schema.startsWith(_schemaPrefix)) {
       throw const ImportFailedException(
-        'Unsupported export format. Please use a file exported from this app.',
+        'Not a Quanitya export file.',
       );
     }
 
-    final fileVersion = parsed['schemaVersion'] as int?;
-    if (fileVersion != null && fileVersion > _db.schemaVersion) {
+    final fileVersion = parsed['version'] as int?;
+    if (fileVersion != null && fileVersion > exportSchemaVersion) {
       throw const ImportFailedException(
         'This file was exported from a newer version of the app. '
         'Please update the app first.',
       );
     }
 
-    _parsedImport = parsed;
+    final tables = parsed['tables'] as Map<String, dynamic>?;
+    if (tables == null) {
+      throw const ImportFailedException(
+        'Not a Quanitya export file.',
+      );
+    }
 
-    // Return table names found in the file (excluding metadata keys).
-    const metaKeys = {'exportedAt', 'schemaVersion', 'format'};
+    _parsedTables = tables;
+
+    // Return table names found in the file that exist in our DB.
     final allDbTables = getExportableTableNames().toSet();
-    return parsed.keys
-        .where((k) => !metaKeys.contains(k) && allDbTables.contains(k))
+    return tables.keys
+        .where((k) => allDbTables.contains(k))
         .toList();
   }
 
@@ -179,15 +216,15 @@ class DataExportRepository {
   /// Deletes existing data in each selected table then inserts imported rows.
   /// The entire operation runs in a single transaction for atomicity.
   Future<void> importData(Set<String> tableNames) async {
-    final parsed = _parsedImport;
-    if (parsed == null) {
+    final tables = _parsedTables;
+    if (tables == null) {
       throw const ImportFailedException('No import file loaded.');
     }
 
     try {
       await _db.transaction(() async {
         for (final tableName in tableNames) {
-          final rows = parsed[tableName] as List<dynamic>?;
+          final rows = tables[tableName] as List<dynamic>?;
           if (rows == null || rows.isEmpty) continue;
 
           // Clear existing data for this table.
@@ -206,15 +243,15 @@ class DataExportRepository {
             );
           }
 
-          debugPrint('📥   $tableName: ${rows.length} rows imported');
+          Log.d(_tag, '  $tableName: ${rows.length} rows imported');
         }
       });
 
-      _parsedImport = null;
-      debugPrint('📥 Import completed successfully');
+      _parsedTables = null;
+      Log.d(_tag, 'Import completed successfully');
     } catch (e, stack) {
-      debugPrint('❌ DataExportRepository: Import failed: $e');
-      debugPrint('❌ Stack: $stack');
+      Log.d(_tag, 'DataExportRepository: Import failed: $e');
+      Log.d(_tag, 'Stack: $stack');
       if (e is ImportFailedException) rethrow;
       throw ImportFailedException('Import failed: $e');
     }

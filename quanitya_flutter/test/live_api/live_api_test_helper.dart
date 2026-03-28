@@ -56,17 +56,22 @@ class LiveApiTestHelper {
   /// Get OpenRouter API key, or null if not available
   static String? get openRouterApiKey => _openRouterApiKey;
   
-  /// Check if Gemini API key is available
-  static bool get hasGeminiKey => 
-      _geminiApiKey != null && _geminiApiKey!.isNotEmpty;
-  
-  /// Check if OpenAI API key is available
-  static bool get hasOpenaiKey => 
-      _openaiApiKey != null && _openaiApiKey!.isNotEmpty;
-  
-  /// Check if OpenRouter API key is available
-  static bool get hasOpenRouterKey => 
-      _openRouterApiKey != null && _openRouterApiKey!.isNotEmpty;
+  /// Whether live API tests are explicitly opted-in via env var.
+  /// Run with: RUN_LIVE_API_TESTS=true flutter test --tags live_api
+  static bool get _optedIn =>
+      Platform.environment['RUN_LIVE_API_TESTS'] == 'true';
+
+  /// Check if Gemini API key is available and tests opted-in
+  static bool get hasGeminiKey =>
+      _optedIn && _geminiApiKey != null && _geminiApiKey!.isNotEmpty;
+
+  /// Check if OpenAI API key is available and tests opted-in
+  static bool get hasOpenaiKey =>
+      _optedIn && _openaiApiKey != null && _openaiApiKey!.isNotEmpty;
+
+  /// Check if OpenRouter API key is available and tests opted-in
+  static bool get hasOpenRouterKey =>
+      _optedIn && _openRouterApiKey != null && _openRouterApiKey!.isNotEmpty;
   
   /// Skip message for missing Gemini key
   static String get skipGeminiMessage => 

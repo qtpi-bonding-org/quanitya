@@ -1,7 +1,19 @@
 import 'package:injectable/injectable.dart';
 
+import '../../infrastructure/core/try_operation.dart';
 import '../dao/fts_search_dao.dart';
 import '../dao/log_entry_query_dao.dart';
+
+/// Exception type for full-text search operations.
+class SearchException implements Exception {
+  final String message;
+  final Object? cause;
+
+  const SearchException(this.message, [this.cause]);
+
+  @override
+  String toString() => 'SearchException: $message';
+}
 
 /// Repository that composes FTS5 full-text search with context-enriched
 /// log entry hydration.
@@ -23,9 +35,15 @@ class FtsSearchRepository {
   /// prefix queries (word*), boolean operators (AND, OR, NOT).
   ///
   /// Returns an empty list if [query] is empty or whitespace.
-  Future<List<LogEntryWithContext>> search(String query) async {
-    final entryIds = await _ftsDao.search(query);
-    if (entryIds.isEmpty) return [];
-    return _queryDao.findByIdsWithContext(entryIds);
+  Future<List<LogEntryWithContext>> search(String query) {
+    return tryMethod(
+      () async {
+        final entryIds = await _ftsDao.search(query);
+        if (entryIds.isEmpty) return [];
+        return _queryDao.findByIdsWithContext(entryIds);
+      },
+      SearchException.new,
+      'search',
+    );
   }
 }

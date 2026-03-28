@@ -2,14 +2,14 @@ import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../../support/extensions/cubit_ui_flow_extension.dart';
-import '../../../../infrastructure/auth/auth_service.dart';
+import '../../../../infrastructure/auth/account_service.dart';
 import 'recovery_key_state.dart';
 
 @injectable
 class RecoveryKeyCubit extends QuanityaCubit<RecoveryKeyState> {
-  final AuthService _authService;
+  final AccountService _accountService;
 
-  RecoveryKeyCubit(this._authService) : super(const RecoveryKeyState());
+  RecoveryKeyCubit(this._accountService) : super(const RecoveryKeyState());
 
   /// Validate a recovery key (JWK) format.
   ///
@@ -17,7 +17,7 @@ class RecoveryKeyCubit extends QuanityaCubit<RecoveryKeyState> {
   /// performing full recovery.
   Future<void> validateRecoveryKey(String jwk) async {
     await tryOperation(() async {
-      await _authService.validateRecoveryKey(jwk);
+      await _accountService.validateRecoveryKey(jwk);
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: RecoveryKeyOperation.validate,
@@ -36,11 +36,13 @@ class RecoveryKeyCubit extends QuanityaCubit<RecoveryKeyState> {
   Future<void> recoverAccount({
     required String jwk,
     required String deviceLabel,
+    bool eraseExisting = false,
   }) async {
     await tryOperation(() async {
-      await _authService.recoverAccount(
+      await _accountService.recoverAccount(
         ultimatePrivateKey: jwk,
         deviceLabel: deviceLabel,
+        eraseExisting: eraseExisting,
       );
       analytics?.trackRecoveryKeyViewed();
       return state.copyWith(

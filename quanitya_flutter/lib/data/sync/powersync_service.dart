@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:powersync_sqlcipher/powersync.dart';
+
+import '../../infrastructure/config/debug_log.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
@@ -12,8 +14,23 @@ import 'package:injectable/injectable.dart';
 import 'powersync_schema.dart';
 import '../db/app_database.dart';
 import '../../infrastructure/config/dev_config.dart';
+import '../../infrastructure/core/try_operation.dart';
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../../infrastructure/security/database_key_service.dart';
+
+const _tag = 'data/sync/powersync_service';
+
+/// Exception thrown when PowerSync operations fail.
+class PowerSyncException implements Exception {
+  final String message;
+  final Object? cause;
+
+  const PowerSyncException(this.message, [this.cause]);
+
+  @override
+  String toString() =>
+      'PowerSyncException: $message${cause != null ? ' (caused by: $cause)' : ''}';
+}
 
 /// Resolve localhost for Android emulator loopback
 String _resolveUrl(String url) {
@@ -26,7 +43,7 @@ String _resolveUrl(String url) {
 }
 
 /// Interface for PowerSync service
-abstract class IPowerSyncService {
+abstract class IPowerSyncRepository {
   PowerSyncDatabase get powerSyncDb;
   AppDatabase get driftDb;
   Future<void> initialize();
@@ -38,14 +55,9 @@ abstract class IPowerSyncService {
   /// Null until initialize() has been called.
   String? get dbPath;
 
-  /// Connect PowerSync if mode supports sync, disconnect if local mode
-  Future<void> handleModeChange(AppSyncingMode mode, Client serverpodClient);
-
   /// Stream of real-time sync status from PowerSync.
   Stream<SyncStatus> get statusStream;
 
-  /// Force disconnect and reconnect PowerSync.
-  Future<void> retrySync();
 }
 
 /// PowerSync service with integrated Drift database
@@ -55,18 +67,17 @@ abstract class IPowerSyncService {
 /// - PowerSync handles sync to PostgreSQL backend
 /// - Drift provides ORM interface for app logic
 /// - Automatic change propagation between both APIs
-@Singleton(as: IPowerSyncService)
-class PowerSyncService implements IPowerSyncService {
+@Singleton(as: IPowerSyncRepository)
+class PowerSyncRepository implements IPowerSyncRepository {
   final DatabaseKeyService _keyService;
 
-  PowerSyncService(this._keyService);
+  PowerSyncRepository(this._keyService);
 
   PowerSyncDatabase? _powerSyncDb;
   AppDatabase? _driftDb;
   bool _isConnected = false;
   String? _dbPath;
-  AppSyncingMode? _currentMode;
-  Client? _currentClient;
+
 
   @override
   String? get dbPath => _dbPath;
@@ -76,7 +87,7 @@ class PowerSyncService implements IPowerSyncService {
     final db = _powerSyncDb;
     if (db == null) {
       throw StateError(
-        'PowerSyncService not initialized. Call initialize() before accessing powerSyncDb.',
+        'PowerSyncRepository not initialized. Call initialize() before accessing powerSyncDb.',
       );
     }
     return db;
@@ -87,7 +98,7 @@ class PowerSyncService implements IPowerSyncService {
     final db = _driftDb;
     if (db == null) {
       throw StateError(
-        'PowerSyncService not initialized. Call initialize() before accessing driftDb.',
+        'PowerSyncRepository not initialized. Call initialize() before accessing driftDb.',
       );
     }
     return db;
@@ -98,11 +109,10 @@ class PowerSyncService implements IPowerSyncService {
 
   /// Initialize PowerSync database and connect Drift to it
   @override
-  Future<void> initialize() async {
-    try {
+  Future<void> initialize() {
+    return tryMethod(() async {
       String path;
       if (kIsWeb) {
-        // On Web, use a simple filename (stored in IndexedDB/OPFS)
         path = 'quanitya_tracker.db';
       } else {
         final dir = await getApplicationDocumentsDirectory();
@@ -110,13 +120,14 @@ class PowerSyncService implements IPowerSyncService {
       }
 
       _dbPath = path;
+      final dbExists = !kIsWeb && await File(path).exists();
+      Log.d(_tag, '🗄️ PowerSync.initialize: path=$path, dbExists=$dbExists');
 
       // Provision the SQLCipher encryption key (device-only, not backed up)
       final keyResult = await _keyService.getOrCreateEncryptedAtRestKey();
+      Log.d(_tag, '🗄️ PowerSync.initialize: cipherKey wasCreated=${keyResult.wasCreated}');
       if (!kIsWeb && keyResult.wasCreated && await File(path).exists()) {
-        // Keychain was wiped (iOS reinstall) — stale encrypted DB can't be opened.
-        // Delete it; PowerSync will create a fresh one. E2EE data restores from sync.
-        // (Web: dart:io File is unavailable; web storage is managed by the browser.)
+        Log.d(_tag, '🗄️ PowerSync.initialize: DELETING stale DB file (cipher key was recreated)');
         await File(path).delete();
       }
 
@@ -132,14 +143,17 @@ class PowerSyncService implements IPowerSyncService {
 
       // Open DB; catch SQLCipher failures (wrong key) and recover once.
       // Note: the spec names this `deleteKeyAndStaleDatabase()` on DatabaseKeyService,
-      // but this plan intentionally keeps file deletion in PowerSyncService (which
+      // but this plan intentionally keeps file deletion in PowerSyncRepository (which
       // already owns the path) and exposes only `deleteEncryptedAtRestKey()` on
       // DatabaseKeyService. This keeps DatabaseKeyService free of filesystem concerns
       // and fully testable without path_provider. The recovery logic is equivalent.
       // `deleteEncryptedAtRestKey()` IS defined as a public method in DatabaseKeyService.
       try {
-        await _powerSyncDb!.initialize();
+        final db0 = _powerSyncDb;
+        if (db0 == null) throw PowerSyncException('PowerSync not initialized');
+        await db0.initialize();
       } catch (e) {
+        if (e is PowerSyncException) rethrow;
         await _keyService.deleteEncryptedAtRestKey();
         if (!kIsWeb && await File(path).exists()) await File(path).delete();
         final freshKey = (await _keyService.getOrCreateEncryptedAtRestKey()).key;
@@ -149,87 +163,72 @@ class PowerSyncService implements IPowerSyncService {
           schema: powerSyncSchema,
           logger: DevConfig.getPowerSyncLogger(),
         );
-        await _powerSyncDb!.initialize();
+        final db1 = _powerSyncDb;
+        if (db1 == null) throw PowerSyncException('PowerSync not initialized');
+        await db1.initialize();
       }
 
       // Connect Drift to the same database file via SqliteAsyncDriftConnection
-      _driftDb = AppDatabase(_powerSyncDb!);
-    } catch (e, stack) {
-      debugPrintStack(stackTrace: stack, label: 'PowerSync initialization failed: $e');
-      rethrow; // Re-throw so service locator knows it failed
-    }
+      final dbForDrift = _powerSyncDb;
+      if (dbForDrift == null) throw PowerSyncException('PowerSync not initialized');
+      _driftDb = AppDatabase(dbForDrift);
+    }, PowerSyncException.new, 'initialize');
   }
 
   /// Connect to sync with Serverpod backend
   @override
-  Future<void> connect(Client serverpodClient, AppSyncingMode mode) async {
-    if (_isConnected) return;
-    if (_powerSyncDb == null) return;
+  Future<void> connect(Client serverpodClient, AppSyncingMode mode) {
+    return tryMethod(() async {
+      Log.d(_tag, '🔌 PowerSync.connect: mode=$mode, _isConnected=$_isConnected');
+      if (_isConnected) {
+        Log.d(_tag, '🔌 PowerSync.connect: already connected, skipping');
+        return;
+      }
+      final db = _powerSyncDb;
+      if (db == null) throw PowerSyncException('PowerSync not initialized — call initialize() first');
 
-    try {
+      // Check ps_crud count before connecting
+      final crudCount = await db.execute('SELECT count(*) as cnt FROM ps_crud');
+      Log.d(_tag, '🔌 PowerSync.connect: ps_crud count BEFORE connect = ${crudCount.first['cnt']}');
+
       // Disconnect first to avoid "Stream already listened to" on hot restart
-      await _powerSyncDb!.disconnect();
+      await db.disconnect();
 
-      final connector = _ServerpodConnector(serverpodClient, mode);
-      await _powerSyncDb!.connect(connector: connector);
+      final connector = _ServerpodConnector(
+        serverpodClient,
+        mode,
+      );
+      await db.connect(connector: connector);
       _isConnected = true;
-      _currentMode = mode;
-      _currentClient = serverpodClient;
-    } catch (e, stack) {
-      debugPrintStack(stackTrace: stack, label: 'PowerSync connection failed: $e');
-      // Don't rethrow - app can work offline
-    }
+      Log.d(_tag, '🔌 PowerSync.connect: connected successfully');
+    }, PowerSyncException.new, 'connect');
   }
 
   /// Disconnect from sync
   @override
-  Future<void> disconnect() async {
-    if (!_isConnected) return;
-    await _powerSyncDb!.disconnect();
-    _isConnected = false;
+  Future<void> disconnect() {
+    return tryMethod(() async {
+      Log.d(_tag, '🔌 PowerSync.disconnect: _isConnected=$_isConnected, db=${_powerSyncDb != null}');
+      if (!_isConnected) {
+        Log.d(_tag, '🔌 PowerSync.disconnect: not connected, returning');
+        return;
+      }
+      final db = _powerSyncDb;
+      if (db == null) throw PowerSyncException('PowerSync not initialized — call initialize() first');
+      Log.d(_tag, '🔌 PowerSync.disconnect: calling db.disconnect()...');
+      await db.disconnect();
+      Log.d(_tag, '🔌 PowerSync.disconnect: db.disconnect() done');
+      _isConnected = false;
+    }, PowerSyncException.new, 'disconnect');
   }
 
   @override
   Stream<SyncStatus> get statusStream {
-    if (_powerSyncDb == null) return const Stream.empty();
-    return _powerSyncDb!.statusStream;
+    final db = _powerSyncDb;
+    if (db == null) return const Stream.empty();
+    return db.statusStream;
   }
 
-  @override
-  Future<void> retrySync() async {
-    final client = _currentClient;
-    final mode = _currentMode;
-    if (_powerSyncDb == null || client == null || mode == null) return;
-    if (!mode.supportsSync) return;
-    await disconnect();
-    await connect(client, mode);
-  }
-
-  /// Handle app operating mode changes - connect/disconnect PowerSync as needed
-  ///
-  /// Force reconnects when switching between sync modes (e.g. selfHosted → cloud)
-  /// because the connector routes token fetches to different endpoints per mode.
-  @override
-  Future<void> handleModeChange(
-    AppSyncingMode mode,
-    Client serverpodClient,
-  ) async {
-    if (mode.supportsSync) {
-      if (_isConnected && _currentMode != mode) {
-        // Switching between sync modes — force reconnect with new connector
-        await disconnect();
-      }
-      if (!_isConnected) {
-        await connect(serverpodClient, mode);
-      }
-    } else {
-      // Local mode - ensure PowerSync is disconnected
-      if (_isConnected) {
-        await disconnect();
-      }
-      _currentMode = mode;
-    }
-  }
 }
 
 /// Serverpod backend connector for PowerSync
@@ -246,61 +245,73 @@ class _ServerpodConnector extends PowerSyncBackendConnector {
 
   @override
   Future<PowerSyncCredentials?> fetchCredentials() async {
-    try {
-      if (!_client.auth.isAuthenticated) return null;
-
-      final String token;
-      final String endpoint;
-
-      switch (_mode) {
-        case AppSyncingMode.cloud:
-          // Cloud: SyncAccessEndpoint — JWT user_id = 128-char hex public key
-          final response = await _client.cloudPowerSync.getToken();
-          token = response.token;
-          endpoint = _resolveUrl(response.endpoint);
-        case AppSyncingMode.selfHosted:
-          // Self-hosted: community module — JWT user_id = integer account ID
-          final response = await _client.modules.community.powerSync.getToken();
-          token = response.token;
-          endpoint = _resolveUrl(response.endpoint);
-        case AppSyncingMode.local:
-          return null; // Should never be called in local mode
-      }
-
-      _cachedEndpoint ??= endpoint;
-
-      return PowerSyncCredentials(
-        endpoint: _cachedEndpoint!,
-        token: token,
-      );
-    } catch (e) {
+    Log.d(_tag, '🔑 PowerSync.fetchCredentials: isAuthenticated=${_client.auth.isAuthenticated}, mode=$_mode');
+    if (!_client.auth.isAuthenticated) {
+      Log.d(_tag, '🔑 PowerSync.fetchCredentials: not authenticated, returning null');
       return null;
     }
+
+    final String token;
+    final String endpoint;
+
+    switch (_mode) {
+      case AppSyncingMode.cloud:
+        final response = await _client.cloudPowerSync.getToken();
+        token = response.token;
+        endpoint = _resolveUrl(response.endpoint);
+        Log.d(_tag, '🔑 PowerSync.fetchCredentials: got cloud token, endpoint=$endpoint');
+      case AppSyncingMode.selfHosted:
+        final response = await _client.modules.community.powerSync.getToken();
+        token = response.token;
+        endpoint = _resolveUrl(response.endpoint);
+        Log.d(_tag, '🔑 PowerSync.fetchCredentials: got self-hosted token, endpoint=$endpoint');
+      case AppSyncingMode.local:
+        Log.d(_tag, '🔑 PowerSync.fetchCredentials: local mode, returning null');
+        return null;
+    }
+
+    _cachedEndpoint ??= endpoint;
+    final resolvedEndpoint = _cachedEndpoint ?? endpoint;
+
+    return PowerSyncCredentials(
+      endpoint: resolvedEndpoint,
+      token: token,
+    );
   }
 
   @override
   Future<void> uploadData(PowerSyncDatabase database) async {
-    // Check if client has auth session before trying to upload
-    if (!_client.auth.isAuthenticated) return;
+    Log.d(_tag, '📤 PowerSync.uploadData called, isAuthenticated=${_client.auth.isAuthenticated}');
+    if (!_client.auth.isAuthenticated) {
+      Log.d(_tag, '📤 PowerSync.uploadData: not authenticated, skipping');
+      return;
+    }
 
     // Process all pending CRUD transactions
+    var txCount = 0;
     while (true) {
       final transaction = await database.getNextCrudTransaction();
-      if (transaction == null) break;
+      if (transaction == null) {
+        Log.d(_tag, '📤 PowerSync.uploadData: done, processed $txCount transactions');
+        break;
+      }
+      txCount++;
 
       try {
-        // Send changes to Serverpod sync endpoints
+        Log.d(_tag, '📤 PowerSync.uploadData: transaction #${transaction.transactionId} with ${transaction.crud.length} ops');
         for (final op in transaction.crud) {
+          Log.d(_tag, '📤   ${op.op.name} ${op.table} id=${op.id}');
           await _syncOperation(op);
         }
 
         await transaction.complete();
+        Log.d(_tag, '📤   transaction #${transaction.transactionId} complete');
       } catch (e, stack) {
+        Log.d(_tag, '📤   transaction #${transaction.transactionId} FAILED: $e');
         debugPrintStack(
           stackTrace: stack,
           label: 'PowerSync upload failed for transaction #${transaction.transactionId}: $e',
         );
-        // Don't complete transaction - will retry later
         rethrow;
       }
     }

@@ -1,34 +1,54 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+
+import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:injectable/injectable.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     show Client, RailCatalogEntry;
+import '../config/debug_log.dart';
 
 import '../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import '../core/try_operation.dart';
 import '../platform/platform_capability_service.dart';
 import '../public_submission/public_submission_service.dart';
-import 'i_purchase_provider.dart';
+import 'entitlement_repository.dart';
+import 'i_digital_purchase_repository.dart';
 import 'i_purchase_service.dart';
 import 'purchase_exception.dart';
 import 'purchase_models.dart';
+
+const _tag = 'infrastructure/purchase/purchase_service';
 
 @LazySingleton(as: IPurchaseService)
 class PurchaseService implements IPurchaseService {
   final PublicSubmissionService _submissionService;
   final Client _client;
   final PlatformCapabilityService _platformCaps;
-  final Map<PurchaseRail, IPurchaseProvider> _providers = {};
+  final EntitlementRepository _entitlementRepo;
+  final Map<PurchaseRail, IDigitalPurchaseRepository> _providers = {};
+  final List<StreamSubscription<void>> _entitlementSubscriptions = [];
+
+  final StreamController<void> _entitlementGrantedController =
+      StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get onEntitlementGranted => _entitlementGrantedController.stream;
 
   PurchaseService(
     this._submissionService,
     this._client,
     this._platformCaps,
+    this._entitlementRepo,
   );
 
   @override
-  void registerProvider(IPurchaseProvider provider) {
+  void registerProvider(IDigitalPurchaseRepository provider) {
     _providers[provider.rail] = provider;
-    debugPrint('PurchaseService: Registered provider for ${provider.rail}');
+    _entitlementSubscriptions.add(
+      provider.onEntitlementGranted.listen((_) {
+        _entitlementGrantedController.add(null);
+      }),
+    );
+    Log.d(_tag, 'PurchaseService: Registered provider for ${provider.rail}');
   }
 
   @override
@@ -54,7 +74,7 @@ class PurchaseService implements IPurchaseService {
   }
 
   @override
-  Future<IPurchaseProvider?> getDefaultProvider() {
+  Future<IDigitalPurchaseRepository?> getDefaultProvider() {
     return tryMethod(
       () async {
         for (final provider in _providers.values) {
@@ -85,7 +105,33 @@ class PurchaseService implements IPurchaseService {
           );
         }
 
-        return await provider.validateWithServer(result);
+        final validationResult = await provider.validateWithServer(result);
+
+        if (!validationResult.success) {
+          throw PurchaseException(
+            validationResult.errorMessage ?? 'Server validation failed',
+          );
+        }
+
+        final tag = validationResult.tag;
+        final amount = validationResult.amount;
+        if (tag != null && amount != null) {
+          try {
+            await _entitlementRepo.updateBalance(tag, amount);
+            await _entitlementRepo.markPurchased();
+          } catch (e, stack) {
+            // Best-effort: server already granted the entitlement, so the
+            // next getEntitlements() call will refresh the cache. Don't
+            // fail the purchase over a local cache write error.
+            Log.d(_tag, 'PurchaseService.purchase: cache update failed (non-fatal): $e');
+            await ErrorPrivserver.captureError(e, stack, source: 'PurchaseService.purchase');
+          }
+        } else {
+          Log.d(_tag, 'PurchaseService.purchase: server returned incomplete entitlement '
+              '(tag=${validationResult.tag}, amount=${validationResult.amount})');
+        }
+
+        return validationResult;
       },
       PurchaseException.new,
       'purchase',
@@ -102,6 +148,19 @@ class PurchaseService implements IPurchaseService {
       },
       PurchaseException.new,
       'recoverPendingPurchases',
+    );
+  }
+
+  @override
+  Future<void> reconcileSubscriptionEntitlements() {
+    return tryMethod(
+      () async {
+        for (final provider in _providers.values) {
+          await provider.reconcileSubscriptionEntitlements();
+        }
+      },
+      PurchaseException.new,
+      'reconcileSubscriptionEntitlements',
     );
   }
 
@@ -134,6 +193,11 @@ class PurchaseService implements IPurchaseService {
 
   @override
   Future<void> dispose() async {
+    for (final sub in _entitlementSubscriptions) {
+      await sub.cancel();
+    }
+    _entitlementSubscriptions.clear();
+    await _entitlementGrantedController.close();
     for (final provider in _providers.values) {
       await provider.dispose();
     }

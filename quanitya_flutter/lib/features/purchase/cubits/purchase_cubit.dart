@@ -2,42 +2,45 @@ import 'dart:async';
 
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import '../../../infrastructure/config/debug_log.dart';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
-import '../../../infrastructure/auth/auth_service.dart';
 import '../../../infrastructure/purchase/i_purchase_service.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
 import '../../../features/app_syncing_mode/models/app_syncing_mode.dart';
 import 'purchase_state.dart';
 
-@injectable
+const _tag = 'features/purchase/cubits/purchase_cubit';
+
+@lazySingleton
 class PurchaseCubit extends QuanityaCubit<PurchaseState> {
   final IPurchaseService _purchaseService;
-  final AuthService _authService;
-  Completer<void>? _registrationLock;
+  StreamSubscription<void>? _entitlementSubscription;
 
-  PurchaseCubit(this._purchaseService, this._authService) : super(const PurchaseState());
+  PurchaseCubit(this._purchaseService) : super(const PurchaseState()) {
+    _entitlementSubscription = _purchaseService.onEntitlementGranted.listen((_) {
+      emit(state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: PurchaseOperation.recoverPurchases,
+      ));
+    });
+    _initialize();
+  }
 
-  Future<void> _ensureRegistered() async {
-    if (await _authService.isRegisteredWithServer) return;
-    if (_registrationLock != null) {
-      await _registrationLock!.future;
-      return;
-    }
-    _registrationLock = Completer<void>();
-    try {
-      await _authService.registerAccountWithServer(deviceLabel: 'auto');
-      _registrationLock!.complete();
-    } catch (e) {
-      _registrationLock!.completeError(e);
-      rethrow;
-    } finally {
-      _registrationLock = null;
-    }
+  Future<void> _initialize() => tryOperation(() async {
+    await _purchaseService.recoverPendingPurchases();
+    await _purchaseService.reconcileSubscriptionEntitlements();
+    Log.d(_tag, 'PurchaseCubit: Initialization complete');
+    return state;
+  }, emitLoading: false);
+
+  @override
+  Future<void> close() {
+    _entitlementSubscription?.cancel();
+    return super.close();
   }
 
   Future<void> loadProducts() async {
-    emit(state.copyWith(lastOperation: PurchaseOperation.loadProducts));
     await tryOperation(() async {
       final products = await _purchaseService.getProducts();
       return state.copyWith(
@@ -50,7 +53,6 @@ class PurchaseCubit extends QuanityaCubit<PurchaseState> {
 
   Future<void> purchase(PurchaseRequest request, {required AppSyncingMode mode}) async {
     await tryOperation(() async {
-      await _ensureRegistered();
       await _purchaseService.purchase(request, mode: mode);
       analytics?.trackPurchaseCompleted(productId: request.productId);
       return state.copyWith(

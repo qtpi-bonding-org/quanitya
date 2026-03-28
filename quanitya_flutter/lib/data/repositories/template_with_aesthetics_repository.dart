@@ -1,3 +1,4 @@
+import '../../infrastructure/core/try_operation.dart';
 import '../../logic/templates/services/engine/json_to_model_parser.dart';
 import '../../infrastructure/webhooks/webhook_repository.dart';
 import '../dao/template_aesthetics_dual_dao.dart';
@@ -11,6 +12,17 @@ import '../../logic/templates/models/shared/tracker_template.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 // Exceptions
 // ─────────────────────────────────────────────────────────────────────────────
+
+/// General exception for template repository operations.
+class TemplateRepositoryException implements Exception {
+  final String message;
+  final Object? cause;
+
+  TemplateRepositoryException(this.message, [this.cause]);
+
+  @override
+  String toString() => 'TemplateRepositoryException: $message';
+}
 
 /// Thrown when a schema change violates data integrity rules.
 class SchemaChangeException implements Exception {
@@ -100,35 +112,45 @@ class TemplateWithAestheticsRepository {
   /// - ❌ CHANGE TYPE: Blocked (would break existing log data)
   ///
   /// Throws [SchemaChangeException] if type change is attempted.
-  Future<void> save(TemplateWithAesthetics data) async {
-    // Check if this is an update (template already exists)
-    final existing = await findById(data.template.id);
-    
-    if (existing != null) {
-      // UPDATE: Validate schema changes
-      _validateSchemaChanges(existing.template, data.template);
-    }
-    
-    // Save both template and aesthetics atomically
-    await _dualDao.runInTransaction(() async {
-      // Save template via DualDAO (handles E2EE internally)
-      final entity = _templateDao.modelToEntity(data.template);
-      await _dualDao.upsert(entity);
+  Future<void> save(TemplateWithAesthetics data) {
+    return tryMethod(
+      () async {
+        // Check if this is an update (template already exists)
+        final existing = await findById(data.template.id);
 
-      // Save aesthetics via DualDAO (handles E2EE internally)
-      final aestheticsEntity = _aestheticsDualDao.modelToEntity(data.aesthetics);
-      _aestheticsDualDao.useTransaction = false;
-      try {
-        await _aestheticsDualDao.upsert(aestheticsEntity);
-      } finally {
-        _aestheticsDualDao.useTransaction = true;
-      }
-    });
+        if (existing != null) {
+          // UPDATE: Validate schema changes
+          _validateSchemaChanges(existing.template, data.template);
+        }
+
+        // Save both template and aesthetics atomically
+        await _dualDao.runInTransaction(() async {
+          // Save template via DualDAO (handles E2EE internally)
+          final entity = _templateDao.modelToEntity(data.template);
+          await _dualDao.upsert(entity);
+
+          // Save aesthetics via DualDAO (handles E2EE internally)
+          final aestheticsEntity = _aestheticsDualDao.modelToEntity(data.aesthetics);
+          _aestheticsDualDao.useTransaction = false;
+          try {
+            await _aestheticsDualDao.upsert(aestheticsEntity);
+          } finally {
+            _aestheticsDualDao.useTransaction = true;
+          }
+        });
+      },
+      TemplateRepositoryException.new,
+      'save',
+    );
   }
 
   /// Saves from ParsedAiTemplate directly (convenience method).
-  Future<void> saveFromParsed(ParsedAiTemplate parsed) async {
-    await save(TemplateWithAesthetics.fromParsed(parsed));
+  Future<void> saveFromParsed(ParsedAiTemplate parsed) {
+    return tryMethod(
+      () async => save(TemplateWithAesthetics.fromParsed(parsed)),
+      TemplateRepositoryException.new,
+      'saveFromParsed',
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -188,15 +210,21 @@ class TemplateWithAestheticsRepository {
   ///
   /// Returns null if template doesn't exist.
   /// Returns default aesthetics if aesthetics don't exist for the template.
-  Future<TemplateWithAesthetics?> findById(String templateId) async {
-    final template = await _queryDao.findById(templateId);
-    if (template == null) return null;
+  Future<TemplateWithAesthetics?> findById(String templateId) {
+    return tryMethod(
+      () async {
+        final template = await _queryDao.findById(templateId);
+        if (template == null) return null;
 
-    final aesthetics =
-        await _queryDao.findAestheticsById(templateId) ??
-        TemplateAestheticsModel.defaults(templateId: templateId);
+        final aesthetics =
+            await _queryDao.findAestheticsById(templateId) ??
+            TemplateAestheticsModel.defaults(templateId: templateId);
 
-    return TemplateWithAesthetics(template: template, aesthetics: aesthetics);
+        return TemplateWithAesthetics(template: template, aesthetics: aesthetics);
+      },
+      TemplateRepositoryException.new,
+      'findById',
+    );
   }
 
   /// Loads templates with optional filters.
@@ -214,12 +242,18 @@ class TemplateWithAestheticsRepository {
   Future<List<TemplateWithAesthetics>> find({
     bool? isArchived,
     bool? isHidden,
-  }) async {
-    final templates = await _queryDao.find(
-      isArchived: isArchived,
-      isHidden: isHidden,
+  }) {
+    return tryMethod(
+      () async {
+        final templates = await _queryDao.find(
+          isArchived: isArchived,
+          isHidden: isHidden,
+        );
+        return _loadWithAesthetics(templates);
+      },
+      TemplateRepositoryException.new,
+      'find',
     );
-    return _loadWithAesthetics(templates);
   }
 
   /// Helper to load aesthetics for a list of templates.
@@ -252,68 +286,98 @@ class TemplateWithAestheticsRepository {
   ///
   /// Aesthetics are preserved for potential unarchive.
   /// Webhooks are disabled (not deleted) so they can be re-enabled on unarchive.
-  Future<void> archive(String templateId) async {
-    final template = await _queryDao.findById(templateId);
-    if (template != null) {
-      final archived = template.copyWith(isArchived: true);
-      final entity = _templateDao.modelToEntity(archived);
-      await _dualDao.upsert(entity);
-      
-      // Disable webhooks for archived template
-      await _webhookRepo.disableByTemplateId(templateId);
-    }
+  Future<void> archive(String templateId) {
+    return tryMethod(
+      () async {
+        final template = await _queryDao.findById(templateId);
+        if (template != null) {
+          final archived = template.copyWith(isArchived: true);
+          final entity = _templateDao.modelToEntity(archived);
+          await _dualDao.upsert(entity);
+
+          // Disable webhooks for archived template
+          await _webhookRepo.disableByTemplateId(templateId);
+        }
+      },
+      TemplateRepositoryException.new,
+      'archive',
+    );
   }
 
   /// Unarchives a template.
-  Future<void> unarchive(String templateId) async {
-    final template = await _queryDao.findById(templateId);
-    if (template != null) {
-      final unarchived = template.copyWith(isArchived: false);
-      final entity = _templateDao.modelToEntity(unarchived);
-      await _dualDao.upsert(entity);
-    }
+  Future<void> unarchive(String templateId) {
+    return tryMethod(
+      () async {
+        final template = await _queryDao.findById(templateId);
+        if (template != null) {
+          final unarchived = template.copyWith(isArchived: false);
+          final entity = _templateDao.modelToEntity(unarchived);
+          await _dualDao.upsert(entity);
+        }
+      },
+      TemplateRepositoryException.new,
+      'unarchive',
+    );
   }
 
   /// Hides a template (requires authentication to view).
-  /// 
+  ///
   /// Hidden templates and their entries are excluded from normal queries.
   /// Similar to iOS Hidden Photos or Locked Notes feature.
-  Future<void> hide(String templateId) async {
-    final template = await _queryDao.findById(templateId);
-    if (template != null) {
-      final hidden = template.copyWith(isHidden: true);
-      final entity = _templateDao.modelToEntity(hidden);
-      await _dualDao.upsert(entity);
-    }
+  Future<void> hide(String templateId) {
+    return tryMethod(
+      () async {
+        final template = await _queryDao.findById(templateId);
+        if (template != null) {
+          final hidden = template.copyWith(isHidden: true);
+          final entity = _templateDao.modelToEntity(hidden);
+          await _dualDao.upsert(entity);
+        }
+      },
+      TemplateRepositoryException.new,
+      'hide',
+    );
   }
 
   /// Unhides a template (makes it visible in normal queries).
-  Future<void> unhide(String templateId) async {
-    final template = await _queryDao.findById(templateId);
-    if (template != null) {
-      final visible = template.copyWith(isHidden: false);
-      final entity = _templateDao.modelToEntity(visible);
-      await _dualDao.upsert(entity);
-    }
+  Future<void> unhide(String templateId) {
+    return tryMethod(
+      () async {
+        final template = await _queryDao.findById(templateId);
+        if (template != null) {
+          final visible = template.copyWith(isHidden: false);
+          final entity = _templateDao.modelToEntity(visible);
+          await _dualDao.upsert(entity);
+        }
+      },
+      TemplateRepositoryException.new,
+      'unhide',
+    );
   }
 
   /// Permanently deletes template and its aesthetics (atomic transaction).
   ///
   /// WARNING: This is destructive and cannot be undone.
-  Future<void> deletePermanently(String templateId) async {
-    await _dualDao.runInTransaction(() async {
-      // Find aesthetics for this template to get its ID
-      final aesthetics = await _queryDao.findAestheticsById(templateId);
-      if (aesthetics != null) {
-        _aestheticsDualDao.useTransaction = false;
-        try {
-          await _aestheticsDualDao.delete(aesthetics.id);
-        } finally {
-          _aestheticsDualDao.useTransaction = true;
-        }
-      }
-      await _dualDao.delete(templateId);
-    });
+  Future<void> deletePermanently(String templateId) {
+    return tryMethod(
+      () async {
+        await _dualDao.runInTransaction(() async {
+          // Find aesthetics for this template to get its ID
+          final aesthetics = await _queryDao.findAestheticsById(templateId);
+          if (aesthetics != null) {
+            _aestheticsDualDao.useTransaction = false;
+            try {
+              await _aestheticsDualDao.delete(aesthetics.id);
+            } finally {
+              _aestheticsDualDao.useTransaction = true;
+            }
+          }
+          await _dualDao.delete(templateId);
+        });
+      },
+      TemplateRepositoryException.new,
+      'deletePermanently',
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -377,7 +441,11 @@ class TemplateWithAestheticsRepository {
   Future<int> count({
     bool? isArchived,
     bool? isHidden,
-  }) async {
-    return _queryDao.count(isArchived: isArchived, isHidden: isHidden);
+  }) {
+    return tryMethod(
+      () async => _queryDao.count(isArchived: isArchived, isHidden: isHidden),
+      TemplateRepositoryException.new,
+      'count',
+    );
   }
 }

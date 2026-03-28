@@ -4,6 +4,9 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:device_marketing_names/device_marketing_names.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../config/debug_log.dart';
+
+const _tag = 'infrastructure/device/device_info_service';
 
 /// Service for retrieving device information.
 ///
@@ -36,7 +39,7 @@ class DeviceInfoService {
     try {
       _cachedDeviceName = await _getDeviceNameInternal();
     } catch (e) {
-      debugPrint('DeviceInfoService: Failed to get device name: $e');
+      Log.d(_tag, 'DeviceInfoService: Failed to get device name: $e');
       _cachedDeviceName = _getFallbackName();
     }
 

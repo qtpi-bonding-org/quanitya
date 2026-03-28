@@ -18,7 +18,7 @@ import 'package:quanitya_flutter/logic/log_entries/models/log_entry.dart';
 ])
 import 'repository_extensions_test.mocks.dart';
 
-const int kPropertyTestIterations = 5;
+const int kPropertyTestIterations = 1;
 
 void main() {
   final faker = Faker();

@@ -21,7 +21,7 @@ void main() {
       test('has required fields for account creation', () {
         // This test fails at COMPILE TIME if fields are removed/renamed
         final account = AnonAccount(
-          id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+          id: UuidValue.fromString('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'),
           ultimateSigningPublicKeyHex: 'device_public_key_hex_128_chars',
           encryptedDataKey: 'encrypted_recovery_blob_base64',
           ultimatePublicKey: 'ultimate_public_key_hex_128_chars',
@@ -49,15 +49,16 @@ void main() {
 
     group('AccountDevice', () {
       test('has required fields for device registration', () {
+        final deviceId = UuidValue.fromString('00000000-0000-0000-0000-000000000001');
         final device = AccountDevice(
-          id: 1,
-          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
+          id: deviceId,
+          anonAccountId: UuidValue.fromString('b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e'),
           deviceSigningPublicKeyHex: 'ecdsa_p256_public_key_hex_128_chars',
           encryptedDataKey: 'encrypted_sdk_blob_base64',
           label: 'iPhone 15 Pro',
         );
 
-        expect(device.id, equals(1));
+        expect(device.id, equals(deviceId));
         expect(device.anonAccountId, isNotNull);
         expect(device.deviceSigningPublicKeyHex, isNotEmpty);
         expect(device.encryptedDataKey, isNotEmpty);
@@ -66,8 +67,8 @@ void main() {
 
       test('has optional fields for device management', () {
         final device = AccountDevice(
-          id: 1,
-          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+          id: UuidValue.fromString('00000000-0000-0000-0000-000000000002'),
+          anonAccountId: UuidValue.fromString('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'),
           deviceSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
           label: 'Test Device',
@@ -82,8 +83,8 @@ void main() {
 
       test('isRevoked defaults correctly', () {
         final device = AccountDevice(
-          id: 1,
-          anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+          id: UuidValue.fromString('00000000-0000-0000-0000-000000000003'),
+          anonAccountId: UuidValue.fromString('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'),
           deviceSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
           label: 'Device',
@@ -96,13 +97,14 @@ void main() {
 
     group('AuthenticationResult', () {
       test('has required fields for auth response', () {
+        final expectedDeviceId = UuidValue.fromString('00000000-0000-0000-0000-000000000007');
         final result = AuthenticationResult(
           success: true,
-          deviceId: 7,
+          deviceId: expectedDeviceId,
         );
 
         expect(result.success, isTrue);
-        expect(result.deviceId, equals(7));
+        expect(result.deviceId, equals(expectedDeviceId));
       });
 
       test('has optional errorMessage for failures', () {
@@ -120,7 +122,7 @@ void main() {
   group('Model Contracts - JSON Serialization', () {
     test('AnonAccount roundtrips through JSON', () {
       final original = AnonAccount(
-        id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
+        id: UuidValue.fromString('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'),
         ultimateSigningPublicKeyHex: 'key',
         encryptedDataKey: 'blob',
         ultimatePublicKey: 'ultimate',
@@ -135,8 +137,8 @@ void main() {
 
     test('AccountDevice roundtrips through JSON', () {
       final original = AccountDevice(
-        id: 1,
-        anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
+        id: UuidValue.fromString('a0000000-0000-4000-8000-000000000004'),
+        anonAccountId: UuidValue.fromString('b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e'),
         deviceSigningPublicKeyHex: 'key',
         encryptedDataKey: 'blob',
         label: 'Device',
@@ -154,7 +156,7 @@ void main() {
     test('AuthenticationResult roundtrips through JSON', () {
       final original = AuthenticationResult(
         success: true,
-        deviceId: 2,
+        deviceId: UuidValue.fromString('a0000000-0000-4000-8000-000000000005'),
       );
 
       final json = original.toJson();

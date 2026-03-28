@@ -10,7 +10,8 @@ part 'tracker_template.g.dart';
 /// TrackerTemplateModel defines the structure and validation rules for data entry forms.
 /// They contain a list of TemplateField objects that specify individual form fields.
 @freezed
-class TrackerTemplateModel with _$TrackerTemplateModel {
+abstract class TrackerTemplateModel with _$TrackerTemplateModel {
+  const TrackerTemplateModel._();
   const factory TrackerTemplateModel({
     /// Unique identifier for this template (UUID format)
     required String id,

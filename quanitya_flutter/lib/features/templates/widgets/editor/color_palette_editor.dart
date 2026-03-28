@@ -6,7 +6,6 @@ import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
 import '../../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
-import '../../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../../support/extensions/color_extensions.dart';
 import '../../cubits/editor/template_editor_cubit.dart';
@@ -21,6 +20,7 @@ class ColorPaletteEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+      buildWhen: (p, c) => p.aesthetics != c.aesthetics,
       builder: (context, state) => _buildColorSelector(context, state),
     );
   }
@@ -126,7 +126,7 @@ class ColorPaletteEditor extends StatelessWidget {
   ) {
     return Semantics(
       button: true,
-      label: 'Change color',
+      label: context.l10n.accessibilityChangeColor,
       child: GestureDetector(
         onTap: () => _showColorPicker(context, color, onColorChanged),
         child: SizedBox(
@@ -159,25 +159,12 @@ class ColorPaletteEditor extends StatelessWidget {
       context: context,
       title: context.l10n.pickColorTitle,
       builder: (ctx) => SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ColorPicker(
-              pickerColor: currentColor,
-              onColorChanged: onColorChanged,
-              enableAlpha: false,
-              labelTypes: const [],
-              pickerAreaHeightPercent: 0.7,
-            ),
-            VSpace.x2,
-            Align(
-              alignment: Alignment.centerRight,
-              child: QuanityaTextButton(
-                text: context.l10n.selectAction,
-                onPressed: () => Navigator.of(ctx).pop(),
-              ),
-            ),
-          ],
+        child: ColorPicker(
+          pickerColor: currentColor,
+          onColorChanged: onColorChanged,
+          enableAlpha: false,
+          labelTypes: const [],
+          pickerAreaHeightPercent: 0.7,
         ),
       ),
     );

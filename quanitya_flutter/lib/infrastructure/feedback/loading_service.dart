@@ -2,8 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' as cubit_ui_flow;
+import '../config/debug_log.dart';
 
 import '../../app/root_navigator_key.dart';
+
+const _tag = 'infrastructure/feedback/loading_service';
 
 /// Loading service using overlay with circular progress indicator.
 @LazySingleton(as: cubit_ui_flow.ILoadingService)
@@ -17,17 +20,15 @@ class LoadingService implements cubit_ui_flow.ILoadingService {
     Future.microtask(() {
       try {
         if (_overlayEntry != null) {
-          debugPrint('⚠️ LoadingService: Overlay already shown. Skipping.');
           return;
         }
 
         final overlayState = rootNavigatorKey.currentState?.overlay;
         if (overlayState == null) {
-          debugPrint('❌ LoadingService Error: Navigator overlay is null.');
           return;
         }
 
-        _overlayEntry = OverlayEntry(
+        final entry = OverlayEntry(
           builder: (context) => const Stack(
             children: [
               ModalBarrier(dismissible: false, color: Colors.black38),
@@ -35,11 +36,11 @@ class LoadingService implements cubit_ui_flow.ILoadingService {
             ],
           ),
         );
+        _overlayEntry = entry;
 
-        overlayState.insert(_overlayEntry!);
-        debugPrint('✅ LoadingService: Overlay inserted.');
+        overlayState.insert(entry);
       } catch (e, stackTrace) {
-        debugPrint('❌ LoadingService show() failed: $e\n$stackTrace');
+        Log.d(_tag, 'LoadingService show() failed: $e\n$stackTrace');
         _overlayEntry = null;
       }
     });
@@ -49,13 +50,13 @@ class LoadingService implements cubit_ui_flow.ILoadingService {
   void hide() {
     Future.microtask(() {
       try {
-        if (_overlayEntry != null) {
-          _overlayEntry!.remove();
+        final entry = _overlayEntry;
+        if (entry != null) {
+          entry.remove();
           _overlayEntry = null;
-          debugPrint('✅ LoadingService: Overlay removed.');
         }
       } catch (e) {
-        debugPrint('LoadingService hide() failed safely. Error: $e');
+        Log.d(_tag, 'LoadingService hide() failed safely. Error: $e');
       }
     });
   }

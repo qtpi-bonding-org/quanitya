@@ -1,9 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
-import 'package:quanitya_flutter/infrastructure/auth/auth_service.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_purchase_service.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/purchase_models.dart';
 import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
@@ -12,13 +13,10 @@ import 'package:quanitya_flutter/features/purchase/cubits/purchase_state.dart';
 
 class MockPurchaseService extends Mock implements IPurchaseService {}
 
-class MockAuthService extends Mock implements AuthService {}
-
 class FakePurchaseRequest extends Fake implements PurchaseRequest {}
 
 void main() {
   late MockPurchaseService mockService;
-  late MockAuthService mockAuthService;
 
   setUpAll(() {
     registerFallbackValue(FakePurchaseRequest());
@@ -27,17 +25,22 @@ void main() {
 
   setUp(() {
     mockService = MockPurchaseService();
-    mockAuthService = MockAuthService();
-    when(() => mockAuthService.isRegisteredWithServer).thenAnswer((_) async => true);
+    when(() => mockService.onEntitlementGranted)
+        .thenAnswer((_) => const Stream<void>.empty());
+    when(() => mockService.recoverPendingPurchases())
+        .thenAnswer((_) async {});
+    when(() => mockService.reconcileSubscriptionEntitlements())
+        .thenAnswer((_) async {});
   });
 
   group('PurchaseCubit', () {
-    test('initial state is idle with empty products', () {
-      final cubit = PurchaseCubit(mockService, mockAuthService);
+    test('initial state is idle with empty products', () async {
+      final cubit = PurchaseCubit(mockService);
       expect(cubit.state.status, UiFlowStatus.idle);
       expect(cubit.state.products, isEmpty);
       expect(cubit.state.lastOperation, isNull);
-      cubit.close();
+      await Future<void>.delayed(Duration.zero); // let _initialize complete
+      await cubit.close();
     });
 
     blocTest<PurchaseCubit, PurchaseState>(
@@ -61,16 +64,10 @@ void main() {
             ),
           ],
         );
-        return PurchaseCubit(mockService, mockAuthService);
+        return PurchaseCubit(mockService);
       },
       act: (cubit) => cubit.loadProducts(),
       expect: () => [
-        predicate<PurchaseState>(
-          (s) =>
-              s.status == UiFlowStatus.idle &&
-              s.lastOperation == PurchaseOperation.loadProducts,
-          'idle state with operation set',
-        ),
         predicate<PurchaseState>(
           (s) => s.status == UiFlowStatus.loading,
           'loading state',
@@ -95,7 +92,7 @@ void main() {
             amount: 30,
           ),
         );
-        return PurchaseCubit(mockService, mockAuthService);
+        return PurchaseCubit(mockService);
       },
       act: (cubit) => cubit.purchase(
         const PurchaseRequest(
@@ -123,7 +120,7 @@ void main() {
       build: () {
         when(() => mockService.purchase(any(), mode: any(named: 'mode')))
             .thenThrow(Exception('Network error'));
-        return PurchaseCubit(mockService, mockAuthService);
+        return PurchaseCubit(mockService);
       },
       act: (cubit) => cubit.purchase(
         const PurchaseRequest(
@@ -149,7 +146,7 @@ void main() {
       build: () {
         when(() => mockService.recoverPendingPurchases())
             .thenAnswer((_) async {});
-        return PurchaseCubit(mockService, mockAuthService);
+        return PurchaseCubit(mockService);
       },
       act: (cubit) => cubit.recoverPurchases(),
       expect: () => [

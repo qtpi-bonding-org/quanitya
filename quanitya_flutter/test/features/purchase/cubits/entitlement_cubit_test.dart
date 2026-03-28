@@ -1,159 +1,226 @@
+import 'package:anonaccred_client/anonaccred_client.dart' show EntitlementType;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:serverpod_client/serverpod_client.dart' show UuidValue;
-import 'package:anonaccred_client/anonaccred_client.dart'
-    show AccountEntitlement;
+import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
+    show AccountFeatureEntitlement, Feature;
 
 import 'package:quanitya_flutter/data/db/app_database.dart';
+import 'package:quanitya_flutter/infrastructure/purchase/entitlement_repository.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_entitlement_service.dart';
-import 'package:quanitya_flutter/features/app_syncing_mode/models/app_syncing_mode.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/entitlement_cubit.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/entitlement_state.dart';
 
 class MockEntitlementService extends Mock implements IEntitlementService {}
 
+class MockEntitlementRepository extends Mock implements EntitlementRepository {}
+
 class MockAppDatabase extends Mock implements AppDatabase {}
+
 
 void main() {
   late MockEntitlementService mockService;
+  late MockEntitlementRepository mockRepo;
   late MockAppDatabase mockDb;
 
-  setUpAll(() {
-    registerFallbackValue(AppSyncingMode.cloud);
-  });
+  /// Stubs the methods that [EntitlementCubit._initialize] calls so that
+  /// construction does not crash.  By default hasPurchased returns true so
+  /// the full init path (load entitlements, sync access, storage) runs.
+  void stubInitDefaults({bool hasPurchased = true}) {
+    when(() => mockRepo.hasEverPurchased())
+        .thenAnswer((_) async => hasPurchased);
+    when(() => mockService.getEntitlements()).thenAnswer((_) async => []);
+    when(() => mockService.hasSyncAccess()).thenAnswer((_) async => false);
+    when(() => mockService.hasAiAccess()).thenAnswer((_) async => false);
+
+    when(() => mockDb.watchEncryptedStorageUsage())
+        .thenAnswer((_) => Stream.value((count: 0, bytes: 0)));
+  }
+
+  /// Wait long enough for [_initialize] to complete.
+  Future<void> waitForInit() =>
+      Future.delayed(const Duration(milliseconds: 150));
 
   setUp(() {
     mockService = MockEntitlementService();
+    mockRepo = MockEntitlementRepository();
     mockDb = MockAppDatabase();
+    stubInitDefaults();
   });
 
   group('EntitlementCubit', () {
-    test('initial state is idle with no entitlements', () {
-      final cubit = EntitlementCubit(mockService, mockDb);
-      expect(cubit.state.status, UiFlowStatus.idle);
-      expect(cubit.state.entitlements, isEmpty);
-      expect(cubit.state.hasSyncAccess, isFalse);
-      cubit.close();
+    test('loadEntitlements populates state with entitlements', () async {
+      when(() => mockService.getEntitlements()).thenAnswer(
+        (_) async => [
+          AccountFeatureEntitlement(
+            tag: 'sync_500mb_days',
+            feature: Feature.cloudSync,
+            type: EntitlementType.subscription,
+            balance: 25.0,
+          ),
+        ],
+      );
+
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      await waitForInit();
+
+      // Init already called loadEntitlements; verify the result.
+      expect(cubit.state.status, UiFlowStatus.success);
+      expect(cubit.state.entitlements.length, 1);
+      expect(cubit.state.entitlements.first.balance, 25.0);
+      expect(cubit.state.hasPurchased, isTrue);
+
+      // Calling it again should still work and include sync access.
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => true);
+      when(() => mockService.hasAiAccess())
+          .thenAnswer((_) async => false);
+      await cubit.loadEntitlements();
+      expect(cubit.state.status, UiFlowStatus.success);
+      expect(cubit.state.lastOperation, EntitlementOperation.loadEntitlements);
+      expect(cubit.state.entitlements.length, 1);
+      expect(cubit.state.entitlements.first.balance, 25.0);
+      expect(cubit.state.hasSyncAccess, isTrue);
+
+      await cubit.close();
     });
 
-    blocTest<EntitlementCubit, EntitlementState>(
-      'loadEntitlements emits loading then success with entitlements',
-      build: () {
-        when(() => mockService.getEntitlements(any())).thenAnswer(
-          (_) async => [
-            AccountEntitlement(
-              accountUuid: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
-              entitlementId: 1,
-              balance: 25.0,
-            ),
-          ],
-        );
-        return EntitlementCubit(mockService, mockDb);
-      },
-      act: (cubit) => cubit.loadEntitlements(mode: AppSyncingMode.cloud),
-      expect: () => [
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.loading,
-          'loading state',
-        ),
-        predicate<EntitlementState>(
-          (s) =>
-              s.status == UiFlowStatus.success &&
-              s.lastOperation == EntitlementOperation.loadEntitlements &&
-              s.entitlements.length == 1 &&
-              s.entitlements.first.balance == 25.0,
-          'success state with entitlements',
-        ),
-      ],
-    );
+    test('loadEntitlements returns empty list when service returns none',
+        () async {
+      when(() => mockService.getEntitlements())
+          .thenAnswer((_) async => []);
 
-    blocTest<EntitlementCubit, EntitlementState>(
-      'checkSyncAccess emits true when service says yes',
-      build: () {
-        when(() => mockService.hasSyncAccess(any()))
-            .thenAnswer((_) async => true);
-        return EntitlementCubit(mockService, mockDb);
-      },
-      act: (cubit) => cubit.checkSyncAccess(mode: AppSyncingMode.cloud),
-      expect: () => [
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.loading,
-          'loading state',
-        ),
-        predicate<EntitlementState>(
-          (s) =>
-              s.status == UiFlowStatus.success &&
-              s.lastOperation == EntitlementOperation.checkSyncAccess &&
-              s.hasSyncAccess == true,
-          'success state with sync access',
-        ),
-      ],
-    );
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      await waitForInit();
 
-    blocTest<EntitlementCubit, EntitlementState>(
-      'checkSyncAccess emits false when no credits',
-      build: () {
-        when(() => mockService.hasSyncAccess(any()))
-            .thenAnswer((_) async => false);
-        return EntitlementCubit(mockService, mockDb);
-      },
-      act: (cubit) => cubit.checkSyncAccess(mode: AppSyncingMode.cloud),
-      expect: () => [
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.loading,
-          'loading state',
-        ),
-        predicate<EntitlementState>(
-          (s) =>
-              s.status == UiFlowStatus.success &&
-              s.hasSyncAccess == false,
-          'success state without sync access',
-        ),
-      ],
-    );
+      await cubit.loadEntitlements();
+      expect(cubit.state.status, UiFlowStatus.success);
+      expect(cubit.state.entitlements, isEmpty);
 
-    blocTest<EntitlementCubit, EntitlementState>(
-      'checkSyncAccess emits failure when service throws',
-      build: () {
-        when(() => mockService.hasSyncAccess(any()))
-            .thenThrow(Exception('Network error'));
-        return EntitlementCubit(mockService, mockDb);
-      },
-      act: (cubit) => cubit.checkSyncAccess(mode: AppSyncingMode.cloud),
-      expect: () => [
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.loading,
-          'loading state',
-        ),
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.failure && s.error != null,
-          'failure state with error',
-        ),
-      ],
-    );
+      await cubit.close();
+    });
 
-    blocTest<EntitlementCubit, EntitlementState>(
-      'loadEntitlements in local mode returns empty without server call',
-      build: () {
-        when(() => mockService.getEntitlements(AppSyncingMode.local))
-            .thenAnswer((_) async => []);
-        return EntitlementCubit(mockService, mockDb);
-      },
-      act: (cubit) => cubit.loadEntitlements(mode: AppSyncingMode.local),
-      expect: () => [
-        predicate<EntitlementState>(
-          (s) => s.status == UiFlowStatus.loading,
-          'loading state',
-        ),
-        predicate<EntitlementState>(
-          (s) =>
-              s.status == UiFlowStatus.success &&
-              s.entitlements.isEmpty,
-          'success state with empty entitlements',
-        ),
-      ],
-    );
+    test('initialization loads entitlements, sync access, and storage',
+        () async {
+      when(() => mockService.getEntitlements()).thenAnswer(
+        (_) async => [
+          AccountFeatureEntitlement(
+            tag: 'sync_500mb_days',
+            feature: Feature.cloudSync,
+            type: EntitlementType.subscription,
+            balance: 10.0,
+          ),
+        ],
+      );
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => true);
+      when(() => mockService.hasAiAccess())
+          .thenAnswer((_) async => false);
+
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      await waitForInit();
+
+      expect(cubit.state.entitlements.length, 1);
+      expect(cubit.state.hasSyncAccess, isTrue);
+      expect(cubit.state.hasPurchased, isTrue);
+      expect(cubit.state.storageBytes, 0);
+      expect(cubit.state.entryCount, 0);
+
+      await cubit.close();
+    });
+
+    test('initialization fetches entitlements even when not marked as purchased', () async {
+      stubInitDefaults(hasPurchased: false);
+
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      await waitForInit();
+
+      // Server returned empty entitlements, so hasPurchased stays false
+      expect(cubit.state.hasPurchased, isFalse);
+      expect(cubit.state.entitlements, isEmpty);
+      // But the server call was still made (handles reinstall recovery)
+      verify(() => mockService.getEntitlements()).called(1);
+
+      await cubit.close();
+    });
+
+    test('initialization recovers hasPurchased when server has entitlements', () async {
+      stubInitDefaults(hasPurchased: false);
+      // Server knows about the purchase even though local cache was wiped
+      when(() => mockService.getEntitlements()).thenAnswer(
+        (_) async => [
+          AccountFeatureEntitlement(
+            tag: 'sync_500mb_days',
+            feature: Feature.cloudSync,
+            type: EntitlementType.subscription,
+            balance: 30.0,
+          ),
+        ],
+      );
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => true);
+      when(() => mockService.hasAiAccess())
+          .thenAnswer((_) async => false);
+      when(() => mockRepo.markPurchased()).thenAnswer((_) async {});
+
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      await waitForInit();
+
+      expect(cubit.state.hasPurchased, isTrue);
+      expect(cubit.state.entitlements.length, 1);
+      expect(cubit.state.hasSyncAccess, isTrue);
+      verify(() => mockRepo.markPurchased()).called(1);
+
+      await cubit.close();
+    });
+
+    test('refreshIfStale fetches entitlements and updates sync access', () async {
+      // Start with no sync access
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => false);
+
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      await waitForInit();
+      expect(cubit.state.hasSyncAccess, isFalse);
+
+      // Now simulate a purchase happened — server has sync entitlement
+      when(() => mockService.getEntitlements()).thenAnswer(
+        (_) async => [
+          AccountFeatureEntitlement(
+            tag: 'sync_500mb_days',
+            feature: Feature.cloudSync,
+            type: EntitlementType.subscription,
+            balance: 30.0,
+          ),
+        ],
+      );
+      when(() => mockService.hasSyncAccess())
+          .thenAnswer((_) async => true);
+      when(() => mockService.hasAiAccess())
+          .thenAnswer((_) async => false);
+
+      await cubit.refreshIfStale();
+
+      expect(cubit.state.hasSyncAccess, isTrue);
+      expect(cubit.state.entitlements.length, 1);
+      expect(cubit.state.lastOperation, EntitlementOperation.refreshIfStale);
+      verify(() => mockService.getEntitlements()).called(greaterThanOrEqualTo(2)); // init + refresh
+
+      await cubit.close();
+    });
+
+    test('refreshIfStale skips when not purchased', () async {
+      stubInitDefaults(hasPurchased: false);
+
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      await waitForInit();
+
+      // Init called getEntitlements once (reinstall recovery).
+      // refreshIfStale should NOT call it again since hasPurchased is still false.
+      await cubit.refreshIfStale();
+
+      verify(() => mockService.getEntitlements()).called(1); // only from init
+      await cubit.close();
+    });
   });
 }

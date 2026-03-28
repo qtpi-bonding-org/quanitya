@@ -14,19 +14,58 @@ import '../enums/calculation.dart';
 import '../models/analysis_enums.dart';
 import '../models/matrix_vector_scalar/analysis_data_type.dart';
 import '../models/analysis_script.dart';
-import '../services/field_context_service.dart';
+import '../services/field_shape_resolver.dart';
 import '../services/ai/ai_analysis_orchestrator.dart';
 import '../services/streaming_analytics_service.dart';
 import '../services/wasm_analysis_service.dart';
 import '../models/analysis_output.dart';
 import 'analysis_builder_state.dart';
 
+/// Default hint snippet shown in the code editor when no script is loaded.
+/// Documents the JS ↔ Flutter API so users know what's available.
+const analysisHintSnippet = '''
+// ── data in ──────────────────────────────────
+// data.values      → your field values (any type):
+//   number:  [7.5, 8, 6, ...]
+//   string:  ["good", "bad", ...]
+//   bool:    [true, false, ...]
+//   group:   [{sleep: 7, mood: "ok"}, ...]
+// data.timestamps  → [1705000000000, ...]  (ms epoch)
+// data.getDates()  → [Date, Date, ...]
+// data.col()       → [{value, timestamp, date}, ...]
+//
+// ── groups ───────────────────────────────────
+// Each value is an object with subfield names as keys:
+//   data.values[0].sleep      → 7
+//   data.values[0].mood       → "ok"
+// Extract a subfield across all entries:
+//   data.values.map(v => v.sleep)  → [7, 8, 6, ...]
+//
+// ── libraries ────────────────────────────────
+// ss / simpleStatistics  (simple-statistics)
+// jstat                  (jStat)
+//
+// ── return (depends on output mode) ──────────
+// scalar: return 42;
+//         return {label: "Mean", value: 7.5, unit: "kg"};
+//         return [{label: "A", value: 1}, ...];
+//
+// vector: return {label: "Dist", values: [1, 2, 3]};
+//         return [{label: "A", values: [...]}, ...];
+//
+// matrix: return {label: "Series", values: [...],
+//                 timestamps: [ms, ...]};
+// ─────────────────────────────────────────────
+
+return ss.mean(data.values);
+''';
+
 @injectable
 class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
   final IAnalysisScriptRepository _repository;
   final TemplateWithAestheticsRepository _templateRepository;
   final AiAnalysisOrchestrator _aiOrchestrator;
-  final FieldContextService _fieldContextService;
+  final FieldShapeResolver _fieldShapeResolver;
   final StreamingAnalyticsService _streamingService;
   final IWasmAnalysisService _wasmService;
 
@@ -34,7 +73,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     this._repository,
     this._templateRepository,
     this._aiOrchestrator,
-    this._fieldContextService,
+    this._fieldShapeResolver,
     this._streamingService,
     this._wasmService,
   ) : super(const AnalysisBuilderState());
@@ -56,22 +95,16 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         );
         if (templateWithAesthetics != null) {
           availableFields = templateWithAesthetics.template.fields
-              .where((field) => _isNumericField(field.type))
+              .where((field) =>
+                  _isNumericField(field.type) ||
+                  field.type == FieldEnum.group)
               .map((field) => field.label)
               .toList();
         }
       }
 
-      // Load existing scripts for this field using composite fieldId
-      final compositeFieldId = templateId != null
-          ? '$templateId:$fieldId'
-          : fieldId;
-      var existing = await _repository.getScriptsForField(compositeFieldId);
-      if (existing.isEmpty && templateId != null) {
-        // Fallback: show all scripts for this template
-        final all = await _repository.getAllScripts();
-        existing = all.where((p) => p.fieldId.startsWith('$templateId:')).toList();
-      }
+      // Load existing scripts for this field
+      final existing = await _repository.getScriptsForField(fieldId);
       final script = existing.isNotEmpty ? existing.first : null;
 
       // Get entry count for hint text
@@ -86,7 +119,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         availableFieldNames: availableFields,
         availableScripts: existing,
         selectedScriptId: script?.id,
-        snippet: script?.snippet ?? '',
+        snippet: script?.snippet ?? analysisHintSnippet,
         reasoning: script?.reasoning ?? '',
         outputMode: script?.outputMode ?? AnalysisOutputMode.scalar,
         snippetLanguage: script?.snippetLanguage ?? AnalysisSnippetLanguage.js,
@@ -134,7 +167,7 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
   void newScript() {
     emit(state.copyWith(
       selectedScriptId: null,
-      snippet: '',
+      snippet: analysisHintSnippet,
       reasoning: '',
       outputMode: AnalysisOutputMode.scalar,
       snippetLanguage: AnalysisSnippetLanguage.js,
@@ -149,22 +182,11 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     if (state.snippet.isEmpty) return;
 
     await tryOperation(() async {
-      // Use selected script's fieldId (already in templateId:fieldName format),
-      // or construct it from state if editing a new script.
-      final selectedScript = state.selectedScriptId != null
-          ? state.availableScripts
-              .where((p) => p.id == state.selectedScriptId)
-              .firstOrNull
-          : null;
-      final effectiveFieldId = selectedScript?.fieldId ??
-          (state.templateId != null && state.fieldId != null
-              ? '${state.templateId}:${state.fieldId}'
-              : state.fieldId ?? '');
-
       final script = AnalysisScriptModel(
         id: state.selectedScriptId ?? 'temp-${DateTime.now().millisecondsSinceEpoch}',
         name: 'Preview',
-        fieldId: effectiveFieldId,
+        templateId: state.templateId ?? '',
+        fieldId: state.fieldId ?? '',
         outputMode: state.outputMode,
         snippetLanguage: state.snippetLanguage,
         snippet: state.snippet,
@@ -306,17 +328,13 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
   /// Save script
   Future<void> saveScript(String name) async {
     await tryOperation(() async {
-      // Build the composite fieldId (templateId:fieldName) if possible
-      final effectiveFieldId = state.templateId != null && state.fieldId != null
-          ? '${state.templateId}:${state.fieldId}'
-          : state.fieldId ?? '';
-
       final scriptId = state.selectedScriptId ?? const Uuid().v4();
 
       final script = AnalysisScriptModel(
         id: scriptId,
         name: name,
-        fieldId: effectiveFieldId,
+        templateId: state.templateId ?? '',
+        fieldId: state.fieldId ?? '',
         outputMode: state.outputMode,
         snippetLanguage: state.snippetLanguage,
         snippet: state.snippet,
@@ -329,16 +347,36 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
       await _repository.saveScript(script);
 
       // Reload scripts list so the new/updated one appears in the selector
-      var scripts = await _repository.getScriptsForField(effectiveFieldId);
-      if (scripts.isEmpty) {
-        scripts = await _repository.getAllScripts();
-      }
+      final scripts = await _repository.getScriptsForField(state.fieldId ?? '');
 
       return state.copyWith(
         availableScripts: scripts,
         selectedScriptId: scriptId,
         status: UiFlowStatus.success,
         lastOperation: ScriptBuilderOperation.saveScript,
+      );
+    }, emitLoading: true);
+  }
+
+  /// Delete the currently selected script.
+  Future<void> deleteScript() async {
+    final scriptId = state.selectedScriptId;
+    if (scriptId == null) return;
+
+    await tryOperation(() async {
+      await _repository.deleteScript(scriptId);
+
+      // Reload scripts list
+      final scripts = await _repository.getScriptsForField(state.fieldId ?? '');
+
+      return state.copyWith(
+        availableScripts: scripts,
+        selectedScriptId: scripts.isNotEmpty ? scripts.first.id : null,
+        snippet: scripts.isNotEmpty ? scripts.first.snippet : analysisHintSnippet,
+        reasoning: scripts.isNotEmpty ? scripts.first.reasoning ?? '' : '',
+        outputMode: scripts.isNotEmpty ? scripts.first.outputMode : AnalysisOutputMode.scalar,
+        status: UiFlowStatus.success,
+        lastOperation: ScriptBuilderOperation.deleteScript,
       );
     }, emitLoading: true);
   }
@@ -354,14 +392,11 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
         throw Exception('Template ID is required for AI suggestions');
       }
 
-      final fieldContext = await _fieldContextService.getFieldContext(
-        templateId: state.templateId!,
-        fieldId: fieldId,
-      );
+      final fieldShape = await _fieldShapeResolver.resolve(state.templateId!, fieldId);
 
       final suggestion = await _aiOrchestrator.generateSuggestion(
         intent: userIntent,
-        fieldContext: fieldContext,
+        fieldShape: fieldShape,
         llmConfig: llmConfig,
       );
 
@@ -375,20 +410,10 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     }, emitLoading: true);
   }
 
-  // --- Legacy Stubs for UI Compatibility ---
-
   AnalysisDataType getCurrentTailType() => AnalysisDataType.timeSeriesMatrix;
 
-  void addCombinerStep(Calculation op, Map<String, dynamic> params) {}
-  void addStepToBranch(
-    SlotPosition pos,
-    Calculation op,
-    Map<String, dynamic> params,
-  ) {}
   void finishBranches() => emit(state.copyWith(branchesFinished: true));
   void editBranches() => emit(state.copyWith(branchesFinished: false));
-  void updateNodeParams(int index, Map<String, dynamic> params) {}
-  void removeStepFromSlot(SlotPosition pos, int index) {}
 
   void setSelectedFieldForAi(String? fieldId) {
     emit(state.copyWith(selectedFieldForAi: fieldId));

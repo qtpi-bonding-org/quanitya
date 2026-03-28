@@ -36,7 +36,17 @@ class TrackerCard extends StatelessWidget {
     // No-Card Design: Content sits directly on the page.
     // Alignment provides the structure.
     
-    return Column(
+    final quickActionWidget = QuanityaIconButton(
+      icon: Icons.bolt,
+      iconSize: AppSizes.iconMedium,
+      tooltip: _canInstantLog()
+          ? context.l10n.tooltipQuickEntry
+          : context.l10n.tooltipQuickEntryUnavailable,
+      onPressed: _canInstantLog() ? onQuickAction : null,
+      // Uses interactableColor by default
+    );
+
+    final column = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // 1. Icon (Big & Centered) - Priority: icon → emoji → default
@@ -44,7 +54,7 @@ class TrackerCard extends StatelessWidget {
         Center(
           child: Semantics(
             button: true,
-            label: 'Edit template',
+            label: context.l10n.tooltipEditTemplate,
             child: GestureDetector(
               onTap: onIconTap,
               child: _buildIcon(context),
@@ -86,30 +96,24 @@ class TrackerCard extends StatelessWidget {
               onPressed: onEdit,
               // Uses interactableColor by default
             ),
-            
+
             // Standard Breath between separate actions
             HSpace.x1,
 
             // Quick Action (Lightning) - Using QuanityaIconButton with interactableColor
             Opacity(
               opacity: _canInstantLog() ? 1.0 : 0.3,
-              child: QuanityaIconButton(
-                icon: Icons.bolt,
-                iconSize: AppSizes.iconMedium,
-                tooltip: _canInstantLog()
-                    ? context.l10n.tooltipQuickEntry
-                    : context.l10n.tooltipQuickEntryUnavailable,
-                onPressed: _canInstantLog() ? onQuickAction : null,
-                // Uses interactableColor by default
-              ),
+              child: quickActionWidget,
             ),
           ],
         ),
-        
+
         // Bottom cushion
         VSpace.x1,
       ],
     );
+
+    return column;
   }
 
   Widget _buildIcon(BuildContext context) {

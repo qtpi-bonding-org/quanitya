@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
@@ -13,7 +16,6 @@ import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../infrastructure/purchase/purchase_models.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../../app_syncing_mode/models/app_syncing_mode.dart';
 import '../cubits/entitlement_cubit.dart';
 import '../cubits/entitlement_message_mapper.dart';
 import '../cubits/entitlement_state.dart';
@@ -45,14 +47,14 @@ class PurchaseTabContent extends StatelessWidget {
               child: child,
             ),
       ],
-      child: RefreshIndicator(
-        onRefresh: () async {
-          final mode = context.read<AppSyncingCubit>().state.mode;
-          context.read<PurchaseCubit>().loadProducts();
-          context.read<EntitlementCubit>()
-            ..loadEntitlements(mode: mode)
-            ..checkSyncAccess(mode: mode)
-            ..loadStorageUsage(mode: mode);
+      child: BlocListener<PurchaseCubit, PurchaseState>(
+        listenWhen: (prev, curr) =>
+            (curr.lastOperation == PurchaseOperation.purchase ||
+             curr.lastOperation == PurchaseOperation.recoverPurchases) &&
+            curr.status == UiFlowStatus.success &&
+            prev.status != curr.status,
+        listener: (context, state) async {
+          await context.read<EntitlementCubit>().loadEntitlements();
         },
         child: ListView(
           padding: AppPadding.verticalSingle,
@@ -60,17 +62,17 @@ class PurchaseTabContent extends StatelessWidget {
             const SyncStatusIndicator(),
             VSpace.x1,
 
-            // Entitlement balance section
+            // Entitlement balance section (only if user has ever purchased)
             BlocBuilder<EntitlementCubit, EntitlementState>(
               builder: (context, state) {
-                final mode = context.read<AppSyncingCubit>().state.mode;
+                if (!state.hasPurchased) return const SizedBox.shrink();
                 return EntitlementDisplay(
                   entitlements: state.entitlements,
                   storageBytes: state.storageBytes,
                   entryCount: state.entryCount,
-                  hasError: state.hasError && mode.requiresServer,
-                  onRetry: () {
-                    context.read<EntitlementCubit>().loadEntitlements(mode: mode);
+                  hasError: state.hasError,
+                  onRetry: () async {
+                    await context.read<EntitlementCubit>().loadEntitlements();
                   },
                 );
               },
@@ -81,16 +83,6 @@ class PurchaseTabContent extends StatelessWidget {
             // Products section
             BlocBuilder<PurchaseCubit, PurchaseState>(
               builder: (context, state) {
-                if (state.status == UiFlowStatus.loading &&
-                    state.lastOperation == PurchaseOperation.loadProducts) {
-                  return Center(
-                    child: Padding(
-                      padding: AppPadding.allTriple,
-                      child: const CircularProgressIndicator(),
-                    ),
-                  );
-                }
-
                 if (state.status == UiFlowStatus.failure &&
                     state.lastOperation == PurchaseOperation.loadProducts) {
                   return Center(
@@ -112,8 +104,8 @@ class PurchaseTabContent extends StatelessWidget {
                           VSpace.x2,
                           QuanityaTextButton(
                             text: context.l10n.actionRetry,
-                            onPressed: () =>
-                                context.read<PurchaseCubit>().loadProducts(),
+                            onPressed: () async =>
+                                await context.read<PurchaseCubit>().loadProducts(),
                           ),
                         ],
                       ),
@@ -143,8 +135,8 @@ class PurchaseTabContent extends StatelessWidget {
             Center(
               child: QuanityaTextButton(
                 text: context.l10n.restorePurchases,
-                onPressed: () =>
-                    context.read<PurchaseCubit>().recoverPurchases(),
+                onPressed: () async =>
+                    await context.read<PurchaseCubit>().recoverPurchases(),
               ),
             ),
             VSpace.x3,
@@ -154,9 +146,9 @@ class PurchaseTabContent extends StatelessWidget {
     );
   }
 
-  void _onBuy(BuildContext context, PurchaseProduct product) {
+  Future<void> _onBuy(BuildContext context, PurchaseProduct product) async {
     final mode = context.read<AppSyncingCubit>().state.mode;
-    context.read<PurchaseCubit>().purchase(
+    await context.read<PurchaseCubit>().purchase(
           PurchaseRequest(
             productId: product.productId,
             rail: product.rail,
@@ -203,6 +195,9 @@ class _ProductSections extends StatelessWidget {
       }
     }
 
+    final hasSubscriptions =
+        sections.any((s) => s.key == StoreProductType.subscription);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -236,6 +231,7 @@ class _ProductSections extends StatelessWidget {
             ),
           VSpace.x2,
         ],
+        if (hasSubscriptions) const _SubscriptionDisclosure(),
       ],
     );
   }
@@ -338,6 +334,94 @@ class _PeriodColumn extends StatelessWidget {
               ),
             )),
       ],
+    );
+  }
+}
+
+/// Apple-required subscription disclosure text with links to
+/// Privacy Policy and Terms of Service.
+class _SubscriptionDisclosure extends StatefulWidget {
+  const _SubscriptionDisclosure();
+
+  @override
+  State<_SubscriptionDisclosure> createState() =>
+      _SubscriptionDisclosureState();
+}
+
+class _SubscriptionDisclosureState extends State<_SubscriptionDisclosure> {
+  static const _privacyUrl = 'https://quanitya.com/#privacy';
+  static const _termsUrl = 'https://quanitya.com/#terms';
+
+  late final TapGestureRecognizer _privacyRecognizer;
+  late final TapGestureRecognizer _termsRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _privacyRecognizer = TapGestureRecognizer()
+      ..onTap = () => _openUrl(_privacyUrl);
+    _termsRecognizer = TapGestureRecognizer()
+      ..onTap = () => _openUrl(_termsUrl);
+  }
+
+  @override
+  void dispose() {
+    _privacyRecognizer.dispose();
+    _termsRecognizer.dispose();
+    super.dispose();
+  }
+
+  String _disclosureText(BuildContext context) {
+    final isApple = defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+    final storeName = isApple ? 'Apple ID' : 'Google Play';
+    final settingsPath = isApple
+        ? 'Settings > Apple ID > Subscriptions'
+        : 'Settings > Google Play > Subscriptions';
+    return context.l10n.subscriptionDisclosure(storeName, settingsPath);
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = QuanityaPalette.primary;
+    final baseStyle = context.text.bodySmall?.copyWith(
+      color: palette.textSecondary,
+    );
+    final linkStyle = baseStyle?.copyWith(
+      decoration: TextDecoration.underline,
+      decorationColor: palette.textSecondary,
+    );
+
+    return Padding(
+      padding: AppPadding.pageHorizontal,
+      child: Text.rich(
+        TextSpan(
+          style: baseStyle,
+          children: [
+            TextSpan(text: _disclosureText(context)),
+            const TextSpan(text: '\n\n'),
+            TextSpan(
+              text: context.l10n.subscriptionDisclosurePrivacyPolicy,
+              style: linkStyle,
+              recognizer: _privacyRecognizer,
+            ),
+            const TextSpan(text: '  ·  '),
+            TextSpan(
+              text: context.l10n.subscriptionDisclosureTermsOfService,
+              style: linkStyle,
+              recognizer: _termsRecognizer,
+            ),
+          ],
+        ),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }

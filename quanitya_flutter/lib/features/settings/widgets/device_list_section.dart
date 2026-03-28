@@ -5,17 +5,20 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
-import '../../../app_router.dart';
+import '../../device_pairing/pages/scan_pairing_sheet.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
+import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
+import '../../../design_system/widgets/quanitya_text_field.dart';
 import '../../../support/extensions/context_extensions.dart';
-import '../../../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
-import '../../../features/app_syncing_mode/models/app_syncing_mode.dart';
-import '../../../infrastructure/auth/auth_service.dart' show AuthException, AuthFailure;
+import '../../../infrastructure/auth/auth_repository.dart';
+import '../../../infrastructure/auth/auth_service.dart'
+    show AuthException, AuthFailure;
 import '../../../infrastructure/crypto/crypto_key_repository.dart';
+import '../../../infrastructure/device/device_info_service.dart';
 import '../cubits/device_management/device_management_cubit.dart';
 import '../cubits/device_management/device_management_state.dart';
 
@@ -28,14 +31,59 @@ class DeviceListSection extends StatefulWidget {
 }
 
 class _DeviceListSectionState extends State<DeviceListSection> {
+  bool _isRegistered = false;
+  bool _hasDeviceKey = false;
+  bool _hasCrossDeviceKey = false;
+  String _deviceLabel = '';
+
   @override
   void initState() {
     super.initState();
-    // Only load devices if app is in a mode that supports server features
-    final appMode = context.read<AppSyncingCubit>().state.mode;
-    if (appMode.requiresServer) {
+    _loadState();
+  }
+
+  Future<void> _loadState() async {
+    final keyRepo = GetIt.instance<ICryptoKeyRepository>();
+
+    // Check for device key
+    final deviceKeyHex = await keyRepo.getDeviceSigningPublicKeyHex();
+    if (mounted && deviceKeyHex != null) {
+      final deviceInfo = GetIt.instance<DeviceInfoService>();
+      final name = await deviceInfo.getDeviceName();
+      setState(() {
+        _hasDeviceKey = true;
+        _deviceLabel = name;
+      });
+    }
+
+    // Check for cross-device key (iCloud) — survives app deletion
+    if (keyRepo.isCrossDeviceStorageAvailable) {
+      final crossKey = await keyRepo.getCrossDeviceKey();
+      if (mounted) setState(() => _hasCrossDeviceKey = crossKey != null);
+    }
+
+    final registered =
+        await GetIt.instance<AuthRepository>().isRegisteredWithServer;
+    if (!mounted) return;
+    setState(() => _isRegistered = registered);
+    if (registered) {
       context.read<DeviceManagementCubit>().loadDevices();
     }
+  }
+
+  void _deleteCrossDeviceKey() {
+    QuanityaConfirmationDialog.show(
+      context: context,
+      title: context.l10n.deleteCloudKey,
+      message: context.l10n.deleteCloudKeyWarning,
+      confirmText: context.l10n.actionDelete,
+      isDestructive: true,
+      onConfirm: () async {
+        final keyRepo = GetIt.instance<ICryptoKeyRepository>();
+        await keyRepo.deleteCrossDeviceKey();
+        if (mounted) setState(() => _hasCrossDeviceKey = false);
+      },
+    );
   }
 
   /// Whether to show the "Enable Cross-Device Sync" button.
@@ -54,10 +102,9 @@ class _DeviceListSectionState extends State<DeviceListSection> {
 
   @override
   Widget build(BuildContext context) {
-    final appMode = context.watch<AppSyncingCubit>().state.mode;
-    
-    // If in local mode, show message that device management requires server
-    if (!appMode.requiresServer) {
+    // If not registered with server, show local-only view with detected keys
+    if (!_isRegistered) {
+      final keyRepo = GetIt.instance<ICryptoKeyRepository>();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -67,6 +114,28 @@ class _DeviceListSectionState extends State<DeviceListSection> {
             style: context.text.titleMedium,
           ),
           VSpace.x2,
+
+          // This device key
+          if (_hasDeviceKey) ...[
+            _LocalKeyRow(
+              icon: _DeviceCard._getDeviceIcon(_deviceLabel),
+              label: _deviceLabel,
+              subtitle: context.l10n.thisDevice,
+            ),
+            VSpace.x2,
+          ],
+
+          // Cross-device key (iCloud)
+          if (_hasCrossDeviceKey) ...[
+            _LocalKeyRow(
+              icon: Icons.cloud_outlined,
+              label: keyRepo.crossDeviceLabel,
+              subtitle: context.l10n.deviceLocalOnly,
+              onDelete: _deleteCrossDeviceKey,
+            ),
+            VSpace.x2,
+          ],
+
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -89,12 +158,12 @@ class _DeviceListSectionState extends State<DeviceListSection> {
         ],
       );
     }
-    
+
     return BlocConsumer<DeviceManagementCubit, DeviceManagementState>(
       listener: (context, state) {
         // Only show error toast for non-offline errors
         // Offline is expected for local-first app, so we silently handle it
-        if (state.status == UiFlowStatus.failure && 
+        if (state.status == UiFlowStatus.failure &&
             state.error != null &&
             !_isOfflineError(state.error)) {
           GetIt.instance<IFeedbackService>().show(
@@ -120,7 +189,12 @@ class _DeviceListSectionState extends State<DeviceListSection> {
                 ),
                 QuanityaTextButton(
                   text: context.l10n.addDevice,
-                  onPressed: () => AppNavigation.toScanPairingQr(context),
+                  onPressed: () async {
+                    await ScanPairingSheet.show(context);
+                    if (context.mounted) {
+                      context.read<DeviceManagementCubit>().loadDevices();
+                    }
+                  },
                 ),
               ],
             ),
@@ -164,12 +238,14 @@ class _DeviceListSectionState extends State<DeviceListSection> {
                 VSpace.x2,
               ]),
 
-            // Show "Enable Cross-Device Sync" button if available and no entry exists
+            // Show "Create {platform} Device Key" button if available and no entry exists
             if (_showEnableCrossDeviceButton(state))
               Padding(
                 padding: EdgeInsets.only(bottom: AppSizes.space),
                 child: QuanityaTextButton(
-                  text: context.l10n.enableICloudSync,
+                  text: context.l10n.createPlatformDeviceKey(
+                    GetIt.instance<ICryptoKeyRepository>().crossDeviceLabel,
+                  ),
                   onPressed: () => context
                       .read<DeviceManagementCubit>()
                       .recreateCrossDeviceKey(),
@@ -219,7 +295,7 @@ class _DeviceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lastActive = QuanityaDateFormat.timestamp(device.lastActive);
-    
+
     // All devices use secondary color (blue-gray), dimmed if revoked
     final iconColor = isRevoked
         ? context.colors.secondaryColor.withValues(alpha: 0.5)
@@ -248,7 +324,7 @@ class _DeviceCard extends StatelessWidget {
                       style: context.text.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                         decoration: isRevoked ? TextDecoration.lineThrough : null,
-                        color: isRevoked 
+                        color: isRevoked
                             ? context.colors.textSecondary.withValues(alpha: 0.5)
                             : null,
                       ),
@@ -307,7 +383,7 @@ class _DeviceCard extends StatelessWidget {
     );
   }
 
-  IconData _getDeviceIcon(String label) {
+  static IconData _getDeviceIcon(String label) {
     final lowerLabel = label.toLowerCase();
     if (lowerLabel == 'icloud' || lowerLabel == 'google backup') {
       return Icons.cloud_outlined;
@@ -331,17 +407,114 @@ class _DeviceCard extends StatelessWidget {
   }
 
   void _confirmRevoke(BuildContext context) {
-    QuanityaConfirmationDialog.show(
+    final keyController = TextEditingController();
+    final cubit = context.read<DeviceManagementCubit>();
+    final deviceId = device.id;
+    if (deviceId == null) return;
+
+    LooseInsertSheet.show(
       context: context,
       title: context.l10n.revokeDevice,
-      message: context.l10n.revokeDeviceConfirmation(device.label),
-      confirmText: context.l10n.revoke,
-      isDestructive: true,
-      onConfirm: () {
-        final deviceId = device.id;
-        if (deviceId == null) return;
-        context.read<DeviceManagementCubit>().revokeDevice(deviceId);
-      },
+      builder: (sheetContext) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.revokeDeviceConfirmation(device.label),
+            style: context.text.bodyMedium,
+          ),
+          VSpace.x2,
+          Text(
+            context.l10n.revokeRequiresRecoveryKey,
+            style: context.text.bodySmall?.copyWith(
+              color: context.colors.destructiveColor,
+            ),
+          ),
+          VSpace.x1,
+          QuanityaTextField(
+            controller: keyController,
+            maxLines: 3,
+            hintText: context.l10n.recoveryKeyHint,
+          ),
+          VSpace.x3,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              QuanityaTextButton(
+                text: context.l10n.actionCancel,
+                onPressed: () => Navigator.pop(sheetContext),
+              ),
+              QuanityaTextButton(
+                text: context.l10n.revoke,
+                isDestructive: true,
+                onPressed: () {
+                  final key = keyController.text.trim();
+                  if (key.isEmpty) return;
+                  Navigator.pop(sheetContext);
+                  cubit.revokeDevice(deviceId, ultimateKeyJwk: key);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Local key row — shown when not registered with server.
+/// Displays a detected key with icon, label, subtitle, and optional delete.
+class _LocalKeyRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final VoidCallback? onDelete;
+
+  const _LocalKeyRow({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: AppSizes.iconLarge,
+          color: context.colors.secondaryColor,
+        ),
+        HSpace.x3,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: context.text.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              VSpace.x05,
+              Text(
+                subtitle,
+                style: context.text.bodySmall?.copyWith(
+                  color: context.colors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (onDelete != null)
+          QuanityaTextButton(
+            text: context.l10n.actionDelete,
+            isDestructive: true,
+            onPressed: onDelete,
+          ),
+      ],
     );
   }
 }

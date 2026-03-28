@@ -7,7 +7,7 @@ part 'health_sync_state.freezed.dart';
 enum HealthSyncOperation { toggle }
 
 @freezed
-class HealthSyncState with _$HealthSyncState, UiFlowStateMixin implements IUiFlowState {
+abstract class HealthSyncState with _$HealthSyncState, UiFlowStateMixin implements IUiFlowState {
   const HealthSyncState._();
 
   const factory HealthSyncState({

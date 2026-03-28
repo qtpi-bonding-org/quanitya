@@ -7,15 +7,16 @@ import 'package:quanitya_flutter/infrastructure/llm/services/schema_translator.d
 import 'live_api_test_helper.dart';
 
 /// Test to systematically find Gemini's complexity limits for JSON Schema generation.
-/// 
+///
 /// This test creates schemas with increasing complexity and measures:
 /// - Success rate
 /// - Response time
 /// - Quality of generated JSON
-/// 
+///
 /// Goal: Find the optimal complexity level for reliable Gemini performance.
-/// 
+///
 /// Skipped automatically if GEMINI_API_KEY is not found in .env
+@Tags(['live_api'])
 void main() {
   group('Gemini Complexity Limit Tests', () {
     String? geminiApiKey;

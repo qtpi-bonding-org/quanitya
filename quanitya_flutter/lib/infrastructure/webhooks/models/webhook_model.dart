@@ -5,7 +5,8 @@ part 'webhook_model.g.dart';
 
 /// Model for webhook configuration
 @freezed
-class WebhookModel with _$WebhookModel {
+abstract class WebhookModel with _$WebhookModel {
+  const WebhookModel._();
   const factory WebhookModel({
     required String id,
     required String templateId,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'infrastructure/config/debug_log.dart';
 import 'package:go_router/go_router.dart';
 import 'package:get_it/get_it.dart';
 
@@ -11,17 +12,19 @@ import 'l10n/app_localizations.dart';
 import 'data/repositories/template_with_aesthetics_repository.dart';
 import 'features/home/pages/notebook_shell.dart';
 import 'design_system/widgets/quanitya/general/zen_paper_background.dart';
+import 'features/catalog/pages/template_gallery_page.dart';
 import 'features/onboarding/pages/onboarding_page.dart';
 import 'features/onboarding/pages/about_page.dart';
 import 'features/onboarding/pages/recovery_key_backup_page.dart';
 import 'features/onboarding/pages/account_recovery_page.dart';
 import 'features/onboarding/cubits/onboarding_cubit.dart';
 import 'features/device_pairing/pages/show_pairing_qr_page.dart';
-import 'features/device_pairing/pages/scan_pairing_qr_page.dart';
 import 'features/onboarding/pages/connect_device_page.dart';
-import 'infrastructure/auth/auth_service.dart';
+import 'infrastructure/auth/account_service.dart';
 import 'infrastructure/crypto/crypto_key_repository.dart';
 import 'infrastructure/device/device_info_service.dart';
+
+const _tag = 'app_router';
 
 class AppRouter {
   AppRouter._();
@@ -49,16 +52,16 @@ class AppRouter {
   /// Returns true if recovery succeeded, false otherwise.
   static Future<bool> _attemptCrossDeviceRecovery() async {
     try {
-      debugPrint('AppRouter: Cross-device key found — attempting recovery...');
-      final authService = GetIt.instance<AuthService>();
+      Log.d(_tag, 'AppRouter: Cross-device key found — attempting recovery...');
+      final accountService = GetIt.instance<AccountService>();
       final deviceInfo = GetIt.instance<DeviceInfoService>();
       final deviceLabel = await deviceInfo.getDeviceName();
 
-      await authService.recoverFromCrossDeviceKey(deviceLabel: deviceLabel);
-      debugPrint('AppRouter: Cross-device recovery succeeded');
+      await accountService.recoverFromCrossDeviceKey(deviceLabel: deviceLabel);
+      Log.d(_tag, 'AppRouter: Cross-device recovery succeeded');
       return true;
     } catch (e) {
-      debugPrint('AppRouter: Cross-device recovery failed, falling back to onboarding: $e');
+      Log.d(_tag, 'AppRouter: Cross-device recovery failed, falling back to onboarding: $e');
       return false;
     }
   }
@@ -76,7 +79,8 @@ class AppRouter {
         state.matchedLocation == AppRoutes.recoveryKeyBackup ||
         state.matchedLocation == AppRoutes.accountRecovery ||
         state.matchedLocation == AppRoutes.showPairingQr ||
-        state.matchedLocation == AppRoutes.connectDevice) {
+        state.matchedLocation == AppRoutes.connectDevice ||
+        state.matchedLocation == AppRoutes.templateGallery) {
       return null;
     }
 
@@ -166,11 +170,6 @@ class AppRouter {
             builder: (context, state) => const ShowPairingQrPage(),
           ),
           GoRoute(
-            path: AppRoutes.scanPairingQr,
-            name: RouteNames.scanPairingQr,
-            builder: (context, state) => const ScanPairingQrPage(),
-          ),
-          GoRoute(
             path: AppRoutes.about,
             name: RouteNames.about,
             builder: (context, state) => const AboutPage(),
@@ -181,6 +180,11 @@ class AppRouter {
             builder: (context, state) => const ConnectDevicePage(),
           ),
 
+          GoRoute(
+            path: AppRoutes.templateGallery,
+            name: RouteNames.templateGallery,
+            builder: (context, state) => const TemplateGalleryPage(),
+          ),
           GoRoute(
             path: AppRoutes.templateEditor,
             name: RouteNames.templateEditor,
@@ -230,11 +234,11 @@ class AppRoutes {
   static const String recoveryKeyBackup = '/recovery-key-backup';
   static const String accountRecovery = '/account-recovery';
   static const String showPairingQr = '/show-pairing-qr';
-  static const String scanPairingQr = '/scan-pairing-qr';
   static const String about = '/about';
   static const String templateEditor = '/template-editor';
   static const String connectDevice = '/connect-device';
   static const String scriptBuilder = '/script-builder';
+  static const String templateGallery = '/template-gallery';
 }
 
 class RouteNames {
@@ -244,11 +248,11 @@ class RouteNames {
   static const String recoveryKeyBackup = 'recoveryKeyBackup';
   static const String accountRecovery = 'accountRecovery';
   static const String showPairingQr = 'showPairingQr';
-  static const String scanPairingQr = 'scanPairingQr';
   static const String about = 'about';
   static const String templateEditor = 'templateEditor';
   static const String connectDevice = 'connectDevice';
   static const String scriptBuilder = 'scriptBuilder';
+  static const String templateGallery = 'templateGallery';
 }
 
 class AppNavigation {
@@ -277,10 +281,6 @@ class AppNavigation {
     context.pushNamed(RouteNames.showPairingQr);
   }
 
-  static void toScanPairingQr(BuildContext context) {
-    context.pushNamed(RouteNames.scanPairingQr);
-  }
-
   static void toConnectDevice(BuildContext context) {
     context.pushNamed(RouteNames.connectDevice);
   }
@@ -297,8 +297,12 @@ class AppNavigation {
     context.pushNamed(RouteNames.recoveryKeyBackup, extra: cubit);
   }
 
-  static void toAnalysisBuilder(BuildContext context, {String? fieldId, String? templateId}) {
-    context.pushNamed(
+  static void toTemplateGallery(BuildContext context) {
+    context.pushNamed(RouteNames.templateGallery);
+  }
+
+  static Future<Object?> toAnalysisBuilder(BuildContext context, {String? fieldId, String? templateId}) {
+    return context.pushNamed(
       RouteNames.scriptBuilder,
       extra: {
         'fieldId': fieldId ?? 'demo-field',

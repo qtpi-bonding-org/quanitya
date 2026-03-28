@@ -134,7 +134,7 @@ class _TimePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Change reminder time',
+      label: context.l10n.accessibilityChangeReminderTime,
       child: GestureDetector(
         onTap: () async {
           final picked = await showTimePicker(
@@ -194,13 +194,13 @@ class _WeekdaySelector extends StatelessWidget {
   });
 
   static const _days = [
-    ('MO', 'M'),
-    ('TU', 'T'),
-    ('WE', 'W'),
-    ('TH', 'T'),
-    ('FR', 'F'),
-    ('SA', 'S'),
-    ('SU', 'S'),
+    ('MO', 'Mo'),
+    ('TU', 'Tu'),
+    ('WE', 'We'),
+    ('TH', 'Th'),
+    ('FR', 'Fr'),
+    ('SA', 'Sa'),
+    ('SU', 'Su'),
   ];
 
   @override

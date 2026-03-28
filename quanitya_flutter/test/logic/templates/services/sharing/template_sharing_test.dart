@@ -45,6 +45,7 @@ void main() {
         final shareable = ShareableTemplate.create(
           author: author,
           template: template,
+          category: 'test',
         );
 
         expect(shareable.version, '1.0');
@@ -69,6 +70,7 @@ void main() {
         final original = ShareableTemplate.create(
           author: author,
           template: template,
+          category: 'test',
           description: 'Test description',
         );
 
@@ -160,7 +162,8 @@ void main() {
               }
             ],
             "updatedAt": "2024-01-01T00:00:00.000Z"
-          }
+          },
+          "category": "test"
         }
         ''';
 

@@ -91,6 +91,9 @@ class SwipeablePageShell extends StatefulWidget {
   /// Extra widgets layered on top of the page content in the [Stack].
   final List<Widget> overlays;
 
+  /// Optional key to wrap the entire labels row (e.g. for guided tour targeting).
+  final GlobalKey? labelsKey;
+
   const SwipeablePageShell({
     super.key,
     required this.pages,
@@ -100,6 +103,7 @@ class SwipeablePageShell extends StatefulWidget {
     this.onPageChanged,
     this.overlays = const [],
     this.semanticTabLabels,
+    this.labelsKey,
   });
 
   @override
@@ -194,38 +198,52 @@ class _SwipeablePageShellState extends State<SwipeablePageShell> {
           left: 0,
           right: 0,
           bottom: 0,
-          child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (int i = 0; i < widget.labels.length; i++)
-                  Semantics(
-                    button: true,
-                    selected: _currentPage == i,
-                    label: widget.semanticTabLabels != null &&
-                            i < widget.semanticTabLabels!.length
-                        ? widget.semanticTabLabels![i]
-                        : null,
-                    child: GestureDetector(
-                      onTap: () => _controller.animateToPage(
-                        i,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      ),
-                      behavior: HitTestBehavior.opaque,
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: AppSizes.space * 1.5,
-                          vertical: AppSizes.space * 0.25,
-                        ),
-                        child: widget.labels[i],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
+          child: _buildLabelsRow(),
+        ),
         ...widget.overlays,
       ],
     );
+  }
+
+  Widget _buildLabelsRow() {
+    final row = Row(
+      mainAxisSize: widget.labelsKey != null
+          ? MainAxisSize.min
+          : MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (int i = 0; i < widget.labels.length; i++)
+          Semantics(
+            button: true,
+            selected: _currentPage == i,
+            label: widget.semanticTabLabels != null &&
+                    i < widget.semanticTabLabels!.length
+                ? widget.semanticTabLabels![i]
+                : null,
+            child: GestureDetector(
+              onTap: () => _controller.animateToPage(
+                i,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              ),
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSizes.space * 1.5,
+                  vertical: AppSizes.space * 0.25,
+                ),
+                child: widget.labels[i],
+              ),
+            ),
+          ),
+      ],
+    );
+
+    if (widget.labelsKey != null) {
+      return Center(
+        child: KeyedSubtree(key: widget.labelsKey!, child: row),
+      );
+    }
+    return row;
   }
 }

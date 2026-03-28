@@ -1,0 +1,7 @@
+CFBundleDisplayName = "Quanitya";
+NSCameraUsageDescription = "This app needs camera access to scan QR codes for device pairing.";
+NSPhotoLibraryUsageDescription = "This app needs photo library access to scan QR codes from images.";
+NSFaceIDUsageDescription = "Authenticate to access hidden templates and protected data.";
+NSHealthShareUsageDescription = "Quanitya reads health data to auto-log your trackers.";
+NSHealthUpdateUsageDescription = "Quanitya can write health data from your trackers.";
+NSLocationWhenInUseUsageDescription = "Quanitya records your location when you tap the location button.";

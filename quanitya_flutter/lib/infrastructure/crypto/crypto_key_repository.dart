@@ -336,6 +336,20 @@ abstract class ICryptoKeyRepository {
   /// Throws: ValidationException if format is invalid.
   /// Use case: Validate user input before attempting recovery.
   Future<void> validateUltimateKeyJwk(String jwk);
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Temporary Ultimate Key Session (for follow-up operations after creation/recovery)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Import ultimate key JWK and hold in memory for follow-up operations.
+  /// Does NOT persist. Call [clearTemporaryUltimateKey] when done.
+  Future<KeyDuo> importUltimateKeyTemporary(String jwk);
+
+  /// Returns the temporary ultimate key if loaded, null otherwise.
+  KeyDuo? get temporaryUltimateKey;
+
+  /// Wipes the temporary ultimate key from memory.
+  void clearTemporaryUltimateKey();
 }
 
 
@@ -353,10 +367,14 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
   // In-memory storage for ultimate key (temporary, during account creation)
   // Wiped after getUltimateKeyJwkOnce() is called
   KeyDuo? _ultimateKey;
-  
+
   // Cached ultimate public key hex (persisted for convenience)
   // This is just the public key, safe to store
   String? _ultimatePublicKeyHexCache;
+
+  // Temporary ultimate key session — held for follow-up operations after creation/recovery
+  // NOT related to _ultimateKey; cleared explicitly via clearTemporaryUltimateKey()
+  KeyDuo? _temporaryUltimateKey;
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Status
@@ -393,6 +411,7 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
         CryptoLogger.logSecurityEvent('Clearing all keys from storage and memory');
         _ultimateKey = null;
         _ultimatePublicKeyHexCache = null;
+        _temporaryUltimateKey = null;
         await _secureStorage.clearAllKeys();
         // Also delete cross-device key if available
         if (_crossDeviceStorage.isAvailable) {
@@ -1025,6 +1044,25 @@ class CryptoKeyRepository implements ICryptoKeyRepository {
       ValidationException.new,
       'validateUltimateKeyJwk',
     );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Temporary Ultimate Key Session
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  @override
+  Future<KeyDuo> importUltimateKeyTemporary(String jwk) async {
+    final keyDuo = await importUltimateKeyJwk(jwk);
+    _temporaryUltimateKey = keyDuo;
+    return keyDuo;
+  }
+
+  @override
+  KeyDuo? get temporaryUltimateKey => _temporaryUltimateKey;
+
+  @override
+  void clearTemporaryUltimateKey() {
+    _temporaryUltimateKey = null;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

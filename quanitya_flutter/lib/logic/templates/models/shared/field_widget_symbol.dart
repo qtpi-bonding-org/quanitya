@@ -13,7 +13,8 @@ part 'field_widget_symbol.g.dart';
 /// a blueprint for generating actual TemplateField and FieldValidator
 /// instances while ensuring type safety through UI-validator coupling rules.
 @freezed
-class FieldWidgetSymbol with _$FieldWidgetSymbol {
+abstract class FieldWidgetSymbol with _$FieldWidgetSymbol {
+  const FieldWidgetSymbol._();
   const factory FieldWidgetSymbol({
     /// The data field type (integer, float, text, boolean, etc.)
     required FieldEnum fieldType,

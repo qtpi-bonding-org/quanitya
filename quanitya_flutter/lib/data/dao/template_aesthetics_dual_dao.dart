@@ -15,7 +15,7 @@ import 'table_pairs.dart';
 class TemplateAestheticsDualDao extends DualDao<TemplateAesthetic, EncryptedTemplateAesthetic> {
   TemplateAestheticsDualDao(
     AppDatabase db,
-    IDataEncryptionService encryption,
+    IDataEncryption encryption,
   ) : super(
         db: db,
         encryption: encryption,

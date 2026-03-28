@@ -28,10 +28,11 @@ class AppLocalizationService implements cubit_ui_flow.ILocalizationService {
   /// 
   /// Throws an exception if localization has not been initialized.
   AppLocalizations get l10n {
-    if (_l10n == null) {
+    final l10n = _l10n;
+    if (l10n == null) {
       throw StateError('AppLocalizationService not initialized. Call update() first.');
     }
-    return _l10n!;
+    return l10n;
   }
 
   /// Checks if the localization service has been initialized.
@@ -39,7 +40,8 @@ class AppLocalizationService implements cubit_ui_flow.ILocalizationService {
 
   /// Gets the current locale.
   Locale? get currentLocale {
-    return _l10n?.localeName != null ? Locale(_l10n!.localeName) : null;
+    final localeName = _l10n?.localeName;
+    return localeName != null ? Locale(localeName) : null;
   }
 
   /// Clears the current localization instance.
@@ -50,12 +52,13 @@ class AppLocalizationService implements cubit_ui_flow.ILocalizationService {
 
   @override
   String translate(String key, {Map<String, dynamic>? args}) {
-    if (!isInitialized || _resolver == null) {
+    final resolver = _resolver;
+    if (!isInitialized || resolver == null) {
       return key; // Fallback to key if not initialized
     }
 
     // Use the generated resolver - handles all keys automatically
-    return _resolver!.resolve(key, args: args) ?? key;
+    return resolver.resolve(key, args: args) ?? key;
   }
 
   /// Checks if a key is known to the resolver.

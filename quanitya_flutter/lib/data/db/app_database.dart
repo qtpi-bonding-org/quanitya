@@ -36,6 +36,7 @@ part 'app_database.g.dart';
     AnalyticsInboxEntries,
     OpenRouterModels,
     LlmProviderConfigs,
+    PullerCheckpoints,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -61,5 +62,21 @@ class AppDatabase extends _$AppDatabase {
         ''');
       },
     );
+  }
+
+  /// Watch encrypted entry count and total size.
+  ///
+  /// Drift re-queries whenever the [EncryptedEntries] table changes.
+  Stream<({int count, int bytes})> watchEncryptedStorageUsage() {
+    return customSelect(
+      'SELECT '
+      'COUNT(*) AS cnt, '
+      'COALESCE(SUM(LENGTH(encrypted_data)), 0) AS total_bytes '
+      'FROM encrypted_entries',
+      readsFrom: {encryptedEntries},
+    ).watchSingle().map((row) => (
+      count: row.read<int>('cnt'),
+      bytes: row.read<int>('total_bytes'),
+    ));
   }
 }

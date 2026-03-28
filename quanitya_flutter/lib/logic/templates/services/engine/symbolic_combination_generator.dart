@@ -143,6 +143,14 @@ class SymbolicCombinationGenerator {
       case FieldEnum.location:
         // Location fields only work with the location picker
         return uiElement == UiElementEnum.locationPicker;
+
+      case FieldEnum.group:
+        // Group fields have no direct UI element — rendered via sub-fields
+        return false;
+
+      case FieldEnum.multiEnum:
+        // Multi-select only works with chips — dropdown/radio are single-select
+        return uiElement == UiElementEnum.chips;
     }
   }
 

@@ -11,6 +11,7 @@ import 'live_api_test_helper.dart';
 
 /// Direct Gemini API Schema Validation Tests.
 /// Skipped automatically if GEMINI_API_KEY is not found in .env
+@Tags(['live_api'])
 void main() {
   group('Direct Gemini API Schema Validation Tests', () {
     GetIt? testGetIt;

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../../infrastructure/config/debug_log.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/db/app_database.dart';
@@ -19,11 +19,14 @@ import '../../logic/templates/enums/ui_element_enum.dart';
 import '../../logic/templates/models/shared/template_field.dart';
 import '../../logic/templates/models/shared/template_aesthetics.dart';
 
+const _tag = 'dev/services/dev_seeder_service';
+
 /// Development seeder service for populating the database with fake data.
 ///
 /// Use this to quickly test UI without manually entering data.
-/// Only available in debug builds.
+/// Only registered in debug builds via @Environment('dev').
 @lazySingleton
+@Environment('dev')
 class DevSeederService {
   final AppDatabase _db;
   final ICryptoKeyRepository _cryptoKeyRepo;
@@ -43,9 +46,8 @@ class DevSeederService {
     this._pipelineRepo,
   );
 
-  /// Clear all data and seed with fresh fake data.
+  /// Seed fresh fake data (additive — does not clear existing data).
   Future<void> clearAndSeed() async {
-    await clearAll();
     await ensureEncryptionKeys();
     await seedAll();
   }
@@ -57,13 +59,13 @@ class DevSeederService {
   Future<void> ensureEncryptionKeys() async {
     final status = await _cryptoKeyRepo.getKeyStatus();
     if (status == CryptoKeyStatus.notInitialized) {
-      debugPrint('DevSeeder: Generating encryption keys...');
+      Log.d(_tag, 'DevSeeder: Generating encryption keys...');
       await _cryptoKeyRepo.generateAccountKeys();
       // Discard the ultimate key (we don't need it for dev)
       await _cryptoKeyRepo.getUltimateKeyJwkOnce();
-      debugPrint('DevSeeder: Encryption keys generated');
+      Log.d(_tag, 'DevSeeder: Encryption keys generated');
     } else {
-      debugPrint('DevSeeder: Encryption keys already exist (status: $status)');
+      Log.d(_tag, 'DevSeeder: Encryption keys already exist (status: $status)');
     }
   }
 
@@ -71,17 +73,21 @@ class DevSeederService {
   Future<void> clearAll() async {
     // Clear analysis scripts via repository
     final pipelines = await _pipelineRepo.getAllScripts();
-    for (final p in pipelines) {
-      await _pipelineRepo.deleteScript(p.id);
-    }
+    await Future.wait(pipelines.map((p) => _pipelineRepo.deleteScript(p.id)));
 
-    await _db.delete(_db.logEntries).go();
-    await _db.delete(_db.schedules).go();
-    await _db.delete(_db.templateAesthetics).go();
-    await _db.delete(_db.trackerTemplates).go();
-    await _db.delete(_db.encryptedEntries).go();
-    await _db.delete(_db.encryptedSchedules).go();
-    await _db.delete(_db.encryptedTemplates).go();
+    // Delete order matters: entries first (FK → templates), then templates.
+    await Future.wait([
+      _db.delete(_db.logEntries).go(),
+      _db.delete(_db.encryptedEntries).go(),
+      _db.delete(_db.schedules).go(),
+      _db.delete(_db.encryptedSchedules).go(),
+    ]);
+    await Future.wait([
+      _db.delete(_db.templateAesthetics).go(),
+      _db.delete(_db.encryptedTemplateAesthetics).go(),
+      _db.delete(_db.trackerTemplates).go(),
+      _db.delete(_db.encryptedTemplates).go(),
+    ]);
   }
 
   /// Seed all tables with fake data.
@@ -93,6 +99,9 @@ class DevSeederService {
     final sleepTemplateId = await _seedSleepTemplate();
     
     final periodTemplateId = await _seedPeriodTemplate();
+
+    // Receipt template for OCR import testing
+    await _seedReceiptTemplate();
 
     // Create hidden templates (for testing hidden feature)
     final journalTemplateId = await _seedJournalTemplate(isHidden: true);
@@ -358,6 +367,27 @@ class DevSeederService {
     ));
 
     await _seedAesthetics(id, '💊', 'medication', color: '#E91E63'); // Pink
+    return _SeededTemplate(id, fields);
+  }
+
+  /// Receipt template for OCR import testing (no entries seeded)
+  Future<_SeededTemplate> _seedReceiptTemplate() async {
+    final id = _uuid.v4();
+    final fields = [
+      TemplateField.create(label: 'Item Name', type: FieldEnum.text),
+      TemplateField.create(label: 'Price', type: FieldEnum.float),
+    ];
+
+    await _templateDao.upsert(TrackerTemplate(
+      id: id,
+      name: 'Grocery Receipt',
+      fieldsJson: jsonEncode(fields.map((f) => f.toJson()).toList()),
+      updatedAt: DateTime.now(),
+      isArchived: false,
+      isHidden: false,
+    ));
+
+    await _seedAesthetics(id, '🧾', 'receipt_long');
     return _SeededTemplate(id, fields);
   }
 
@@ -639,8 +669,8 @@ class DevSeederService {
       ).firstOrNull;
 
       if (numericField != null) {
-        final fieldLabel = numericField['label'] as String;
-        await _seedAnalysisScriptsForField(template.id, fieldLabel);
+        final fieldUuid = numericField['id'] as String;
+        await _seedAnalysisScriptsForField(template.id, fieldUuid);
         seeded = true;
       }
     }
@@ -652,14 +682,14 @@ class DevSeederService {
 
   Future<void> _seedAnalysisScriptsForField(
     String templateId,
-    String fieldLabel,
+    String fieldId,
   ) async {
     final now = DateTime.now();
-    final fieldId = '$templateId:$fieldLabel';
 
     await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Mood Statistics',
+      templateId: templateId,
       fieldId: fieldId,
       outputMode: AnalysisOutputMode.scalar,
       snippetLanguage: AnalysisSnippetLanguage.js,
@@ -677,6 +707,7 @@ return [
     await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Smoothed + Residuals',
+      templateId: templateId,
       fieldId: fieldId,
       outputMode: AnalysisOutputMode.vector,
       snippetLanguage: AnalysisSnippetLanguage.js,
@@ -706,6 +737,7 @@ return [
     await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Smoothed Time Series',
+      templateId: templateId,
       fieldId: fieldId,
       outputMode: AnalysisOutputMode.matrix,
       snippetLanguage: AnalysisSnippetLanguage.js,
@@ -723,6 +755,7 @@ return { values: smoothed };''',
     await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Rolling Statistics',
+      templateId: templateId,
       fieldId: fieldId,
       outputMode: AnalysisOutputMode.matrix,
       snippetLanguage: AnalysisSnippetLanguage.js,
@@ -758,14 +791,15 @@ return [
     List<TemplateField> fields,
   ) async {
     // Use "Flow Intensity" as the numeric field binding
-    final fieldLabel = 'Flow Intensity';
-    final fieldId = '$templateId:$fieldLabel';
+    final field = fields.where((f) => f.label == 'Flow Intensity').firstOrNull;
+    if (field == null) return;
     final now = DateTime.now();
 
     await _pipelineRepo.saveScript(AnalysisScriptModel(
       id: _uuid.v4(),
       name: 'Period Predictor (Bayesian)',
-      fieldId: fieldId,
+      templateId: templateId,
+      fieldId: field.id,
       outputMode: AnalysisOutputMode.scalar,
       snippetLanguage: AnalysisSnippetLanguage.js,
       snippet: _periodPredictorSnippet,

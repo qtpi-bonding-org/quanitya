@@ -10,7 +10,6 @@ class AppSyncingException implements Exception {
 }
 
 /// Typedef for backward compatibility
-typedef AppOperatingException = AppSyncingException;
 
 /// Exception for network issues
 class NetworkException implements Exception {

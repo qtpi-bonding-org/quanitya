@@ -1,14 +1,15 @@
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import '../../../infrastructure/config/debug_log.dart';
 
 import '../../../data/interfaces/analysis_script_interface.dart';
 import '../../../data/repositories/data_retrieval_service.dart';
 import '../../../logic/analysis/services/analysis_engine.dart';
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import 'visualization_state.dart';
-
 export 'visualization_state.dart';
+
+const _tag = 'features/visualization/cubits/visualization_cubit';
 
 /// Cubit for loading visualization data with statistics.
 @injectable
@@ -37,24 +38,21 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
       final loggedDays = data.loggedDates.length;
       final consistencyRate = totalDays > 0 ? loggedDays / totalDays : 0.0;
 
-      // Load and execute analysis scripts for this template's fields
-      // Script fieldIds use "templateId:fieldLabel" format
-      final scripts = await _scriptRepo.getAllScripts();
-      final relevantScripts = scripts.where(
-        (s) => s.fieldId.startsWith('$templateId:'),
-      ).toList();
+      // Load and execute analysis scripts for this template
+      final relevantScripts = await _scriptRepo.getScriptsForTemplate(templateId);
 
-      final analysisResults = <String, dynamic>{};
+      final analysisResults = <String, ScriptResult>{};
+      final failedScriptNames = <String>[];
       for (final script in relevantScripts) {
         try {
           final result = await _analysisEngine.execute(script);
-          analysisResults[script.id] = {
-            'script': script,
-            'result': result,
-          };
+          analysisResults[script.id] = ScriptResult(
+            script: script,
+            result: result,
+          );
         } catch (e) {
-          // Log error but continue with other scripts
-          debugPrint('Failed to execute script ${script.name}: $e');
+          failedScriptNames.add(script.name);
+          Log.d(_tag, 'Failed to execute script ${script.name}: $e');
         }
       }
 
@@ -64,6 +62,7 @@ class VisualizationCubit extends QuanityaCubit<VisualizationState> {
         data: data,
         consistencyRate: consistencyRate.clamp(0.0, 1.0),
         analysisResults: analysisResults,
+        failedScriptNames: failedScriptNames,
       );
     }, emitLoading: true);
   }

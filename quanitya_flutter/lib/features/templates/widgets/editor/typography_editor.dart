@@ -18,6 +18,7 @@ class TypographyEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+      buildWhen: (p, c) => p.aesthetics != c.aesthetics,
       builder: (context, state) {
         final titleFont =
             state.aesthetics?.fontConfig.titleFontFamily ??

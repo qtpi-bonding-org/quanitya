@@ -1,10 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import '../../../infrastructure/config/debug_log.dart';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../services/pairing_service.dart';
 import 'pairing_scan_state.dart';
+
+const _tag = 'features/device_pairing/cubits/pairing_scan_cubit';
 
 /// Cubit for Device A (existing device) - scans QR and registers new device.
 ///
@@ -29,7 +31,7 @@ class PairingScanCubit extends QuanityaCubit<PairingScanState> {
     await tryOperation(() async {
       final scannedData = await _pairingService.parseQrCode(qrJson);
 
-      debugPrint('PairingScanCubit: QR parsed, device label: ${scannedData.label}');
+      Log.d(_tag, 'PairingScanCubit: QR parsed, device label: ${scannedData.label}');
 
       return state.copyWith(
         status: UiFlowStatus.success,
@@ -58,7 +60,7 @@ class PairingScanCubit extends QuanityaCubit<PairingScanState> {
         label: pending.label,
       );
 
-      debugPrint('PairingScanCubit: Device registered successfully!');
+      Log.d(_tag, 'PairingScanCubit: Device registered successfully!');
 
       return state.copyWith(
         status: UiFlowStatus.success,

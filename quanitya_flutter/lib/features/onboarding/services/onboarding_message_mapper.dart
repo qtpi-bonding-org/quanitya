@@ -9,8 +9,9 @@ import '../cubits/onboarding_state.dart';
 class OnboardingMessageMapper implements IStateMessageMapper<OnboardingState> {
   @override
   MessageKey? map(OnboardingState state) {
-    if (state.status.isSuccess && state.lastOperation != null) {
-      return switch (state.lastOperation!) {
+    final op = state.lastOperation;
+    if (state.status.isSuccess && op != null) {
+      return switch (op) {
         OnboardingOperation.createAccount => MessageKey.success(L10nKeys.onboardingAccountCreated),
         OnboardingOperation.exportToICloud => MessageKey.success(L10nKeys.onboardingExportedICloud),
         OnboardingOperation.exportToFile => MessageKey.success(L10nKeys.onboardingExportedFile),

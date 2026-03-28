@@ -101,7 +101,8 @@ abstract class IIntegratorApi {
 /// Provides detailed information about service availability
 /// and any issues that might affect data synchronization.
 @freezed
-class HealthStatus with _$HealthStatus {
+abstract class HealthStatus with _$HealthStatus {
+  const HealthStatus._();
   /// Service is healthy and operating normally.
   const factory HealthStatus.healthy({
     /// Optional metadata about the service state

@@ -16,6 +16,8 @@ import '../../settings/cubits/recovery_key/recovery_key_cubit.dart';
 import '../../settings/cubits/recovery_key/recovery_key_state.dart';
 import '../../settings/cubits/recovery_key/recovery_key_message_mapper.dart';
 import '../../settings/cubits/device_management/device_management_cubit.dart';
+import '../../settings/cubits/device_management/device_management_state.dart';
+import '../../settings/cubits/device_management/device_management_message_mapper.dart';
 import '../../settings/cubits/webhook/webhook_cubit.dart';
 import '../../settings/cubits/webhook/webhook_state.dart';
 import '../../settings/cubits/webhook/webhook_message_mapper.dart';
@@ -24,7 +26,10 @@ import '../../settings/cubits/llm_provider/llm_provider_state.dart';
 import '../../settings/cubits/llm_provider/llm_provider_message_mapper.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../app_syncing_mode/cubits/app_syncing_state.dart';
+import '../../app_syncing_mode/cubits/app_syncing_message_mapper.dart';
 import '../../sync_status/cubits/sync_status_cubit.dart';
+import '../../sync_status/cubits/sync_status_state.dart';
+import '../../sync_status/cubits/sync_status_message_mapper.dart';
 import '../../settings/pages/settings_page.dart';
 // Purchase cubits
 import '../../purchase/cubits/purchase_cubit.dart';
@@ -54,11 +59,11 @@ class _OfficePageState extends State<OfficePage> {
     if (index == 1 && !_purchasesLoaded) {
       _purchasesLoaded = true;
       context.read<PurchaseCubit>().loadProducts();
-      final mode = context.read<AppSyncingCubit>().state.mode;
-      context.read<EntitlementCubit>()
-        ..loadEntitlements(mode: mode)
-        ..checkSyncAccess(mode: mode)
-        ..loadStorageUsage(mode: mode);
+      if (context.read<EntitlementCubit>().hasPurchased) {
+        context.read<EntitlementCubit>()
+          ..loadEntitlements()
+          ..loadStorageUsage();
+      }
     }
   }
 
@@ -83,19 +88,11 @@ class _OfficePageState extends State<OfficePage> {
         BlocProvider(create: (_) => GetIt.instance<RecoveryKeyCubit>()),
         BlocProvider(create: (_) => GetIt.instance<DeviceManagementCubit>()),
         BlocProvider(create: (_) => GetIt.instance<WebhookCubit>()..load()),
-        BlocProvider(create: (_) => GetIt.instance<LlmProviderCubit>()..load()),
+        BlocProvider.value(value: GetIt.instance<LlmProviderCubit>()),
         BlocProvider.value(value: GetIt.instance<AppSyncingCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<SyncStatusCubit>()
-          ..startListening(GetIt.instance<AppSyncingCubit>().state.mode)),
-        BlocProvider(create: (_) => GetIt.instance<PurchaseCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<EntitlementCubit>()),
+        BlocProvider.value(value: GetIt.instance<SyncStatusCubit>()),
       ],
-      child: BlocListener<AppSyncingCubit, AppSyncingState>(
-        listenWhen: (prev, curr) => prev.mode != curr.mode,
-        listener: (context, state) {
-          context.read<SyncStatusCubit>().onModeChanged(state.mode);
-        },
-        child: MultiUiFlowListener(
+      child: MultiUiFlowListener(
           listeners: [
             (child) => UiFlowListener<LlmProviderCubit, LlmProviderState>(
               mapper: GetIt.instance<LlmProviderMessageMapper>(),
@@ -121,6 +118,18 @@ class _OfficePageState extends State<OfficePage> {
               mapper: GetIt.instance<EntitlementMessageMapper>(),
               child: child,
             ),
+            (child) => UiFlowListener<AppSyncingCubit, AppSyncingState>(
+              mapper: GetIt.instance<AppSyncingMessageMapper>(),
+              child: child,
+            ),
+            (child) => UiFlowListener<SyncStatusCubit, SyncStatusState>(
+              mapper: GetIt.instance<SyncStatusMessageMapper>(),
+              child: child,
+            ),
+            (child) => UiFlowListener<DeviceManagementCubit, DeviceManagementState>(
+              mapper: GetIt.instance<DeviceManagementMessageMapper>(),
+              child: child,
+            ),
           ],
           child: Builder(
             builder: (innerContext) => SwipeablePageShell(
@@ -142,7 +151,6 @@ class _OfficePageState extends State<OfficePage> {
             ),
           ),
         ),
-      ),
     );
   }
 }

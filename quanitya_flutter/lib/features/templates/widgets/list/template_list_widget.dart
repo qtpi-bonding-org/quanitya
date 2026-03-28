@@ -16,9 +16,14 @@ import '../../cubits/list/template_list_state.dart';
 import 'dashboard_header.dart';
 import 'tracker_card.dart';
 
-class TemplateListWidget extends StatelessWidget {
+class TemplateListWidget extends StatefulWidget {
   const TemplateListWidget({super.key});
 
+  @override
+  State<TemplateListWidget> createState() => _TemplateListWidgetState();
+}
+
+class _TemplateListWidgetState extends State<TemplateListWidget> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -44,6 +49,7 @@ class TemplateListWidget extends StatelessWidget {
               );
             }
           }
+
         },
         builder: (context, state) {
           if (state.isLoading && state.templates.isEmpty) {
@@ -71,28 +77,32 @@ class TemplateListWidget extends StatelessWidget {
                   VSpace.x3,
                   LayoutGroup.grid(
                     minItemWidth: 20,
-                    children: visible.map((item) {
-                      final cubit = context.read<TemplateListCubit>();
-                      return TrackerCard(
-                        title: item.template.name,
-                        icon: item.aesthetics.icon,
-                        emoji: item.aesthetics.emoji,
-                        color: item.aesthetics.palette.accents.firstOrNull,
-                        template: item.template,
-                        onIconTap: () {
-                          AppNavigation.toTemplateDesigner(context, item);
-                        },
-                        onEdit: () {
-                          LogEntrySheet.showCreate(
-                            context: context,
-                            templateId: item.template.id,
+                    children: [
+                      for (var i = 0; i < visible.length; i++)
+                        () {
+                          final item = visible[i];
+                          final cubit = context.read<TemplateListCubit>();
+                          return TrackerCard(
+                            title: item.template.name,
+                            icon: item.aesthetics.icon,
+                            emoji: item.aesthetics.emoji,
+                            color: item.aesthetics.palette.accents.firstOrNull,
+                            template: item.template,
+                            onIconTap: () {
+                              AppNavigation.toTemplateDesigner(context, item);
+                            },
+                            onEdit: () {
+                              LogEntrySheet.showCreate(
+                                context: context,
+                                templateId: item.template.id,
+                              );
+                            },
+                            onQuickAction: () {
+                              cubit.instantLog(item.template);
+                            },
                           );
-                        },
-                        onQuickAction: () {
-                          cubit.instantLog(item.template);
-                        },
-                      );
-                    }).toList(),
+                        }(),
+                    ],
                   ),
                 ],
               ),

@@ -29,7 +29,9 @@
 /// - Use simple method names (no user data) for privacy
 library;
 
-import 'package:flutter/foundation.dart' show debugPrint;
+import '../config/debug_log.dart';
+
+const _tag = 'infrastructure/core/try_operation';
 
 /// Privacy-safe wrapper for exception causes.
 /// 
@@ -81,13 +83,13 @@ Future<T> tryMethod<T, E extends Exception>(
   try {
     return await method();
   } on E catch (e, stackTrace) {
-    debugPrint('🔴 tryMethod[$methodName] caught ${e.runtimeType}: $e');
-    debugPrint('🔴 tryMethod[$methodName] stack: $stackTrace');
+    Log.d(_tag, 'tryMethod[$methodName] caught ${e.runtimeType}: $e');
+    Log.d(_tag, 'tryMethod[$methodName] stack: $stackTrace');
     rethrow; // Preserves original stack trace for typed exceptions
   } catch (e, stackTrace) {
     // Debug: Print actual error for development debugging
-    debugPrint('🔴 tryMethod[$methodName] caught ${e.runtimeType}: $e');
-    debugPrint('🔴 tryMethod[$methodName] stack: $stackTrace');
+    Log.d(_tag, 'tryMethod[$methodName] caught ${e.runtimeType}: $e');
+    Log.d(_tag, 'tryMethod[$methodName] stack: $stackTrace');
 
     // Privacy-safe: Only method name and exception type in message
     final safeMessage = _createSafeErrorContext(methodName, e.runtimeType);

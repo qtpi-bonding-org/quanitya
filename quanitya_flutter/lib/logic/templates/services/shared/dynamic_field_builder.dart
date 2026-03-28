@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:get_it/get_it.dart';
 import '../../../../infrastructure/location/location_service.dart';
 
 import '../../enums/field_enum.dart';
@@ -17,6 +19,7 @@ import '../../../../design_system/widgets/quanitya/generatable/quanitya_slider.d
 import '../../../../design_system/widgets/quanitya/generatable/quanitya_stepper.dart';
 import '../../../../design_system/widgets/quanitya/generatable/quanitya_text_field.dart';
 import '../../../../design_system/widgets/quanitya/generatable/quanitya_toggle.dart';
+import '../../../../design_system/widgets/quanitya/generatable/quanitya_multi_chip_group.dart';
 
 /// Builds appropriate input widgets for dynamic template fields.
 ///
@@ -52,6 +55,27 @@ class DynamicFieldBuilder {
       return _buildListField(
         field: field,
         values: (value as List<dynamic>?) ?? [],
+        onChanged: onChanged,
+        widgetColors: widgetColors,
+        textStyle: textStyle,
+      );
+    }
+
+    // Handle multi-select fields
+    if (field.type == FieldEnum.multiEnum) {
+      return _buildMultiChipField(
+        field: field,
+        values: (value as List<dynamic>?)?.cast<String>() ?? <String>[],
+        onChanged: onChanged,
+        widgetColors: widgetColors,
+      );
+    }
+
+    // Handle group fields
+    if (field.type == FieldEnum.group) {
+      return _buildGroupField(
+        field: field,
+        value: (value as Map<String, dynamic>?) ?? {},
         onChanged: onChanged,
         widgetColors: widgetColors,
         textStyle: textStyle,
@@ -94,6 +118,8 @@ class DynamicFieldBuilder {
       FieldEnum.location => UiElementEnum.locationPicker,
       FieldEnum.dimension => UiElementEnum.stepper,
       FieldEnum.reference => null,
+      FieldEnum.group => null,
+      FieldEnum.multiEnum => UiElementEnum.chips,
     };
   }
 
@@ -147,17 +173,29 @@ class DynamicFieldBuilder {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  child: _buildSingleField(
-                    field: field,
-                    value: values[i],
-                    onChanged: (newValue) {
-                      final updated = List<dynamic>.from(values);
-                      updated[i] = newValue;
-                      onChanged(updated);
-                    },
-                    widgetColors: widgetColors,
-                    textStyle: textStyle,
-                  ),
+                  child: field.type == FieldEnum.group
+                      ? _buildGroupField(
+                          field: field,
+                          value: (values[i] as Map<String, dynamic>?) ?? {},
+                          onChanged: (newValue) {
+                            final updated = List<dynamic>.from(values);
+                            updated[i] = newValue;
+                            onChanged(updated);
+                          },
+                          widgetColors: widgetColors,
+                          textStyle: textStyle,
+                        )
+                      : _buildSingleField(
+                          field: field,
+                          value: values[i],
+                          onChanged: (newValue) {
+                            final updated = List<dynamic>.from(values);
+                            updated[i] = newValue;
+                            onChanged(updated);
+                          },
+                          widgetColors: widgetColors,
+                          textStyle: textStyle,
+                        ),
                 ),
                 HSpace.x1,
                 // Remove button - disabled if at minItems
@@ -232,9 +270,145 @@ class DynamicFieldBuilder {
       FieldEnum.dimension => 0.0,
       FieldEnum.reference => null,
       FieldEnum.location => null,
+      FieldEnum.group => _getGroupDefault(field),
+      FieldEnum.multiEnum => <String>[],
     };
   }
 
+  /// Builds a default value map for a group field from its sub-fields.
+  static Map<String, dynamic> _getGroupDefault(TemplateField field) {
+    final subFields = field.subFields;
+    if (subFields == null || subFields.isEmpty) return {};
+    final map = <String, dynamic>{};
+    for (final subField in subFields) {
+      if (subField.isDeleted) continue;
+      map[subField.id] = subField.isList
+          ? <dynamic>[]
+          : _getDefaultValue(subField);
+    }
+    return map;
+  }
+
+
+  /// Builds a multi-select chip field for multiEnum type.
+  static Widget _buildMultiChipField({
+    required TemplateField field,
+    required List<String> values,
+    required ValueChanged<dynamic> onChanged,
+    Map<String, Color>? widgetColors,
+  }) {
+    final options = field.options ?? [];
+    if (options.isEmpty) {
+      return Builder(
+        builder: (context) =>
+            Text(context.l10n.fieldBuilderNoOptions),
+      );
+    }
+
+    final selectedColor = widgetColors?['selectedColor']
+        ?? QuanityaPalette.primary.textPrimary;
+    final unselectedColor = widgetColors?['unselectedColor']
+        ?? QuanityaPalette.primary.interactableColor;
+
+    return QuanityaMultiChipGroup<String>(
+      values: values,
+      options: options,
+      labelBuilder: (opt) => opt,
+      selectedColor: selectedColor,
+      unselectedColor: unselectedColor,
+      onChanged: (updated) => onChanged(updated),
+    );
+  }
+
+  /// Builds a group field — renders sub-fields vertically in a squircle border.
+  static Widget _buildGroupField({
+    required TemplateField field,
+    required Map<String, dynamic> value,
+    required ValueChanged<dynamic> onChanged,
+    Map<String, Color>? widgetColors,
+    TextStyle? textStyle,
+  }) {
+    final subFields = field.subFields;
+    if (subFields == null || subFields.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final borderColor = widgetColors?['borderColor']
+        ?? QuanityaPalette.primary.textSecondary;
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: borderColor.withValues(alpha: 0.3),
+          width: AppSizes.borderWidth,
+        ),
+        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+      ),
+      padding: AppPadding.allSingle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: _buildSubFieldWidgets(
+          subFields: subFields,
+          value: value,
+          onChanged: onChanged,
+          widgetColors: widgetColors,
+          textStyle: textStyle,
+          labelColor: borderColor,
+        ),
+      ),
+    );
+  }
+
+  /// Builds the list of sub-field widgets for a group, filtering deleted fields.
+  static List<Widget> _buildSubFieldWidgets({
+    required List<TemplateField> subFields,
+    required Map<String, dynamic> value,
+    required ValueChanged<dynamic> onChanged,
+    Map<String, Color>? widgetColors,
+    TextStyle? textStyle,
+    required Color labelColor,
+  }) {
+    final activeSubFields = subFields.where((f) => !f.isDeleted).toList();
+    final widgets = <Widget>[];
+
+    for (int i = 0; i < activeSubFields.length; i++) {
+      final subField = activeSubFields[i];
+      widgets.add(
+        Builder(
+          builder: (context) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                subField.label,
+                style: context.text.bodySmall?.copyWith(
+                  color: labelColor,
+                ),
+              ),
+              VSpace.x05,
+              buildField(
+                field: subField,
+                value: value[subField.id],
+                onChanged: (newSubValue) {
+                  final updated = Map<String, dynamic>.from(value);
+                  updated[subField.id] = newSubValue;
+                  onChanged(updated);
+                },
+                widgetColors: widgetColors,
+                textStyle: textStyle,
+              ),
+            ],
+          ),
+        ),
+      );
+      if (i < activeSubFields.length - 1) {
+        widgets.add(VSpace.x1);
+      }
+    }
+
+    return widgets;
+  }
 
   /// Builds a single-value field widget based on uiElement
   static Widget _buildSingleField({
@@ -340,25 +514,13 @@ class DynamicFieldBuilder {
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
-    final controller = TextEditingController(text: value?.toString() ?? '');
-    return Builder(
-      builder: (context) => QuanityaTextField(
-        controller: controller,
-        hintText: context.l10n.fieldBuilderEnterHint(field.label.toLowerCase()),
-        semanticLabel: field.label,
-        onChanged: onChanged,
-        style: textStyle,
-        textColor: textStyle?.color,
-        hintColor: colors?['borderColor']?.withValues(alpha: 0.6),
-        cursorColor:
-            colors?['cursorColor'] ?? QuanityaPalette.primary.interactableColor,
-        fillColor: colors?['fillColor'] ?? QuanityaPalette.primary.backgroundPrimary,
-        borderColor:
-            colors?['borderColor'] ?? QuanityaPalette.primary.textSecondary,
-        focusedBorderColor:
-            colors?['focusedBorderColor'] ?? QuanityaPalette.primary.interactableColor,
-        errorBorderColor: colors?['errorBorderColor'] ?? QuanityaPalette.primary.destructiveColor,
-      ),
+    return _StableTextField(
+      key: ValueKey('field_${field.id}'),
+      initialValue: value?.toString() ?? '',
+      field: field,
+      onChanged: onChanged,
+      colors: colors,
+      textStyle: textStyle,
     );
   }
 
@@ -369,26 +531,14 @@ class DynamicFieldBuilder {
     Map<String, Color>? colors,
     TextStyle? textStyle,
   ) {
-    final controller = TextEditingController(text: value?.toString() ?? '');
-    return Builder(
-      builder: (context) => QuanityaTextField(
-        controller: controller,
-        hintText: context.l10n.fieldBuilderEnterHint(field.label.toLowerCase()),
-        semanticLabel: field.label,
-        onChanged: onChanged,
-        maxLines: 4,
-        style: textStyle,
-        textColor: textStyle?.color,
-        hintColor: colors?['borderColor']?.withValues(alpha: 0.6),
-        cursorColor:
-            colors?['cursorColor'] ?? QuanityaPalette.primary.interactableColor,
-        fillColor: colors?['fillColor'] ?? QuanityaPalette.primary.backgroundPrimary,
-        borderColor:
-            colors?['borderColor'] ?? QuanityaPalette.primary.textSecondary,
-        focusedBorderColor:
-            colors?['focusedBorderColor'] ?? QuanityaPalette.primary.interactableColor,
-        errorBorderColor: colors?['errorBorderColor'] ?? QuanityaPalette.primary.destructiveColor,
-      ),
+    return _StableTextField(
+      key: ValueKey('field_${field.id}'),
+      initialValue: value?.toString() ?? '',
+      field: field,
+      onChanged: onChanged,
+      maxLines: 4,
+      colors: colors,
+      textStyle: textStyle,
     );
   }
 
@@ -520,9 +670,13 @@ class DynamicFieldBuilder {
                   try {
                     final location = await LocationService.captureCurrentPosition();
                     onChanged(location);
-                  } catch (e) {
-                    // Permission denied or location unavailable — don't crash
-                    debugPrint('Location capture failed: $e');
+                  } catch (_) {
+                    if (context.mounted) {
+                      GetIt.instance<IFeedbackService>().show(FeedbackMessage(
+                        message: context.l10n.fieldBuilderLocationFailed,
+                        type: MessageType.error,
+                      ));
+                    }
                   }
                 },
                 style: textStyle?.copyWith(color: accentColor),
@@ -555,19 +709,27 @@ class DynamicFieldBuilder {
     );
   }
 
-  /// Extract numeric constraints from field validators
+  /// Extract numeric constraints from field validators.
+  /// Handles both numeric (min/max) and dimension (minValue/maxValue) validators.
   static ({double min, double max}) _getNumericConstraints(TemplateField field) {
     double min = 0;
     double max = 100;
 
     for (final validator in field.validators) {
+      final data = validator.validatorData;
       if (validator.validatorType == ValidatorType.numeric) {
-        final data = validator.validatorData;
         if (data.containsKey('min')) {
           min = (data['min'] as num).toDouble();
         }
         if (data.containsKey('max')) {
           max = (data['max'] as num).toDouble();
+        }
+      } else if (validator.validatorType == ValidatorType.dimension) {
+        if (data.containsKey('minValue')) {
+          min = (data['minValue'] as num).toDouble();
+        }
+        if (data.containsKey('maxValue')) {
+          max = (data['maxValue'] as num).toDouble();
         }
       }
     }
@@ -711,6 +873,69 @@ class _TimerWidgetState extends State<_TimerWidget> {
             tooltip: context.l10n.tooltipReset,
           ),
       ],
+    );
+  }
+}
+
+/// Text field that owns its own [TextEditingController] so the cursor
+/// position is stable across parent rebuilds.
+class _StableTextField extends StatefulWidget {
+  final String initialValue;
+  final TemplateField field;
+  final ValueChanged<dynamic> onChanged;
+  final int maxLines;
+  final Map<String, Color>? colors;
+  final TextStyle? textStyle;
+
+  const _StableTextField({
+    super.key,
+    required this.initialValue,
+    required this.field,
+    required this.onChanged,
+    this.maxLines = 1,
+    this.colors,
+    this.textStyle,
+  });
+
+  @override
+  State<_StableTextField> createState() => _StableTextFieldState();
+}
+
+class _StableTextFieldState extends State<_StableTextField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = widget.colors;
+    return QuanityaTextField(
+      controller: _controller,
+      hintText: context.l10n.fieldBuilderEnterHint(widget.field.label.toLowerCase()),
+      semanticLabel: widget.field.label,
+      onChanged: widget.onChanged,
+      maxLines: widget.maxLines,
+      style: widget.textStyle,
+      textColor: widget.textStyle?.color,
+      hintColor: colors?['borderColor']?.withValues(alpha: 0.6),
+      cursorColor:
+          colors?['cursorColor'] ?? QuanityaPalette.primary.interactableColor,
+      fillColor: colors?['fillColor'] ?? QuanityaPalette.primary.backgroundPrimary,
+      borderColor:
+          colors?['borderColor'] ?? QuanityaPalette.primary.textSecondary,
+      focusedBorderColor:
+          colors?['focusedBorderColor'] ?? QuanityaPalette.primary.interactableColor,
+      errorBorderColor: colors?['errorBorderColor'] ?? QuanityaPalette.primary.destructiveColor,
     );
   }
 }

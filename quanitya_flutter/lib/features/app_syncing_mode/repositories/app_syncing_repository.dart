@@ -1,15 +1,20 @@
 import 'package:injectable/injectable.dart';
 import 'package:drift/drift.dart';
+import '../../../infrastructure/config/debug_log.dart';
 import 'package:quanitya_flutter/infrastructure/core/try_operation.dart';
 import 'package:quanitya_flutter/data/db/app_database.dart';
 import 'package:quanitya_flutter/infrastructure/config/app_config.dart';
 import '../models/app_syncing_mode.dart';
 import '../exceptions/app_syncing_exceptions.dart';
 
+const _tag = 'features/app_syncing_mode/repositories/app_syncing_repository';
+
 @lazySingleton
 class AppSyncingRepository {
   final AppDatabase _db;
   final AppConfig _config;
+
+  bool _initialized = false;
 
   AppSyncingRepository(this._db, this._config);
 
@@ -27,7 +32,9 @@ class AppSyncingRepository {
   Future<AppOperatingSetting> getSettings() {
     return tryMethod(() async {
       await _ensureInitialized();
-      return await _db.select(_db.appOperatingSettings).getSingle();
+      final settings = await _db.select(_db.appOperatingSettings).getSingle();
+      Log.d(_tag, '📋 AppSyncingRepository: getSettings() → mode=${settings.mode.name}');
+      return settings;
     }, AppSyncingException.new, 'getSettings');
   }
 
@@ -35,10 +42,8 @@ class AppSyncingRepository {
   /// Automatically initializes if needed
   Stream<AppOperatingSetting> watchSettings() {
     return _db.select(_db.appOperatingSettings).watchSingle().asyncMap((setting) async {
-      // Ensure initialized before returning any data
       await _ensureInitialized();
-      // Re-fetch after initialization to get the actual data
-      return await _db.select(_db.appOperatingSettings).getSingle();
+      return setting;
     });
   }
 
@@ -63,24 +68,8 @@ class AppSyncingRepository {
       if (updated == 0) {
         throw const AppSyncingException('Failed to update syncing mode');
       }
+      Log.d(_tag, '✅ AppSyncingRepository: Mode updated to ${mode.name} ($updated rows)');
     }, AppSyncingException.new, 'updateMode');
-  }
-
-  /// Update connection status
-  Future<void> updateConnectionStatus(bool isConnected) {
-    return tryMethod(() async {
-      final updated = await _db.update(_db.appOperatingSettings).write(
-        AppOperatingSettingsCompanion(
-          isConnected: Value(isConnected),
-          lastConnectionTest: Value(DateTime.now()),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-
-      if (updated == 0) {
-        throw const AppSyncingException('Failed to update connection status');
-      }
-    }, AppSyncingException.new, 'updateConnectionStatus');
   }
 
   /// Get whether analytics auto-send is enabled
@@ -136,6 +125,8 @@ class AppSyncingRepository {
   /// Ensure database has initial settings (local mode)
   /// Called on every app startup - idempotent
   Future<void> _ensureInitialized() async {
+    if (_initialized) return;
+
     final count = await _db.select(_db.appOperatingSettings).get().then((rows) => rows.length);
 
     if (count == 0) {
@@ -143,12 +134,12 @@ class AppSyncingRepository {
       await _db.into(_db.appOperatingSettings).insert(
         AppOperatingSettingsCompanion.insert(
           mode: AppSyncingMode.local,
-          isConnected: const Value(false),
         ),
       );
     }
+
+    _initialized = true;
   }
 }
 
 /// Typedef for backward compatibility
-typedef AppOperatingRepository = AppSyncingRepository;

@@ -54,19 +54,6 @@ void main() {
       // Happy path complete: Challenge → Mine → Verify → Submit
     });
 
-    test('Stamp validation: valid stamp passes', () {
-      // Create a pre-mined valid stamp for testing
-      final challenge = 'test123';
-      final stamp = '1:16:$challenge:12345';
-      
-      // Verify format
-      final parts = stamp.split(':');
-      expect(parts.length, equals(4));
-      expect(parts[0], equals('1'));
-      expect(parts[1], equals('16'));
-      expect(parts[2], equals(challenge));
-    });
-
     test('Stamp validation: invalid format rejected', () {
       final invalidStamps = [
         'invalid',
@@ -88,6 +75,16 @@ void main() {
           expect(int.tryParse(parts[1]), isNull);
         }
       }
+    });
+
+    test('ErrorCodeMapper maps exception types to correct codes', () {
+      expect(ErrorCodeMapper.mapError(Exception('Network error')), equals('NET_UNKNOWN'));
+      expect(ErrorCodeMapper.mapError(ArgumentError('Invalid argument')), equals('VAL_003'));
+      expect(ErrorCodeMapper.mapError(StateError('Invalid state')), equals('STATE_001'));
+      expect(ErrorCodeMapper.mapError(FormatException('Format error')), equals('VAL_002'));
+      expect(ErrorCodeMapper.mapError(TypeError()), equals('TYPE_001'));
+      expect(ErrorCodeMapper.mapError(RangeError('Out of range')), equals('RANGE_001'));
+      expect(ErrorCodeMapper.mapError('Unknown error'), equals('ERR_STRING'));
     });
 
     test('Error entry contains no PII', () {

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:injectable/injectable.dart';
 
 import '../../../../infrastructure/ai/orchestrators/ai_structured_output_orchestrator.dart';
@@ -37,33 +40,21 @@ class AiTemplateOrchestrator extends AiStructuredOutputOrchestrator<TemplateInpu
     return _schemaGenerator.generateSchema();
   }
   
+  String? _cachedSystemPrompt;
+
+  /// Loads system prompt from assets/template_prompt.json.
+  Future<String> _loadSystemPrompt() async {
+    if (_cachedSystemPrompt != null) return _cachedSystemPrompt!;
+    final raw = await rootBundle.loadString('assets/template_prompt.json');
+    final config = jsonDecode(raw) as Map<String, dynamic>;
+    _cachedSystemPrompt = config['system_prompt'] as String;
+    return _cachedSystemPrompt!;
+  }
+
   @override
   String buildSystemPrompt(TemplateInput input) {
-    return '''You are an expert at creating tracker templates for Quanitya, a privacy-first mood and habit tracking app.
-
-Your job is to create structured templates that help users track their emotional well-being, habits, and personal metrics.
-
-Key principles:
-- Templates should be intuitive and easy to use
-- Field types must match the supported widget types
-- Consider accessibility and user experience
-- Templates should encourage consistent daily tracking
-- Create visually appealing color palettes that work well together
-- Choose appropriate UI elements for each field type
-
-List fields (isList: true):
-- Use isList: true when users need to record MULTIPLE values of the same type
-- Examples: workout sets (multiple reps/weights), meal ingredients, medication doses, symptoms
-- Set listMinItems/listMaxItems to constrain the list (0 = no min, 10 = no max)
-- Most fields should be isList: false (single value) - only use lists when truly needed
-
-Create a complete template specification including:
-- 1-10 fields with appropriate types and widgets
-- A cohesive color palette (2-4 accent colors, 2-3 neutrals as hex values)
-- Color configuration for each widget type
-- Optional font configuration
-
-Always return valid JSON matching the provided schema.''';
+    // Synchronous fallback — prompt should be pre-loaded via generateTemplate
+    return _cachedSystemPrompt ?? 'Generate a tracker template. Return valid JSON matching the schema.';
   }
   
   @override
@@ -104,13 +95,16 @@ Always return valid JSON matching the provided schema.''';
     String? themeName,
   }) async {
     try {
+      // Pre-load prompt from asset before synchronous buildSystemPrompt is called
+      await _loadSystemPrompt();
+
       final input = TemplateInput(
         description: description,
         templateName: templateName,
         emoji: emoji,
         themeName: themeName,
       );
-      
+
       return await generate(input, config);
     } on TemplateGenerationException {
       rethrow;

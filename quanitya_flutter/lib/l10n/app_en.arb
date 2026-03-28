@@ -96,8 +96,15 @@
   "active": "Active",
   "inactive": "Inactive",
   "settingsTitle": "Settings",
+  "settingsAccountSection": "Account",
+  "settingsAccountId": "Account ID",
+  "copiedToClipboard": "Copied to clipboard",
   "settingsDevicesSection": "Devices",
   "settingsDataSection": "Data Import / Export",
+  "validateRecoveryKey": "Validate Recovery Key",
+  "actionValidate": "Validate",
+  "settingsTutorialSection": "Tutorial",
+  "recoveryEntitlementOffline": "Could not load entitlements. Sync will be available when online.",
   "confirm": "Confirm",
   "import_": "Import",
   "exportData": "Export Data",
@@ -129,9 +136,12 @@
   "recovering": "Recovering...",
   "logEntryViewLabel": "View log entry",
   "logEntryAction": "Log Entry",
-  "createTemplateTitle": "Generate Template",
+  "createTemplateTitle": "Template Designer",
   "editTemplateTitle": "Edit Template",
   "previewAction": "Preview",
+  "templateRequiresNameAndFields": "Add a name and at least one field",
+  "templateRequiresName": "Add a template name",
+  "templateRequiresFields": "Add at least one field",
   "discardAction": "Discard",
   "templateNameLabel": "Template Name",
   "templateNameHint": "e.g., Daily Mood Check-in",
@@ -142,6 +152,11 @@
   "fontTitleLabel": "Title Font",
   "fontBodyLabel": "Body Font",
   "pickColorTitle": "Pick Color",
+  "pickIconTitle": "Pick Icon",
+  "searchIconsHint": "Search icons...",
+  "noResultsFound": "No results found",
+  "browseTemplatesTitle": "Browse Templates",
+  "importAction": "Import",
   "selectAction": "Select",
   "templateFieldsSection": "Template Fields",
   "fieldsCount": "{count} Fields",
@@ -161,6 +176,18 @@
   "fieldChoice": "Choice",
   "fieldFloat": "Decimal",
   "fieldLabelLabel": "Field Label",
+  "groupFieldsAction": "Group {count} fields",
+  "@groupFieldsAction": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "groupFieldsConfirm": "Create Group",
+  "groupLabelTitle": "Group Name",
+  "groupLabelHint": "e.g., Vitals, Mood, Exercise",
+  "ungroupAction": "Ungroup",
+  "allowMultipleLabel": "Multiple",
+  "groupModeTooltip": "Group fields",
+  "groupModeHint": "Tap fields to select, then group",
+  "actionDone": "Done",
   "fieldLabelHint": "e.g., Mood Level, Energy, Notes",
   "widgetTypeLabel": "Input Style",
   "widgetSlider": "Slider",
@@ -202,7 +229,20 @@
   "quickAccessIconDescription": "This icon appears on the home page for quick access.",
   "templateNamePlaceholder": "Template Name",
   "homePastDescription": "History & Logs",
+  "homePresentDescription": "Today's Trackers",
   "homeFutureDescription": "Planned Tasks",
+  "modeIndicatorConnected": "{mode}, connected",
+  "@modeIndicatorConnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
+  "modeIndicatorDisconnected": "{mode}, disconnected",
+  "@modeIndicatorDisconnected": {
+    "placeholders": {
+      "mode": { "type": "String" }
+    }
+  },
   "tooltipEditTemplate": "Edit template",
   "tooltipCustomLog": "Custom log",
   "tooltipQuickEntry": "Quick entry",
@@ -228,21 +268,20 @@
     }
   },
   "aboutPronunciation": "/kwɑˈnɪtjə/ (Kwah-NIT-yuh)",
-  "aboutPhilosophyTitle": "Philosophy",
   "aboutQuaTitle": "Qua",
   "aboutQuaSubtitle": "QUA(NTI/LI)TATIVE",
-  "aboutQuaDescription": "The observation of self. Whether quantitative metrics or qualitative feelings, the data is yours alone.",
+  "aboutQuaDescription": "Measurements of the self.",
   "aboutAnityaTitle": "Anitya",
   "aboutAnityaSubtitle": "IMPERMANENCE",
-  "aboutAnityaDescription": "The self is a process, not a fixed identity. Your data serves as proof of this flux—documenting a continuous stream of change where no single moment defines the whole.",
+  "aboutAnityaDescription": "The self is changing.",
+  "aboutPersonalTitle": "Personal",
+  "aboutPersonalDescription": "Your data, your device. No cloud required.",
   "aboutPrivacyTitle": "Private",
-  "aboutPrivacyDescription": "Data is encrypted before it ever leaves this device. Only you hold the decryption keys.",
+  "aboutPrivacyDescription": "Encrypted before it leaves this device.",
   "aboutAnonymousTitle": "Anonymous",
-  "aboutAnonymousDescription": "No personal information. The account is defined solely by a cryptographic key.",
-  "aboutLocalTitle": "Local-First",
-  "aboutLocalDescription": "Fully functional offline. Your data is on this device; the server is an optional, encrypted backup.",
-  "aboutSourceTitle": "Source Available",
-  "aboutSourceDescription": "Trust requires transparency. The codebase is public for auditing, ensuring security claims are verifiable.",
+  "aboutAnonymousDescription": "No email, no name. Just a cryptographic key.",
+  "aboutTransparentTitle": "Transparent",
+  "aboutTransparentDescription": "Source code is public for anyone to audit.",
   "getStarted": "Get Started",
   "recoveryKeyTitle": "Save Your Recovery Key",
   "recoveryKeyDescription": "This key is the only way to recover your account. Save it somewhere safe — there is no other recovery method.",
@@ -257,11 +296,8 @@
   "onboardingStoredBiometrics": "Stored on device with biometrics.",
   "backupMethodsTitle": "Backup Methods",
   "backupICloudSubtitle": "Syncs across your Apple devices.",
-  "backupFileSubtitle": "Save to Files, AirDrop, or other apps.",
+  "backupFileSubtitle": "Save to Files or other apps.",
   "backupClipboardSubtitle": "Paste into a password manager.",
-  "backupDeviceAuthTitle": "Store on Device",
-  "backupDeviceAuthSubtitle": "Protected by your device passcode.",
-  "backupDeviceAuthWarning": "If you lose this device, you'll lose this backup.",
   "backupRequiredMessage": "At least one backup method is required.",
   "backupCompleteMessage": "{count, plural, =1{1 backup method completed} other{{count} backup methods completed}}",
   "@backupCompleteMessage": {
@@ -304,6 +340,7 @@
   "templateIntegrationScriptOrchestrationFailed": "Something went wrong",
   "templateIntegrationWidgetGenerationFailed": "Could not build the form.",
   "logEntrySaved": "Entry logged",
+  "scheduleCreated": "Schedule created",
   "schedulePaused": "Schedule paused",
   "scheduleResumed": "Schedule resumed",
   "scheduleDeleted": "Schedule deleted",
@@ -359,7 +396,16 @@
       }
     }
   },
-  "enableICloudSync": "Enable iCloud Sync",
+  "revokeRequiresRecoveryKey": "Paste your recovery key to authorize this action.",
+  "recoveryKeyHint": "Paste recovery key here...",
+  "createPlatformDeviceKey": "Create {platform} Device Key",
+  "@createPlatformDeviceKey": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
   "webhooksCreateTemplateFirst": "Create a template first to add webhooks",
   "devToolsTitle": "Dev Tools",
   "devSeedFakeData": "Seed Fake Data",
@@ -463,12 +509,17 @@
   "deleteApiKeyMessage": "Are you sure you want to delete this API key? Webhooks using it will lose authentication.",
   "fieldIsListLabel": "Allow multiple values",
   "fieldIsListHint": "Records multiple entries per field, like workout sets or ingredients.",
-  "fieldRangeLabel": "Range",
+  "fieldOptionalLabel": "Optional",
+  "fieldRangeLabel": "Range (optional)",
   "fieldRangeMinHint": "Min",
   "fieldRangeMaxHint": "Max",
   "fieldRangeRequired": "Required for this widget",
   "fieldDefaultValueLabel": "Default Value (optional)",
-  "fieldDefaultValueHint": "Pre-filled when logging",
+  "fieldDefaultValueLabelShort": "Default",
+  "validationMustBeWholeNumber": "Must be a whole number",
+  "validationMustBeNumber": "Must be a number",
+  "fieldDefaultValueHint": "Quick log value",
+  "fieldDefaultValueQuickLogHint": "Set default value to enable quick log",
   "fieldDefaultValueAddOptionsFirst": "Add options first to set a default.",
   "booleanTrue": "Yes",
   "booleanFalse": "No",
@@ -609,8 +660,9 @@
   "templateContainerStyleDescription": "This controls the shape of field containers.",
   "templateAccentLabel": "Accent",
   "templateToneLabel": "Tone",
-  "aiGeneratorTitle": "AI Template Generator",
+  "aiGeneratorTitle": "AI Template Designer",
   "aiGeneratorHint": "Describe what you want to track",
+  "aiGenerationFailed": "Template generation failed. Please try again.",
   "aiAddApiKeyTitle": "Add OpenRouter API Key",
   "aiAddApiKeyDescription": "An OpenRouter API key is required for AI generation. Get one at openrouter.ai",
   "aiApiKeyNameLabel": "Name",
@@ -623,6 +675,9 @@
   "stackTraceCopied": "Stack trace copied",
   "pairingDataCopied": "Pairing data copied",
   "deviceManagementRequiresCloud": "Device management requires cloud or self-hosted mode.",
+  "deviceLocalOnly": "Stored locally",
+  "deleteCloudKey": "Delete Cloud Key",
+  "deleteCloudKeyWarning": "This will permanently remove your iCloud recovery key. If you also lose your ultimate recovery key, there will be no way to recover your account or entitlements. This cannot be undone.",
   "tooltipViewInsights": "View insights",
   "tooltipAnalyzeData": "Analyze Data",
   "tooltipStop": "Stop",
@@ -631,9 +686,10 @@
   "restorePurchases": "Restore Purchases",
   "restorePurchasesSuccess": "Purchases restored",
   "deleteAccountTitle": "Delete Account",
-  "deleteAccountMessage": "This will permanently delete your account and all data from the server. Your local data will also be wiped. This cannot be undone.",
+  "deleteAccountMessage": "This will permanently delete your cloud account, all synced data, and your iCloud recovery key. The only copy of your data will be on this device. You will also lose all purchased entitlements. This does not cancel active subscriptions — manage them in your device Settings. This cannot be undone.",
   "deleteAccountConfirm": "Delete Account",
-  "deleteAccountSuccess": "Account deleted",
+  "deleteAccountSuccess": "Cloud account deleted. Your local data is still on this device.",
+  "deleteAccountFailed": "Could not delete cloud account. Check your connection and try again.",
   "purchaseSubscribe": "Subscribe",
   "purchaseBuy": "Buy",
   "syncActive": "Cloud Sync Active",
@@ -641,6 +697,8 @@
   "entitlementLabel": "Entitlement #{id}",
   "entitlementActive": "Active",
   "entitlementInactive": "Inactive",
+  "featureCloudSync": "Cloud Sync",
+  "featureAi": "AI Credits",
   "outboxTitle": "Outbox",
   "outboxTabFeedback": "Feedback",
   "outboxTabAnalytics": "Analytics",
@@ -715,6 +773,15 @@
   "errorLocationFailed": "Location error",
   "errorRecoveryFailed": "Account recovery failed",
   "errorDeviceRevocationFailed": "Device revocation failed",
+  "errorIngestionFailed": "Data ingestion failed",
+  "errorScheduleFailed": "Schedule operation failed",
+  "errorScheduleGenerationFailed": "Schedule generation failed",
+  "errorWebhookFailed": "Webhook operation failed",
+  "errorApiKeyFailed": "API key operation failed",
+  "errorTemplateImportFailed": "Template import failed",
+  "errorKeyNotProvisioned": "Device not set up. Complete onboarding first.",
+  "errorDeviceAuthFailed": "Device authentication failed",
+  "errorSearchFailed": "Search failed",
 
   "settingsHealthData": "Health Data",
   "healthImportData": "Import Health Data",
@@ -733,16 +800,28 @@
   "resultsNoResultsTitle": "No Results Yet",
   "resultsNoResultsGraphsDescription": "Log entries to see visualizations here.",
   "resultsNoResultsAnalysisDescription": "Log entries to see analysis here.",
-  "resultsAnalyzeField": "Analyze field: {fieldName}",
+  "resultsAnalyzeField": "Analyze: {fieldName}",
   "@resultsAnalyzeField": {
     "placeholders": {
       "fieldName": { "type": "String" }
     }
   },
-  "resultsAnalyzeFields": "Analyze Fields",
-  "resultsAnalyzeFieldsDescription": "Select a numeric field to create or view analysis scripts",
-  "resultsAnalysisResults": "Analysis Results",
-  "resultsAnalysisResultsDescription": "Results from executed analysis scripts",
+  "importSourceCamera": "Camera",
+  "importSourcePhotoLibrary": "Photo Library",
+  "importValuesFilled": "Filled from image",
+  "importEntriesImported": "{count} entries imported",
+  "@importEntriesImported": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "importReviewTitle": "Review Import",
+  "importReviewConfirm": "Import All",
+  "importModelDownloadTitle": "Download AI Model",
+  "importModelDownloadMessage": "Extract data from photos using an on-device AI model. One-time download, ~470 MB. Runs privately on your device.",
+  "importModelDownloadConfirm": "Download",
+  "importModelDownloading": "Downloading model…",
+  "resultsAnalyzeFields": "Analyze",
   "resultsNoAnalysisTitle": "No Analysis Available",
   "resultsNoAnalysisDescription": "Add numeric fields to your template to enable analysis scripts.",
   "resultsDataPoints": "{count} data points",
@@ -809,7 +888,11 @@
   "analysisNewScript": "+ New",
   "analysisResults": "Results",
   "analysisRun": "Run",
+  "analysisDeleteScript": "Delete",
+  "analysisDeleteConfirmTitle": "Delete Script",
+  "analysisDeleteConfirmMessage": "This will permanently delete this analysis script.",
   "analysisSaveScript": "Save Script",
+  "analysisDeleted": "Script deleted",
   "analysisScriptNameHint": "Script name...",
   "analysisNoVectorData": "No vector data",
   "analysisNoMatrixData": "No matrix data",
@@ -944,6 +1027,8 @@
   },
   "fieldBuilderUpdateLocation": "Update Location",
   "fieldBuilderCaptureLocation": "Capture Location",
+  "fieldBuilderLocationFailed": "Could not capture location. Check permissions.",
+  "syncLocalOnly": "Local only",
   "syncConnecting": "Connecting...",
   "syncConnected": "Synced",
   "syncDownloading": "Downloading...",
@@ -967,5 +1052,87 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "tourHomeTemporalLabels": "Swipe between pages:\n-t = Past — your history\n t = Present — today's trackers\n+t = Future — upcoming reminders",
+  "tourHomeDesignerButton": "Tap here to create a new tracker — describe what you want to track or design it from scratch.",
+  "tourHomeResultsTab": "View your charts and analysis insights here.",
+  "tourHomePostageTab": "Check notifications and send feedback here.",
+  "tourHomeOfficeTab": "Manage your account, settings, and subscriptions.",
+  "tourDesignerAiPrompt": "Describe what you want to track and we'll generate a template for you.",
+  "tourDesignerNameField": "Give your tracker a name.",
+  "tourDesignerFields": "Add fields to define what data you want to capture — numbers, text, toggles, sliders, and more.",
+  "tourDesignerSchedule": "Set up daily or weekly reminders so you don't forget to log.",
+  "tourDesignerPreview": "Preview your tracker before saving.",
+  "settingsShowTour": "Show guided tour again",
+  "tourResetSuccess": "Tours will show on next visit",
+
+  "catalogFilterAll": "All",
+
+  "galleryTitle": "Get started with predefined templates",
+  "gallerySubtitle": "(or skip and create your own)",
+  "gallerySkip": "Skip",
+  "galleryStartWith": "Start with {count} templates",
+  "@galleryStartWith": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "gallerySelect": "Select",
+  "galleryDeselect": "Deselect",
+  "galleryOffline": "Connect to browse templates",
+
+  "subscriptionDisclosure": "Payment will be charged to your {storeName} account at confirmation of purchase. Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period. You can manage and cancel subscriptions in your device {settingsPath}.",
+  "@subscriptionDisclosure": {
+    "description": "Store-required subscription disclosure text shown near purchase buttons",
+    "placeholders": {
+      "storeName": { "type": "String" },
+      "settingsPath": { "type": "String" }
+    }
+  },
+  "subscriptionDisclosurePrivacyPolicy": "Privacy Policy",
+  "subscriptionDisclosureTermsOfService": "Terms of Service",
+
+  "accessibilityChangeColor": "Change color",
+  "accessibilityChangeReminderTime": "Change reminder time",
+  "accessibilityChangeTemplateIcon": "Change template icon",
+
+  "accessibilityScheduleFor": "Schedule for {name}",
+  "@accessibilityScheduleFor": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "accessibilityChangeTime": "Change time",
+  "accessibilityAddField": "Add {label} field",
+  "@accessibilityAddField": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "accessibilityAllowMultipleValues": "Allow multiple values",
+  "accessibilitySetDefaultDateTime": "Set default date/time",
+  "accessibilityDecrease": "Decrease",
+  "accessibilityIncrease": "Increase",
+  "accessibilityGenerating": "Generating...",
+  "accessibilityDataType": "Data type: {typeName}",
+  "@accessibilityDataType": {
+    "placeholders": {
+      "typeName": { "type": "String" }
+    }
+  },
+  "accessibilityDataTableRows": "Data table with {count} {count, plural, =1{row} other{rows}}",
+  "@accessibilityDataTableRows": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "analysisEntriesCount": "Entries ({count})",
+  "@analysisEntriesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "catalogTemplatesImported": "Templates imported",
+  "syncReconnected": "Sync reconnected",
+  "validationFixErrors": "Please fix the highlighted fields."
 }

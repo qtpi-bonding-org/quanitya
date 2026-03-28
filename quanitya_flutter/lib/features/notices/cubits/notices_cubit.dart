@@ -73,7 +73,7 @@ class NoticesCubit extends QuanityaCubit<NoticesState> {
 }
 
 @freezed
-class NoticesState with _$NoticesState implements IUiFlowState {
+abstract class NoticesState with _$NoticesState, UiFlowStateMixin implements IUiFlowState {
   const factory NoticesState({
     @Default([]) List<NotificationData> notifications,
     @Default(UiFlowStatus.idle) UiFlowStatus status,
@@ -81,23 +81,7 @@ class NoticesState with _$NoticesState implements IUiFlowState {
     NotificationOperation? lastOperation,
   }) = _NoticesState;
 
-  // IUiFlowState implementations
   const NoticesState._();
-
-  @override
-  bool get isIdle => status == UiFlowStatus.idle;
-
-  @override
-  bool get isLoading => status == UiFlowStatus.loading;
-
-  @override
-  bool get isSuccess => status == UiFlowStatus.success;
-
-  @override
-  bool get isFailure => status == UiFlowStatus.failure;
-
-  @override
-  bool get hasError => error != null;
 }
 
 enum NotificationOperation {

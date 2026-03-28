@@ -8,7 +8,7 @@ part 'entry_detail_state.freezed.dart';
 enum EntryDetailOperation { load, update, delete }
 
 @freezed
-class EntryDetailState 
+abstract class EntryDetailState
     with _$EntryDetailState, UiFlowStateMixin 
     implements IUiFlowState {
   const EntryDetailState._();

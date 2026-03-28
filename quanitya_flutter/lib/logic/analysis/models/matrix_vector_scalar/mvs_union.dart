@@ -15,7 +15,8 @@ part 'mvs_union.g.dart';
 /// Replaces the old AnalysisResultMvs with clearer naming.
 /// Enables infinite field extensibility and type safety.
 @freezed
-class MvsUnion with _$MvsUnion {
+abstract class MvsUnion with _$MvsUnion {
+  const MvsUnion._();
   const factory MvsUnion.timeSeriesMatrix(TimeSeriesMatrix matrix) = _MvsTimeSeriesMatrix;
   const factory MvsUnion.valueVector(ValueVector vector) = _MvsValueVector;
   const factory MvsUnion.timestampVector(TimestampVector vector) = _MvsTimestampVector;

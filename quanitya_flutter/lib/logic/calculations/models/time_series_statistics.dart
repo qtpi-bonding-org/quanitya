@@ -8,7 +8,8 @@ typedef TimeSeriesPoint = ({DateTime date, num value});
 
 /// Rolling average result with date alignment.
 @freezed
-class RollingAverageResult with _$RollingAverageResult {
+abstract class RollingAverageResult with _$RollingAverageResult {
+  const RollingAverageResult._();
   const factory RollingAverageResult({
     required List<({DateTime date, double value})> points,
     required int windowDays,
@@ -20,7 +21,8 @@ class RollingAverageResult with _$RollingAverageResult {
 
 /// Period-over-period comparison.
 @freezed
-class PeriodComparison with _$PeriodComparison {
+abstract class PeriodComparison with _$PeriodComparison {
+  const PeriodComparison._();
   const factory PeriodComparison({
     required double currentPeriodMean,
     required double previousPeriodMean,

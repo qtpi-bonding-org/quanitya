@@ -1,89 +1,85 @@
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:get_it/get_it.dart';
-import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 import 'dart:async';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../models/app_syncing_mode.dart';
-import '../services/network_service.dart';
 import '../repositories/app_syncing_repository.dart';
 import '../../../data/db/app_database.dart'; // For AppOperatingSetting
 import '../exceptions/app_syncing_exceptions.dart';
-import '../../../data/sync/powersync_service.dart';
+import '../../../infrastructure/sync/sync_service.dart';
 import 'app_syncing_state.dart';
 
-@injectable
+/// Manages sync mode state (local/cloud/selfHosted).
+///
+/// Self-initializes from [AppSyncingRepository] stream in constructor.
+/// Delegates mode persistence and connection lifecycle to [SyncService].
+///
+/// Pattern: cubit → service → repository.
+@lazySingleton
 class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
   final AppSyncingRepository _repository;
-  final INetworkService _networkService;
+  final SyncService _syncService;
 
   StreamSubscription<AppOperatingSetting>? _settingsSubscription;
-  bool _isUpdatingFromSelf = false; // Prevent circular updates
+  bool _isUpdatingFromSelf = false;
 
-  AppSyncingCubit(this._repository, this._networkService) : super(const AppSyncingState());
-
-  /// Initialize cubit by loading from database and setting up streaming
-  Future<void> initialize() => tryOperation(() async {
-    final settings = await _repository.getSettings();
-
-    // Set up streaming to react to external changes
+  AppSyncingCubit(this._repository, this._syncService)
+      : super(const AppSyncingState()) {
     _initializeStreaming();
+    _initialize();
+  }
 
-    // Load initial state from database (single source of truth)
-    return state.copyWith(
+  /// Load initial state from database and auto-connect if needed.
+  Future<void> _initialize() => tryOperation(() async {
+    final settings = await _repository.getSettings();
+    emit(state.copyWith(
       mode: settings.mode,
       serverpodUrl: _repository.serverpodUrl,
       selfHostedUrl: settings.selfHostedUrl,
-      isConnected: settings.isConnected,
       lastConnectionTest: settings.lastConnectionTest,
       status: UiFlowStatus.success,
-    );
-  }, emitLoading: true);
+    ));
 
-  /// Set up streaming to listen for external database changes
+    if (settings.mode.supportsSync) {
+      await _syncService.connect(settings.mode);
+    }
+    return state;
+  }, emitLoading: false);
+
+  /// Stream DB changes for external updates (e.g. another isolate).
   void _initializeStreaming() {
-    _settingsSubscription?.cancel(); // Cancel any existing subscription
-
+    _settingsSubscription?.cancel();
     _settingsSubscription = _repository.watchSettings().listen((settings) {
-      // Only react to external changes (not our own updates)
       if (!_isUpdatingFromSelf && settings.mode != state.mode) {
         _handleExternalModeChange(settings);
       }
-
-      // Always update connection status and timestamps (these can change externally)
       if (!_isUpdatingFromSelf &&
-          (settings.isConnected != state.isConnected ||
-           settings.lastConnectionTest != state.lastConnectionTest)) {
+          settings.lastConnectionTest != state.lastConnectionTest) {
         emit(state.copyWith(
-          isConnected: settings.isConnected,
           lastConnectionTest: settings.lastConnectionTest,
         ));
       }
     });
   }
 
-  /// Handle mode changes that came from external sources (like AuthService)
   Future<void> _handleExternalModeChange(AppOperatingSetting settings) async {
     try {
-      // Handle PowerSync connection change
-      await _handlePowerSyncModeChange(settings.mode);
-
-      // Update UI state to reflect external change
+      if (settings.mode.supportsSync) {
+        await _syncService.connect(settings.mode);
+      } else {
+        await _syncService.disconnect();
+      }
       emit(state.copyWith(
         mode: settings.mode,
-        isConnected: settings.isConnected,
         selfHostedUrl: settings.selfHostedUrl,
         lastConnectionTest: settings.lastConnectionTest,
-        // Don't set status to loading - this is an external change
         status: UiFlowStatus.success,
         lastOperation: AppSyncingOperation.externalChange,
       ));
     } catch (e) {
-      // If PowerSync fails, still update the mode but show error
       emit(state.copyWith(
         mode: settings.mode,
-        isConnected: settings.isConnected,
         selfHostedUrl: settings.selfHostedUrl,
         lastConnectionTest: settings.lastConnectionTest,
         status: UiFlowStatus.failure,
@@ -99,69 +95,62 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     return super.close();
   }
 
-  /// Test connection to a server URL — does NOT change syncing mode
-  Future<void> testConnection([String? customUrl]) => tryOperation(() async {
-    final url = customUrl ?? _getCurrentModeUrl();
-    if (url == null) {
-      throw const AppSyncingException('No URL configured for current mode');
-    }
+  // ---------------------------------------------------------------------------
+  // Mode switching — all delegate to SyncService (service owns persist + connect)
+  // ---------------------------------------------------------------------------
 
-    final isReachable = await _networkService.testConnection(url);
-    await _repository.updateConnectionStatus(isReachable);
-
-    return state.copyWith(
-      status: UiFlowStatus.success,
-      isConnected: isReachable,
-      hasTriedConnection: true,
-      lastTestedUrl: url,
-      lastConnectionTest: DateTime.now(),
-      lastOperation: AppSyncingOperation.testConnection,
-    );
-  }, emitLoading: true);
-
-  /// Switch to local-only mode (always succeeds)
-  Future<void> switchToLocal() async {
+  /// Switch to local-only mode.
+  Future<void> switchToLocal({bool emitLoading = true}) async {
     _isUpdatingFromSelf = true;
     try {
       await tryOperation(() async {
-        await _repository.updateMode(AppSyncingMode.local);
-        await _handlePowerSyncModeChange(AppSyncingMode.local);
+        await _syncService.switchMode(AppSyncingMode.local);
         analytics?.trackSyncModeChanged();
         return state.copyWith(
           mode: AppSyncingMode.local,
-          isConnected: false, // Local doesn't need connection
           status: UiFlowStatus.success,
           lastOperation: AppSyncingOperation.switchMode,
         );
-      }, emitLoading: true);
+      }, emitLoading: emitLoading);
     } finally {
       _isUpdatingFromSelf = false;
     }
   }
 
-  /// Switch to self-hosted mode and test connection
+  /// Switch to cloud mode.
+  Future<void> switchToCloud({bool emitLoading = true}) async {
+    _isUpdatingFromSelf = true;
+    try {
+      await tryOperation(() async {
+        await _syncService.switchMode(AppSyncingMode.cloud);
+        analytics?.trackSyncModeChanged();
+        return state.copyWith(
+          mode: AppSyncingMode.cloud,
+          hasTriedConnection: true,
+          lastTestedUrl: state.serverpodUrl,
+          lastConnectionTest: DateTime.now(),
+          status: UiFlowStatus.success,
+          lastOperation: AppSyncingOperation.switchMode,
+        );
+      }, emitLoading: emitLoading);
+    } finally {
+      _isUpdatingFromSelf = false;
+    }
+  }
+
+  /// Switch to self-hosted mode.
   Future<void> switchToSelfHosted(String serverUrl) async {
     _isUpdatingFromSelf = true;
     try {
       await tryOperation(() async {
-        // Validate URL format
         if (!_isValidUrl(serverUrl)) {
           throw const AppSyncingException('Invalid server URL format');
         }
-
-        // Test connection
-        final isReachable = await _networkService.testConnection(serverUrl);
-        await _repository.updateMode(AppSyncingMode.selfHosted, selfHostedUrl: serverUrl);
-
-        // Handle PowerSync mode change
-        await _handlePowerSyncModeChange(AppSyncingMode.selfHosted);
-
+        await _syncService.switchMode(AppSyncingMode.selfHosted);
         analytics?.trackSyncModeChanged();
-
         return state.copyWith(
           mode: AppSyncingMode.selfHosted,
           selfHostedUrl: serverUrl,
-          isConnected: isReachable,
           hasTriedConnection: true,
           lastTestedUrl: serverUrl,
           lastConnectionTest: DateTime.now(),
@@ -174,41 +163,11 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     }
   }
 
-  /// Switch to cloud mode — test connection and switch
-  Future<void> switchToCloud() async {
-    _isUpdatingFromSelf = true;
-    try {
-      await tryOperation(() async {
-        final isReachable = await _networkService.testConnection(state.baseUrl);
-
-        await _repository.updateMode(AppSyncingMode.cloud);
-
-        // Handle PowerSync mode change
-        await _handlePowerSyncModeChange(AppSyncingMode.cloud);
-
-        analytics?.trackSyncModeChanged();
-
-        return state.copyWith(
-          mode: AppSyncingMode.cloud,
-          isConnected: isReachable,
-          hasTriedConnection: true,
-          lastTestedUrl: state.serverpodUrl,
-          lastConnectionTest: DateTime.now(),
-          status: UiFlowStatus.success,
-          lastOperation: AppSyncingOperation.switchMode,
-        );
-      }, emitLoading: true);
-    } finally {
-      _isUpdatingFromSelf = false;
-    }
-  }
-
-  /// Configure self-hosted URL without switching modes
+  /// Configure self-hosted URL without switching modes.
   Future<void> configureSelfHostedUrl(String serverUrl) => tryOperation(() async {
     if (!_isValidUrl(serverUrl)) {
       throw const AppSyncingException('Invalid server URL format');
     }
-
     return state.copyWith(
       selfHostedUrl: serverUrl,
       status: UiFlowStatus.success,
@@ -216,22 +175,32 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
     );
   });
 
-  /// Retry connection for current mode (ping only, no mode change)
+  /// Retry connection for current mode.
   Future<void> retryConnection() async {
-    final url = _getCurrentModeUrl();
-    if (url != null) {
-      await testConnection(url);
+    if (state.mode.supportsSync) {
+      await tryOperation(() async {
+        await _syncService.connect(state.mode);
+        return state.copyWith(
+          hasTriedConnection: true,
+          lastConnectionTest: DateTime.now(),
+          status: UiFlowStatus.success,
+          lastOperation: AppSyncingOperation.testConnection,
+        );
+      }, emitLoading: true);
     }
   }
 
-  // Private helpers
-  String? _getCurrentModeUrl() {
-    return switch (state.mode) {
-      AppSyncingMode.local => null,
-      AppSyncingMode.selfHosted => state.selfHostedUrl,
-      AppSyncingMode.cloud => state.serverpodUrl,
-    };
-  }
+  /// Bootstrap sync after account recovery.
+  ///
+  /// Resets E2EE puller checkpoints and connects through the full
+  /// auth + entitlement gate. Non-fatal — app works offline if this fails.
+  Future<void> startSyncAfterRecovery() => tryOperation(() async {
+    await _syncService.reconnectAfterRecovery();
+    return state.copyWith(
+      status: UiFlowStatus.success,
+      lastOperation: AppSyncingOperation.startSyncAfterRecovery,
+    );
+  }, emitLoading: false);
 
   bool _isValidUrl(String url) {
     try {
@@ -241,22 +210,4 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
       return false;
     }
   }
-
-  /// Handle PowerSync connection/disconnection based on syncing mode
-  Future<void> _handlePowerSyncModeChange(AppSyncingMode mode) async {
-    try {
-      if (GetIt.instance.isRegistered<IPowerSyncService>() &&
-          GetIt.instance.isRegistered<Client>()) {
-        final powerSync = GetIt.instance<IPowerSyncService>();
-        final client = GetIt.instance<Client>();
-        await powerSync.handleModeChange(mode, client);
-      }
-    } catch (e) {
-      // Don't fail the mode switch if PowerSync fails
-      // App can work without sync
-    }
-  }
 }
-
-/// Typedef for backward compatibility
-typedef AppOperatingCubit = AppSyncingCubit;

@@ -18,6 +18,7 @@ class TemporalPastPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TimelineDataCubit, TimelineDataState>(
+        buildWhen: (p, c) => p.status != c.status || p.pastItems != c.pastItems,
         builder: (context, state) {
           if (state.isLoading) {
             return const Center(child: CircularProgressIndicator());

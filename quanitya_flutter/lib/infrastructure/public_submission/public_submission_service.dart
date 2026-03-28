@@ -5,13 +5,16 @@ import 'package:anonaccount_client/anonaccount_client.dart'
     show PublicChallengeResponse;
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     show Client, ServerException, ServerErrorCode;
-import 'package:flutter/foundation.dart' show Uint8List, debugPrint;
+import 'package:flutter/foundation.dart' show Uint8List;
+import '../config/debug_log.dart';
 
 import '../crypto/crypto_key_repository.dart';
 import '../crypto/utils/hashcash.dart';
 import '../core/try_operation.dart';
 import 'exceptions/public_submission_exceptions.dart';
 import 'interfaces/i_public_submission_service.dart';
+
+const _tag = 'infrastructure/public_submission/public_submission_service';
 
 /// Reusable service for public (unauthenticated) submissions.
 ///
@@ -56,31 +59,31 @@ class PublicSubmissionService implements IPublicSubmissionService {
     return tryMethod(
       () async {
         // Step 1: Get challenge from server
-        debugPrint('📤 [$endpoint] Step 1: Getting challenge...');
+        Log.d(_tag, '📤 [$endpoint] Step 1: Getting challenge...');
         final challengeResponse = await _getChallenge(endpoint);
-        debugPrint('📤 [$endpoint] Step 1: Got challenge (difficulty: ${challengeResponse.difficulty})');
+        Log.d(_tag, '📤 [$endpoint] Step 1: Got challenge (difficulty: ${challengeResponse.difficulty})');
 
         // Step 2: Mine proof-of-work
-        debugPrint('📤 [$endpoint] Step 2: Mining PoW...');
+        Log.d(_tag, '📤 [$endpoint] Step 2: Mining PoW...');
         final proofOfWork = await _mineProofOfWork(
           challengeResponse.challenge,
           challengeResponse.difficulty,
         );
-        debugPrint('📤 [$endpoint] Step 2: PoW complete');
+        Log.d(_tag, '📤 [$endpoint] Step 2: PoW complete');
 
         // Step 3: Get device signing key
-        debugPrint('📤 [$endpoint] Step 3: Getting device key...');
+        Log.d(_tag, '📤 [$endpoint] Step 3: Getting device key...');
         final publicKeyHex = await _getDevicePublicKeyHex();
-        debugPrint('📤 [$endpoint] Step 3: Got key (${publicKeyHex.substring(0, 8)}...)');
+        Log.d(_tag, '📤 [$endpoint] Step 3: Got key (${publicKeyHex.substring(0, 8)}...)');
 
         // Step 4: Sign payload (prepend challenge)
-        debugPrint('📤 [$endpoint] Step 4: Signing payload...');
+        Log.d(_tag, '📤 [$endpoint] Step 4: Signing payload...');
         final fullPayload = '${challengeResponse.challenge}:$payload';
         final signature = await _signPayload(fullPayload);
-        debugPrint('📤 [$endpoint] Step 4: Signed (${signature.substring(0, 8)}...)');
+        Log.d(_tag, '📤 [$endpoint] Step 4: Signed (${signature.substring(0, 8)}...)');
 
         // Step 5: Submit to server
-        debugPrint('📤 [$endpoint] Step 5: Submitting to server...');
+        Log.d(_tag, '📤 [$endpoint] Step 5: Submitting to server...');
         try {
           await submitCallback(
             challengeResponse.challenge,
@@ -102,7 +105,7 @@ class PublicSubmissionService implements IPublicSubmissionService {
               throw PublicSubmissionException(e.message);
           }
         }
-        debugPrint('📤 [$endpoint] Step 5: Submission successful');
+        Log.d(_tag, '📤 [$endpoint] Step 5: Submission successful');
       },
       PublicSubmissionException.new,
       'submitWithVerification',
@@ -122,27 +125,27 @@ class PublicSubmissionService implements IPublicSubmissionService {
   }) {
     return tryMethod(
       () async {
-        debugPrint('📤 [$endpoint] Step 1: Getting challenge...');
+        Log.d(_tag, '📤 [$endpoint] Step 1: Getting challenge...');
         final challengeResponse = await _getChallenge(endpoint);
-        debugPrint('📤 [$endpoint] Step 1: Got challenge (difficulty: ${challengeResponse.difficulty})');
+        Log.d(_tag, '📤 [$endpoint] Step 1: Got challenge (difficulty: ${challengeResponse.difficulty})');
 
-        debugPrint('📤 [$endpoint] Step 2: Mining PoW...');
+        Log.d(_tag, '📤 [$endpoint] Step 2: Mining PoW...');
         final proofOfWork = await _mineProofOfWork(
           challengeResponse.challenge,
           challengeResponse.difficulty,
         );
-        debugPrint('📤 [$endpoint] Step 2: PoW complete');
+        Log.d(_tag, '📤 [$endpoint] Step 2: PoW complete');
 
-        debugPrint('📤 [$endpoint] Step 3: Getting device key...');
+        Log.d(_tag, '📤 [$endpoint] Step 3: Getting device key...');
         final publicKeyHex = await _getDevicePublicKeyHex();
-        debugPrint('📤 [$endpoint] Step 3: Got key (${publicKeyHex.substring(0, 8)}...)');
+        Log.d(_tag, '📤 [$endpoint] Step 3: Got key (${publicKeyHex.substring(0, 8)}...)');
 
-        debugPrint('📤 [$endpoint] Step 4: Signing payload...');
+        Log.d(_tag, '📤 [$endpoint] Step 4: Signing payload...');
         final fullPayload = '${challengeResponse.challenge}:$payload';
         final signature = await _signPayload(fullPayload);
-        debugPrint('📤 [$endpoint] Step 4: Signed (${signature.substring(0, 8)}...)');
+        Log.d(_tag, '📤 [$endpoint] Step 4: Signed (${signature.substring(0, 8)}...)');
 
-        debugPrint('📤 [$endpoint] Step 5: Querying server...');
+        Log.d(_tag, '📤 [$endpoint] Step 5: Querying server...');
         try {
           final result = await queryCallback(
             challengeResponse.challenge,
@@ -150,7 +153,7 @@ class PublicSubmissionService implements IPublicSubmissionService {
             publicKeyHex,
             signature,
           );
-          debugPrint('📤 [$endpoint] Step 5: Query successful');
+          Log.d(_tag, '📤 [$endpoint] Step 5: Query successful');
           return result;
         } on ServerException catch (e) {
           switch (e.code) {
@@ -177,24 +180,24 @@ class PublicSubmissionService implements IPublicSubmissionService {
     try {
       return await _client.modules.anonaccount.entrypoint.getChallenge();
     } catch (e) {
-      throw PublicSubmissionException('Failed to get challenge: $e');
+      throw PublicSubmissionException('getChallenge failed', e);
     }
   }
   
   /// Mine Hashcash proof-of-work.
   Future<String> _mineProofOfWork(String challenge, int difficulty) async {
     try {
-      debugPrint('📤 Mining proof-of-work (difficulty: $difficulty)...');
+      Log.d(_tag, '📤 Mining proof-of-work (difficulty: $difficulty)...');
       final startTime = DateTime.now();
       
       final stamp = await Hashcash.mint(challenge, difficulty: difficulty);
       
       final miningTime = DateTime.now().difference(startTime);
-      debugPrint('📤 Proof-of-work complete in ${miningTime.inMilliseconds}ms');
+      Log.d(_tag, '📤 Proof-of-work complete in ${miningTime.inMilliseconds}ms');
       
       return stamp;
     } catch (e) {
-      throw PublicSubmissionException('Failed to mine proof-of-work: $e');
+      throw PublicSubmissionException('mineProofOfWork failed', e);
     }
   }
   
@@ -234,7 +237,7 @@ class PublicSubmissionService implements IPublicSubmissionService {
       
       return signature;
     } catch (e) {
-      throw PublicSubmissionException('Failed to sign payload: $e');
+      throw PublicSubmissionException('signPayload failed', e);
     }
   }
 }

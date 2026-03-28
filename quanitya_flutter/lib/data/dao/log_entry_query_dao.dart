@@ -335,6 +335,8 @@ class LogEntryQueryDao {
   /// Watch logged/completed entries
   Stream<List<LogEntryModel>> watchLogged({
     String? templateId,
+    DateTime? startDate,
+    DateTime? endDate,
     OrderingMode sortOrder = OrderingMode.desc,
   }) {
     final query = _db.select(_db.logEntries).join([
@@ -352,6 +354,14 @@ class LogEntryQueryDao {
 
     if (templateId != null) {
       query.where(_db.logEntries.templateId.equals(templateId));
+    }
+
+    if (startDate != null) {
+      query.where(_db.logEntries.occurredAt.isBiggerOrEqualValue(startDate));
+    }
+
+    if (endDate != null) {
+      query.where(_db.logEntries.occurredAt.isSmallerThanValue(endDate));
     }
 
     query.orderBy([
@@ -440,10 +450,16 @@ class LogEntryQueryDao {
   /// Watch logged entries with full context
   Stream<List<LogEntryWithContext>> watchLoggedWithContext({
     String? templateId,
+    DateTime? startDate,
+    DateTime? endDate,
     OrderingMode sortOrder = OrderingMode.desc,
   }) {
-    return watchLogged(templateId: templateId, sortOrder: sortOrder)
-        .asyncMap(_loadContextForList);
+    return watchLogged(
+      templateId: templateId,
+      startDate: startDate,
+      endDate: endDate,
+      sortOrder: sortOrder,
+    ).asyncMap(_loadContextForList);
   }
 
   // ─────────────────────────────────────────────────────────────────────────

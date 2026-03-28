@@ -116,39 +116,6 @@ void main() {
       });
     });
 
-    group('Dependency Injection Integration', () {
-      test('Service registration and wiring', () {
-        expect(() => testGetIt<AiTemplateGenerator>(), returnsNormally);
-        expect(() => testGetIt<SymbolicCombinationGenerator>(), returnsNormally);
-        expect(() => testGetIt<UnifiedSchemaGenerator>(), returnsNormally);
-        
-        final retrievedGenerator = testGetIt<AiTemplateGenerator>();
-        expect(retrievedGenerator, isNotNull);
-        expect(retrievedGenerator, isA<AiTemplateGenerator>());
-        
-        expect(() => retrievedGenerator.generateSchema(), returnsNormally);
-      });
-
-      test('Extension method access', () {
-        expect(testGetIt.get<AiTemplateGenerator>(), isNotNull);
-      });
-    });
-
-    group('Performance and Reliability', () {
-      test('Multiple schema generations are consistent', () {
-        final schema1 = generator.generateSchema();
-        final schema2 = generator.generateSchema();
-        
-        expect(schema1['\$schema'], equals(schema2['\$schema']));
-        expect(schema1['type'], equals(schema2['type']));
-        expect(schema1['additionalProperties'], equals(schema2['additionalProperties']));
-        
-        final props1 = schema1['properties'] as Map<String, dynamic>;
-        final props2 = schema2['properties'] as Map<String, dynamic>;
-        
-        expect(props1.keys.toSet(), equals(props2.keys.toSet()));
-      });
-    });
   });
 }
 

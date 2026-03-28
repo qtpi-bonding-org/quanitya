@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 import 'interfaces/i_cross_device_key_storage.dart';
@@ -15,7 +16,7 @@ class ICloudKeyStorage implements ICrossDeviceKeyStorage {
   ICloudKeyStorage(this._secureStorage);
 
   @override
-  bool get isAvailable => Platform.isIOS;
+  bool get isAvailable => !kIsWeb && Platform.isIOS;
 
   @override
   String get deviceLabel => 'iCloud';
@@ -61,7 +62,7 @@ class NoOpCrossDeviceKeyStorage implements ICrossDeviceKeyStorage {
 abstract class CrossDeviceKeyModule {
   @lazySingleton
   ICrossDeviceKeyStorage crossDeviceStorage(ISecureStorage secureStorage) {
-    if (Platform.isIOS) {
+    if (!kIsWeb && Platform.isIOS) {
       return ICloudKeyStorage(secureStorage);
     }
     // TODO: Android Block Store — return BlockStoreKeyStorage(...)

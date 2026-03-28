@@ -1,13 +1,15 @@
 import 'dart:async';
 
 import 'package:dart_jwk_duo/dart_jwk_duo.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import '../../../infrastructure/config/debug_log.dart';
 
 import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import '../services/pairing_service.dart';
 import 'pairing_qr_state.dart';
+
+const _tag = 'features/device_pairing/cubits/pairing_qr_cubit';
 
 /// Cubit for Device B (new device) - generates QR and polls for registration.
 ///
@@ -43,7 +45,8 @@ class PairingQrCubit extends QuanityaCubit<PairingQrState> {
       // Store for later use
       _pendingDeviceKey = result.deviceKey;
 
-      debugPrint(
+      Log.d(
+        _tag,
         'PairingQrCubit: QR data generated, monitoring registration...',
       );
 
@@ -66,13 +69,14 @@ class PairingQrCubit extends QuanityaCubit<PairingQrState> {
         .monitorRegistration(signingKeyHex)
         .listen(
           (encryptedDataKey) {
-            debugPrint(
+            Log.d(
+              _tag,
               'PairingQrCubit: Registration event received! Completing pairing...',
             );
             _completePairing(encryptedDataKey);
           },
           onError: (e) {
-            debugPrint('PairingQrCubit: Monitoring error: $e');
+            Log.d(_tag, 'PairingQrCubit: Monitoring error: $e');
             // Ideally handle error state here, or retry
           },
         );
@@ -103,7 +107,7 @@ class PairingQrCubit extends QuanityaCubit<PairingQrState> {
       // Clear temporary storage
       _pendingDeviceKey = null;
 
-      debugPrint('PairingQrCubit: Pairing completed successfully!');
+      Log.d(_tag, 'PairingQrCubit: Pairing completed successfully!');
 
       return state.copyWith(
         status: UiFlowStatus.success,

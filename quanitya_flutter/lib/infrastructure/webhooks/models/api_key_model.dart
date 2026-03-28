@@ -15,7 +15,8 @@ enum AuthType {
 /// 
 /// Actual key value stored in flutter_secure_storage, not here.
 @freezed
-class ApiKeyModel with _$ApiKeyModel {
+abstract class ApiKeyModel with _$ApiKeyModel {
+  const ApiKeyModel._();
   const factory ApiKeyModel({
     required String id,
     required String name,

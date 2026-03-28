@@ -279,6 +279,126 @@ void main() {
         expect(result.aesthetics.emoji, '🏋️');
       });
 
+      test('parses group field with sub-fields', () {
+        final aiJson = {
+          'fields': [
+            {
+              'label': 'Sets',
+              'fieldType': 'group',
+              'uiElement': 'stepper',
+              'isList': true,
+              'listMinItems': 1,
+              'listMaxItems': 5,
+              'subFields': [
+                {
+                  'label': 'Weight',
+                  'fieldType': 'float',
+                  'uiElement': 'slider',
+                  'isList': false,
+                  'listMinItems': 0,
+                  'listMaxItems': 10,
+                },
+                {
+                  'label': 'Reps',
+                  'fieldType': 'integer',
+                  'uiElement': 'stepper',
+                  'isList': false,
+                  'listMinItems': 0,
+                  'listMaxItems': 10,
+                },
+              ],
+            },
+          ],
+          'colorPalette': {
+            'colors': ['#1976D2', '#388E3C'],
+            'neutrals': ['#212121', '#F5F5F5'],
+          },
+        };
+
+        final result = parser.parse(
+          aiJson: aiJson,
+          templateName: 'Workout',
+        );
+
+        final field = result.template.fields[0];
+        expect(field.type, FieldEnum.group);
+        expect(field.isList, true);
+        expect(field.subFields, isNotNull);
+        expect(field.subFields!.length, 2);
+        expect(field.subFields![0].label, 'Weight');
+        expect(field.subFields![0].type, FieldEnum.float);
+        expect(field.subFields![1].label, 'Reps');
+        expect(field.subFields![1].type, FieldEnum.integer);
+      });
+
+      test('rejects nested groups', () {
+        final aiJson = {
+          'fields': [
+            {
+              'label': 'Outer',
+              'fieldType': 'group',
+              'uiElement': 'stepper',
+              'isList': true,
+              'listMinItems': 0,
+              'listMaxItems': 10,
+              'subFields': [
+                {
+                  'label': 'Inner',
+                  'fieldType': 'group',
+                  'uiElement': 'stepper',
+                  'isList': false,
+                  'listMinItems': 0,
+                  'listMaxItems': 10,
+                  'subFields': [
+                    {
+                      'label': 'Value',
+                      'fieldType': 'integer',
+                      'uiElement': 'stepper',
+                      'isList': false,
+                      'listMinItems': 0,
+                      'listMaxItems': 10,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          'colorPalette': {
+            'colors': ['#1976D2', '#388E3C'],
+            'neutrals': ['#212121', '#F5F5F5'],
+          },
+        };
+
+        expect(
+          () => parser.parse(aiJson: aiJson, templateName: 'Test'),
+          throwsA(isA<TemplateParsingException>()),
+        );
+      });
+
+      test('rejects group field without subFields', () {
+        final aiJson = {
+          'fields': [
+            {
+              'label': 'Sets',
+              'fieldType': 'group',
+              'uiElement': 'stepper',
+              'isList': true,
+              'listMinItems': 0,
+              'listMaxItems': 10,
+            },
+          ],
+          'colorPalette': {
+            'colors': ['#1976D2', '#388E3C'],
+            'neutrals': ['#212121', '#F5F5F5'],
+          },
+        };
+
+        expect(
+          () => parser.parse(aiJson: aiJson, templateName: 'Test'),
+          throwsA(isA<TemplateParsingException>()),
+        );
+      });
+
       test('normalizes hex colors to uppercase', () {
         final aiJson = {
           'fields': [

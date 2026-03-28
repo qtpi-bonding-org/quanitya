@@ -11,41 +11,53 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'admin_signing_key.dart' as _i2;
-import 'analytics_event.dart' as _i3;
-import 'batch_submission_result.dart' as _i4;
-import 'cloud_llm_call_type.dart' as _i5;
-import 'cloud_llm_structured_request.dart' as _i6;
-import 'cloud_llm_structured_response.dart' as _i7;
-import 'consumption_schedule_data.dart' as _i8;
-import 'error_report.dart' as _i9;
-import 'feedback_report.dart' as _i10;
-import 'feedback_type.dart' as _i11;
-import 'notification.dart' as _i12;
-import 'notification_receipt.dart' as _i13;
-import 'notification_type.dart' as _i14;
-import 'platform_catalog_response.dart' as _i15;
-import 'platform_rail_entry.dart' as _i16;
-import 'platform_rail_list.dart' as _i17;
-import 'rail_catalog_entry.dart' as _i18;
-import 'rail_status.dart' as _i19;
-import 'server_error_code.dart' as _i20;
-import 'server_exception.dart' as _i21;
+import 'account_feature_entitlement.dart' as _i2;
+import 'admin_signing_key.dart' as _i3;
+import 'analytics_event.dart' as _i4;
+import 'app_entitlement.dart' as _i5;
+import 'batch_submission_result.dart' as _i6;
+import 'catalog_grant.dart' as _i7;
+import 'catalog_product.dart' as _i8;
+import 'cloud_llm_call_type.dart' as _i9;
+import 'cloud_llm_structured_request.dart' as _i10;
+import 'cloud_llm_structured_response.dart' as _i11;
+import 'consumption_schedule_data.dart' as _i12;
+import 'error_report.dart' as _i13;
+import 'feature.dart' as _i14;
+import 'feedback_report.dart' as _i15;
+import 'feedback_type.dart' as _i16;
+import 'notification.dart' as _i17;
+import 'notification_receipt.dart' as _i18;
+import 'notification_type.dart' as _i19;
+import 'platform_catalog_response.dart' as _i20;
+import 'platform_rail_entry.dart' as _i21;
+import 'platform_rail_list.dart' as _i22;
+import 'rail_catalog_entry.dart' as _i23;
+import 'rail_status.dart' as _i24;
+import 'server_error_code.dart' as _i25;
+import 'server_exception.dart' as _i26;
+import 'package:quanitya_cloud_client/src/protocol/account_feature_entitlement.dart'
+    as _i27;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i22;
+    as _i28;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
-    as _i23;
-import 'package:quanitya_client/quanitya_client.dart' as _i24;
-import 'package:anonaccount_client/anonaccount_client.dart' as _i25;
-import 'package:anonaccred_client/anonaccred_client.dart' as _i26;
+    as _i29;
+import 'package:quanitya_client/quanitya_client.dart' as _i30;
+import 'package:anonaccount_client/anonaccount_client.dart' as _i31;
+import 'package:anonaccred_client/anonaccred_client.dart' as _i32;
+export 'account_feature_entitlement.dart';
 export 'admin_signing_key.dart';
 export 'analytics_event.dart';
+export 'app_entitlement.dart';
 export 'batch_submission_result.dart';
+export 'catalog_grant.dart';
+export 'catalog_product.dart';
 export 'cloud_llm_call_type.dart';
 export 'cloud_llm_structured_request.dart';
 export 'cloud_llm_structured_response.dart';
 export 'consumption_schedule_data.dart';
 export 'error_report.dart';
+export 'feature.dart';
 export 'feedback_report.dart';
 export 'feedback_type.dart';
 export 'notification.dart';
@@ -94,191 +106,244 @@ class Protocol extends _i1.SerializationManager {
       }
     }
 
-    if (t == _i2.AdminSigningKey) {
-      return _i2.AdminSigningKey.fromJson(data) as T;
+    if (t == _i2.AccountFeatureEntitlement) {
+      return _i2.AccountFeatureEntitlement.fromJson(data) as T;
     }
-    if (t == _i3.AnalyticsEvent) {
-      return _i3.AnalyticsEvent.fromJson(data) as T;
+    if (t == _i3.AdminSigningKey) {
+      return _i3.AdminSigningKey.fromJson(data) as T;
     }
-    if (t == _i4.BatchSubmissionResult) {
-      return _i4.BatchSubmissionResult.fromJson(data) as T;
+    if (t == _i4.AnalyticsEvent) {
+      return _i4.AnalyticsEvent.fromJson(data) as T;
     }
-    if (t == _i5.CloudLlmCallType) {
-      return _i5.CloudLlmCallType.fromJson(data) as T;
+    if (t == _i5.AppEntitlement) {
+      return _i5.AppEntitlement.fromJson(data) as T;
     }
-    if (t == _i6.CloudLlmStructuredRequest) {
-      return _i6.CloudLlmStructuredRequest.fromJson(data) as T;
+    if (t == _i6.BatchSubmissionResult) {
+      return _i6.BatchSubmissionResult.fromJson(data) as T;
     }
-    if (t == _i7.CloudLlmStructuredResponse) {
-      return _i7.CloudLlmStructuredResponse.fromJson(data) as T;
+    if (t == _i7.CatalogGrant) {
+      return _i7.CatalogGrant.fromJson(data) as T;
     }
-    if (t == _i8.ConsumptionScheduleData) {
-      return _i8.ConsumptionScheduleData.fromJson(data) as T;
+    if (t == _i8.CatalogProduct) {
+      return _i8.CatalogProduct.fromJson(data) as T;
     }
-    if (t == _i9.ErrorReport) {
-      return _i9.ErrorReport.fromJson(data) as T;
+    if (t == _i9.CloudLlmCallType) {
+      return _i9.CloudLlmCallType.fromJson(data) as T;
     }
-    if (t == _i10.FeedbackReport) {
-      return _i10.FeedbackReport.fromJson(data) as T;
+    if (t == _i10.CloudLlmStructuredRequest) {
+      return _i10.CloudLlmStructuredRequest.fromJson(data) as T;
     }
-    if (t == _i11.FeedbackType) {
-      return _i11.FeedbackType.fromJson(data) as T;
+    if (t == _i11.CloudLlmStructuredResponse) {
+      return _i11.CloudLlmStructuredResponse.fromJson(data) as T;
     }
-    if (t == _i12.Notification) {
-      return _i12.Notification.fromJson(data) as T;
+    if (t == _i12.ConsumptionScheduleData) {
+      return _i12.ConsumptionScheduleData.fromJson(data) as T;
     }
-    if (t == _i13.NotificationReceipt) {
-      return _i13.NotificationReceipt.fromJson(data) as T;
+    if (t == _i13.ErrorReport) {
+      return _i13.ErrorReport.fromJson(data) as T;
     }
-    if (t == _i14.NotificationType) {
-      return _i14.NotificationType.fromJson(data) as T;
+    if (t == _i14.Feature) {
+      return _i14.Feature.fromJson(data) as T;
     }
-    if (t == _i15.PlatformCatalogResponse) {
-      return _i15.PlatformCatalogResponse.fromJson(data) as T;
+    if (t == _i15.FeedbackReport) {
+      return _i15.FeedbackReport.fromJson(data) as T;
     }
-    if (t == _i16.PlatformRailEntry) {
-      return _i16.PlatformRailEntry.fromJson(data) as T;
+    if (t == _i16.FeedbackType) {
+      return _i16.FeedbackType.fromJson(data) as T;
     }
-    if (t == _i17.PlatformRailList) {
-      return _i17.PlatformRailList.fromJson(data) as T;
+    if (t == _i17.Notification) {
+      return _i17.Notification.fromJson(data) as T;
     }
-    if (t == _i18.RailCatalogEntry) {
-      return _i18.RailCatalogEntry.fromJson(data) as T;
+    if (t == _i18.NotificationReceipt) {
+      return _i18.NotificationReceipt.fromJson(data) as T;
     }
-    if (t == _i19.RailStatus) {
-      return _i19.RailStatus.fromJson(data) as T;
+    if (t == _i19.NotificationType) {
+      return _i19.NotificationType.fromJson(data) as T;
     }
-    if (t == _i20.ServerErrorCode) {
-      return _i20.ServerErrorCode.fromJson(data) as T;
+    if (t == _i20.PlatformCatalogResponse) {
+      return _i20.PlatformCatalogResponse.fromJson(data) as T;
     }
-    if (t == _i21.ServerException) {
-      return _i21.ServerException.fromJson(data) as T;
+    if (t == _i21.PlatformRailEntry) {
+      return _i21.PlatformRailEntry.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i2.AdminSigningKey?>()) {
-      return (data != null ? _i2.AdminSigningKey.fromJson(data) : null) as T;
+    if (t == _i22.PlatformRailList) {
+      return _i22.PlatformRailList.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i3.AnalyticsEvent?>()) {
-      return (data != null ? _i3.AnalyticsEvent.fromJson(data) : null) as T;
+    if (t == _i23.RailCatalogEntry) {
+      return _i23.RailCatalogEntry.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i4.BatchSubmissionResult?>()) {
-      return (data != null ? _i4.BatchSubmissionResult.fromJson(data) : null)
-          as T;
+    if (t == _i24.RailStatus) {
+      return _i24.RailStatus.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i5.CloudLlmCallType?>()) {
-      return (data != null ? _i5.CloudLlmCallType.fromJson(data) : null) as T;
+    if (t == _i25.ServerErrorCode) {
+      return _i25.ServerErrorCode.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i6.CloudLlmStructuredRequest?>()) {
+    if (t == _i26.ServerException) {
+      return _i26.ServerException.fromJson(data) as T;
+    }
+    if (t == _i1.getType<_i2.AccountFeatureEntitlement?>()) {
       return (data != null
-              ? _i6.CloudLlmStructuredRequest.fromJson(data)
+              ? _i2.AccountFeatureEntitlement.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i7.CloudLlmStructuredResponse?>()) {
+    if (t == _i1.getType<_i3.AdminSigningKey?>()) {
+      return (data != null ? _i3.AdminSigningKey.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i4.AnalyticsEvent?>()) {
+      return (data != null ? _i4.AnalyticsEvent.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i5.AppEntitlement?>()) {
+      return (data != null ? _i5.AppEntitlement.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i6.BatchSubmissionResult?>()) {
+      return (data != null ? _i6.BatchSubmissionResult.fromJson(data) : null)
+          as T;
+    }
+    if (t == _i1.getType<_i7.CatalogGrant?>()) {
+      return (data != null ? _i7.CatalogGrant.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i8.CatalogProduct?>()) {
+      return (data != null ? _i8.CatalogProduct.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i9.CloudLlmCallType?>()) {
+      return (data != null ? _i9.CloudLlmCallType.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i10.CloudLlmStructuredRequest?>()) {
       return (data != null
-              ? _i7.CloudLlmStructuredResponse.fromJson(data)
+              ? _i10.CloudLlmStructuredRequest.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i8.ConsumptionScheduleData?>()) {
-      return (data != null ? _i8.ConsumptionScheduleData.fromJson(data) : null)
+    if (t == _i1.getType<_i11.CloudLlmStructuredResponse?>()) {
+      return (data != null
+              ? _i11.CloudLlmStructuredResponse.fromJson(data)
+              : null)
           as T;
     }
-    if (t == _i1.getType<_i9.ErrorReport?>()) {
-      return (data != null ? _i9.ErrorReport.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i10.FeedbackReport?>()) {
-      return (data != null ? _i10.FeedbackReport.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i11.FeedbackType?>()) {
-      return (data != null ? _i11.FeedbackType.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i12.Notification?>()) {
-      return (data != null ? _i12.Notification.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i13.NotificationReceipt?>()) {
-      return (data != null ? _i13.NotificationReceipt.fromJson(data) : null)
+    if (t == _i1.getType<_i12.ConsumptionScheduleData?>()) {
+      return (data != null ? _i12.ConsumptionScheduleData.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i14.NotificationType?>()) {
-      return (data != null ? _i14.NotificationType.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i13.ErrorReport?>()) {
+      return (data != null ? _i13.ErrorReport.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i15.PlatformCatalogResponse?>()) {
-      return (data != null ? _i15.PlatformCatalogResponse.fromJson(data) : null)
+    if (t == _i1.getType<_i14.Feature?>()) {
+      return (data != null ? _i14.Feature.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i15.FeedbackReport?>()) {
+      return (data != null ? _i15.FeedbackReport.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i16.FeedbackType?>()) {
+      return (data != null ? _i16.FeedbackType.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i17.Notification?>()) {
+      return (data != null ? _i17.Notification.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i18.NotificationReceipt?>()) {
+      return (data != null ? _i18.NotificationReceipt.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i16.PlatformRailEntry?>()) {
-      return (data != null ? _i16.PlatformRailEntry.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i19.NotificationType?>()) {
+      return (data != null ? _i19.NotificationType.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i17.PlatformRailList?>()) {
-      return (data != null ? _i17.PlatformRailList.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i20.PlatformCatalogResponse?>()) {
+      return (data != null ? _i20.PlatformCatalogResponse.fromJson(data) : null)
+          as T;
     }
-    if (t == _i1.getType<_i18.RailCatalogEntry?>()) {
-      return (data != null ? _i18.RailCatalogEntry.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i21.PlatformRailEntry?>()) {
+      return (data != null ? _i21.PlatformRailEntry.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i19.RailStatus?>()) {
-      return (data != null ? _i19.RailStatus.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i22.PlatformRailList?>()) {
+      return (data != null ? _i22.PlatformRailList.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i20.ServerErrorCode?>()) {
-      return (data != null ? _i20.ServerErrorCode.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i23.RailCatalogEntry?>()) {
+      return (data != null ? _i23.RailCatalogEntry.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i21.ServerException?>()) {
-      return (data != null ? _i21.ServerException.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i24.RailStatus?>()) {
+      return (data != null ? _i24.RailStatus.fromJson(data) : null) as T;
     }
-    if (t == List<_i18.RailCatalogEntry>) {
+    if (t == _i1.getType<_i25.ServerErrorCode?>()) {
+      return (data != null ? _i25.ServerErrorCode.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i26.ServerException?>()) {
+      return (data != null ? _i26.ServerException.fromJson(data) : null) as T;
+    }
+    if (t == List<_i7.CatalogGrant>) {
       return (data as List)
-              .map((e) => deserialize<_i18.RailCatalogEntry>(e))
+              .map((e) => deserialize<_i7.CatalogGrant>(e))
               .toList()
           as T;
     }
-    if (t == List<_i16.PlatformRailEntry>) {
+    if (t == List<_i23.RailCatalogEntry>) {
       return (data as List)
-              .map((e) => deserialize<_i16.PlatformRailEntry>(e))
+              .map((e) => deserialize<_i23.RailCatalogEntry>(e))
               .toList()
           as T;
     }
-    if (t == List<String>) {
-      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
+    if (t == List<_i21.PlatformRailEntry>) {
+      return (data as List)
+              .map((e) => deserialize<_i21.PlatformRailEntry>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i8.CatalogProduct>) {
+      return (data as List)
+              .map((e) => deserialize<_i8.CatalogProduct>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i27.AccountFeatureEntitlement>) {
+      return (data as List)
+              .map((e) => deserialize<_i27.AccountFeatureEntitlement>(e))
+              .toList()
+          as T;
     }
     try {
-      return _i22.Protocol().deserialize<T>(data, t);
+      return _i28.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i23.Protocol().deserialize<T>(data, t);
+      return _i29.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i24.Protocol().deserialize<T>(data, t);
+      return _i30.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i25.Protocol().deserialize<T>(data, t);
+      return _i31.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i26.Protocol().deserialize<T>(data, t);
+      return _i32.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i2.AdminSigningKey => 'AdminSigningKey',
-      _i3.AnalyticsEvent => 'AnalyticsEvent',
-      _i4.BatchSubmissionResult => 'BatchSubmissionResult',
-      _i5.CloudLlmCallType => 'CloudLlmCallType',
-      _i6.CloudLlmStructuredRequest => 'CloudLlmStructuredRequest',
-      _i7.CloudLlmStructuredResponse => 'CloudLlmStructuredResponse',
-      _i8.ConsumptionScheduleData => 'ConsumptionScheduleData',
-      _i9.ErrorReport => 'ErrorReport',
-      _i10.FeedbackReport => 'FeedbackReport',
-      _i11.FeedbackType => 'FeedbackType',
-      _i12.Notification => 'Notification',
-      _i13.NotificationReceipt => 'NotificationReceipt',
-      _i14.NotificationType => 'NotificationType',
-      _i15.PlatformCatalogResponse => 'PlatformCatalogResponse',
-      _i16.PlatformRailEntry => 'PlatformRailEntry',
-      _i17.PlatformRailList => 'PlatformRailList',
-      _i18.RailCatalogEntry => 'RailCatalogEntry',
-      _i19.RailStatus => 'RailStatus',
-      _i20.ServerErrorCode => 'ServerErrorCode',
-      _i21.ServerException => 'ServerException',
+      _i2.AccountFeatureEntitlement => 'AccountFeatureEntitlement',
+      _i3.AdminSigningKey => 'AdminSigningKey',
+      _i4.AnalyticsEvent => 'AnalyticsEvent',
+      _i5.AppEntitlement => 'AppEntitlement',
+      _i6.BatchSubmissionResult => 'BatchSubmissionResult',
+      _i7.CatalogGrant => 'CatalogGrant',
+      _i8.CatalogProduct => 'CatalogProduct',
+      _i9.CloudLlmCallType => 'CloudLlmCallType',
+      _i10.CloudLlmStructuredRequest => 'CloudLlmStructuredRequest',
+      _i11.CloudLlmStructuredResponse => 'CloudLlmStructuredResponse',
+      _i12.ConsumptionScheduleData => 'ConsumptionScheduleData',
+      _i13.ErrorReport => 'ErrorReport',
+      _i14.Feature => 'Feature',
+      _i15.FeedbackReport => 'FeedbackReport',
+      _i16.FeedbackType => 'FeedbackType',
+      _i17.Notification => 'Notification',
+      _i18.NotificationReceipt => 'NotificationReceipt',
+      _i19.NotificationType => 'NotificationType',
+      _i20.PlatformCatalogResponse => 'PlatformCatalogResponse',
+      _i21.PlatformRailEntry => 'PlatformRailEntry',
+      _i22.PlatformRailList => 'PlatformRailList',
+      _i23.RailCatalogEntry => 'RailCatalogEntry',
+      _i24.RailStatus => 'RailStatus',
+      _i25.ServerErrorCode => 'ServerErrorCode',
+      _i26.ServerException => 'ServerException',
       _ => null,
     };
   }
@@ -296,64 +361,74 @@ class Protocol extends _i1.SerializationManager {
     }
 
     switch (data) {
-      case _i2.AdminSigningKey():
+      case _i2.AccountFeatureEntitlement():
+        return 'AccountFeatureEntitlement';
+      case _i3.AdminSigningKey():
         return 'AdminSigningKey';
-      case _i3.AnalyticsEvent():
+      case _i4.AnalyticsEvent():
         return 'AnalyticsEvent';
-      case _i4.BatchSubmissionResult():
+      case _i5.AppEntitlement():
+        return 'AppEntitlement';
+      case _i6.BatchSubmissionResult():
         return 'BatchSubmissionResult';
-      case _i5.CloudLlmCallType():
+      case _i7.CatalogGrant():
+        return 'CatalogGrant';
+      case _i8.CatalogProduct():
+        return 'CatalogProduct';
+      case _i9.CloudLlmCallType():
         return 'CloudLlmCallType';
-      case _i6.CloudLlmStructuredRequest():
+      case _i10.CloudLlmStructuredRequest():
         return 'CloudLlmStructuredRequest';
-      case _i7.CloudLlmStructuredResponse():
+      case _i11.CloudLlmStructuredResponse():
         return 'CloudLlmStructuredResponse';
-      case _i8.ConsumptionScheduleData():
+      case _i12.ConsumptionScheduleData():
         return 'ConsumptionScheduleData';
-      case _i9.ErrorReport():
+      case _i13.ErrorReport():
         return 'ErrorReport';
-      case _i10.FeedbackReport():
+      case _i14.Feature():
+        return 'Feature';
+      case _i15.FeedbackReport():
         return 'FeedbackReport';
-      case _i11.FeedbackType():
+      case _i16.FeedbackType():
         return 'FeedbackType';
-      case _i12.Notification():
+      case _i17.Notification():
         return 'Notification';
-      case _i13.NotificationReceipt():
+      case _i18.NotificationReceipt():
         return 'NotificationReceipt';
-      case _i14.NotificationType():
+      case _i19.NotificationType():
         return 'NotificationType';
-      case _i15.PlatformCatalogResponse():
+      case _i20.PlatformCatalogResponse():
         return 'PlatformCatalogResponse';
-      case _i16.PlatformRailEntry():
+      case _i21.PlatformRailEntry():
         return 'PlatformRailEntry';
-      case _i17.PlatformRailList():
+      case _i22.PlatformRailList():
         return 'PlatformRailList';
-      case _i18.RailCatalogEntry():
+      case _i23.RailCatalogEntry():
         return 'RailCatalogEntry';
-      case _i19.RailStatus():
+      case _i24.RailStatus():
         return 'RailStatus';
-      case _i20.ServerErrorCode():
+      case _i25.ServerErrorCode():
         return 'ServerErrorCode';
-      case _i21.ServerException():
+      case _i26.ServerException():
         return 'ServerException';
     }
-    className = _i22.Protocol().getClassNameForObject(data);
+    className = _i28.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i23.Protocol().getClassNameForObject(data);
+    className = _i29.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
-    className = _i24.Protocol().getClassNameForObject(data);
+    className = _i30.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'quanitya.$className';
     }
-    className = _i25.Protocol().getClassNameForObject(data);
+    className = _i31.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'anonaccount.$className';
     }
-    className = _i26.Protocol().getClassNameForObject(data);
+    className = _i32.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'anonaccred.$className';
     }
@@ -366,85 +441,100 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
+    if (dataClassName == 'AccountFeatureEntitlement') {
+      return deserialize<_i2.AccountFeatureEntitlement>(data['data']);
+    }
     if (dataClassName == 'AdminSigningKey') {
-      return deserialize<_i2.AdminSigningKey>(data['data']);
+      return deserialize<_i3.AdminSigningKey>(data['data']);
     }
     if (dataClassName == 'AnalyticsEvent') {
-      return deserialize<_i3.AnalyticsEvent>(data['data']);
+      return deserialize<_i4.AnalyticsEvent>(data['data']);
+    }
+    if (dataClassName == 'AppEntitlement') {
+      return deserialize<_i5.AppEntitlement>(data['data']);
     }
     if (dataClassName == 'BatchSubmissionResult') {
-      return deserialize<_i4.BatchSubmissionResult>(data['data']);
+      return deserialize<_i6.BatchSubmissionResult>(data['data']);
+    }
+    if (dataClassName == 'CatalogGrant') {
+      return deserialize<_i7.CatalogGrant>(data['data']);
+    }
+    if (dataClassName == 'CatalogProduct') {
+      return deserialize<_i8.CatalogProduct>(data['data']);
     }
     if (dataClassName == 'CloudLlmCallType') {
-      return deserialize<_i5.CloudLlmCallType>(data['data']);
+      return deserialize<_i9.CloudLlmCallType>(data['data']);
     }
     if (dataClassName == 'CloudLlmStructuredRequest') {
-      return deserialize<_i6.CloudLlmStructuredRequest>(data['data']);
+      return deserialize<_i10.CloudLlmStructuredRequest>(data['data']);
     }
     if (dataClassName == 'CloudLlmStructuredResponse') {
-      return deserialize<_i7.CloudLlmStructuredResponse>(data['data']);
+      return deserialize<_i11.CloudLlmStructuredResponse>(data['data']);
     }
     if (dataClassName == 'ConsumptionScheduleData') {
-      return deserialize<_i8.ConsumptionScheduleData>(data['data']);
+      return deserialize<_i12.ConsumptionScheduleData>(data['data']);
     }
     if (dataClassName == 'ErrorReport') {
-      return deserialize<_i9.ErrorReport>(data['data']);
+      return deserialize<_i13.ErrorReport>(data['data']);
+    }
+    if (dataClassName == 'Feature') {
+      return deserialize<_i14.Feature>(data['data']);
     }
     if (dataClassName == 'FeedbackReport') {
-      return deserialize<_i10.FeedbackReport>(data['data']);
+      return deserialize<_i15.FeedbackReport>(data['data']);
     }
     if (dataClassName == 'FeedbackType') {
-      return deserialize<_i11.FeedbackType>(data['data']);
+      return deserialize<_i16.FeedbackType>(data['data']);
     }
     if (dataClassName == 'Notification') {
-      return deserialize<_i12.Notification>(data['data']);
+      return deserialize<_i17.Notification>(data['data']);
     }
     if (dataClassName == 'NotificationReceipt') {
-      return deserialize<_i13.NotificationReceipt>(data['data']);
+      return deserialize<_i18.NotificationReceipt>(data['data']);
     }
     if (dataClassName == 'NotificationType') {
-      return deserialize<_i14.NotificationType>(data['data']);
+      return deserialize<_i19.NotificationType>(data['data']);
     }
     if (dataClassName == 'PlatformCatalogResponse') {
-      return deserialize<_i15.PlatformCatalogResponse>(data['data']);
+      return deserialize<_i20.PlatformCatalogResponse>(data['data']);
     }
     if (dataClassName == 'PlatformRailEntry') {
-      return deserialize<_i16.PlatformRailEntry>(data['data']);
+      return deserialize<_i21.PlatformRailEntry>(data['data']);
     }
     if (dataClassName == 'PlatformRailList') {
-      return deserialize<_i17.PlatformRailList>(data['data']);
+      return deserialize<_i22.PlatformRailList>(data['data']);
     }
     if (dataClassName == 'RailCatalogEntry') {
-      return deserialize<_i18.RailCatalogEntry>(data['data']);
+      return deserialize<_i23.RailCatalogEntry>(data['data']);
     }
     if (dataClassName == 'RailStatus') {
-      return deserialize<_i19.RailStatus>(data['data']);
+      return deserialize<_i24.RailStatus>(data['data']);
     }
     if (dataClassName == 'ServerErrorCode') {
-      return deserialize<_i20.ServerErrorCode>(data['data']);
+      return deserialize<_i25.ServerErrorCode>(data['data']);
     }
     if (dataClassName == 'ServerException') {
-      return deserialize<_i21.ServerException>(data['data']);
+      return deserialize<_i26.ServerException>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i22.Protocol().deserializeByClassName(data);
+      return _i28.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i23.Protocol().deserializeByClassName(data);
+      return _i29.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('quanitya.')) {
       data['className'] = dataClassName.substring(9);
-      return _i24.Protocol().deserializeByClassName(data);
+      return _i30.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('anonaccount.')) {
       data['className'] = dataClassName.substring(12);
-      return _i25.Protocol().deserializeByClassName(data);
+      return _i31.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('anonaccred.')) {
       data['className'] = dataClassName.substring(11);
-      return _i26.Protocol().deserializeByClassName(data);
+      return _i32.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -459,19 +549,19 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i22.Protocol().mapRecordToJson(record);
+      return _i28.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i23.Protocol().mapRecordToJson(record);
+      return _i29.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i24.Protocol().mapRecordToJson(record);
+      return _i30.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i25.Protocol().mapRecordToJson(record);
+      return _i31.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i26.Protocol().mapRecordToJson(record);
+      return _i32.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

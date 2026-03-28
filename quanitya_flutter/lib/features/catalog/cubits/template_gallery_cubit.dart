@@ -1,0 +1,148 @@
+import 'package:cubit_ui_flow/cubit_ui_flow.dart';
+import 'package:injectable/injectable.dart';
+
+import '../../../infrastructure/core/try_operation.dart';
+import '../../../support/extensions/cubit_ui_flow_extension.dart';
+import '../../../data/interfaces/analysis_script_interface.dart';
+import '../../../data/repositories/template_with_aesthetics_repository.dart';
+import '../models/catalog_data.dart';
+import '../services/template_catalog_service.dart';
+import '../../../logic/templates/models/shared/shareable_template.dart';
+import '../../../logic/templates/services/sharing/shareable_template_staging.dart';
+import 'template_gallery_state.dart';
+
+export 'template_gallery_state.dart';
+
+/// Cubit for the template gallery page.
+///
+/// Manages catalog loading, category filtering, template selection,
+/// preview fetching, and batch importing of community templates.
+@injectable
+class TemplateGalleryCubit extends QuanityaCubit<TemplateGalleryState> {
+  final TemplateCatalogService _catalogService;
+  final ShareableTemplateStaging _staging;
+  final TemplateWithAestheticsRepository _templateRepository;
+  final IAnalysisScriptRepository _scriptRepository;
+
+  TemplateGalleryCubit(
+    this._catalogService,
+    this._staging,
+    this._templateRepository,
+    this._scriptRepository,
+  ) : super(const TemplateGalleryState());
+
+  /// Load the template catalog from the remote repository.
+  Future<void> loadCatalog() => tryOperation(() async {
+        final catalog = await _catalogService.fetchCatalog();
+        return state.copyWith(
+          status: UiFlowStatus.success,
+          lastOperation: TemplateGalleryOperation.load,
+          catalog: catalog,
+        );
+      }, emitLoading: true);
+
+  /// Filter templates by category. Pass `null` to show all.
+  void selectCategory(String? categoryId) {
+    emit(state.copyWith(selectedCategory: categoryId));
+  }
+
+  /// Returns templates filtered by the currently selected category.
+  List<CatalogEntry> get filteredTemplates {
+    final templates = state.catalog?.templates ?? [];
+    if (state.selectedCategory == null) return templates;
+    return templates
+        .where((t) => t.category == state.selectedCategory)
+        .toList();
+  }
+
+  /// Toggle selection of a template by slug.
+  void toggleSelection(String slug) {
+    final updated = Set<String>.from(state.selectedSlugs);
+    if (updated.contains(slug)) {
+      updated.remove(slug);
+    } else {
+      updated.add(slug);
+    }
+    emit(state.copyWith(selectedSlugs: updated));
+  }
+
+  /// Whether a template is currently selected.
+  bool isSelected(String slug) => state.selectedSlugs.contains(slug);
+
+  /// Fetch and cache a template preview for detail display.
+  Future<void> fetchPreview(String slug) async {
+    if (state.previewCache.containsKey(slug)) {
+      emit(state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: TemplateGalleryOperation.preview,
+        previewSlug: slug,
+      ));
+      return;
+    }
+    return tryOperation(() async {
+      final template = await _catalogService.fetchTemplate(slug);
+      final updatedCache =
+          Map<String, ShareableTemplate>.from(state.previewCache);
+      updatedCache[slug] = template;
+      return state.copyWith(
+        status: UiFlowStatus.success,
+        lastOperation: TemplateGalleryOperation.preview,
+        previewCache: updatedCache,
+        previewSlug: slug,
+      );
+    }, emitLoading: true);
+  }
+
+  /// Clear the current preview slug so the same template can be re-opened.
+  void clearPreview() {
+    emit(state.copyWith(
+      previewSlug: null,
+      lastOperation: null,
+    ));
+  }
+
+  /// Import all currently selected templates.
+  ///
+  /// Each import is wrapped in tryMethod for proper error logging.
+  /// Tracks per-template success/failure:
+  /// - All succeeded → [UiFlowStatus.success]
+  /// - Some failed → [UiFlowStatus.success] with [failedCount] for UI messaging
+  /// - All failed → [UiFlowStatus.failure]
+  Future<void> importSelected() => tryOperation(() async {
+        var imported = 0;
+        var failed = 0;
+        for (final slug in state.selectedSlugs) {
+          try {
+            await tryMethod(
+              () async {
+                final shareable = await _catalogService.fetchTemplate(slug);
+                _staging.stage(shareable);
+                final converted = _staging.templateWithAesthetics!;
+                await _templateRepository.save(converted);
+                final templateId = converted.template.id;
+                for (final script in _staging.remappedScripts(templateId: templateId)) {
+                  await _scriptRepository.saveScript(script);
+                }
+                _staging.clear();
+              },
+              (message, [cause]) => Exception('$message (slug: $slug)'),
+              'importTemplate',
+            );
+            imported++;
+          } catch (_) {
+            failed++;
+          }
+        }
+        final allFailed = imported == 0 && failed > 0;
+        if (!allFailed) analytics?.trackCatalogTemplatesImported();
+        return state.copyWith(
+          status: allFailed ? UiFlowStatus.failure : UiFlowStatus.success,
+          lastOperation: TemplateGalleryOperation.import_,
+          importedCount: imported,
+          failedCount: failed,
+        );
+      }, emitLoading: true);
+
+  /// Number of currently selected templates.
+  int get selectedCount => state.selectedSlugs.length;
+}

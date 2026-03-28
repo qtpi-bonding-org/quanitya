@@ -48,7 +48,7 @@ void main() {
     test('registerDevice return type is AccountDevice', () {
       Future<AccountDevice> simulatedCall() async {
         return AccountDevice(
-          id: 1,
+          id: UuidValue.fromString('00000000-0000-0000-0000-000000000001'),
           anonAccountId: UuidValue.fromString('00000000-0000-0000-0000-00000000002a'),
           deviceSigningPublicKeyHex: 'key',
           encryptedDataKey: 'blob',
@@ -69,7 +69,7 @@ void main() {
       Future<AuthenticationResult> simulatedCall() async {
         return AuthenticationResult(
           success: true,
-          deviceId: 1,
+          deviceId: UuidValue.fromString('00000000-0000-0000-0000-000000000002'),
         );
       }
 
@@ -186,7 +186,7 @@ void main() {
         String challenge,
         String signature,
       ) async {
-        return AuthenticationResult(success: true, deviceId: 1);
+        return AuthenticationResult(success: true, deviceId: UuidValue.fromString('00000000-0000-0000-0000-000000000003'));
       }
 
       expect(
@@ -195,10 +195,10 @@ void main() {
       );
     });
 
-    test('device.revokeDevice signature: (int) -> void', () {
-      Future<void> expectedSignature(int deviceId) async {}
+    test('device.revokeDevice signature: (UuidValue) -> void', () {
+      Future<void> expectedSignature(UuidValue deviceId) async {}
 
-      expect(expectedSignature, isA<Future<void> Function(int)>());
+      expect(expectedSignature, isA<Future<void> Function(UuidValue)>());
     });
   });
 }

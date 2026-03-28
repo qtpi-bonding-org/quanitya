@@ -82,8 +82,25 @@ class ResultsListCubit extends QuanityaCubit<ResultsListState> {
             templateName: t.template.name,
             entryCount: s.entryCount,
             lastLoggedAt: s.lastLoggedAt,
-            hasGraphableFields: t.template.fields
-                .any((f) => graphableTypes.contains(f.type)),
+            hasGraphableFields: t.template.fields.any((f) =>
+                graphableTypes.contains(f.type) ||
+                (f.type == FieldEnum.group &&
+                    f.subFields != null &&
+                    f.subFields!
+                        .any((sf) => graphableTypes.contains(sf.type)))),
+            hasAnalyzableFields: t.template.fields.any((f) {
+              const analyzableTypes = {
+                FieldEnum.integer,
+                FieldEnum.float,
+                FieldEnum.dimension,
+                FieldEnum.boolean,
+              };
+              return analyzableTypes.contains(f.type) ||
+                  (f.type == FieldEnum.group &&
+                      f.subFields != null &&
+                      f.subFields!
+                          .any((sf) => analyzableTypes.contains(sf.type)));
+            }),
             isHidden: t.template.isHidden,
             icon: t.aesthetics.icon,
             emoji: t.aesthetics.emoji,
