@@ -543,7 +543,7 @@
   "restorePurchases": "Restaurer les achats",
   "restorePurchasesSuccess": "Achats restaurés",
   "deleteAccountTitle": "Supprimer le compte",
-  "deleteAccountMessage": "Cela supprimera définitivement votre compte cloud, toutes les données synchronisées et votre clé de récupération iCloud. La seule copie de vos données sera sur cet appareil. Vous perdrez aussi tous les droits achetés. Cette action est irréversible.",
+  "deleteAccountMessage": "Cela supprimera définitivement votre compte cloud, toutes les données synchronisées et votre clé de récupération iCloud. La seule copie de vos données sera sur cet appareil. Vous perdrez aussi tous les droits achetés. Cela n'annule pas les abonnements actifs — gérez-les dans les Réglages de votre appareil. Cette action est irréversible.",
   "deleteAccountConfirm": "Supprimer le compte",
   "deleteAccountSuccess": "Compte cloud supprimé. Vos données locales sont toujours sur cet appareil.",
   "deleteAccountFailed": "Impossible de supprimer le compte cloud. Vérifiez votre connexion et réessayez.",

@@ -543,7 +543,7 @@
   "restorePurchases": "Restaurar Compras",
   "restorePurchasesSuccess": "Compras restauradas",
   "deleteAccountTitle": "Excluir Conta",
-  "deleteAccountMessage": "Isso excluirá permanentemente sua conta na nuvem, todos os dados sincronizados e sua chave de recuperação do iCloud. A única cópia dos seus dados ficará neste dispositivo. Você também perderá todas as permissões adquiridas. Essa ação não pode ser desfeita.",
+  "deleteAccountMessage": "Isso excluirá permanentemente sua conta na nuvem, todos os dados sincronizados e sua chave de recuperação do iCloud. A única cópia dos seus dados ficará neste dispositivo. Você também perderá todas as permissões adquiridas. Isso não cancela assinaturas ativas — gerencie-as nos Ajustes do seu dispositivo. Essa ação não pode ser desfeita.",
   "deleteAccountConfirm": "Excluir Conta",
   "deleteAccountSuccess": "Conta na nuvem excluída. Seus dados locais permanecem neste dispositivo.",
   "deleteAccountFailed": "Não foi possível excluir a conta na nuvem. Verifique sua conexão e tente novamente.",
