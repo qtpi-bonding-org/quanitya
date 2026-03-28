@@ -762,7 +762,7 @@
   "gallerySelect": "Seleccionar",
   "galleryDeselect": "Deseleccionar",
   "galleryOffline": "Conéctate para explorar plantillas",
-  "subscriptionDisclosure": "El pago se cargará a tu cuenta de Apple ID al confirmar la compra. Las suscripciones se renuevan automáticamente a menos que se cancelen al menos 24 horas antes del fin del período actual. Puedes gestionar y cancelar suscripciones en Ajustes del dispositivo > Apple ID > Suscripciones.",
+  "subscriptionDisclosure": "El pago se cargará a tu cuenta de {storeName} al confirmar la compra. Las suscripciones se renuevan automáticamente a menos que se cancelen al menos 24 horas antes del fin del período actual. Puedes gestionar y cancelar suscripciones en {settingsPath}.",
   "subscriptionDisclosurePrivacyPolicy": "Política de privacidad",
   "subscriptionDisclosureTermsOfService": "Términos de servicio",
   "accessibilityChangeColor": "Cambiar color",

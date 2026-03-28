@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
@@ -254,13 +255,8 @@ class _ProductSections extends StatelessWidget {
               ),
             ),
           VSpace.x2,
-          if (section.key == StoreProductType.subscription)
-            const _SubscriptionDisclosure(),
         ],
-        if (!hasSubscriptions)
-          // No subscription section rendered — still show disclosure
-          // if subscriptions may load later. Omit in this case.
-          const SizedBox.shrink(),
+        if (hasSubscriptions) const _SubscriptionDisclosure(),
       ],
     );
   }
@@ -400,6 +396,16 @@ class _SubscriptionDisclosureState extends State<_SubscriptionDisclosure> {
     super.dispose();
   }
 
+  String _disclosureText(BuildContext context) {
+    final isApple = defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+    final storeName = isApple ? 'Apple ID' : 'Google Play';
+    final settingsPath = isApple
+        ? 'Settings > Apple ID > Subscriptions'
+        : 'Settings > Google Play > Subscriptions';
+    return context.l10n.subscriptionDisclosure(storeName, settingsPath);
+  }
+
   Future<void> _openUrl(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
@@ -424,7 +430,7 @@ class _SubscriptionDisclosureState extends State<_SubscriptionDisclosure> {
         TextSpan(
           style: baseStyle,
           children: [
-            TextSpan(text: context.l10n.subscriptionDisclosure),
+            TextSpan(text: _disclosureText(context)),
             const TextSpan(text: '\n\n'),
             TextSpan(
               text: context.l10n.subscriptionDisclosurePrivacyPolicy,

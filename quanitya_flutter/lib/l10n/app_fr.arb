@@ -762,7 +762,7 @@
   "gallerySelect": "Sélectionner",
   "galleryDeselect": "Désélectionner",
   "galleryOffline": "Connectez-vous pour parcourir les modèles",
-  "subscriptionDisclosure": "Le paiement sera débité de votre compte Apple ID à la confirmation de l'achat. Les abonnements se renouvellent automatiquement sauf annulation au moins 24 heures avant la fin de la période en cours. Vous pouvez gérer et annuler vos abonnements dans Réglages > Apple ID > Abonnements.",
+  "subscriptionDisclosure": "Le paiement sera débité de votre compte {storeName} à la confirmation de l'achat. Les abonnements se renouvellent automatiquement sauf annulation au moins 24 heures avant la fin de la période en cours. Vous pouvez gérer et annuler vos abonnements dans {settingsPath}.",
   "subscriptionDisclosurePrivacyPolicy": "Politique de confidentialité",
   "subscriptionDisclosureTermsOfService": "Conditions d'utilisation",
   "accessibilityChangeColor": "Changer la couleur",

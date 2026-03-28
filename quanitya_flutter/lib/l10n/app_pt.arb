@@ -762,7 +762,7 @@
   "gallerySelect": "Selecionar",
   "galleryDeselect": "Desmarcar",
   "galleryOffline": "Conecte-se para explorar templates",
-  "subscriptionDisclosure": "O pagamento será cobrado na sua conta Apple ID ao confirmar a compra. As assinaturas são renovadas automaticamente, a menos que sejam canceladas pelo menos 24 horas antes do fim do período atual. Você pode gerenciar e cancelar assinaturas em Ajustes > Apple ID > Assinaturas.",
+  "subscriptionDisclosure": "O pagamento será cobrado na sua conta {storeName} ao confirmar a compra. As assinaturas são renovadas automaticamente, a menos que sejam canceladas pelo menos 24 horas antes do fim do período atual. Você pode gerenciar e cancelar assinaturas em {settingsPath}.",
   "subscriptionDisclosurePrivacyPolicy": "Política de Privacidade",
   "subscriptionDisclosureTermsOfService": "Termos de Serviço",
   "accessibilityChangeColor": "Alterar cor",
