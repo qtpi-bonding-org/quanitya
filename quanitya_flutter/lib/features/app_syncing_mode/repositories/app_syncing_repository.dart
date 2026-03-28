@@ -14,7 +14,7 @@ class AppSyncingRepository {
   final AppDatabase _db;
   final AppConfig _config;
 
-  bool _initialized = false;
+  Future<void>? _initFuture;
 
   AppSyncingRepository(this._db, this._config);
 
@@ -39,11 +39,9 @@ class AppSyncingRepository {
   }
 
   /// Watch settings changes - stream from database.
-  /// Ensures initialization before subscribing to avoid watchSingle() crash
-  /// on empty or duplicate rows.
-  Stream<AppOperatingSetting> watchSettings() async* {
-    await _ensureInitialized();
-    yield* _db.select(_db.appOperatingSettings).watchSingle();
+  /// Callers must ensure [_ensureInitialized] has been called first.
+  Stream<AppOperatingSetting> watchSettings() {
+    return _db.select(_db.appOperatingSettings).watchSingle();
   }
 
   /// Get serverpod URL from environment config (not stored in DB)
@@ -122,21 +120,20 @@ class AppSyncingRepository {
   }
 
   /// Ensure database has exactly one settings row (local mode default).
-  /// Called on every app startup - idempotent and race-safe.
-  Future<void> _ensureInitialized() async {
-    if (_initialized) return;
+  /// Uses a shared future so concurrent callers all await the same init.
+  Future<void> _ensureInitialized() => _initFuture ??= _doInitialize();
 
+  Future<void> _doInitialize() async {
     final rows = await _db.select(_db.appOperatingSettings).get();
 
     if (rows.isEmpty) {
-      // First time — insert local mode as default
       await _db.into(_db.appOperatingSettings).insert(
         AppOperatingSettingsCompanion.insert(
           mode: AppSyncingMode.local,
         ),
       );
     } else if (rows.length > 1) {
-      // Race condition left duplicates — keep first, delete rest
+      // Deduplicate — keep first, delete rest
       final idsToDelete = rows.skip(1).map((r) => r.id).toList();
       for (final id in idsToDelete) {
         await (_db.delete(_db.appOperatingSettings)
@@ -144,8 +141,6 @@ class AppSyncingRepository {
           .go();
       }
     }
-
-    _initialized = true;
   }
 }
 

@@ -26,13 +26,13 @@ class AppSyncingCubit extends QuanityaCubit<AppSyncingState> {
 
   AppSyncingCubit(this._repository, this._syncService)
       : super(const AppSyncingState()) {
-    _initializeStreaming();
     _initialize();
   }
 
-  /// Load initial state from database and auto-connect if needed.
+  /// Load initial state from database, then start streaming for changes.
   Future<void> _initialize() => tryOperation(() async {
     final settings = await _repository.getSettings();
+    _initializeStreaming();
     emit(state.copyWith(
       mode: settings.mode,
       serverpodUrl: _repository.serverpodUrl,
