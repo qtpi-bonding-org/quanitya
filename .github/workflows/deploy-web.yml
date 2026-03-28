@@ -57,10 +57,6 @@ jobs:
         flutter-version: '3.38.5'
         channel: 'stable'
 
-    - name: Configure Git for private repos
-      run: |
-        git config --global url."https://${{ secrets.QUANITYA_FLUTTER_WEB_GITHUB_PAT }}@github.com/".insteadOf "git@github.com:"
-
     - name: Verify Environment Configuration
       run: |
         echo "Deploying to: ${{ needs.setup.outputs.environment }}"
