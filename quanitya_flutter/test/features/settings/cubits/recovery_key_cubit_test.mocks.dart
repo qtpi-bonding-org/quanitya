@@ -165,9 +165,16 @@ class MockAccountService extends _i1.Mock implements _i3.AccountService {
           as _i4.Future<List<_i5.AccountDevice>>);
 
   @override
-  _i4.Future<void> revokeDevice(_i6.UuidValue? deviceId, {required String? ultimateKeyJwk}) =>
+  _i4.Future<void> revokeDevice(
+    _i6.UuidValue? deviceId, {
+    required String? ultimateKeyJwk,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#revokeDevice, [deviceId], {#ultimateKeyJwk: ultimateKeyJwk}),
+            Invocation.method(
+              #revokeDevice,
+              [deviceId],
+              {#ultimateKeyJwk: ultimateKeyJwk},
+            ),
             returnValue: _i4.Future<void>.value(),
             returnValueForMissingStub: _i4.Future<void>.value(),
           )

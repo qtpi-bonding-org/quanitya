@@ -97,4 +97,5 @@ class AuthRepository {
         AuthRepositoryException.new,
         'deleteRegistrationPayload',
       );
+
 }
