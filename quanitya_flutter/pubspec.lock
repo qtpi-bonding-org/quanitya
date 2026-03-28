@@ -29,8 +29,8 @@ packages:
     dependency: "direct main"
     description:
       path: anonaccount_client
-      ref: "39f76813d243765478efdc35f8a8979dd6356f1e"
-      resolved-ref: "39f76813d243765478efdc35f8a8979dd6356f1e"
+      ref: dce09352cf0e0d629b9418c63e48774572ee26cc
+      resolved-ref: dce09352cf0e0d629b9418c63e48774572ee26cc
       url: "https://github.com/qtpi-bonding-org/serverpod_anonaccred.git"
     source: git
     version: "0.1.0"
@@ -38,8 +38,8 @@ packages:
     dependency: "direct main"
     description:
       path: anonaccred_client
-      ref: "39f76813d243765478efdc35f8a8979dd6356f1e"
-      resolved-ref: "39f76813d243765478efdc35f8a8979dd6356f1e"
+      ref: dce09352cf0e0d629b9418c63e48774572ee26cc
+      resolved-ref: dce09352cf0e0d629b9418c63e48774572ee26cc
       url: "https://github.com/qtpi-bonding-org/serverpod_anonaccred.git"
     source: git
     version: "0.1.0+1"
@@ -680,8 +680,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: aea1213da441aaf8bd5178d1cde9f7c3b17f431c
-      resolved-ref: aea1213da441aaf8bd5178d1cde9f7c3b17f431c
+      ref: "85626e6c5bfe47bb9560ec6af022b534f584fea5"
+      resolved-ref: "85626e6c5bfe47bb9560ec6af022b534f584fea5"
       url: "https://github.com/qtpi-bonding-org/flutter_colorable.git"
     source: git
     version: "0.1.0"
@@ -689,8 +689,8 @@ packages:
     dependency: "direct dev"
     description:
       path: flutter_colorable_generator
-      ref: aea1213da441aaf8bd5178d1cde9f7c3b17f431c
-      resolved-ref: aea1213da441aaf8bd5178d1cde9f7c3b17f431c
+      ref: "85626e6c5bfe47bb9560ec6af022b534f584fea5"
+      resolved-ref: "85626e6c5bfe47bb9560ec6af022b534f584fea5"
       url: "https://github.com/qtpi-bonding-org/flutter_colorable.git"
     source: git
     version: "0.1.0"
