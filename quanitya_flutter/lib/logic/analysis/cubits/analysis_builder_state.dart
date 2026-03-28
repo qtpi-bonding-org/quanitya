@@ -15,6 +15,7 @@ enum ScriptBuilderOperation {
   removeStep,
   updateStep,
   saveScript,
+  deleteScript,
   loadPreview,
   applyAiSuggestion,
 }

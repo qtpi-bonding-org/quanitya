@@ -17,6 +17,7 @@ import '../../../design_system/widgets/quanitya_text_field.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
+import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
 import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
@@ -235,6 +236,14 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                if (state.selectedScriptId != null) ...[
+                  QuanityaTextButton(
+                    text: context.l10n.analysisDeleteScript,
+                    isDestructive: true,
+                    onPressed: () => _confirmDelete(context, cubit),
+                  ),
+                  HSpace.x2,
+                ],
                 if (state.snippet.isNotEmpty) ...[
                   QuanityaTextButton(
                     text: context.l10n.analysisRun,
@@ -325,6 +334,23 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
       if (mounted) {
         setState(() => _isGenerating = false);
       }
+    }
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    AnalysisBuilderCubit cubit,
+  ) async {
+    final confirmed = await QuanityaConfirmationDialog.show(
+      context: context,
+      title: context.l10n.analysisDeleteConfirmTitle,
+      message: context.l10n.analysisDeleteConfirmMessage,
+      confirmText: context.l10n.actionDelete,
+      isDestructive: true,
+      onConfirm: () {},
+    );
+    if (confirmed == true && context.mounted) {
+      await cubit.deleteScript();
     }
   }
 

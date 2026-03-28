@@ -365,6 +365,32 @@ class AnalysisBuilderCubit extends QuanityaCubit<AnalysisBuilderState> {
     }, emitLoading: true);
   }
 
+  /// Delete the currently selected script.
+  Future<void> deleteScript() async {
+    final scriptId = state.selectedScriptId;
+    if (scriptId == null) return;
+
+    await tryOperation(() async {
+      await _repository.deleteScript(scriptId);
+
+      // Reload scripts list
+      var scripts = await _repository.getScriptsForField(state.fieldId ?? '');
+      if (scripts.isEmpty && state.templateId != null) {
+        scripts = await _repository.getScriptsForTemplate(state.templateId!);
+      }
+
+      return state.copyWith(
+        availableScripts: scripts,
+        selectedScriptId: scripts.isNotEmpty ? scripts.first.id : null,
+        snippet: scripts.isNotEmpty ? scripts.first.snippet : analysisHintSnippet,
+        reasoning: scripts.isNotEmpty ? scripts.first.reasoning ?? '' : '',
+        outputMode: scripts.isNotEmpty ? scripts.first.outputMode : AnalysisOutputMode.scalar,
+        status: UiFlowStatus.success,
+        lastOperation: ScriptBuilderOperation.deleteScript,
+      );
+    }, emitLoading: true);
+  }
+
   /// Generate AI script recommendation
   Future<void> generateAndApplyAiScript({
     required String fieldId,
