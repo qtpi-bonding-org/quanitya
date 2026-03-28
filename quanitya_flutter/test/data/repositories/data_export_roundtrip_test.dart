@@ -88,51 +88,36 @@ void main() {
         ['wh-1', 'tmpl-1', 'Daily Sync', 'https://example.com/hook', 1, now],
       );
 
-      // ── 2. Export: read all tables (same logic as repo.exportData) ──
+      // ── 2. Export: build new schema format ──
       final allTables = repo.getExportableTableNames();
-      final exportData = <String, dynamic>{
-        'exportedAt': DateTime.now().toIso8601String(),
-        'schemaVersion': database.schemaVersion,
-        'format': 'raw_tables',
-      };
-
+      final tables = <String, dynamic>{};
       for (final tableName in allTables) {
         final rows =
             await database.customSelect('SELECT * FROM $tableName').get();
-        exportData[tableName] = rows.map((r) => r.data).toList();
+        tables[tableName] = rows.map((r) => r.data).toList();
       }
 
+      final exportData = <String, dynamic>{
+        '\$schema': 'https://quanitya.com/schemas/export/v$exportSchemaVersion',
+        'version': exportSchemaVersion,
+        'exportedAt': DateTime.now().toUtc().toIso8601String(),
+        'app': {'name': 'Quanitya', 'platform': 'test'},
+        'tables': tables,
+      };
+
       // Verify export captured the data
-      expect(
-        (exportData['tracker_templates'] as List).length,
-        equals(2),
-      );
-      expect(
-        (exportData['log_entries'] as List).length,
-        equals(1),
-      );
-      expect(
-        (exportData['schedules'] as List).length,
-        equals(1),
-      );
-      expect(
-        (exportData['template_aesthetics'] as List).length,
-        equals(1),
-      );
-      expect(
-        (exportData['api_keys'] as List).length,
-        equals(1),
-      );
-      expect(
-        (exportData['webhooks'] as List).length,
-        equals(1),
-      );
+      expect((tables['tracker_templates'] as List).length, equals(2));
+      expect((tables['log_entries'] as List).length, equals(1));
+      expect((tables['schedules'] as List).length, equals(1));
+      expect((tables['template_aesthetics'] as List).length, equals(1));
+      expect((tables['api_keys'] as List).length, equals(1));
+      expect((tables['webhooks'] as List).length, equals(1));
 
       // ── 3. Simulate JSON serialization round-trip ──
       final jsonString = const JsonEncoder.withIndent('  ').convert(exportData);
       final reimported = jsonDecode(jsonString) as Map<String, dynamic>;
 
-      // ── 4. Clear the database (same as import does) ──
+      // ── 4. Clear the database ──
       for (final tableName in allTables) {
         await database.customStatement('DELETE FROM $tableName');
       }
@@ -151,15 +136,12 @@ void main() {
         expect(rows, isEmpty, reason: '$tableName should be empty after clear');
       }
 
-      // ── 5. Import: re-insert data (same logic as repo.importData) ──
-      const metaKeys = {'exportedAt', 'schemaVersion', 'format'};
-      final tableNamesToImport = reimported.keys
-          .where((k) => !metaKeys.contains(k))
-          .toSet();
+      // ── 5. Import: read from tables key ──
+      final importedTables = reimported['tables'] as Map<String, dynamic>;
 
       await database.transaction(() async {
-        for (final tableName in tableNamesToImport) {
-          final rows = reimported[tableName] as List<dynamic>?;
+        for (final tableName in importedTables.keys) {
+          final rows = importedTables[tableName] as List<dynamic>?;
           if (rows == null || rows.isEmpty) continue;
 
           for (final row in rows) {
@@ -187,7 +169,6 @@ void main() {
       expect(templates[1].data['id'], equals('tmpl-2'));
       expect(templates[1].data['name'], equals('Sleep Log'));
       expect(templates[1].data['fields_json'], equals('[{"id":"f1"}]'));
-      // Archived flag preserved
       expect(templates[1].data['is_archived'], equals(1));
 
       final entries = await database
@@ -240,27 +221,31 @@ void main() {
         ['key-1', 'Original Key', 'bearer', 'apikey_key-1', now],
       );
 
-      // Build an import payload that only contains tracker_templates
+      // Build an import payload with new schema
       final importPayload = <String, dynamic>{
+        '\$schema': 'https://quanitya.com/schemas/export/v1',
+        'version': 1,
         'exportedAt': now,
-        'schemaVersion': database.schemaVersion,
-        'format': 'raw_tables',
-        'tracker_templates': [
-          {
-            'id': 'tmpl-new',
-            'name': 'Imported Template',
-            'fields_json': '[]',
-            'updated_at': now,
-            'is_archived': 0,
-            'is_hidden': 0,
-          },
-        ],
+        'app': {'name': 'Quanitya', 'platform': 'test'},
+        'tables': {
+          'tracker_templates': [
+            {
+              'id': 'tmpl-new',
+              'name': 'Imported Template',
+              'fields_json': '[]',
+              'updated_at': now,
+              'is_archived': 0,
+              'is_hidden': 0,
+            },
+          ],
+        },
       };
 
       // Import only tracker_templates
+      final tables = importPayload['tables'] as Map<String, dynamic>;
       await database.transaction(() async {
         final tableName = 'tracker_templates';
-        final rows = importPayload[tableName] as List<dynamic>;
+        final rows = tables[tableName] as List<dynamic>;
 
         await database.customStatement('DELETE FROM $tableName');
 
@@ -295,29 +280,31 @@ void main() {
     });
 
     test('empty tables survive round-trip without errors', () async {
-      // All tables are empty — export should work fine
       final allTables = repo.getExportableTableNames();
-      final exportData = <String, dynamic>{
-        'exportedAt': DateTime.now().toIso8601String(),
-        'schemaVersion': database.schemaVersion,
-        'format': 'raw_tables',
-      };
-
+      final tables = <String, dynamic>{};
       for (final tableName in allTables) {
         final rows =
             await database.customSelect('SELECT * FROM $tableName').get();
-        exportData[tableName] = rows.map((r) => r.data).toList();
+        tables[tableName] = rows.map((r) => r.data).toList();
       }
+
+      final exportData = <String, dynamic>{
+        '\$schema': 'https://quanitya.com/schemas/export/v1',
+        'version': 1,
+        'exportedAt': DateTime.now().toUtc().toIso8601String(),
+        'app': {'name': 'Quanitya', 'platform': 'test'},
+        'tables': tables,
+      };
 
       // JSON round-trip
       final jsonString = jsonEncode(exportData);
       final reimported = jsonDecode(jsonString) as Map<String, dynamic>;
 
       // Import should be a no-op but should not throw
-      const metaKeys = {'exportedAt', 'schemaVersion', 'format'};
+      final importedTables = reimported['tables'] as Map<String, dynamic>;
       await database.transaction(() async {
-        for (final key in reimported.keys.where((k) => !metaKeys.contains(k))) {
-          final rows = reimported[key] as List<dynamic>?;
+        for (final key in importedTables.keys) {
+          final rows = importedTables[key] as List<dynamic>?;
           if (rows == null || rows.isEmpty) continue;
           fail('Should not have any rows to import');
         }
@@ -331,26 +318,32 @@ void main() {
       }
     });
 
-    test('schema version is included in export and can be validated', () async {
+    test('schema metadata is included in export and can be validated', () async {
       final allTables = repo.getExportableTableNames();
-      final exportData = <String, dynamic>{
-        'exportedAt': DateTime.now().toIso8601String(),
-        'schemaVersion': database.schemaVersion,
-        'format': 'raw_tables',
-      };
-
+      final tables = <String, dynamic>{};
       for (final tableName in allTables) {
         final rows =
             await database.customSelect('SELECT * FROM $tableName').get();
-        exportData[tableName] = rows.map((r) => r.data).toList();
+        tables[tableName] = rows.map((r) => r.data).toList();
       }
+
+      final exportData = <String, dynamic>{
+        '\$schema': 'https://quanitya.com/schemas/export/v1',
+        'version': exportSchemaVersion,
+        'exportedAt': DateTime.now().toUtc().toIso8601String(),
+        'app': {'name': 'Quanitya', 'platform': 'test'},
+        'tables': tables,
+      };
 
       final jsonString = jsonEncode(exportData);
       final reimported = jsonDecode(jsonString) as Map<String, dynamic>;
 
-      expect(reimported['schemaVersion'], equals(1));
-      expect(reimported['format'], equals('raw_tables'));
+      expect(reimported['\$schema'], equals('https://quanitya.com/schemas/export/v1'));
+      expect(reimported['version'], equals(1));
       expect(reimported['exportedAt'], isA<String>());
+      expect(reimported['app'], isA<Map>());
+      expect((reimported['app'] as Map)['name'], equals('Quanitya'));
+      expect(reimported['tables'], isA<Map>());
     });
   });
 }

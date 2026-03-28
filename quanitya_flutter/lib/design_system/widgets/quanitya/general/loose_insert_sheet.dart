@@ -86,14 +86,17 @@ class LooseInsertSheet extends StatelessWidget {
             ),
           // Content
           Flexible(
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: AppSizes.space * 2,
-                right: AppSizes.space * 2,
-                bottom:
-                    MediaQuery.of(context).viewInsets.bottom + AppSizes.space * 2,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: AppSizes.space * 2,
+                  right: AppSizes.space * 2,
+                  bottom: MediaQuery.of(context).viewInsets.bottom +
+                      AppSizes.space,
+                ),
+                child: child,
               ),
-              child: child,
             ),
           ),
         ],
