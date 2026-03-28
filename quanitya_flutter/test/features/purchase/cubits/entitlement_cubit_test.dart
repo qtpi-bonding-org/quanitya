@@ -1,5 +1,4 @@
 import 'package:anonaccred_client/anonaccred_client.dart' show EntitlementType;
-import 'package:drift/drift.dart' show QueryRow, Selectable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
@@ -18,9 +17,6 @@ class MockEntitlementRepository extends Mock implements EntitlementRepository {}
 
 class MockAppDatabase extends Mock implements AppDatabase {}
 
-class MockSelectable extends Mock implements Selectable<QueryRow> {}
-
-class MockQueryRow extends Mock implements QueryRow {}
 
 void main() {
   late MockEntitlementService mockService;
@@ -37,14 +33,8 @@ void main() {
     when(() => mockService.hasSyncAccess()).thenAnswer((_) async => false);
     when(() => mockService.hasAiAccess()).thenAnswer((_) async => false);
 
-    final mockRow = MockQueryRow();
-    when(() => mockRow.read<int>('cnt')).thenReturn(0);
-    when(() => mockRow.read<int>('total_bytes')).thenReturn(0);
-
-    final mockSelectable = MockSelectable();
-    when(() => mockSelectable.getSingle()).thenAnswer((_) async => mockRow);
-
-    when(() => mockDb.customSelect(any())).thenReturn(mockSelectable);
+    when(() => mockDb.watchEncryptedStorageUsage())
+        .thenAnswer((_) => Stream.value((count: 0, bytes: 0)));
   }
 
   /// Wait long enough for [_initialize] to complete.
