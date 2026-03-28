@@ -37,7 +37,7 @@ jobs:
           echo "environment=$ENV" >> $GITHUB_OUTPUT
 
           if [ "$ENV" = "production" ]; then
-            echo "project-name=quanitya-flutter-web-prod" >> $GITHUB_OUTPUT
+            echo "project-name=quanitya-flutter-web" >> $GITHUB_OUTPUT
           else
             echo "project-name=quanitya-flutter-web-staging" >> $GITHUB_OUTPUT
           fi
