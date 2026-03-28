@@ -151,7 +151,6 @@ class DevToolsSheet extends StatelessWidget {
                 runSpacing: AppSizes.space,
                 children: [
                   _NavChip(label: 'Onboarding', route: AppRoutes.onboarding),
-                  _NavChip(label: 'OCR Test', route: AppRoutes.ocrTest),
                 ],
               ),
               VSpace.x4,

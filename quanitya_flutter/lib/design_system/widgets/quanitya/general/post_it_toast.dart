@@ -26,26 +26,6 @@ class PostItToast extends StatelessWidget {
     this.action,
   });
 
-  /// Show a PostItToast via ScaffoldMessenger as a floating, styled SnackBar.
-  static void show(
-    BuildContext context, {
-    required String message,
-    PostItType type = PostItType.info,
-  }) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: PostItToast(message: message, type: type),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        behavior: SnackBarBehavior.floating,
-        padding: EdgeInsets.zero,
-        duration: type == PostItType.error
-            ? const Duration(seconds: 5)
-            : const Duration(seconds: 3),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
