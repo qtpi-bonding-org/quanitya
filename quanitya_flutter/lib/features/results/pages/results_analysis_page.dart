@@ -285,7 +285,7 @@ class _GroupAnalysisCard extends StatelessWidget {
             onTap: () async {
               await AppNavigation.toAnalysisBuilder(
                 context,
-                fieldId: groupData.field.label,
+                fieldId: groupData.field.id,
                 templateId: templateId,
               );
               if (context.mounted) {
@@ -368,7 +368,7 @@ class _FieldAnalysisCard extends StatelessWidget {
             onTap: () async {
               await AppNavigation.toAnalysisBuilder(
                 context,
-                fieldId: fieldData.field.label,
+                fieldId: fieldData.field.id,
                 templateId: templateId,
               );
               if (context.mounted) {
