@@ -816,7 +816,7 @@
   "importReviewTitle": "Review Import",
   "importReviewConfirm": "Import All",
   "importModelDownloadTitle": "Download AI Model",
-  "importModelDownloadMessage": "Image import requires a one-time 469 MB download.",
+  "importModelDownloadMessage": "Extract data from photos using an on-device AI model. One-time download, ~470 MB. Runs privately on your device.",
   "importModelDownloadConfirm": "Download",
   "importModelDownloading": "Downloading model…",
   "resultsAnalyzeFields": "Analyze",

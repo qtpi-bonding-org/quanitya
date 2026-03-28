@@ -635,7 +635,7 @@
   "importReviewTitle": "Vérifier l'importation",
   "importReviewConfirm": "Tout importer",
   "importModelDownloadTitle": "Télécharger le modèle IA",
-  "importModelDownloadMessage": "L'importation d'images nécessite un téléchargement unique de 469 Mo.",
+  "importModelDownloadMessage": "Extrayez des données de photos grâce à un modèle IA sur l'appareil. Téléchargement unique, ~470 Mo. Fonctionne en privé sur votre appareil.",
   "importModelDownloadConfirm": "Télécharger",
   "importModelDownloading": "Téléchargement du modèle…",
   "resultsAnalyzeFields": "Analyser",

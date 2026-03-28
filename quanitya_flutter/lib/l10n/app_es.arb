@@ -635,7 +635,7 @@
   "importReviewTitle": "Revisar importación",
   "importReviewConfirm": "Importar todo",
   "importModelDownloadTitle": "Descargar modelo de IA",
-  "importModelDownloadMessage": "La importación de imágenes requiere una descarga única de 469 MB.",
+  "importModelDownloadMessage": "Extrae datos de fotos con un modelo de IA en el dispositivo. Descarga única, ~470 MB. Funciona de forma privada en tu dispositivo.",
   "importModelDownloadConfirm": "Descargar",
   "importModelDownloading": "Descargando modelo…",
   "resultsAnalyzeFields": "Analizar",
