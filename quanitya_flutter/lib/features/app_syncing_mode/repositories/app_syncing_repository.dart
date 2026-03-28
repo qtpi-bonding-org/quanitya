@@ -38,13 +38,12 @@ class AppSyncingRepository {
     }, AppSyncingException.new, 'getSettings');
   }
 
-  /// Watch settings changes - stream from database
-  /// Automatically initializes if needed
-  Stream<AppOperatingSetting> watchSettings() {
-    return _db.select(_db.appOperatingSettings).watchSingle().asyncMap((setting) async {
-      await _ensureInitialized();
-      return setting;
-    });
+  /// Watch settings changes - stream from database.
+  /// Ensures initialization before subscribing to avoid watchSingle() crash
+  /// on empty or duplicate rows.
+  Stream<AppOperatingSetting> watchSettings() async* {
+    await _ensureInitialized();
+    yield* _db.select(_db.appOperatingSettings).watchSingle();
   }
 
   /// Get serverpod URL from environment config (not stored in DB)
@@ -122,20 +121,28 @@ class AppSyncingRepository {
     }, AppSyncingException.new, 'updateErrorAutoSend');
   }
 
-  /// Ensure database has initial settings (local mode)
-  /// Called on every app startup - idempotent
+  /// Ensure database has exactly one settings row (local mode default).
+  /// Called on every app startup - idempotent and race-safe.
   Future<void> _ensureInitialized() async {
     if (_initialized) return;
 
-    final count = await _db.select(_db.appOperatingSettings).get().then((rows) => rows.length);
+    final rows = await _db.select(_db.appOperatingSettings).get();
 
-    if (count == 0) {
-      // First time - insert local mode as default
+    if (rows.isEmpty) {
+      // First time — insert local mode as default
       await _db.into(_db.appOperatingSettings).insert(
         AppOperatingSettingsCompanion.insert(
           mode: AppSyncingMode.local,
         ),
       );
+    } else if (rows.length > 1) {
+      // Race condition left duplicates — keep first, delete rest
+      final idsToDelete = rows.skip(1).map((r) => r.id).toList();
+      for (final id in idsToDelete) {
+        await (_db.delete(_db.appOperatingSettings)
+          ..where((t) => t.id.equals(id)))
+          .go();
+      }
     }
 
     _initialized = true;
