@@ -11,6 +11,7 @@ import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
 import '../crypto/data_encryption_service.dart';
 import '../crypto/utils/hashcash.dart';
+import '../platform/secure_preferences.dart';
 
 const _tag = 'infrastructure/auth/auth_service';
 
@@ -132,11 +133,15 @@ Future<void> storeAuthSession(Client client, AuthenticationResult result) async 
 /// [AccountService] and [DeleteOrchestrator].
 ///
 /// Throws [DeviceAuthenticationException] on failure — callers handle retry.
+/// Secure preferences key for the account's ultimate public key hex.
+const _accountPublicKeyHexKey = 'accountPublicKeyHex';
+
 @lazySingleton
 class AuthService {
   final ICryptoKeyRepository _keyRepository;
   final IDataEncryption _encryption;
   final Client _client;
+  final SecurePreferences _prefs;
 
   bool _isInitialized = false;
 
@@ -144,6 +149,7 @@ class AuthService {
     this._keyRepository,
     this._encryption,
     this._client,
+    this._prefs,
   );
 
   /// Initialize auth service
@@ -163,6 +169,10 @@ class AuthService {
 
   /// Whether the Serverpod client currently holds a valid JWT session.
   bool get hasValidSession => _client.auth.isAuthenticated;
+
+  /// The account's ultimate public key hex, or null if not yet authenticated.
+  Future<String?> getAccountPublicKeyHex() =>
+      _prefs.getString(_accountPublicKeyHexKey);
 
   /// Clear the in-memory JWT session (e.g. after a 401 from the server).
   /// The next call to [ensureAuthenticated] will obtain a fresh JWT.
@@ -246,6 +256,12 @@ class AuthService {
 
         // 3. Store JWT in Serverpod's session manager
         await _storeAuthSession(result);
+
+        // 4. Persist account public key hex for display in settings
+        final accountHex = result.accountPublicKeyHex;
+        if (accountHex != null) {
+          await _prefs.setString(_accountPublicKeyHexKey, accountHex);
+        }
         Log.d(_tag, 'authenticateDevice: session stored');
 
         return result;
