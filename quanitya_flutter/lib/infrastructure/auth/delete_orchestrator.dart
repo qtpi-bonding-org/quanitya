@@ -11,6 +11,7 @@ import '../../data/sync/powersync_service.dart';
 import '../../features/guided_tour/guided_tour_service.dart';
 import '../core/try_operation.dart';
 import '../crypto/crypto_key_repository.dart';
+import '../crypto/key_export_service.dart';
 import '../purchase/entitlement_repository.dart';
 import '../security/database_key_service.dart';
 import 'account_service.dart';
@@ -47,6 +48,7 @@ class DeleteOrchestrator {
   final GuidedTourService _guidedTourService;
   final Client _client;
   final DatabaseKeyService _dbKeyService;
+  final KeyExportService _keyExportService;
 
   DeleteOrchestrator(
     this._accountService,
@@ -58,6 +60,7 @@ class DeleteOrchestrator {
     this._guidedTourService,
     this._client,
     this._dbKeyService,
+    this._keyExportService,
   );
 
   /// Delete the user's account on the server and clean up local state.
@@ -124,6 +127,9 @@ class DeleteOrchestrator {
 
         // 4. Delete iCloud cross-device key (separate from device storage).
         await _keyRepository.deleteCrossDeviceKey();
+
+        // 5. Delete ultimate key from iCloud Keychain.
+        await _keyExportService.deleteFromICloudKeychain();
       },
       DeleteException.new,
       'factoryReset',
