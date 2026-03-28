@@ -5,6 +5,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart' show UiFlowStatus;
 import 'package:get_it/get_it.dart';
 
 import '../../../support/extensions/context_extensions.dart';
+import '../../account/cubits/account_info_cubit.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../errors/cubits/errors_cubit.dart';
 import '../../notices/cubits/notices_cubit.dart';
@@ -85,6 +86,7 @@ class _NotebookShellState extends State<NotebookShell>
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider.value(value: GetIt.instance<AccountInfoCubit>()),
         BlocProvider.value(value: GetIt.instance<AppSyncingCubit>()),
         BlocProvider.value(value: GetIt.instance<EntitlementCubit>()),
         BlocProvider.value(value: GetIt.instance<PurchaseCubit>()),

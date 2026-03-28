@@ -97,6 +97,8 @@
   "inactive": "Inactive",
   "settingsTitle": "Settings",
   "settingsAccountSection": "Account",
+  "settingsAccountId": "Account ID",
+  "copiedToClipboard": "Copied to clipboard",
   "settingsDevicesSection": "Devices",
   "settingsDataSection": "Data Import / Export",
   "validateRecoveryKey": "Validate Recovery Key",

@@ -6,13 +6,13 @@ import 'package:quanitya_flutter/infrastructure/auth/auth_service.dart';
 import 'package:quanitya_flutter/infrastructure/crypto/crypto_key_repository.dart';
 import 'package:quanitya_flutter/infrastructure/crypto/data_encryption_service.dart';
 import 'package:quanitya_flutter/infrastructure/crypto/exceptions/crypto_exceptions.dart';
+import 'package:quanitya_flutter/infrastructure/platform/secure_preferences.dart';
 import 'package:quanitya_cloud_client/quanitya_cloud_client.dart';
 
-@GenerateMocks([ICryptoKeyRepository, IDataEncryption])
+@GenerateMocks([ICryptoKeyRepository, IDataEncryption, SecurePreferences])
 import 'auth_service_test.mocks.dart';
 
 /// Fake Client that allows constructing AuthService without deep Serverpod mocking.
-/// Methods that hit the server (authenticateDevice, etc.) are tested via integration tests.
 class _FakeClient extends Fake implements Client {}
 
 void main() {
@@ -20,11 +20,13 @@ void main() {
     late AuthService authService;
     late MockICryptoKeyRepository mockKeyRepo;
     late MockIDataEncryption mockEncryption;
+    late MockSecurePreferences mockPrefs;
 
     setUp(() {
       mockKeyRepo = MockICryptoKeyRepository();
       mockEncryption = MockIDataEncryption();
-      authService = AuthService(mockKeyRepo, mockEncryption, _FakeClient());
+      mockPrefs = MockSecurePreferences();
+      authService = AuthService(mockKeyRepo, mockEncryption, _FakeClient(), mockPrefs);
     });
 
     group('isAuthenticated', () {

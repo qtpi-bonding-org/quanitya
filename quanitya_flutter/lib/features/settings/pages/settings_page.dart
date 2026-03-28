@@ -32,6 +32,7 @@ import '../cubits/webhook/webhook_state.dart';
 import '../widgets/import_recovery_key_sheet.dart';
 import '../widgets/device_list_section.dart';
 import '../widgets/webhook_sheet.dart';
+import '../../account/widgets/account_id_display.dart';
 import '../widgets/llm_provider_section.dart';
 import '../widgets/api_key_sheet.dart';
 import '../widgets/table_selection_sheet.dart';
@@ -67,6 +68,8 @@ class SettingsContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const AccountIdDisplay(),
+                VSpace.x2,
                 const SyncStatusIndicator(),
                 VSpace.x2,
                 const DeviceListSection(),

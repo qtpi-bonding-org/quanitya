@@ -56,6 +56,8 @@
   "inactive": "Inactivo",
   "settingsTitle": "Ajustes",
   "settingsAccountSection": "Cuenta",
+  "settingsAccountId": "ID de cuenta",
+  "copiedToClipboard": "Copiado al portapapeles",
   "settingsDevicesSection": "Dispositivos",
   "settingsDataSection": "Importar / Exportar datos",
   "validateRecoveryKey": "Validar clave de recuperación",
