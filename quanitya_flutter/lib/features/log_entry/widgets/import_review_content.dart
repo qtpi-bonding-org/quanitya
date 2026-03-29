@@ -9,12 +9,14 @@ import '../../../logic/ocr/models/extraction_field.dart';
 class ImportReviewContent extends StatefulWidget {
   final List<Map<String, dynamic>> items;
   final List<ExtractionField> fields;
+  final List<DateTime?> extractedDates;
   final ValueChanged<ImportReviewState> onChanged;
 
   const ImportReviewContent({
     super.key,
     required this.items,
     required this.fields,
+    required this.extractedDates,
     required this.onChanged,
   });
 
@@ -25,12 +27,18 @@ class ImportReviewContent extends StatefulWidget {
 class ImportReviewState {
   final List<Map<String, dynamic>> items;
   final DateTime batchDate;
-  const ImportReviewState({required this.items, required this.batchDate});
+  final List<DateTime?> perItemDates;
+  const ImportReviewState({
+    required this.items,
+    required this.batchDate,
+    required this.perItemDates,
+  });
 }
 
 class _ImportReviewContentState extends State<ImportReviewContent> {
   late List<Map<String, dynamic>> _items;
   late DateTime _batchDate;
+  late List<DateTime?> _perItemDates;
   int? _editingIndex;
 
   @override
@@ -38,16 +46,22 @@ class _ImportReviewContentState extends State<ImportReviewContent> {
     super.initState();
     _items = widget.items.map((m) => Map<String, dynamic>.of(m)).toList();
     _batchDate = DateTime.now();
+    _perItemDates = List<DateTime?>.of(widget.extractedDates);
     _notifyChanged();
   }
 
   void _notifyChanged() {
-    widget.onChanged(ImportReviewState(items: _items, batchDate: _batchDate));
+    widget.onChanged(ImportReviewState(
+      items: _items,
+      batchDate: _batchDate,
+      perItemDates: _perItemDates,
+    ));
   }
 
   void _deleteItem(int index) {
     setState(() {
       _items.removeAt(index);
+      _perItemDates.removeAt(index);
       if (_editingIndex == index) _editingIndex = null;
       if (_editingIndex != null && _editingIndex! > index) {
         _editingIndex = _editingIndex! - 1;
@@ -73,6 +87,20 @@ class _ImportReviewContentState extends State<ImportReviewContent> {
     );
     if (picked != null) {
       setState(() => _batchDate = picked);
+      _notifyChanged();
+    }
+  }
+
+  Future<void> _pickItemDate(int index) async {
+    final current = _perItemDates[index] ?? _batchDate;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() => _perItemDates[index] = picked);
       _notifyChanged();
     }
   }
@@ -173,6 +201,28 @@ class _ImportReviewContentState extends State<ImportReviewContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (_perItemDates[index] != null)
+                Padding(
+                  padding: EdgeInsets.only(bottom: AppSizes.space * 0.5),
+                  child: GestureDetector(
+                    onTap: () => _pickItemDate(index),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.calendar_today,
+                            size: 12,
+                            color: QuanityaPalette.primary.interactableColor),
+                        HSpace.x025,
+                        Text(
+                          _formatDate(_perItemDates[index]!),
+                          style: context.text.bodySmall?.copyWith(
+                            color: QuanityaPalette.primary.interactableColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               for (final field in widget.fields)
                 _buildField(index, field, item[field.fieldId], isEditing),
             ],

@@ -133,11 +133,29 @@ class ImportCubit extends Cubit<ImportState> {
       return;
     }
 
+    // Strip synthetic date field and parse into per-item dates.
+    const dateKey = TemplateExtractionSchemaBuilder.syntheticDateFieldId;
+    final extractedDates = <DateTime?>[];
+    for (final item in nonEmpty) {
+      final rawDate = item.remove(dateKey);
+      if (rawDate != null && rawDate is String && rawDate.trim().isNotEmpty) {
+        extractedDates.add(TimestampResolver.parseDate(rawDate));
+      } else {
+        extractedDates.add(null);
+      }
+    }
+
     Log.d(_tag, '=== ImportCubit: extracted ${nonEmpty.length} items ===');
     if (nonEmpty.length == 1) {
-      emit(ImportState.singleResult(item: nonEmpty.first));
+      emit(ImportState.singleResult(
+        item: nonEmpty.first,
+        extractedDate: extractedDates.first,
+      ));
     } else {
-      emit(ImportState.multipleResults(items: nonEmpty));
+      emit(ImportState.multipleResults(
+        items: nonEmpty,
+        extractedDates: extractedDates,
+      ));
     }
   }
 
@@ -146,6 +164,7 @@ class ImportCubit extends Cubit<ImportState> {
     required TrackerTemplateModel template,
     required List<Map<String, dynamic>> items,
     required DateTime batchTimestamp,
+    Map<int, DateTime>? perItemTimestamps,
   }) async {
     try {
       emit(const ImportState.importing());
@@ -156,6 +175,7 @@ class ImportCubit extends Cubit<ImportState> {
       final resolved = TimestampResolver.resolve(
         items: items,
         batchTimestamp: batchTimestamp,
+        perItemTimestamps: perItemTimestamps,
       );
 
       final count = await _importExecutor.execute(

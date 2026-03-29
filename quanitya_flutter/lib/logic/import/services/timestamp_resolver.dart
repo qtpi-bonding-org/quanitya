@@ -39,7 +39,7 @@ class TimestampResolver {
       if (dateFieldId != null) {
         final dateValue = data.remove(dateFieldId);
         if (dateValue != null) {
-          fieldDate = _parseDate(dateValue.toString());
+          fieldDate = parseDate(dateValue.toString());
         }
       }
 
@@ -52,7 +52,7 @@ class TimestampResolver {
     }).toList();
   }
 
-  static DateTime? _parseDate(String value) {
+  static DateTime? parseDate(String value) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return null;
     final iso = DateTime.tryParse(trimmed);

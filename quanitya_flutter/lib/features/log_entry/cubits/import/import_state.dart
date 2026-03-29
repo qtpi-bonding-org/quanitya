@@ -19,9 +19,11 @@ abstract class ImportState with _$ImportState {
   const factory ImportState.processing() = ImportProcessing;
   const factory ImportState.singleResult({
     required Map<String, dynamic> item,
+    DateTime? extractedDate,
   }) = ImportSingleResult;
   const factory ImportState.multipleResults({
     required List<Map<String, dynamic>> items,
+    required List<DateTime?> extractedDates,
   }) = ImportMultipleResults;
   const factory ImportState.importing() = ImportImporting;
   const factory ImportState.done({required int count}) = ImportDone;

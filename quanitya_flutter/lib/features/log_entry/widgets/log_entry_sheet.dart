@@ -403,8 +403,8 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
         _showFeedback(context.l10n.importValuesFilled, MessageType.success);
         context.read<ImportCubit>().reset();
 
-      case ImportMultipleResults(:final items):
-        _showImportReview(context, items);
+      case ImportMultipleResults(:final items, :final extractedDates):
+        _showImportReview(context, items, extractedDates);
 
       case ImportDone(:final count):
         _showFeedback(context.l10n.importEntriesImported(count), MessageType.success);
@@ -422,6 +422,7 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
   void _showImportReview(
     BuildContext context,
     List<Map<String, dynamic>> items,
+    List<DateTime?> extractedDates,
   ) {
     final extractionFields =
         TemplateExtractionSchemaBuilder.buildExtractionFields(
@@ -439,15 +440,25 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
       child: ImportReviewContent(
         items: items,
         fields: extractionFields,
+        extractedDates: extractedDates,
         onChanged: (state) => reviewState = state,
       ),
       onConfirm: () {
         if (reviewState != null) {
+          final perItemTimestamps = <int, DateTime>{};
+          for (var i = 0; i < reviewState!.perItemDates.length; i++) {
+            final date = reviewState!.perItemDates[i];
+            if (date != null) {
+              perItemTimestamps[i] = date;
+            }
+          }
           importCubit.executeBulkImport(
             templateId: widget.template!.id,
             template: widget.template!,
             items: reviewState!.items,
             batchTimestamp: reviewState!.batchDate,
+            perItemTimestamps:
+                perItemTimestamps.isEmpty ? null : perItemTimestamps,
           );
         }
       },

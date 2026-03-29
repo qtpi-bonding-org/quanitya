@@ -19,13 +19,23 @@ class TemplateExtractionSchemaBuilder {
     FieldEnum.float: GbnfFieldType.number,
     FieldEnum.boolean: GbnfFieldType.boolean,
     FieldEnum.enumerated: GbnfFieldType.enumerated,
+    FieldEnum.datetime: GbnfFieldType.string,
   };
+
+  /// Synthetic field ID injected for LLM date extraction.
+  /// Stripped from item data after extraction — its value becomes `occurredAt`.
+  static const syntheticDateFieldId = '_llm_occurred_at';
+  static const _syntheticDateLabel = 'Date';
 
   /// Filters template fields to extractable types and converts
   /// to [ExtractionField] objects.
   ///
   /// Skips deleted fields and unsupported types (group, reference,
-  /// location, datetime, dimension, multiEnum).
+  /// location, dimension, multiEnum).
+  ///
+  /// Always appends a synthetic "Date" field so the LLM attempts to
+  /// extract an event date from the source material. This field is
+  /// stripped after extraction and used as `occurredAt`.
   static List<ExtractionField> buildExtractionFields(
     List<TemplateField> fields,
   ) {
@@ -41,6 +51,11 @@ class TemplateExtractionSchemaBuilder {
         enumValues: field.type == FieldEnum.enumerated ? field.options : null,
       ));
     }
+    result.add(const ExtractionField(
+      fieldId: syntheticDateFieldId,
+      label: _syntheticDateLabel,
+      type: GbnfFieldType.string,
+    ));
     return result;
   }
 
