@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import '../../../infrastructure/config/debug_log.dart';
-import 'package:javascript_flutter/javascript_flutter.dart';
+import '../../../infrastructure/js_executor/i_js_executor.dart';
 import 'package:injectable/injectable.dart';
 import 'package:jinja/jinja.dart' as jinja;
 import '../models/analysis_script.dart';
@@ -30,13 +30,14 @@ class WasmAnalysisService implements IWasmAnalysisService {
   static const _jsTimeout = Duration(seconds: 30);
 
   final IAnalysisScriptRepository _repo;
+  final IJsExecutor _jsExecutor;
 
   // Performance: Cache heavy library strings in memory
   static String? _cachedShell;
   static String? _cachedStatsLib;
   static String? _cachedJstat;
 
-  WasmAnalysisService(this._repo);
+  WasmAnalysisService(this._repo, this._jsExecutor);
 
   @override
   Future<AnalysisOutput> execute(AnalysisScriptModel script) async {
@@ -60,18 +61,43 @@ class WasmAnalysisService implements IWasmAnalysisService {
         );
       }
 
-      // 2. Execute JS via platform channel (already native/off-thread)
-      final resultData = await _executeInIsolate(
-        shellContent: _cachedShell!,
-        simpleStats: _cachedStatsLib!,
-        jstat: _cachedJstat!,
-        values: data.values,
-        timestampsEpoch: data.timestamps.map((e) => e.millisecondsSinceEpoch).toList(),
-        snippet: script.snippet,
-        outputMode: script.outputMode,
+      // 2. Render the Jinja template
+      final env = jinja.Environment(filters: {
+        'to_json': (dynamic value) => jsonEncode(value),
+      });
+      final template = env.fromString(_cachedShell!);
+      final fullScript = template.render({
+        'values': data.values,
+        'timestamps_epoch': data.timestamps.map((e) => e.millisecondsSinceEpoch).toList(),
+        'logic_fragment': script.snippet,
+        'output_mode': script.outputMode.name,
+      });
+
+      // 3. Execute via platform-appropriate JS executor
+      final jsResult = await _jsExecutor.evaluate(
+        libraries: [_cachedStatsLib!, _cachedJstat!],
+        script: fullScript,
+        timeout: _jsTimeout,
       );
 
-      // 3. Box into AnalysisOutput (main thread)
+      // 4. Parse result
+      final dynamic resultData;
+      if (jsResult is String) {
+        final Map<String, dynamic> rawResult = jsonDecode(jsResult);
+        if (rawResult['status'] == 'error') {
+          throw AnalysisException('Logic Error: ${rawResult['message']}');
+        }
+        resultData = rawResult['result'];
+      } else if (jsResult is Map) {
+        if (jsResult['status'] == 'error') {
+          throw AnalysisException('Logic Error: ${jsResult['message']}');
+        }
+        resultData = jsResult['result'];
+      } else {
+        resultData = jsResult;
+      }
+
+      // 5. Box into AnalysisOutput
       return _boxResult(script, resultData, data.timestamps);
     } catch (e, stack) {
       if (e is AnalysisException) rethrow;
@@ -94,74 +120,6 @@ class WasmAnalysisService implements IWasmAnalysisService {
     _cachedShell = results[0];
     _cachedStatsLib = results[1];
     _cachedJstat = results[2];
-  }
-
-  /// Executes user script in isolated JS runtime
-  static Future<dynamic> _executeInIsolate({
-    required String shellContent,
-    required String simpleStats,
-    required String jstat,
-    required List<dynamic> values,
-    required List<int> timestampsEpoch,
-    required String snippet,
-    required AnalysisOutputMode outputMode,
-  }) async {
-    final env = jinja.Environment(filters: {
-      'to_json': (dynamic value) => jsonEncode(value),
-    });
-    final template = env.fromString(shellContent);
-
-    final fullScript = template.render({
-      'values': values,
-      'timestamps_epoch': timestampsEpoch,
-      'logic_fragment': snippet,
-      'output_mode': outputMode.name,
-    });
-
-    // Initialize JS runtime (no network access by default)
-    final javascript = await JavaScript.createNew();
-
-    try {
-      // Inject libraries
-      await javascript.runJavaScriptReturningResult(simpleStats);
-      await javascript.runJavaScriptReturningResult(jstat);
-
-      // Execute rendered script with timeout to prevent infinite-loop hangs
-      final jsResult = await javascript
-          .runJavaScriptReturningResult(fullScript)
-          .timeout(
-            _jsTimeout,
-            onTimeout: () => throw AnalysisException(
-              'Script timed out after ${_jsTimeout.inSeconds}s. '
-              'Check for infinite loops or reduce data size.',
-            ),
-          );
-
-      // Parse result (javascript_flutter returns decoded JSON or string)
-      if (jsResult is String) {
-        final Map<String, dynamic> rawResult = jsonDecode(jsResult);
-
-        if (rawResult['status'] == 'error') {
-          throw AnalysisException('Logic Error: ${rawResult['message']}');
-        }
-
-        return rawResult['result'];
-      } else if (jsResult is Map) {
-        if (jsResult['status'] == 'error') {
-          throw AnalysisException('Logic Error: ${jsResult['message']}');
-        }
-        return jsResult['result'];
-      }
-
-      return jsResult;
-    } catch (e, stack) {
-      if (e is AnalysisException) rethrow;
-      // ignore: avoid_print
-      Log.d(_tag, 'JS Runtime ERROR: $e\n$stack');
-      throw AnalysisException('JS Runtime Error: $e');
-    } finally {
-      await javascript.dispose();
-    }
   }
 
   AnalysisOutput _boxResult(

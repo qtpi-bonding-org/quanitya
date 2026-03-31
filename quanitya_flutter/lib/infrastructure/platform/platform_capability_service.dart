@@ -157,6 +157,17 @@ class PlatformCapabilityService {
   bool get hasPurchaseSupport => supportedPurchaseRails.isNotEmpty;
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Analysis Capabilities
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /// Whether JavaScript analysis script execution is supported.
+  ///
+  /// Supported on: All platforms
+  /// - Native (iOS, Android, macOS): via javascript_flutter (JavaScriptCore/V8)
+  /// - Web: via sandboxed iframe + postMessage
+  bool get supportsJsExecution => true;
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Platform Information
   // ─────────────────────────────────────────────────────────────────────────
   

@@ -246,6 +246,10 @@ import 'package:quanitya_flutter/infrastructure/feedback/localization_service.da
     as _i946;
 import 'package:quanitya_flutter/infrastructure/fonts/font_preloader_service.dart'
     as _i1024;
+import 'package:quanitya_flutter/infrastructure/js_executor/i_js_executor.dart'
+    as _i737;
+import 'package:quanitya_flutter/infrastructure/js_executor/js_executor_module.dart'
+    as _i777;
 import 'package:quanitya_flutter/infrastructure/llm/services/llm_chat_service.dart'
     as _i294;
 import 'package:quanitya_flutter/infrastructure/llm/services/llm_service.dart'
@@ -387,6 +391,7 @@ extension GetItInjectableX on _i174.GetIt {
   }) async {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final appModule = _$AppModule();
+    final jsExecutorModule = _$JsExecutorModule();
     final crossDeviceKeyModule = _$CrossDeviceKeyModule();
     final repositoryModule = _$RepositoryModule();
     gh.factory<String>(() => appModule.localhost);
@@ -475,6 +480,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i1069.VisualizationMessageMapper>(
       () => _i1069.VisualizationMessageMapper(),
     );
+    gh.factory<_i737.IJsExecutor>(() => jsExecutorModule.jsExecutor);
     gh.factory<_i94.HealthSyncMessageMapper>(
       () => _i94.HealthSyncMessageMapper(),
     );
@@ -1023,6 +1029,12 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i305.WebhookRepository>(),
       ),
     );
+    gh.factory<_i193.IWasmAnalysisService>(
+      () => _i193.WasmAnalysisService(
+        gh<_i810.IAnalysisScriptRepository>(),
+        gh<_i737.IJsExecutor>(),
+      ),
+    );
     gh.lazySingleton<_i306.LogEntryService>(
       () => _i306.LogEntryService(
         gh<_i34.ILogEntryRepository>(),
@@ -1121,8 +1133,8 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i618.CalculationService>(),
       ),
     );
-    gh.factory<_i193.IWasmAnalysisService>(
-      () => _i193.WasmAnalysisService(gh<_i810.IAnalysisScriptRepository>()),
+    gh.factory<_i820.AnalysisEngine>(
+      () => _i820.AnalysisEngine(gh<_i193.IWasmAnalysisService>()),
     );
     gh.factory<_i676.ResultsListCubit>(
       () => _i676.ResultsListCubit(
@@ -1136,14 +1148,35 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i946.PermissionService>(),
       ),
     );
+    gh.factory<_i831.VisualizationCubit>(
+      () => _i831.VisualizationCubit(
+        gh<_i825.DataRetrievalService>(),
+        gh<_i810.IAnalysisScriptRepository>(),
+        gh<_i820.AnalysisEngine>(),
+      ),
+    );
     gh.lazySingleton<_i42.NotificationService>(
       () => _i42.NotificationService(gh<_i886.INotificationActionHandler>()),
+    );
+    gh.factory<_i60.StreamingAnalyticsService>(
+      () => _i60.StreamingAnalyticsService(
+        gh<_i810.IAnalysisScriptRepository>(),
+        gh<_i820.AnalysisEngine>(),
+        gh<_i34.ILogEntryRepository>(),
+      ),
     );
     gh.factory<_i77.TemplateSharingImportCubit>(
       () => _i77.TemplateSharingImportCubit(gh<_i648.TemplateImportService>()),
     );
-    gh.factory<_i820.AnalysisEngine>(
-      () => _i820.AnalysisEngine(gh<_i193.IWasmAnalysisService>()),
+    gh.factory<_i873.AnalysisBuilderCubit>(
+      () => _i873.AnalysisBuilderCubit(
+        gh<_i810.IAnalysisScriptRepository>(),
+        gh<_i554.TemplateWithAestheticsRepository>(),
+        gh<_i790.AiAnalysisOrchestrator>(),
+        gh<_i939.FieldShapeResolver>(),
+        gh<_i60.StreamingAnalyticsService>(),
+        gh<_i193.IWasmAnalysisService>(),
+      ),
     );
     gh.factory<_i753.PlatformNotificationService>(
       () => _i753.PlatformNotificationService(
@@ -1158,30 +1191,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i37.RecurrenceService>(),
         gh<_i42.NotificationService>(),
         gh<_i554.TemplateWithAestheticsRepository>(),
-      ),
-    );
-    gh.factory<_i831.VisualizationCubit>(
-      () => _i831.VisualizationCubit(
-        gh<_i825.DataRetrievalService>(),
-        gh<_i810.IAnalysisScriptRepository>(),
-        gh<_i820.AnalysisEngine>(),
-      ),
-    );
-    gh.factory<_i60.StreamingAnalyticsService>(
-      () => _i60.StreamingAnalyticsService(
-        gh<_i810.IAnalysisScriptRepository>(),
-        gh<_i820.AnalysisEngine>(),
-        gh<_i34.ILogEntryRepository>(),
-      ),
-    );
-    gh.factory<_i873.AnalysisBuilderCubit>(
-      () => _i873.AnalysisBuilderCubit(
-        gh<_i810.IAnalysisScriptRepository>(),
-        gh<_i554.TemplateWithAestheticsRepository>(),
-        gh<_i790.AiAnalysisOrchestrator>(),
-        gh<_i939.FieldShapeResolver>(),
-        gh<_i60.StreamingAnalyticsService>(),
-        gh<_i193.IWasmAnalysisService>(),
       ),
     );
     gh.lazySingleton<_i909.ScheduleService>(
@@ -1212,6 +1221,8 @@ extension GetItInjectableX on _i174.GetIt {
 }
 
 class _$AppModule extends _i1028.AppModule {}
+
+class _$JsExecutorModule extends _i777.JsExecutorModule {}
 
 class _$CrossDeviceKeyModule extends _i29.CrossDeviceKeyModule {}
 
