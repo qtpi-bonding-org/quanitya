@@ -646,7 +646,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
+      ref: "96ab228b52ded1ab71d1acbcbf4c1ff9a7d423cc"
       resolved-ref: "96ab228b52ded1ab71d1acbcbf4c1ff9a7d423cc"
       url: "https://github.com/qtpi-bonding-org/flutter_adaptable_group.git"
     source: git
@@ -671,7 +671,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
+      ref: e8755f5993cb66c6dfd4696df87bf6ef64229756
       resolved-ref: e8755f5993cb66c6dfd4696df87bf6ef64229756
       url: "https://github.com/qtpi-bonding-org/flutter_color_palette.git"
     source: git
@@ -1579,10 +1579,10 @@ packages:
     dependency: "direct main"
     description:
       name: llamadart
-      sha256: "1fa139d41173d64123e3bfea7b32768a5667c88bfab39b49046b074bb52c92a3"
+      sha256: "0bf1922cbf0a77e5b81221d6926ccd232d7c74749ef5afc38cdf16b264c48a81"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.8"
+    version: "0.6.9"
   local_auth:
     dependency: "direct main"
     description:

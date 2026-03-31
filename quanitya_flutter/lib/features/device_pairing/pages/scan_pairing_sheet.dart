@@ -11,6 +11,7 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
+import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../design_system/widgets/quanitya_text_field.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
@@ -269,29 +270,19 @@ class _ScanPairingContentState extends State<_ScanPairingContent>
 
     final cubit = context.read<PairingScanCubit>();
 
-    showDialog(
+    QuanityaConfirmationDialog.show(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.pairingConfirmTitle),
-        content: Text(context.l10n.pairingConfirmMessage(pending.label)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              _hasScanned = false;
-              cubit.cancelAddDevice();
-            },
-            child: Text(context.l10n.actionCancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              cubit.confirmAddDevice();
-            },
-            child: Text(context.l10n.pairingConfirmAdd),
-          ),
-        ],
-      ),
-    );
+      title: context.l10n.pairingConfirmTitle,
+      message: context.l10n.pairingConfirmMessage(pending.label),
+      confirmText: context.l10n.pairingConfirmAdd,
+      onConfirm: () {
+        cubit.confirmAddDevice();
+      },
+    ).then((confirmed) {
+      if (confirmed != true) {
+        _hasScanned = false;
+        cubit.cancelAddDevice();
+      }
+    });
   }
 }

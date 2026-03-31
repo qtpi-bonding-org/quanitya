@@ -10,6 +10,7 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/device_name_display.dart';
+import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../infrastructure/device/device_info_service.dart';
 import '../../../support/extensions/context_extensions.dart';
@@ -33,13 +34,14 @@ class _AboutView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
+    return QuanityaPageWrapper(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: BlocConsumer<OnboardingCubit, OnboardingState>(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: BlocConsumer<OnboardingCubit, OnboardingState>(
           listenWhen: (prev, curr) => !prev.hasAccount && curr.hasAccount,
           listener: (context, state) {
             AppNavigation.toRecoveryKeyBackup(
@@ -70,6 +72,7 @@ class _AboutView extends StatelessWidget {
             );
           },
         ),
+      ),
     );
   }
 }

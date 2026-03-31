@@ -18,6 +18,7 @@ import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart'
 import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
+import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
 import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
@@ -84,18 +85,20 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
           builder: (context, state) {
             final cubit = context.read<AnalysisBuilderCubit>();
 
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(
-                  context.l10n.analysisBuilderTitle,
-                  style: context.text.headlineMedium,
+            return QuanityaPageWrapper(
+              child: Scaffold(
+                appBar: AppBar(
+                  title: Text(
+                    context.l10n.analysisBuilderTitle,
+                    style: context.text.headlineMedium,
+                  ),
+                  backgroundColor: palette.backgroundPrimary,
+                  elevation: 0,
                 ),
-                backgroundColor: palette.backgroundPrimary,
-                elevation: 0,
-              ),
-              body: SafeArea(
-                top: false,
-                child: _buildMainContent(context, state, cubit),
+                body: SafeArea(
+                  top: false,
+                  child: _buildMainContent(context, state, cubit),
+                ),
               ),
             );
           },
@@ -289,7 +292,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
           textStyle: context.text.bodySmall?.copyWith(
             fontFamily: _codeEditorFontFamily,
             height: _codeEditorLineHeight,
-            color: const Color(0xFFD4D4D4),
+            color: context.colors.textSecondary,
           ),
           gutterStyle: GutterStyle(
             showLineNumbers: true,

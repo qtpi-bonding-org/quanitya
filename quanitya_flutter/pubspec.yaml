@@ -45,9 +45,13 @@ dependencies:
       ref: dce09352cf0e0d629b9418c63e48774572ee26cc
       path: anonaccred_client
   flutter_color_palette:
-    git: https://github.com/qtpi-bonding-org/flutter_color_palette.git
+    git:
+      url: https://github.com/qtpi-bonding-org/flutter_color_palette.git
+      ref: e8755f5993cb66c6dfd4696df87bf6ef64229756
   flutter_adaptable_group:
-    git: https://github.com/qtpi-bonding-org/flutter_adaptable_group.git
+    git:
+      url: https://github.com/qtpi-bonding-org/flutter_adaptable_group.git
+      ref: 96ab228b52ded1ab71d1acbcbf4c1ff9a7d423cc
   
   # State Management
   flutter_bloc: ^8.1.3

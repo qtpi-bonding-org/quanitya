@@ -6,6 +6,7 @@ import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
+import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../support/extensions/context_extensions.dart';
 
@@ -16,39 +17,41 @@ class ConnectDevicePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
+    return QuanityaPageWrapper(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: QuanityaIconButton(
-          icon: Icons.arrow_back,
-          onPressed: () => context.pop(),
-          tooltip: context.l10n.actionCancel,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: QuanityaIconButton(
+            icon: Icons.arrow_back,
+            onPressed: () => context.pop(),
+            tooltip: context.l10n.actionCancel,
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: AppPadding.page,
-          child: QuanityaColumn(
-            spacing: VSpace.x4,
-            crossAlignment: CrossAxisAlignment.start,
-            children: [
-              _HeaderSection(),
-              VSpace.x2,
-              _ConnectOptionCard(
-                icon: Icons.qr_code_scanner_rounded,
-                title: context.l10n.connectPairWithDeviceTitle,
-                description: context.l10n.connectPairWithDeviceDescription,
-                onTap: () => AppNavigation.toShowPairingQr(context),
-              ),
-              _ConnectOptionCard(
-                icon: Icons.key_rounded,
-                title: context.l10n.connectUseRecoveryKeyTitle,
-                description: context.l10n.connectUseRecoveryKeyDescription,
-                onTap: () => AppNavigation.toAccountRecovery(context),
-              ),
-            ],
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: AppPadding.page,
+            child: QuanityaColumn(
+              spacing: VSpace.x4,
+              crossAlignment: CrossAxisAlignment.start,
+              children: [
+                _HeaderSection(),
+                VSpace.x2,
+                _ConnectOptionCard(
+                  icon: Icons.qr_code_scanner_rounded,
+                  title: context.l10n.connectPairWithDeviceTitle,
+                  description: context.l10n.connectPairWithDeviceDescription,
+                  onTap: () => AppNavigation.toShowPairingQr(context),
+                ),
+                _ConnectOptionCard(
+                  icon: Icons.key_rounded,
+                  title: context.l10n.connectUseRecoveryKeyTitle,
+                  description: context.l10n.connectUseRecoveryKeyDescription,
+                  onTap: () => AppNavigation.toAccountRecovery(context),
+                ),
+              ],
+            ),
           ),
         ),
       ),

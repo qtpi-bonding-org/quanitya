@@ -10,6 +10,7 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/structures/row.dart';
+import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
 import '../../../infrastructure/platform/platform_capability_service.dart';
@@ -36,33 +37,35 @@ class _RecoveryKeyBackupPageState extends State<RecoveryKeyBackupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: UiFlowStateListener<OnboardingCubit, OnboardingState>(
-          mapper: BaseStateMessageMapper<OnboardingState>(
-            exceptionMapper: getIt<IExceptionKeyMapper>(),
-            domainMapper: getIt<OnboardingMessageMapper>(),
-          ),
-          uiService: getIt<IUiFlowService>(),
-          child: BlocBuilder<OnboardingCubit, OnboardingState>(
-            builder: (context, state) {
-              return SingleChildScrollView(
-                padding: AppPadding.page,
-                child: QuanityaColumn(
-                  spacing: VSpace.x4,
-                  crossAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header section
-                    _HeaderSection(),
-                    // Backup methods list
-                    _BackupMethodsList(state: state),
-                    // Continue section
-                    _ContinueSection(state: state),
-                  ],
-                ),
-              );
-            },
+    return QuanityaPageWrapper(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: UiFlowStateListener<OnboardingCubit, OnboardingState>(
+            mapper: BaseStateMessageMapper<OnboardingState>(
+              exceptionMapper: getIt<IExceptionKeyMapper>(),
+              domainMapper: getIt<OnboardingMessageMapper>(),
+            ),
+            uiService: getIt<IUiFlowService>(),
+            child: BlocBuilder<OnboardingCubit, OnboardingState>(
+              builder: (context, state) {
+                return SingleChildScrollView(
+                  padding: AppPadding.page,
+                  child: QuanityaColumn(
+                    spacing: VSpace.x4,
+                    crossAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header section
+                      _HeaderSection(),
+                      // Backup methods list
+                      _BackupMethodsList(state: state),
+                      // Continue section
+                      _ContinueSection(state: state),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),

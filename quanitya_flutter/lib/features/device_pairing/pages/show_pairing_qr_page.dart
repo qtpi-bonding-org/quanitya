@@ -13,6 +13,7 @@ import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/device_name_display.dart';
+import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
@@ -67,47 +68,49 @@ class _ShowPairingQrViewState extends State<_ShowPairingQrView> {
   Widget build(BuildContext context) {
     return UiFlowListener<PairingQrCubit, PairingQrState>(
       mapper: GetIt.instance<PairingQrMessageMapper>(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            context.l10n.addToExistingAccount,
-            style: context.text.headlineMedium,
+      child: QuanityaPageWrapper(
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(
+              context.l10n.addToExistingAccount,
+              style: context.text.headlineMedium,
+            ),
+            leading: QuanityaIconButton(
+              icon: Icons.arrow_back,
+              onPressed: () {
+                context.read<PairingQrCubit>().cancelPairing();
+                Navigator.of(context).pop();
+              },
+            ),
           ),
-          leading: QuanityaIconButton(
-            icon: Icons.arrow_back,
-            onPressed: () {
-              context.read<PairingQrCubit>().cancelPairing();
-              Navigator.of(context).pop();
+          body: BlocConsumer<PairingQrCubit, PairingQrState>(
+            listener: (context, state) {
+              if (state.pairingStatus == PairingStatus.success) {
+                // Navigate to home on success
+                AppRouter.resetKeyCheck();
+                AppNavigation.toHome(context);
+              }
+            },
+            builder: (context, state) {
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Padding(
+                        padding: AppPadding.page,
+                        child: state.hasQrData
+                            ? _buildQrDisplay(context, state)
+                            : _buildLabelInput(context, state),
+                      ),
+                    ),
+                  );
+                },
+              );
             },
           ),
-        ),
-        body: BlocConsumer<PairingQrCubit, PairingQrState>(
-          listener: (context, state) {
-            if (state.pairingStatus == PairingStatus.success) {
-              // Navigate to home on success
-              AppRouter.resetKeyCheck();
-              AppNavigation.toHome(context);
-            }
-          },
-          builder: (context, state) {
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Padding(
-                      padding: AppPadding.page,
-                      child: state.hasQrData
-                          ? _buildQrDisplay(context, state)
-                          : _buildLabelInput(context, state),
-                    ),
-                  ),
-                );
-              },
-            );
-          },
         ),
       ),
     );

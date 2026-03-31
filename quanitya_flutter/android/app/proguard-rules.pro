@@ -10,3 +10,7 @@
 -keep class io.flutter.** { *; }
 -keep class io.flutter.plugins.** { *; }
 -dontwarn io.flutter.embedding.**
+
+# Google ML Kit — keep all text recognition script variants
+-keep class com.google.mlkit.vision.text.** { *; }
+-dontwarn com.google.mlkit.vision.text.**

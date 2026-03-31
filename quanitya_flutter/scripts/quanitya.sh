@@ -207,7 +207,9 @@ check_flutter() {
         log_error "Flutter not found. Please install Flutter first."
         exit 1
     fi
-    log_success "Flutter available: $(flutter --version | head -n1)"
+    local flutter_ver
+    flutter_ver=$(flutter --version 2>/dev/null | head -n1 || true)
+    log_success "Flutter available: $flutter_ver"
 }
 
 # Setup PowerSync web assets (SQLCipher-enabled)
@@ -442,12 +444,21 @@ cmd_run() {
             ;;
         android)
             log_info "Starting on Android emulator/device..."
+            local android_device="${DEVICE_ID}"
+            if [[ -z "$android_device" ]]; then
+                # Auto-detect first connected Android device/emulator
+                android_device=$(flutter devices 2>/dev/null | grep -i 'android' | head -n1 | awk -F '•' '{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}' || true)
+                if [[ -z "$android_device" ]]; then
+                    log_error "No Android device or emulator found. Start an emulator first."
+                    exit 1
+                fi
+                log_info "Auto-detected Android device: $android_device"
+            fi
             if [[ "$WIPE" == true ]]; then
                 log_warning "Wiping Android app data for com.quanitya.quanitya..."
-                local target_device="${DEVICE_ID:-android}"
-                adb -s "$target_device" shell pm clear com.quanitya.quanitya || log_warning "Failed to clear (maybe app not installed?)"
+                adb -s "$android_device" shell pm clear com.quanitya.quanitya || log_warning "Failed to clear (maybe app not installed?)"
             fi
-            flutter run -d "${DEVICE_ID:-android}" "${dart_defines[@]}"
+            flutter run -d "$android_device" "${dart_defines[@]}"
             ;;
     esac
 }

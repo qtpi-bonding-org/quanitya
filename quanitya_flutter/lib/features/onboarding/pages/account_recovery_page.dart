@@ -14,6 +14,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/structures/column.dart';
 import '../../../design_system/widgets/device_name_display.dart';
+import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
 import '../../../infrastructure/feedback/base_state_message_mapper.dart';
@@ -53,21 +54,23 @@ class _AccountRecoveryPageState extends State<AccountRecoveryPage> {
           create: (_) => getIt<DeviceManagementCubit>()..loadLocalDeviceInfo(),
         ),
       ],
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: Text(context.l10n.accountRecoveryTitle),
+      child: QuanityaPageWrapper(
+        child: Scaffold(
           backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
-        body: SafeArea(
-          child: _RecoveryForm(
-            formKey: _formKey,
-            recoveryKeyController: _recoveryKeyController,
-            confirmEraseKeys: _confirmEraseKeys,
-            onConfirmEraseChanged: (value) {
-              setState(() => _confirmEraseKeys = value);
-            },
+          appBar: AppBar(
+            title: Text(context.l10n.accountRecoveryTitle),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
+          body: SafeArea(
+            child: _RecoveryForm(
+              formKey: _formKey,
+              recoveryKeyController: _recoveryKeyController,
+              confirmEraseKeys: _confirmEraseKeys,
+              onConfirmEraseChanged: (value) {
+                setState(() => _confirmEraseKeys = value);
+              },
+            ),
           ),
         ),
       ),

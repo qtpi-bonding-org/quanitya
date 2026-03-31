@@ -6,6 +6,7 @@ import '../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
+import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/editor/template_editor_cubit.dart';
 import '../cubits/editor/template_editor_state.dart';
@@ -43,19 +44,21 @@ class TemplateDesignerPage extends StatelessWidget {
       },
       child: UiFlowListener<TemplateEditorCubit, TemplateEditorState>(
         mapper: GetIt.I<TemplateEditorMessageMapper>(),
-        child: Scaffold(
-          appBar: _buildAppBar(context),
-          body: BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
-            buildWhen: (p, c) =>
-                p.completeTemplate != c.completeTemplate,
-            builder: (context, state) {
-              return TemplateEditorForm(
-                onPreview: state.completeTemplate != null
-                    ? () => _showPreview(context, state)
-                    : () {},
-                onSave: () => context.read<TemplateEditorCubit>().save(),
-              );
-            },
+        child: QuanityaPageWrapper(
+          child: Scaffold(
+            appBar: _buildAppBar(context),
+            body: BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+              buildWhen: (p, c) =>
+                  p.completeTemplate != c.completeTemplate,
+              builder: (context, state) {
+                return TemplateEditorForm(
+                  onPreview: state.completeTemplate != null
+                      ? () => _showPreview(context, state)
+                      : () {},
+                  onSave: () => context.read<TemplateEditorCubit>().save(),
+                );
+              },
+            ),
           ),
         ),
       ),
