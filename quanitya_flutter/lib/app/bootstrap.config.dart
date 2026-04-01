@@ -1051,17 +1051,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i808.AiTemplateGenerator>(),
       ),
     );
-    gh.lazySingleton<_i330.DevSeederService>(
-      () => _i330.DevSeederService(
-        gh<_i147.AppDatabase>(),
-        gh<_i367.ICryptoKeyRepository>(),
-        gh<_i896.LogEntryDualDao>(),
-        gh<_i285.TrackerTemplateDualDao>(),
-        gh<_i14.TemplateAestheticsDualDao>(),
-        gh<_i810.IAnalysisScriptRepository>(),
-      ),
-      registerFor: {_dev},
-    );
     gh.factory<_i867.AiTemplateService>(
       () => _i867.AiTemplateService(
         gh<_i637.LlmService>(),
@@ -1135,6 +1124,17 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i820.AnalysisEngine>(
       () => _i820.AnalysisEngine(gh<_i193.IWasmAnalysisService>()),
+    );
+    gh.lazySingleton<_i330.DevSeederService>(
+      () => _i330.DevSeederService(
+        gh<_i147.AppDatabase>(),
+        gh<_i367.ICryptoKeyRepository>(),
+        gh<_i896.LogEntryDualDao>(),
+        gh<_i496.ShareableTemplateStaging>(),
+        gh<_i554.TemplateWithAestheticsRepository>(),
+        gh<_i810.IAnalysisScriptRepository>(),
+      ),
+      registerFor: {_dev},
     );
     gh.factory<_i676.ResultsListCubit>(
       () => _i676.ResultsListCubit(
