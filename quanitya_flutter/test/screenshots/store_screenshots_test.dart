@@ -1,7 +1,10 @@
 @Tags(['screenshot'])
 library;
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quanitya_flutter/app/bootstrap.dart' show getIt;
@@ -16,10 +19,44 @@ import 'package:quanitya_flutter/features/user_feedback/cubits/feedback_cubit.da
 
 import 'screenshot_bootstrap.dart';
 
+Future<void> _loadStaticFonts() async {
+  const fontsDir = 'test/screenshots/fonts';
+  final fonts = {
+    'Atkinson Hyperlegible Mono': [
+      'AtkinsonHyperlegibleMono-Light',
+      'AtkinsonHyperlegibleMono-Regular',
+      'AtkinsonHyperlegibleMono-Medium',
+      'AtkinsonHyperlegibleMono-Bold',
+      'AtkinsonHyperlegibleMono-ExtraBold',
+    ],
+    'Noto Sans Mono': [
+      'NotoSansMono-Light',
+      'NotoSansMono-Regular',
+      'NotoSansMono-Medium',
+      'NotoSansMono-Bold',
+    ],
+  };
+
+  for (final entry in fonts.entries) {
+    final loader = FontLoader(entry.key);
+    for (final name in entry.value) {
+      final file = File('$fontsDir/$name.ttf');
+      if (file.existsSync()) {
+        loader.addFont(
+          Future.value(ByteData.view(file.readAsBytesSync().buffer)),
+        );
+      }
+    }
+    await loader.load();
+  }
+}
+
 void main() {
   group('Store Screenshots', () {
     setUp(() async {
       await configureScreenshotDependencies();
+      // Load static fonts directly — variable fonts don't render in test
+      await _loadStaticFonts();
     });
 
     tearDown(() async {

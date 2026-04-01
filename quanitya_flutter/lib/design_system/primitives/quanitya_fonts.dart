@@ -43,81 +43,81 @@ class QuanityaFonts {
   static TextTheme get textTheme => TextTheme(
     // All Headers/Titles use Atkinson Hyperlegible (Heavy - The Anchor)
     displayLarge: TextStyle(
-      fontFamilyFallback: headerFontFallbacks,
+      fontFamily: headerFamily,
       fontSize: AppSizes.fontMassive, // 36 (was 56)
       fontWeight: heavy,
     ),
     displayMedium: TextStyle(
-      fontFamilyFallback: headerFontFallbacks,
+      fontFamily: headerFamily,
       fontSize: AppSizes.fontMassive, // 36 (was 48)
       fontWeight: heavy,
     ),
     displaySmall: TextStyle(
-      fontFamilyFallback: headerFontFallbacks,
+      fontFamily: headerFamily,
       fontSize: AppSizes.fontMassive, // 36 (was 36)
       fontWeight: heavy,
     ),
     headlineLarge: TextStyle(
-      fontFamilyFallback: headerFontFallbacks,
+      fontFamily: headerFamily,
       fontSize: AppSizes.fontMassive, // 36 (was 32)
       fontWeight: heavy,
     ),
     headlineMedium: TextStyle(
-      fontFamilyFallback: headerFontFallbacks,
+      fontFamily: headerFamily,
       fontSize: AppSizes.fontLarge, // 24 (was 28)
       fontWeight: heavy,
     ),
     headlineSmall: TextStyle(
-      fontFamilyFallback: headerFontFallbacks,
+      fontFamily: headerFamily,
       fontSize: AppSizes.fontLarge, // 24 (was 24)
       fontWeight: heavy,
     ),
     titleLarge: TextStyle(
-      fontFamilyFallback: headerFontFallbacks,
+      fontFamily: headerFamily,
       fontSize: AppSizes.fontLarge, // 24 (was 22)
       fontWeight: heavy,
     ),
     titleMedium: TextStyle(
-      fontFamilyFallback: headerFontFallbacks,
+      fontFamily: headerFamily,
       fontSize: AppSizes.fontStandard, // 16 (was 16)
       fontWeight: heavy,
     ),
     titleSmall: TextStyle(
-      fontFamilyFallback: headerFontFallbacks,
+      fontFamily: headerFamily,
       fontSize: AppSizes.fontSmall, // 14 (was 14)
       fontWeight: heavy,
     ),
 
     // All Body text uses Noto Sans (Medium - The Narrative)
     bodyLarge: TextStyle(
-      fontFamilyFallback: bodyFontFallbacks,
+      fontFamily: bodyFamily,
       fontSize: AppSizes.fontStandard, // 16 (was 16)
       fontWeight: medium,
     ),
     bodyMedium: TextStyle(
-      fontFamilyFallback: bodyFontFallbacks,
+      fontFamily: bodyFamily,
       fontSize: AppSizes.fontSmall, // 14 (was 14)
       fontWeight: medium,
     ),
     bodySmall: TextStyle(
-      fontFamilyFallback: bodyFontFallbacks,
+      fontFamily: bodyFamily,
       fontSize: AppSizes.fontMini, // 12 (was 12)
       fontWeight: medium,
     ),
 
     // All Labels/Metadata use Noto Sans (Light - The Whisper)
     labelLarge: TextStyle(
-      fontFamilyFallback: bodyFontFallbacks,
+      fontFamily: bodyFamily,
       fontSize: AppSizes.fontStandard, // 16 (was 16)
       fontWeight: medium,
     ),
     labelMedium: TextStyle(
-      fontFamilyFallback: bodyFontFallbacks,
+      fontFamily: bodyFamily,
       fontSize: AppSizes.fontSmall, // 14 (was 14)
       fontWeight: medium,
     ),
     labelSmall: TextStyle(
-      fontFamilyFallback: bodyFontFallbacks,
+      fontFamily: bodyFamily,
       fontSize: AppSizes.fontMini, // 12 (was 12)
       fontWeight: medium,
     ),
