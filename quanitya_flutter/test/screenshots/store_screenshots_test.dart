@@ -2,12 +2,10 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quanitya_flutter/app/bootstrap.dart' show getIt;
 import 'package:quanitya_flutter/design_system/widgets/quanitya/general/zen_paper_background.dart';
-import 'package:quanitya_flutter/features/hidden_visibility/cubits/hidden_visibility_cubit.dart';
 import 'package:quanitya_flutter/features/home/pages/temporal_home_page.dart';
 
 import 'screenshot_bootstrap.dart';
@@ -32,15 +30,15 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
 
+      // buildScreenshotApp provides the full MultiProvider (cubits + services
+      // + mappers) mirroring app.dart, so TemporalHomePage can access
+      // everything it needs via context.read/watch.
       await tester.pumpWidget(
         buildScreenshotApp(
-          child: BlocProvider.value(
-            value: getIt<HiddenVisibilityCubit>(),
-            child: const ZenPaperBackground(
-              child: Scaffold(
-                backgroundColor: Colors.transparent,
-                body: TemporalHomePage(),
-              ),
+          child: const ZenPaperBackground(
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: TemporalHomePage(),
             ),
           ),
         ),

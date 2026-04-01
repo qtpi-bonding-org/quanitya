@@ -16,6 +16,8 @@ import 'package:quanitya_flutter/data/repositories/schedule_repository.dart';
 import 'package:quanitya_flutter/data/repositories/template_with_aesthetics_repository.dart';
 import 'package:quanitya_flutter/features/account/cubits/account_info_cubit.dart';
 import 'package:quanitya_flutter/features/account/cubits/account_info_state.dart';
+import 'package:quanitya_flutter/features/analytics/cubits/analytics_cubit.dart';
+import 'package:quanitya_flutter/features/analytics/cubits/analytics_state.dart';
 import 'package:quanitya_flutter/features/app_syncing_mode/cubits/app_syncing_cubit.dart';
 import 'package:quanitya_flutter/features/app_syncing_mode/cubits/app_syncing_state.dart';
 import 'package:quanitya_flutter/features/errors/cubits/errors_cubit.dart';
@@ -27,7 +29,16 @@ import 'package:quanitya_flutter/features/purchase/cubits/purchase_cubit.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/purchase_state.dart';
 import 'package:quanitya_flutter/features/settings/cubits/llm_provider/llm_provider_cubit.dart';
 import 'package:quanitya_flutter/features/settings/cubits/llm_provider/llm_provider_state.dart';
+import 'package:quanitya_flutter/features/sync_status/cubits/sync_status_cubit.dart';
+import 'package:quanitya_flutter/features/sync_status/cubits/sync_status_state.dart';
+import 'package:quanitya_flutter/infrastructure/auth/auth_repository.dart';
+import 'package:quanitya_flutter/infrastructure/auth/delete_orchestrator.dart';
+import 'package:quanitya_flutter/infrastructure/crypto/crypto_key_repository.dart';
 import 'package:quanitya_flutter/infrastructure/crypto/interfaces/i_secure_storage.dart';
+import 'package:quanitya_flutter/infrastructure/device/device_info_service.dart';
+import 'package:quanitya_flutter/infrastructure/permissions/permission_service.dart';
+import 'package:quanitya_flutter/integrations/flutter/health/health_sync_cubit.dart';
+import 'package:quanitya_flutter/integrations/flutter/health/health_sync_state.dart';
 import 'package:quanitya_flutter/logic/log_entries/models/log_entry.dart';
 import 'package:quanitya_flutter/logic/log_entries/services/log_entry_service.dart';
 import 'package:quanitya_flutter/logic/schedules/models/schedule.dart';
@@ -120,16 +131,10 @@ class StubLogEntryRepository implements ILogEntryRepository {
       Stream.value([]);
 
   @override
-  dynamic noSuchMethod(Invocation invocation) {
-    // Return sensible defaults for any unimplemented methods
-    final returnType = invocation.memberName;
-    return null;
-  }
+  dynamic noSuchMethod(Invocation invocation) => null;
 }
 
 /// Stub TemplateQueryDao — returns empty data for all queries.
-///
-/// Uses noSuchMethod so we don't need to implement every DAO method.
 class StubTemplateQueryDao implements TemplateQueryDao {
   @override
   Stream<List<TrackerTemplateModel>> watch({bool? isArchived, bool? isHidden}) =>
@@ -185,6 +190,35 @@ class StubScheduleService implements ScheduleService {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Service stubs (noSuchMethod — never called during screenshot rendering)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class StubCryptoKeyRepository implements ICryptoKeyRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class StubDeviceInfoService implements DeviceInfoService {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class StubAuthRepository implements AuthRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class StubPermissionService implements PermissionService {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class StubDeleteOrchestrator implements DeleteOrchestrator {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Shell-level cubit stubs (emit default idle state, never touch real deps)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -231,6 +265,30 @@ class StubErrorsCubit extends Cubit<ErrorsState>
 class StubLlmProviderCubit extends Cubit<LlmProviderState>
     implements LlmProviderCubit {
   StubLlmProviderCubit() : super(const LlmProviderState());
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class StubSyncStatusCubit extends Cubit<SyncStatusState>
+    implements SyncStatusCubit {
+  StubSyncStatusCubit() : super(const SyncStatusState());
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class StubAnalyticsCubit extends Cubit<AnalyticsState>
+    implements AnalyticsCubit {
+  StubAnalyticsCubit() : super(const AnalyticsState());
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+class StubHealthSyncCubit extends Cubit<HealthSyncState>
+    implements HealthSyncCubit {
+  StubHealthSyncCubit() : super(const HealthSyncState());
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
