@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:quanitya_flutter/l10n/l10n_key_resolver.g.dart';
 
@@ -77,17 +76,17 @@ class UiFlowListener<B extends StateStreamable<S>, S extends IUiFlowState>
                previous.error != current.error;
       },
       listener: (context, state) {
-        _handleLoadingState(state);
-        
+        _handleLoadingState(context, state);
+
         if (mapper != null) {
           // Use mapper for all message types (info, success, warning, error)
-          _handleMappedState(state);
+          _handleMappedState(context, state);
         } else {
           // Fallback to basic error/success handling
-          _handleErrorState(state);
-          _handleSuccessState(state);
+          _handleErrorState(context, state);
+          _handleSuccessState(context, state);
         }
-        
+
         listener?.call(context, state);
       },
       child: child,
@@ -95,29 +94,33 @@ class UiFlowListener<B extends StateStreamable<S>, S extends IUiFlowState>
   }
 
   /// Handles loading overlay display based on state.
-  void _handleLoadingState(S state) {
+  void _handleLoadingState(BuildContext context, S state) {
     if (!autoDismissLoading) return;
-    
-    final loadingService = GetIt.instance<ILoadingService>();
-    
-    if (state.isLoading) {
-      loadingService.show();
-    } else {
-      loadingService.hide();
+
+    try {
+      final loadingService = context.read<ILoadingService>();
+
+      if (state.isLoading) {
+        loadingService.show();
+      } else {
+        loadingService.hide();
+      }
+    } catch (_) {
+      // No ILoadingService registered in context
     }
   }
 
   /// Handles state via mapper - supports all MessageTypes.
   /// Falls back to global exception mapper if domain mapper returns null for errors.
-  void _handleMappedState(S state) {
+  void _handleMappedState(BuildContext context, S state) {
     var messageKey = mapper!.map(state);
-    
+
     // If mapper returns null but state has error, use global exception mapper
     if (messageKey == null && state.hasError && state.error != null) {
       try {
-        final exceptionMapper = GetIt.instance<IExceptionKeyMapper>();
+        final exceptionMapper = context.read<IExceptionKeyMapper>();
         messageKey = exceptionMapper.map(state.error!);
-        
+
         // If exception mapper also returns null, use generic error
         messageKey ??= MessageKey.error(
           L10nKeys.errorGeneric,
@@ -131,39 +134,43 @@ class UiFlowListener<B extends StateStreamable<S>, S extends IUiFlowState>
         );
       }
     }
-    
+
     if (messageKey == null) return;
-    
+
     // Translate the key if localization service is available
     String message;
     try {
-      final localization = GetIt.instance<ILocalizationService>();
+      final localization = context.read<ILocalizationService>();
       message = localization.translate(messageKey.key, args: messageKey.args);
     } catch (_) {
       // Fallback to raw key if no localization service
       message = messageKey.key;
     }
-    
-    final feedbackService = GetIt.instance<IFeedbackService>();
-    feedbackService.show(FeedbackMessage(
-      message: message,
-      type: messageKey.type,
-    ));
+
+    try {
+      final feedbackService = context.read<IFeedbackService>();
+      feedbackService.show(FeedbackMessage(
+        message: message,
+        type: messageKey.type,
+      ));
+    } catch (_) {
+      // No IFeedbackService registered in context
+    }
   }
 
   /// Handles error toast display (fallback when no mapper).
-  void _handleErrorState(S state) {
+  void _handleErrorState(BuildContext context, S state) {
     if (state.error == null) return;
-    
+
     // Try to use global exception mapper first
     String message;
     try {
-      final exceptionMapper = GetIt.instance<IExceptionKeyMapper>();
+      final exceptionMapper = context.read<IExceptionKeyMapper>();
       final messageKey = exceptionMapper.map(state.error!);
-      
+
       if (messageKey != null) {
         try {
-          final localization = GetIt.instance<ILocalizationService>();
+          final localization = context.read<ILocalizationService>();
           message = localization.translate(messageKey.key, args: messageKey.args);
         } catch (_) {
           message = messageKey.key;
@@ -174,28 +181,36 @@ class UiFlowListener<B extends StateStreamable<S>, S extends IUiFlowState>
     } catch (_) {
       message = state.error.toString();
     }
-    
-    final feedbackService = GetIt.instance<IFeedbackService>();
-    feedbackService.show(FeedbackMessage(
-      message: message,
-      type: MessageType.error,
-    ));
+
+    try {
+      final feedbackService = context.read<IFeedbackService>();
+      feedbackService.show(FeedbackMessage(
+        message: message,
+        type: MessageType.error,
+      ));
+    } catch (_) {
+      // No IFeedbackService registered in context
+    }
   }
 
   /// Handles success toast display (fallback when no mapper).
-  void _handleSuccessState(S state) {
+  void _handleSuccessState(BuildContext context, S state) {
     if (!showSuccessToasts || !state.isSuccess) return;
 
-    final feedbackService = GetIt.instance<IFeedbackService>();
-    feedbackService.show(FeedbackMessage(
-      message: successMessage ?? _getDefaultSuccessMessage(),
-      type: MessageType.success,
-    ));
+    try {
+      final feedbackService = context.read<IFeedbackService>();
+      feedbackService.show(FeedbackMessage(
+        message: successMessage ?? _getDefaultSuccessMessage(context),
+        type: MessageType.success,
+      ));
+    } catch (_) {
+      // No IFeedbackService registered in context
+    }
   }
 
-  String _getDefaultSuccessMessage() {
+  String _getDefaultSuccessMessage(BuildContext context) {
     try {
-      final localization = GetIt.instance<ILocalizationService>();
+      final localization = context.read<ILocalizationService>();
       return localization.translate('operation.completed.successfully');
     } catch (_) {
       return 'Operation completed successfully';
