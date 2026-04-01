@@ -186,6 +186,7 @@ class IconResolver {
     'forest': Icons.forest,
     'nature': Icons.nature,
     'nature_people': Icons.nature_people,
+    'local_florist': Icons.local_florist,
     'home': Icons.home,
     'house': Icons.house,
     'apartment': Icons.apartment,
