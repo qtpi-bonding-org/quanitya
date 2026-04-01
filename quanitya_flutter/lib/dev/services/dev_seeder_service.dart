@@ -158,7 +158,12 @@ class DevSeederService {
     Log.d(_tag, 'DevSeeder: [$slug] Saving ${_staging.hasScripts ? "scripts" : "no scripts"}...');
     final scripts = _staging.remappedScripts(templateId: twa.template.id);
     for (final script in scripts) {
-      await _scriptRepo.saveScript(script);
+      try {
+        await _scriptRepo.saveScript(script);
+      } catch (e) {
+        // Script save can fail on fresh DBs missing schema — non-fatal
+        Log.d(_tag, 'DevSeeder: [$slug] Script save failed (non-fatal): $e');
+      }
     }
 
     // 6. Clear staging for next template
