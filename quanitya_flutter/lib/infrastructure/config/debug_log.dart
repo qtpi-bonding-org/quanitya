@@ -110,6 +110,6 @@ class Log {
     'features/visualization/cubits/visualization_cubit': false,
 
     // Dev
-    'dev/services/dev_seeder_service': false,
+    'dev/services/dev_seeder_service': true,
   };
 }

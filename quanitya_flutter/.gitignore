@@ -82,3 +82,6 @@ updated-md/*
 md/*
 *.tmp
 venv/
+
+# Dev-only template catalog (copied from quanitya-templates repo)
+dev_templates/

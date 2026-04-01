@@ -118,8 +118,9 @@ class DevSeederService {
       try {
         final templateId = await _importTemplate(catalogDir, slug);
         await _generateEntries(templateId, slug, random);
-      } catch (e) {
-        Log.d(_tag, 'DevSeeder: FAILED to import $slug: $e');
+      } catch (e, st) {
+        Log.d(_tag, 'DevSeeder: FAILED $slug: $e');
+        Log.d(_tag, 'DevSeeder: Stack: $st');
       }
     }
 
@@ -130,26 +131,38 @@ class DevSeederService {
   // Private: Catalog discovery
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Walks up from cwd looking for the quanitya-templates/templates directory.
+  /// Finds the dev_templates/ directory inside the Flutter project.
+  ///
+  /// Searches from Platform.environment['FLUTTER_PROJECT'] (if set),
+  /// then from Platform.script, then from common project paths.
   String _findCatalogDir() {
-    final candidates = [
-      '../../quanitya-templates/templates',
-      '../quanitya-templates/templates',
-      'quanitya-templates/templates',
-    ];
+    final candidates = <String>[];
 
-    final cwd = Directory.current.path;
-    for (final rel in candidates) {
-      final resolved = Directory('$cwd/$rel');
-      if (resolved.existsSync()) {
-        return resolved.path;
+    // Try Platform.script (works in debug mode on native platforms)
+    final scriptUri = Platform.script;
+    if (scriptUri.scheme == 'file') {
+      // Script is usually at lib/main.dart — go up to project root
+      var dir = File(scriptUri.toFilePath()).parent;
+      for (var i = 0; i < 5; i++) {
+        final candidate = Directory('${dir.path}/dev_templates');
+        if (candidate.existsSync()) return candidate.path;
+        dir = dir.parent;
       }
+      candidates.add('${scriptUri.toFilePath()} (walked up 5 levels)');
+    }
+
+    // Try cwd-relative
+    final cwd = Directory.current.path;
+    for (final rel in ['dev_templates', 'public/quanitya_flutter/dev_templates']) {
+      final resolved = Directory('$cwd/$rel');
+      if (resolved.existsSync()) return resolved.path;
+      candidates.add(resolved.path);
     }
 
     throw StateError(
-      'Could not find quanitya-templates/templates catalog directory. '
-      'Searched relative to cwd ($cwd):\n'
-      '  ${candidates.join('\n  ')}',
+      'Could not find dev_templates/ catalog directory.\n'
+      'Copy templates: cp -r quanitya-templates/templates public/quanitya_flutter/dev_templates\n'
+      'Searched: ${candidates.join(', ')}',
     );
   }
 
@@ -166,11 +179,15 @@ class DevSeederService {
     if (!jsonFile.existsSync()) {
       throw StateError('No template.json found for slug "$slug"');
     }
+    Log.d(_tag, 'DevSeeder: [$slug] Reading JSON...');
     final jsonStr = jsonFile.readAsStringSync();
     final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
+
+    Log.d(_tag, 'DevSeeder: [$slug] Parsing ShareableTemplate...');
     final shareable = ShareableTemplate.fromJson(jsonMap);
 
     // 2. Stage (converts to local format with new UUIDs)
+    Log.d(_tag, 'DevSeeder: [$slug] Staging...');
     _staging.stage(shareable);
 
     // 3. Pull converted template + aesthetics
@@ -180,9 +197,11 @@ class DevSeederService {
     }
 
     // 4. Save template + aesthetics via repository
+    Log.d(_tag, 'DevSeeder: [$slug] Saving to DB...');
     await _templateRepo.save(twa);
 
     // 5. Save analysis scripts (remapped with the saved template's ID)
+    Log.d(_tag, 'DevSeeder: [$slug] Saving ${_staging.hasScripts ? "scripts" : "no scripts"}...');
     final scripts = _staging.remappedScripts(templateId: twa.template.id);
     for (final script in scripts) {
       await _scriptRepo.saveScript(script);
@@ -191,7 +210,7 @@ class DevSeederService {
     // 6. Clear staging for next template
     _staging.clear();
 
-    Log.d(_tag, 'DevSeeder: Imported "$slug" → ${twa.template.id} '
+    Log.d(_tag, 'DevSeeder: [$slug] DONE → ${twa.template.id} '
         '(${scripts.length} scripts)');
 
     return twa.template.id;
