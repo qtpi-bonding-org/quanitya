@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:injectable/injectable.dart';
 import 'package:uuid/uuid.dart';
 
@@ -99,24 +99,21 @@ class DevSeederService {
   /// 1. Import through ShareableTemplateStaging pipeline
   /// 2. Generate entries using the slug-keyed generator (if one exists)
   /// 3. Generate future todos for selected slugs
+  /// All template slugs to seed (must match dev_templates/ asset directories).
+  static const _slugs = [
+    'cardio-cycling', 'cardio-running', 'cardio-swimming', 'emotion',
+    'food', 'habit', 'habits', 'journal', 'lifting', 'medication-log',
+    'mood-energy', 'period-tracker', 'sleep', 'symptoms-health',
+    'water', 'weight', 'work-productivity',
+  ];
+
   Future<void> seedAll() async {
-    final catalogDir = _findCatalogDir();
-    Log.d(_tag, 'DevSeeder: Found catalog at $catalogDir');
-
-    final slugDirs = Directory(catalogDir)
-        .listSync()
-        .whereType<Directory>()
-        .toList()
-      ..sort((a, b) => a.path.compareTo(b.path));
-
     final random = Random(42); // seeded for reproducibility
 
-    for (final dir in slugDirs) {
-      final slug = dir.path.split('/').last;
+    for (final slug in _slugs) {
       Log.d(_tag, 'DevSeeder: Importing $slug...');
-
       try {
-        final templateId = await _importTemplate(catalogDir, slug);
+        final templateId = await _importTemplate(slug);
         await _generateEntries(templateId, slug, random);
       } catch (e, st) {
         Log.d(_tag, 'DevSeeder: FAILED $slug: $e');
@@ -128,47 +125,16 @@ class DevSeederService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Private: Catalog discovery
-  // ─────────────────────────────────────────────────────────────────────────
-
-  /// Finds the dev_templates/ directory.
-  ///
-  /// Searches common locations. This is dev-only code — not shipped.
-  String _findCatalogDir() {
-    final home = Platform.environment['HOME'] ?? '';
-    final candidates = [
-      // Absolute known project path
-      '$home/Documents/openops/project/quanitya/public/quanitya_flutter/dev_templates',
-      // cwd-relative
-      'dev_templates',
-      'public/quanitya_flutter/dev_templates',
-    ];
-
-    for (final path in candidates) {
-      if (Directory(path).existsSync()) return path;
-    }
-
-    throw StateError(
-      'Could not find dev_templates/ catalog directory.\n'
-      'Run: cp -r quanitya-templates/templates public/quanitya_flutter/dev_templates',
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
   // Private: Template import
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Import a template from the catalog via the staging pipeline.
+  /// Import a template from bundled assets via the staging pipeline.
   ///
   /// Returns the saved template's ID.
-  Future<String> _importTemplate(String catalogDir, String slug) async {
-    // 1. Read and parse JSON
-    final jsonFile = File('$catalogDir/$slug/template.json');
-    if (!jsonFile.existsSync()) {
-      throw StateError('No template.json found for slug "$slug"');
-    }
-    Log.d(_tag, 'DevSeeder: [$slug] Reading JSON...');
-    final jsonStr = jsonFile.readAsStringSync();
+  Future<String> _importTemplate(String slug) async {
+    // 1. Read and parse JSON from bundled assets
+    Log.d(_tag, 'DevSeeder: [$slug] Reading asset...');
+    final jsonStr = await rootBundle.loadString('dev_templates/$slug/template.json');
     final jsonMap = jsonDecode(jsonStr) as Map<String, dynamic>;
 
     Log.d(_tag, 'DevSeeder: [$slug] Parsing ShareableTemplate...');

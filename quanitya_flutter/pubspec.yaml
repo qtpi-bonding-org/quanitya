@@ -231,6 +231,24 @@ flutter:
     - assets/prompt.json
     - assets/template_prompt.json
     - assets/scripts/
+    - dev_templates/
+    - dev_templates/cardio-cycling/
+    - dev_templates/cardio-running/
+    - dev_templates/cardio-swimming/
+    - dev_templates/emotion/
+    - dev_templates/food/
+    - dev_templates/habit/
+    - dev_templates/habits/
+    - dev_templates/journal/
+    - dev_templates/lifting/
+    - dev_templates/medication-log/
+    - dev_templates/mood-energy/
+    - dev_templates/period-tracker/
+    - dev_templates/sleep/
+    - dev_templates/symptoms-health/
+    - dev_templates/water/
+    - dev_templates/weight/
+    - dev_templates/work-productivity/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
