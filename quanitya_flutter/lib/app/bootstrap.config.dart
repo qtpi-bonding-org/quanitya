@@ -752,7 +752,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i367.ICryptoKeyRepository>(),
       ),
     );
-    gh.factory<_i831.NoticesCubit>(
+    gh.lazySingleton<_i831.NoticesCubit>(
       () => _i831.NoticesCubit(gh<_i41.NotificationRepository>()),
     );
     gh.lazySingleton<_i156.IE2EEPuller>(
@@ -910,7 +910,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i65.RecoveryKeyCubit>(
       () => _i65.RecoveryKeyCubit(gh<_i401.AccountService>()),
     );
-    gh.factory<_i341.AnalyticsCubit>(
+    gh.lazySingleton<_i341.AnalyticsCubit>(
       () => _i341.AnalyticsCubit(
         gh<_i743.AnalyticsInboxRepository>(),
         gh<_i985.AnalyticsService>(),
@@ -995,7 +995,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i7.AuthAccountOrchestrator>(),
       ),
     );
-    gh.factory<_i386.TimelineDataCubit>(
+    gh.lazySingleton<_i386.TimelineDataCubit>(
       () => _i386.TimelineDataCubit(
         gh<_i34.ILogEntryRepository>(),
         gh<_i870.TemplateQueryDao>(),
@@ -1209,7 +1209,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i810.IAnalysisScriptRepository>(),
       ),
     );
-    gh.factory<_i436.ScheduleListCubit>(
+    gh.lazySingleton<_i436.ScheduleListCubit>(
       () => _i436.ScheduleListCubit(
         gh<_i723.ScheduleRepository>(),
         gh<_i554.TemplateWithAestheticsRepository>(),

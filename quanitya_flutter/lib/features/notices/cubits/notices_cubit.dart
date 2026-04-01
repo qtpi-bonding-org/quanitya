@@ -9,7 +9,7 @@ import '../../../support/extensions/cubit_ui_flow_extension.dart';
 
 part 'notices_cubit.freezed.dart';
 
-@injectable
+@lazySingleton
 class NoticesCubit extends QuanityaCubit<NoticesState> {
   final NotificationRepository _repository;
   StreamSubscription? _subscription;

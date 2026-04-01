@@ -94,12 +94,6 @@ class _TemporalHomePageState extends State<TemporalHomePage> {
             return _timelineCubit!;
           },
         ),
-        BlocProvider(
-          create: (context) => getIt.get<TimelineDataCubit>(),
-        ),
-        BlocProvider(
-          create: (context) => getIt.get<ScheduleListCubit>()..load(),
-        ),
       ],
       child: BlocListener<TemporalTimelineCubit, TemporalTimelineState>(
         listenWhen: (previous, current) =>

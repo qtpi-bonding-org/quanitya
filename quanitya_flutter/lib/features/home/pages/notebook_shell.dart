@@ -84,14 +84,7 @@ class _NotebookShellState extends State<NotebookShell>
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) =>
-              GetIt.instance<NoticesCubit>()..loadNotifications(),
-        ),
-      ],
-      child: MultiBlocListener(
+    return MultiBlocListener(
         listeners: [
           BlocListener<EntitlementCubit, EntitlementState>(
             listenWhen: (prev, curr) => prev.hasSyncAccess != curr.hasSyncAccess,
@@ -189,7 +182,6 @@ class _NotebookShellState extends State<NotebookShell>
             );
           },
         ),
-      ),
     );
   }
 }

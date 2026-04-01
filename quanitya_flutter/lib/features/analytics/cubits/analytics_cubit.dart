@@ -9,7 +9,7 @@ import '../../../data/repositories/analytics_inbox_repository.dart';
 import '../../../features/app_syncing_mode/repositories/app_syncing_repository.dart';
 import 'analytics_state.dart';
 
-@injectable
+@lazySingleton
 class AnalyticsCubit extends QuanityaCubit<AnalyticsState> {
   final AnalyticsInboxRepository _inboxRepo;
   final AnalyticsService _analyticsService;

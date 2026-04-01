@@ -15,7 +15,7 @@ import 'schedule_list_state.dart';
 /// Watches all active schedules and enriches them with template context.
 /// Always loads all schedules (including hidden). UI filters visibility
 /// based on HiddenVisibilityCubit.
-@injectable
+@lazySingleton
 class ScheduleListCubit extends QuanityaCubit<ScheduleListState> {
   final ScheduleRepository _scheduleRepository;
   final TemplateWithAestheticsRepository _templateRepository;

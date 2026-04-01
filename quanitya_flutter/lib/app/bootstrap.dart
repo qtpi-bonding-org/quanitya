@@ -25,6 +25,9 @@ import '../infrastructure/error_reporting/error_reporter_service.dart';
 import '../infrastructure/fonts/font_preloader_service.dart';
 import '../infrastructure/notifications/notification_service.dart';
 import '../logic/schedules/services/schedule_generator_service.dart';
+import '../features/notices/cubits/notices_cubit.dart';
+import '../features/schedules/cubits/schedule_list_cubit.dart';
+import '../features/analytics/cubits/analytics_cubit.dart';
 import '../features/settings/services/tested_models_service.dart';
 import '../integrations/flutter/health/health_sync_service.dart';
 import 'bootstrap.config.dart';
@@ -74,6 +77,12 @@ Future<void> bootstrap() async {
     Log.d(_tag, 'Bootstrap: Configuring ErrorPrivserver...');
     _configureErrorPrivserver();
     Log.d(_tag, 'Bootstrap: ErrorPrivserver configured');
+
+    // 2.6. Initialize singleton cubits that need explicit load calls
+    getIt<NoticesCubit>().loadNotifications();
+    getIt<ScheduleListCubit>().load();
+    getIt<AnalyticsCubit>().load();
+    Log.d(_tag, 'Bootstrap: Singleton cubits initialized');
 
     // 3. AppSyncingCubit self-hydrates from DB in constructor (no init needed)
 

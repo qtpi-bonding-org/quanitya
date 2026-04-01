@@ -12,7 +12,7 @@ import 'timeline_data_state.dart';
 
 const _tag = 'features/home/cubits/timeline_data_cubit';
 
-@injectable
+@lazySingleton
 class TimelineDataCubit extends QuanityaCubit<TimelineDataState> {
   final ILogEntryRepository _logEntryRepo;
   final TemplateQueryDao _templateQueryDao;
