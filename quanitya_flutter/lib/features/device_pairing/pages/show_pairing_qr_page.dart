@@ -35,10 +35,7 @@ class ShowPairingQrPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GetIt.instance<PairingQrCubit>(),
-      child: const _ShowPairingQrView(),
-    );
+    return const _ShowPairingQrView();
   }
 }
 

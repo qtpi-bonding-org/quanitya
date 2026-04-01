@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
-import '../../../data/repositories/template_with_aesthetics_repository.dart';
 import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../design_system/widgets/quanitya_icon_button.dart';
 import '../../../design_system/widgets/quanitya/general/loose_insert_sheet.dart';
@@ -19,46 +18,28 @@ import '../widgets/editor/template_browse_sheet.dart';
 
 /// Template designer page — create or edit tracker templates.
 ///
-/// Simple and agnostic approach:
-/// - TemplateDesignerPage() - Create new template
-/// - TemplateDesignerPage(templateWithAesthetics) - Edit existing template
+/// The TemplateEditorCubit is provided at the route level in app_router.dart.
 class TemplateDesignerPage extends StatelessWidget {
-  final TemplateWithAesthetics? templateWithAesthetics;
-
-  const TemplateDesignerPage({
-    super.key,
-    this.templateWithAesthetics,
-  });
+  const TemplateDesignerPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) {
-        final cubit = GetIt.I<TemplateEditorCubit>();
-        if (templateWithAesthetics != null) {
-          cubit.loadTemplate(templateWithAesthetics!);
-        } else {
-          cubit.createNew();
-        }
-        return cubit;
-      },
-      child: UiFlowListener<TemplateEditorCubit, TemplateEditorState>(
-        mapper: context.read<TemplateEditorMessageMapper>(),
-        child: QuanityaPageWrapper(
-          child: Scaffold(
-            appBar: _buildAppBar(context),
-            body: BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
-              buildWhen: (p, c) =>
-                  p.completeTemplate != c.completeTemplate,
-              builder: (context, state) {
-                return TemplateEditorForm(
-                  onPreview: state.completeTemplate != null
-                      ? () => _showPreview(context, state)
-                      : () {},
-                  onSave: () => context.read<TemplateEditorCubit>().save(),
-                );
-              },
-            ),
+    return UiFlowListener<TemplateEditorCubit, TemplateEditorState>(
+      mapper: context.read<TemplateEditorMessageMapper>(),
+      child: QuanityaPageWrapper(
+        child: Scaffold(
+          appBar: _buildAppBar(context),
+          body: BlocBuilder<TemplateEditorCubit, TemplateEditorState>(
+            buildWhen: (p, c) =>
+                p.completeTemplate != c.completeTemplate,
+            builder: (context, state) {
+              return TemplateEditorForm(
+                onPreview: state.completeTemplate != null
+                    ? () => _showPreview(context, state)
+                    : () {},
+                onSave: () => context.read<TemplateEditorCubit>().save(),
+              );
+            },
           ),
         ),
       ),

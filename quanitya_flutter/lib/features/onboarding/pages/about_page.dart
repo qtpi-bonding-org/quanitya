@@ -22,10 +22,7 @@ class AboutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<OnboardingCubit>(),
-      child: const _AboutView(),
-    );
+    return const _AboutView();
   }
 }
 

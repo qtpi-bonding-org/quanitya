@@ -5,7 +5,6 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../app_router.dart';
-import '../../../app/bootstrap.dart';
 import '../../purchase/cubits/entitlement_cubit.dart';
 import '../../app_syncing_mode/cubits/app_syncing_cubit.dart';
 import '../../../design_system/primitives/app_spacings.dart';
@@ -47,30 +46,22 @@ class _AccountRecoveryPageState extends State<AccountRecoveryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => getIt<RecoveryKeyCubit>()),
-        BlocProvider(
-          create: (_) => getIt<DeviceManagementCubit>()..loadLocalDeviceInfo(),
-        ),
-      ],
-      child: QuanityaPageWrapper(
-        child: Scaffold(
+    return QuanityaPageWrapper(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text(context.l10n.accountRecoveryTitle),
           backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            title: Text(context.l10n.accountRecoveryTitle),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-          ),
-          body: SafeArea(
-            child: _RecoveryForm(
-              formKey: _formKey,
-              recoveryKeyController: _recoveryKeyController,
-              confirmEraseKeys: _confirmEraseKeys,
-              onConfirmEraseChanged: (value) {
-                setState(() => _confirmEraseKeys = value);
-              },
-            ),
+          elevation: 0,
+        ),
+        body: SafeArea(
+          child: _RecoveryForm(
+            formKey: _formKey,
+            recoveryKeyController: _recoveryKeyController,
+            confirmEraseKeys: _confirmEraseKeys,
+            onConfirmEraseChanged: (value) {
+              setState(() => _confirmEraseKeys = value);
+            },
           ),
         ),
       ),

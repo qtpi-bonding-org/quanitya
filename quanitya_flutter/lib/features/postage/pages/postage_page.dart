@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/swipeable_page_shell.dart';
@@ -39,56 +38,53 @@ class _PostagePageState extends State<PostagePage> {
     final l10n = AppLocalizations.of(context)!;
     final palette = QuanityaPalette.primary;
 
-    // NoticesCubit, AnalyticsCubit, and ErrorsCubit are provided at app root.
-    return BlocProvider(
-      create: (_) => GetIt.instance<FeedbackCubit>(),
-      child: UiFlowListener<NoticesCubit, NoticesState>(
-        mapper: context.read<NoticesMessageMapper>(),
-        child: UiFlowListener<AnalyticsCubit, AnalyticsState>(
-          mapper: context.read<AnalyticsMessageMapper>(),
-          child: UiFlowListener<FeedbackCubit, FeedbackState>(
-            mapper: context.read<FeedbackMessageMapper>(),
-            child: UiFlowListener<ErrorsCubit, ErrorsState>(
-              mapper: context.read<ErrorsMessageMapper>(),
-              child: SwipeablePageShell(
-                onPageChanged: (index) => setState(() => _currentIndex = index),
-                pages: const [
-                  NoticesTabContent(),
-                  FeedbackTabContent(),
-                  AnalyticsTabContent(),
-                  ErrorsTabContent(),
-                ],
-                labels: [
-                  Text(
-                    l10n.postageTabNotices,
-                    style: context.text.bodySmall?.copyWith(
-                      fontWeight: _currentIndex == 0 ? FontWeight.w900 : FontWeight.w500,
-                      color: _currentIndex == 0 ? palette.textPrimary : palette.interactableColor,
-                    ),
+    // NoticesCubit, AnalyticsCubit, ErrorsCubit, and FeedbackCubit are provided at route level.
+    return UiFlowListener<NoticesCubit, NoticesState>(
+      mapper: context.read<NoticesMessageMapper>(),
+      child: UiFlowListener<AnalyticsCubit, AnalyticsState>(
+        mapper: context.read<AnalyticsMessageMapper>(),
+        child: UiFlowListener<FeedbackCubit, FeedbackState>(
+          mapper: context.read<FeedbackMessageMapper>(),
+          child: UiFlowListener<ErrorsCubit, ErrorsState>(
+            mapper: context.read<ErrorsMessageMapper>(),
+            child: SwipeablePageShell(
+              onPageChanged: (index) => setState(() => _currentIndex = index),
+              pages: const [
+                NoticesTabContent(),
+                FeedbackTabContent(),
+                AnalyticsTabContent(),
+                ErrorsTabContent(),
+              ],
+              labels: [
+                Text(
+                  l10n.postageTabNotices,
+                  style: context.text.bodySmall?.copyWith(
+                    fontWeight: _currentIndex == 0 ? FontWeight.w900 : FontWeight.w500,
+                    color: _currentIndex == 0 ? palette.textPrimary : palette.interactableColor,
                   ),
-                  Text(
-                    l10n.outboxTabFeedback,
-                    style: context.text.bodySmall?.copyWith(
-                      fontWeight: _currentIndex == 1 ? FontWeight.w900 : FontWeight.w500,
-                      color: _currentIndex == 1 ? palette.textPrimary : palette.interactableColor,
-                    ),
+                ),
+                Text(
+                  l10n.outboxTabFeedback,
+                  style: context.text.bodySmall?.copyWith(
+                    fontWeight: _currentIndex == 1 ? FontWeight.w900 : FontWeight.w500,
+                    color: _currentIndex == 1 ? palette.textPrimary : palette.interactableColor,
                   ),
-                  Text(
-                    l10n.outboxTabAnalytics,
-                    style: context.text.bodySmall?.copyWith(
-                      fontWeight: _currentIndex == 2 ? FontWeight.w900 : FontWeight.w500,
-                      color: _currentIndex == 2 ? palette.textPrimary : palette.interactableColor,
-                    ),
+                ),
+                Text(
+                  l10n.outboxTabAnalytics,
+                  style: context.text.bodySmall?.copyWith(
+                    fontWeight: _currentIndex == 2 ? FontWeight.w900 : FontWeight.w500,
+                    color: _currentIndex == 2 ? palette.textPrimary : palette.interactableColor,
                   ),
-                  Text(
-                    l10n.outboxTabErrors,
-                    style: context.text.bodySmall?.copyWith(
-                      fontWeight: _currentIndex == 3 ? FontWeight.w900 : FontWeight.w500,
-                      color: _currentIndex == 3 ? palette.textPrimary : palette.interactableColor,
-                    ),
+                ),
+                Text(
+                  l10n.outboxTabErrors,
+                  style: context.text.bodySmall?.copyWith(
+                    fontWeight: _currentIndex == 3 ? FontWeight.w900 : FontWeight.w500,
+                    color: _currentIndex == 3 ? palette.textPrimary : palette.interactableColor,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

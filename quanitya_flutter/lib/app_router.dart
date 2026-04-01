@@ -4,21 +4,31 @@ import 'infrastructure/config/debug_log.dart';
 import 'package:go_router/go_router.dart';
 import 'package:get_it/get_it.dart';
 
+import 'app/bootstrap.dart';
 import 'app/root_navigator_key.dart';
 import 'features/templates/pages/template_designer_page.dart';
+import 'features/templates/cubits/editor/template_editor_cubit.dart';
 import 'features/analytics/pages/analysis_builder_page.dart';
+import 'logic/analysis/cubits/analysis_builder_cubit.dart';
 import 'l10n/app_localizations.dart';
 import 'data/repositories/template_with_aesthetics_repository.dart';
 import 'features/home/pages/notebook_shell.dart';
 import 'design_system/widgets/quanitya/general/zen_paper_background.dart';
 import 'features/catalog/pages/template_gallery_page.dart';
+import 'features/catalog/cubits/template_gallery_cubit.dart';
 import 'features/onboarding/pages/onboarding_page.dart';
 import 'features/onboarding/pages/about_page.dart';
 import 'features/onboarding/pages/recovery_key_backup_page.dart';
 import 'features/onboarding/pages/account_recovery_page.dart';
 import 'features/onboarding/cubits/onboarding_cubit.dart';
 import 'features/device_pairing/pages/show_pairing_qr_page.dart';
+import 'features/device_pairing/cubits/pairing_qr_cubit.dart';
 import 'features/onboarding/pages/connect_device_page.dart';
+import 'features/settings/cubits/data_export/data_export_cubit.dart';
+import 'features/settings/cubits/recovery_key/recovery_key_cubit.dart';
+import 'features/settings/cubits/device_management/device_management_cubit.dart';
+import 'features/settings/cubits/webhook/webhook_cubit.dart';
+import 'features/user_feedback/cubits/feedback_cubit.dart';
 import 'infrastructure/auth/account_service.dart';
 import 'infrastructure/crypto/crypto_key_repository.dart';
 import 'infrastructure/device/device_info_service.dart';
@@ -132,7 +142,16 @@ class AppRouter {
           GoRoute(
             path: AppRoutes.home,
             name: RouteNames.home,
-            builder: (context, state) => const NotebookShell(),
+            builder: (context, state) => MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (_) => getIt<DataExportCubit>()),
+                BlocProvider(create: (_) => getIt<RecoveryKeyCubit>()),
+                BlocProvider(create: (_) => getIt<DeviceManagementCubit>()),
+                BlocProvider(create: (_) => getIt<WebhookCubit>()..load()),
+                BlocProvider(create: (_) => getIt<FeedbackCubit>()),
+              ],
+              child: const NotebookShell(),
+            ),
           ),
           GoRoute(
             path: AppRoutes.onboarding,
@@ -158,17 +177,31 @@ class AppRouter {
           GoRoute(
             path: AppRoutes.accountRecovery,
             name: RouteNames.accountRecovery,
-            builder: (context, state) => const AccountRecoveryPage(),
+            builder: (context, state) => MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (_) => getIt<RecoveryKeyCubit>()),
+                BlocProvider(
+                  create: (_) => getIt<DeviceManagementCubit>()..loadLocalDeviceInfo(),
+                ),
+              ],
+              child: const AccountRecoveryPage(),
+            ),
           ),
           GoRoute(
             path: AppRoutes.showPairingQr,
             name: RouteNames.showPairingQr,
-            builder: (context, state) => const ShowPairingQrPage(),
+            builder: (context, state) => BlocProvider(
+              create: (_) => getIt<PairingQrCubit>(),
+              child: const ShowPairingQrPage(),
+            ),
           ),
           GoRoute(
             path: AppRoutes.about,
             name: RouteNames.about,
-            builder: (context, state) => const AboutPage(),
+            builder: (context, state) => BlocProvider(
+              create: (_) => getIt<OnboardingCubit>(),
+              child: const AboutPage(),
+            ),
           ),
           GoRoute(
             path: AppRoutes.connectDevice,
@@ -179,16 +212,25 @@ class AppRouter {
           GoRoute(
             path: AppRoutes.templateGallery,
             name: RouteNames.templateGallery,
-            builder: (context, state) => const TemplateGalleryPage(),
+            builder: (context, state) => BlocProvider(
+              create: (_) => getIt<TemplateGalleryCubit>()..loadCatalog(),
+              child: const TemplateGalleryPage(),
+            ),
           ),
           GoRoute(
             path: AppRoutes.templateEditor,
             name: RouteNames.templateEditor,
             builder: (context, state) {
-              final templateWithAesthetics =
-                  state.extra as TemplateWithAesthetics?;
-              return TemplateDesignerPage(
-                templateWithAesthetics: templateWithAesthetics,
+              final template = state.extra as TemplateWithAesthetics?;
+              final cubit = getIt<TemplateEditorCubit>();
+              if (template != null) {
+                cubit.loadTemplate(template);
+              } else {
+                cubit.createNew();
+              }
+              return BlocProvider(
+                create: (_) => cubit,
+                child: const TemplateDesignerPage(),
               );
             },
           ),
@@ -199,10 +241,13 @@ class AppRouter {
               final params = state.extra as Map<String, dynamic>?;
               final fieldId = params?['fieldId'] as String? ?? 'demo-field';
               final templateId = params?['templateId'] as String?;
-              
-              return AnalysisBuilderPage(
-                fieldId: fieldId,
-                templateId: templateId,
+              return BlocProvider(
+                create: (_) => getIt<AnalysisBuilderCubit>()
+                  ..initializeForField(fieldId, null, templateId: templateId),
+                child: AnalysisBuilderPage(
+                  fieldId: fieldId,
+                  templateId: templateId,
+                ),
               );
             },
           ),

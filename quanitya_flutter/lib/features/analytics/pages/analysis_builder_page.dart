@@ -7,7 +7,6 @@ import 'package:highlight/languages/javascript.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
 
-import '../../../app/bootstrap.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
@@ -71,34 +70,29 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
   Widget build(BuildContext context) {
     final palette = QuanityaPalette.primary;
 
-    return BlocProvider(
-      create: (context) => getIt<AnalysisBuilderCubit>()
-        ..initializeForField(widget.fieldId, widget.timeResolution,
-            templateId: widget.templateId),
-      child: UiFlowListener<AnalysisBuilderCubit, AnalysisBuilderState>(
-        mapper: context.read<AnalysisBuilderMessageMapper>(),
-        child: BlocBuilder<AnalysisBuilderCubit, AnalysisBuilderState>(
-          builder: (context, state) {
-            final cubit = context.read<AnalysisBuilderCubit>();
+    return UiFlowListener<AnalysisBuilderCubit, AnalysisBuilderState>(
+      mapper: context.read<AnalysisBuilderMessageMapper>(),
+      child: BlocBuilder<AnalysisBuilderCubit, AnalysisBuilderState>(
+        builder: (context, state) {
+          final cubit = context.read<AnalysisBuilderCubit>();
 
-            return QuanityaPageWrapper(
-              child: Scaffold(
-                appBar: AppBar(
-                  title: Text(
-                    context.l10n.analysisBuilderTitle,
-                    style: context.text.headlineMedium,
-                  ),
-                  backgroundColor: palette.backgroundPrimary,
-                  elevation: 0,
+          return QuanityaPageWrapper(
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  context.l10n.analysisBuilderTitle,
+                  style: context.text.headlineMedium,
                 ),
-                body: SafeArea(
-                  top: false,
-                  child: _buildMainContent(context, state, cubit),
-                ),
+                backgroundColor: palette.backgroundPrimary,
+                elevation: 0,
               ),
-            );
-          },
-        ),
+              body: SafeArea(
+                top: false,
+                child: _buildMainContent(context, state, cubit),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

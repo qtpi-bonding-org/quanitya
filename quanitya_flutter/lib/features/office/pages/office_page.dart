@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/swipeable_page_shell.dart';
@@ -82,72 +81,64 @@ class _OfficePageState extends State<OfficePage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => GetIt.instance<DataExportCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<RecoveryKeyCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<DeviceManagementCubit>()),
-        BlocProvider(create: (_) => GetIt.instance<WebhookCubit>()..load()),
-      ],
-      child: MultiUiFlowListener(
-          listeners: [
-            (child) => UiFlowListener<LlmProviderCubit, LlmProviderState>(
-              mapper: context.read<LlmProviderMessageMapper>(),
-              child: child,
-            ),
-            (child) => UiFlowListener<DataExportCubit, DataExportState>(
-              mapper: context.read<DataExportMessageMapper>(),
-              child: child,
-            ),
-            (child) => UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
-              mapper: context.read<RecoveryKeyMessageMapper>(),
-              child: child,
-            ),
-            (child) => UiFlowListener<WebhookCubit, WebhookState>(
-              mapper: context.read<WebhookMessageMapper>(),
-              child: child,
-            ),
-            (child) => UiFlowListener<PurchaseCubit, PurchaseState>(
-              mapper: context.read<PurchaseMessageMapper>(),
-              child: child,
-            ),
-            (child) => UiFlowListener<EntitlementCubit, EntitlementState>(
-              mapper: context.read<EntitlementMessageMapper>(),
-              child: child,
-            ),
-            (child) => UiFlowListener<AppSyncingCubit, AppSyncingState>(
-              mapper: context.read<AppSyncingMessageMapper>(),
-              child: child,
-            ),
-            (child) => UiFlowListener<SyncStatusCubit, SyncStatusState>(
-              mapper: context.read<SyncStatusMessageMapper>(),
-              child: child,
-            ),
-            (child) => UiFlowListener<DeviceManagementCubit, DeviceManagementState>(
-              mapper: context.read<DeviceManagementMessageMapper>(),
-              child: child,
-            ),
-          ],
-          child: Builder(
-            builder: (innerContext) => SwipeablePageShell(
-              onPageChanged: (index) =>
-                  _onPageChanged(innerContext, index),
-              pages: const [
-                SettingsContent(),
-                PurchaseTabContent(),
-                AppInfoTabContent(),
-              ],
-              labels: [
-                _buildLabel(
-                    context, l10n.officeTabSettings, _currentIndex == 0),
-                _buildLabel(
-                    context, l10n.officeTabPurchases, _currentIndex == 1),
-                _buildLabel(
-                    context, l10n.officeTabInfo, _currentIndex == 2),
-              ],
-            ),
-          ),
+    return MultiUiFlowListener(
+      listeners: [
+        (child) => UiFlowListener<LlmProviderCubit, LlmProviderState>(
+          mapper: context.read<LlmProviderMessageMapper>(),
+          child: child,
         ),
+        (child) => UiFlowListener<DataExportCubit, DataExportState>(
+          mapper: context.read<DataExportMessageMapper>(),
+          child: child,
+        ),
+        (child) => UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
+          mapper: context.read<RecoveryKeyMessageMapper>(),
+          child: child,
+        ),
+        (child) => UiFlowListener<WebhookCubit, WebhookState>(
+          mapper: context.read<WebhookMessageMapper>(),
+          child: child,
+        ),
+        (child) => UiFlowListener<PurchaseCubit, PurchaseState>(
+          mapper: context.read<PurchaseMessageMapper>(),
+          child: child,
+        ),
+        (child) => UiFlowListener<EntitlementCubit, EntitlementState>(
+          mapper: context.read<EntitlementMessageMapper>(),
+          child: child,
+        ),
+        (child) => UiFlowListener<AppSyncingCubit, AppSyncingState>(
+          mapper: context.read<AppSyncingMessageMapper>(),
+          child: child,
+        ),
+        (child) => UiFlowListener<SyncStatusCubit, SyncStatusState>(
+          mapper: context.read<SyncStatusMessageMapper>(),
+          child: child,
+        ),
+        (child) => UiFlowListener<DeviceManagementCubit, DeviceManagementState>(
+          mapper: context.read<DeviceManagementMessageMapper>(),
+          child: child,
+        ),
+      ],
+      child: Builder(
+        builder: (innerContext) => SwipeablePageShell(
+          onPageChanged: (index) =>
+              _onPageChanged(innerContext, index),
+          pages: const [
+            SettingsContent(),
+            PurchaseTabContent(),
+            AppInfoTabContent(),
+          ],
+          labels: [
+            _buildLabel(
+                context, l10n.officeTabSettings, _currentIndex == 0),
+            _buildLabel(
+                context, l10n.officeTabPurchases, _currentIndex == 1),
+            _buildLabel(
+                context, l10n.officeTabInfo, _currentIndex == 2),
+          ],
+        ),
+      ),
     );
   }
 }
