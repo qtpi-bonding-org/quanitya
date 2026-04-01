@@ -20,12 +20,14 @@ void main() {
           TemplateField(id: 'f8', label: 'Group', type: FieldEnum.group),
         ];
         final result = TemplateExtractionSchemaBuilder.buildExtractionFields(fields);
-        expect(result, hasLength(5));
+        // 5 supported fields + 1 synthetic Date field
+        expect(result, hasLength(6));
         expect(result[0].fieldId, 'f1');
         expect(result[0].type, GbnfFieldType.string);
         expect(result[1].type, GbnfFieldType.number);
         expect(result[4].type, GbnfFieldType.enumerated);
         expect(result[4].enumValues, ['a', 'b']);
+        expect(result[5].label, 'Date');
       });
 
       test('skips deleted fields', () {
@@ -34,7 +36,8 @@ void main() {
           TemplateField(id: 'f2', label: 'Old', type: FieldEnum.text, isDeleted: true),
         ];
         final result = TemplateExtractionSchemaBuilder.buildExtractionFields(fields);
-        expect(result, hasLength(1));
+        // 1 non-deleted field + 1 synthetic Date field
+        expect(result, hasLength(2));
       });
     });
 
