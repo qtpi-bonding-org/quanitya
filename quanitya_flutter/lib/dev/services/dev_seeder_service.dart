@@ -131,38 +131,26 @@ class DevSeederService {
   // Private: Catalog discovery
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Finds the dev_templates/ directory inside the Flutter project.
+  /// Finds the dev_templates/ directory.
   ///
-  /// Searches from Platform.environment['FLUTTER_PROJECT'] (if set),
-  /// then from Platform.script, then from common project paths.
+  /// Searches common locations. This is dev-only code — not shipped.
   String _findCatalogDir() {
-    final candidates = <String>[];
+    final home = Platform.environment['HOME'] ?? '';
+    final candidates = [
+      // Absolute known project path
+      '$home/Documents/openops/project/quanitya/public/quanitya_flutter/dev_templates',
+      // cwd-relative
+      'dev_templates',
+      'public/quanitya_flutter/dev_templates',
+    ];
 
-    // Try Platform.script (works in debug mode on native platforms)
-    final scriptUri = Platform.script;
-    if (scriptUri.scheme == 'file') {
-      // Script is usually at lib/main.dart — go up to project root
-      var dir = File(scriptUri.toFilePath()).parent;
-      for (var i = 0; i < 5; i++) {
-        final candidate = Directory('${dir.path}/dev_templates');
-        if (candidate.existsSync()) return candidate.path;
-        dir = dir.parent;
-      }
-      candidates.add('${scriptUri.toFilePath()} (walked up 5 levels)');
-    }
-
-    // Try cwd-relative
-    final cwd = Directory.current.path;
-    for (final rel in ['dev_templates', 'public/quanitya_flutter/dev_templates']) {
-      final resolved = Directory('$cwd/$rel');
-      if (resolved.existsSync()) return resolved.path;
-      candidates.add(resolved.path);
+    for (final path in candidates) {
+      if (Directory(path).existsSync()) return path;
     }
 
     throw StateError(
       'Could not find dev_templates/ catalog directory.\n'
-      'Copy templates: cp -r quanitya-templates/templates public/quanitya_flutter/dev_templates\n'
-      'Searched: ${candidates.join(', ')}',
+      'Run: cp -r quanitya-templates/templates public/quanitya_flutter/dev_templates',
     );
   }
 
