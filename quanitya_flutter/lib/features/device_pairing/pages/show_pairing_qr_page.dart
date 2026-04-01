@@ -67,7 +67,7 @@ class _ShowPairingQrViewState extends State<_ShowPairingQrView> {
   @override
   Widget build(BuildContext context) {
     return UiFlowListener<PairingQrCubit, PairingQrState>(
-      mapper: GetIt.instance<PairingQrMessageMapper>(),
+      mapper: context.read<PairingQrMessageMapper>(),
       child: QuanityaPageWrapper(
         child: Scaffold(
           appBar: AppBar(

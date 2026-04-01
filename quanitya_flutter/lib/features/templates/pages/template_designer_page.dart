@@ -43,7 +43,7 @@ class TemplateDesignerPage extends StatelessWidget {
         return cubit;
       },
       child: UiFlowListener<TemplateEditorCubit, TemplateEditorState>(
-        mapper: GetIt.I<TemplateEditorMessageMapper>(),
+        mapper: context.read<TemplateEditorMessageMapper>(),
         child: QuanityaPageWrapper(
           child: Scaffold(
             appBar: _buildAppBar(context),

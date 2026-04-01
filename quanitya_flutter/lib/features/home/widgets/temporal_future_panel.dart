@@ -8,7 +8,6 @@ import '../../schedules/cubits/schedule_list_state.dart';
 import '../../schedules/cubits/schedule_list_message_mapper.dart';
 import '../../schedules/widgets/schedule_list_widget.dart';
 import '../../log_entry/widgets/log_entry_sheet.dart';
-import '../../../app/bootstrap.dart';
 
 /// Future Panel - Shows scheduled reminders and upcoming tasks
 /// 
@@ -21,7 +20,7 @@ class TemporalFuturePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return UiFlowListener<ScheduleListCubit, ScheduleListState>(
-        mapper: getIt<ScheduleListMessageMapper>(),
+        mapper: context.read<ScheduleListMessageMapper>(),
         child: BlocBuilder<ScheduleListCubit, ScheduleListState>(
           builder: (context, state) {
             if (state.isLoading) {

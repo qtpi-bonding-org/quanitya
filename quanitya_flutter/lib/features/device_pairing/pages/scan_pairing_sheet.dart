@@ -86,7 +86,7 @@ class _ScanPairingContentState extends State<_ScanPairingContent>
   @override
   Widget build(BuildContext context) {
     return UiFlowListener<PairingScanCubit, PairingScanState>(
-      mapper: GetIt.instance<PairingScanMessageMapper>(),
+      mapper: context.read<PairingScanMessageMapper>(),
       child: BlocConsumer<PairingScanCubit, PairingScanState>(
         listener: (context, state) {
           if (state.scanStatus == ScanStatus.confirmationRequired) {

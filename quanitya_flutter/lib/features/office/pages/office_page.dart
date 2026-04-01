@@ -95,39 +95,39 @@ class _OfficePageState extends State<OfficePage> {
       child: MultiUiFlowListener(
           listeners: [
             (child) => UiFlowListener<LlmProviderCubit, LlmProviderState>(
-              mapper: GetIt.instance<LlmProviderMessageMapper>(),
+              mapper: context.read<LlmProviderMessageMapper>(),
               child: child,
             ),
             (child) => UiFlowListener<DataExportCubit, DataExportState>(
-              mapper: GetIt.instance<DataExportMessageMapper>(),
+              mapper: context.read<DataExportMessageMapper>(),
               child: child,
             ),
             (child) => UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
-              mapper: GetIt.instance<RecoveryKeyMessageMapper>(),
+              mapper: context.read<RecoveryKeyMessageMapper>(),
               child: child,
             ),
             (child) => UiFlowListener<WebhookCubit, WebhookState>(
-              mapper: GetIt.instance<WebhookMessageMapper>(),
+              mapper: context.read<WebhookMessageMapper>(),
               child: child,
             ),
             (child) => UiFlowListener<PurchaseCubit, PurchaseState>(
-              mapper: GetIt.instance<PurchaseMessageMapper>(),
+              mapper: context.read<PurchaseMessageMapper>(),
               child: child,
             ),
             (child) => UiFlowListener<EntitlementCubit, EntitlementState>(
-              mapper: GetIt.instance<EntitlementMessageMapper>(),
+              mapper: context.read<EntitlementMessageMapper>(),
               child: child,
             ),
             (child) => UiFlowListener<AppSyncingCubit, AppSyncingState>(
-              mapper: GetIt.instance<AppSyncingMessageMapper>(),
+              mapper: context.read<AppSyncingMessageMapper>(),
               child: child,
             ),
             (child) => UiFlowListener<SyncStatusCubit, SyncStatusState>(
-              mapper: GetIt.instance<SyncStatusMessageMapper>(),
+              mapper: context.read<SyncStatusMessageMapper>(),
               child: child,
             ),
             (child) => UiFlowListener<DeviceManagementCubit, DeviceManagementState>(
-              mapper: GetIt.instance<DeviceManagementMessageMapper>(),
+              mapper: context.read<DeviceManagementMessageMapper>(),
               child: child,
             ),
           ],

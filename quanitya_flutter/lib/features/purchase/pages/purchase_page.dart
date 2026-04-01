@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:get_it/get_it.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../design_system/primitives/app_sizes.dart';
@@ -39,11 +38,11 @@ class PurchaseTabContent extends StatelessWidget {
     return MultiUiFlowListener(
       listeners: [
         (child) => UiFlowListener<PurchaseCubit, PurchaseState>(
-              mapper: GetIt.instance<PurchaseMessageMapper>(),
+              mapper: context.read<PurchaseMessageMapper>(),
               child: child,
             ),
         (child) => UiFlowListener<EntitlementCubit, EntitlementState>(
-              mapper: GetIt.instance<EntitlementMessageMapper>(),
+              mapper: context.read<EntitlementMessageMapper>(),
               child: child,
             ),
       ],

@@ -55,11 +55,11 @@ class _PostagePageState extends State<PostagePage> {
         mapper: GetIt.instance<NoticesMessageMapper>(),
         uiService: GetIt.instance<IUiFlowService>(),
         child: UiFlowListener<AnalyticsCubit, AnalyticsState>(
-          mapper: GetIt.instance<AnalyticsMessageMapper>(),
+          mapper: context.read<AnalyticsMessageMapper>(),
           child: UiFlowListener<FeedbackCubit, FeedbackState>(
-            mapper: GetIt.instance<FeedbackMessageMapper>(),
+            mapper: context.read<FeedbackMessageMapper>(),
             child: UiFlowListener<ErrorsCubit, ErrorsState>(
-              mapper: GetIt.instance<ErrorsMessageMapper>(),
+              mapper: context.read<ErrorsMessageMapper>(),
               child: SwipeablePageShell(
                 onPageChanged: (index) => setState(() => _currentIndex = index),
                 pages: const [
