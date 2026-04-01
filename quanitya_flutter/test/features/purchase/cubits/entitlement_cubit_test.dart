@@ -6,6 +6,7 @@ import 'package:quanitya_cloud_client/quanitya_cloud_client.dart'
     show AccountFeatureEntitlement, Feature;
 
 import 'package:quanitya_flutter/data/db/app_database.dart';
+import 'package:quanitya_flutter/infrastructure/auth/auth_repository.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/entitlement_repository.dart';
 import 'package:quanitya_flutter/infrastructure/purchase/i_entitlement_service.dart';
 import 'package:quanitya_flutter/features/purchase/cubits/entitlement_cubit.dart';
@@ -17,11 +18,14 @@ class MockEntitlementRepository extends Mock implements EntitlementRepository {}
 
 class MockAppDatabase extends Mock implements AppDatabase {}
 
+class MockAuthRepository extends Mock implements AuthRepository {}
+
 
 void main() {
   late MockEntitlementService mockService;
   late MockEntitlementRepository mockRepo;
   late MockAppDatabase mockDb;
+  late MockAuthRepository mockAuthRepo;
 
   /// Stubs the methods that [EntitlementCubit._initialize] calls so that
   /// construction does not crash.  By default hasPurchased returns true so
@@ -35,6 +39,9 @@ void main() {
 
     when(() => mockDb.watchEncryptedStorageUsage())
         .thenAnswer((_) => Stream.value((count: 0, bytes: 0)));
+
+    when(() => mockAuthRepo.isRegisteredWithServer)
+        .thenAnswer((_) async => true);
   }
 
   /// Wait long enough for [_initialize] to complete.
@@ -45,6 +52,7 @@ void main() {
     mockService = MockEntitlementService();
     mockRepo = MockEntitlementRepository();
     mockDb = MockAppDatabase();
+    mockAuthRepo = MockAuthRepository();
     stubInitDefaults();
   });
 
@@ -61,7 +69,7 @@ void main() {
         ],
       );
 
-      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb, mockAuthRepo);
       await waitForInit();
 
       // Init already called loadEntitlements; verify the result.
@@ -90,7 +98,7 @@ void main() {
       when(() => mockService.getEntitlements())
           .thenAnswer((_) async => []);
 
-      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb, mockAuthRepo);
       await waitForInit();
 
       await cubit.loadEntitlements();
@@ -117,7 +125,7 @@ void main() {
       when(() => mockService.hasAiAccess())
           .thenAnswer((_) async => false);
 
-      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb, mockAuthRepo);
       await waitForInit();
 
       expect(cubit.state.entitlements.length, 1);
@@ -132,7 +140,7 @@ void main() {
     test('initialization fetches entitlements even when not marked as purchased', () async {
       stubInitDefaults(hasPurchased: false);
 
-      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb, mockAuthRepo);
       await waitForInit();
 
       // Server returned empty entitlements, so hasPurchased stays false
@@ -163,7 +171,7 @@ void main() {
           .thenAnswer((_) async => false);
       when(() => mockRepo.markPurchased()).thenAnswer((_) async {});
 
-      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb, mockAuthRepo);
       await waitForInit();
 
       expect(cubit.state.hasPurchased, isTrue);
@@ -179,7 +187,7 @@ void main() {
       when(() => mockService.hasSyncAccess())
           .thenAnswer((_) async => false);
 
-      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb, mockAuthRepo);
       await waitForInit();
       expect(cubit.state.hasSyncAccess, isFalse);
 
@@ -212,7 +220,7 @@ void main() {
     test('refreshIfStale skips when not purchased', () async {
       stubInitDefaults(hasPurchased: false);
 
-      final cubit = EntitlementCubit(mockService, mockRepo, mockDb);
+      final cubit = EntitlementCubit(mockService, mockRepo, mockDb, mockAuthRepo);
       await waitForInit();
 
       // Init called getEntitlements once (reinstall recovery).
