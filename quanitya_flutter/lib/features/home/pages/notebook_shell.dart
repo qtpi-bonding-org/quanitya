@@ -78,7 +78,7 @@ class _NotebookShellState extends State<NotebookShell>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      GetIt.instance<EntitlementCubit>().refreshIfStale();
+      context.read<EntitlementCubit>().refreshIfStale();
     }
   }
 
@@ -86,15 +86,10 @@ class _NotebookShellState extends State<NotebookShell>
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider.value(value: GetIt.instance<AccountInfoCubit>()),
-        BlocProvider.value(value: GetIt.instance<AppSyncingCubit>()),
-        BlocProvider.value(value: GetIt.instance<EntitlementCubit>()),
-        BlocProvider.value(value: GetIt.instance<PurchaseCubit>()),
         BlocProvider(
           create: (_) =>
               GetIt.instance<NoticesCubit>()..loadNotifications(),
         ),
-        BlocProvider.value(value: GetIt.instance<ErrorsCubit>()),
       ],
       child: MultiBlocListener(
         listeners: [
@@ -118,7 +113,7 @@ class _NotebookShellState extends State<NotebookShell>
                 !prev.hasAiAccess && curr.hasAiAccess,
             listener: (context, state) async {
               try {
-                await GetIt.instance<LlmProviderCubit>().selectQuanitya();
+                await context.read<LlmProviderCubit>().selectQuanitya();
               } catch (e, stack) {
                 await ErrorPrivserver.captureError(e, stack, source: 'NotebookShell.llmEntitlementListener');
               }

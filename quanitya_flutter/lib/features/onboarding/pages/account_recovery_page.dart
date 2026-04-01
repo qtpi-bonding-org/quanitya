@@ -109,12 +109,12 @@ class _RecoveryForm extends StatelessWidget {
 
           try {
             // Post-recovery: mark purchased + refresh entitlements via cubit
-            final entitlementCubit = GetIt.instance<EntitlementCubit>();
+            final entitlementCubit = context.read<EntitlementCubit>();
             await entitlementCubit.markPurchased();
             await entitlementCubit.loadEntitlements();
 
             // Bootstrap sync for this device (recovery restores same key, not rotation)
-            await GetIt.instance<AppSyncingCubit>().startSyncAfterRecovery();
+            await context.read<AppSyncingCubit>().startSyncAfterRecovery();
           } catch (e, stack) {
             await ErrorPrivserver.captureError(e, stack, source: 'AccountRecoveryPage.postRecovery');
           } finally {

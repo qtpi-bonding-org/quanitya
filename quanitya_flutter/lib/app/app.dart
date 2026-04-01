@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' as cubit_ui_flow;
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
@@ -32,6 +33,13 @@ import '../features/sync_status/cubits/sync_status_message_mapper.dart';
 import '../logic/templates/services/shared/template_editor_message_mapper.dart';
 import '../features/settings/cubits/webhook/webhook_message_mapper.dart';
 import '../logic/analysis/cubits/analysis_builder_message_mapper.dart';
+import '../features/account/cubits/account_info_cubit.dart';
+import '../features/app_syncing_mode/cubits/app_syncing_cubit.dart';
+import '../features/purchase/cubits/entitlement_cubit.dart';
+import '../features/purchase/cubits/purchase_cubit.dart';
+import '../features/errors/cubits/errors_cubit.dart';
+import '../features/settings/cubits/llm_provider/llm_provider_cubit.dart';
+import '../features/sync_status/cubits/sync_status_cubit.dart';
 
 class QuanityaApp extends StatefulWidget {
   const QuanityaApp({super.key});
@@ -51,6 +59,14 @@ class _QuanityaAppState extends State<QuanityaApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        // Singleton cubits (shared state)
+        BlocProvider<AccountInfoCubit>.value(value: getIt<AccountInfoCubit>()),
+        BlocProvider<AppSyncingCubit>.value(value: getIt<AppSyncingCubit>()),
+        BlocProvider<EntitlementCubit>.value(value: getIt<EntitlementCubit>()),
+        BlocProvider<PurchaseCubit>.value(value: getIt<PurchaseCubit>()),
+        BlocProvider<ErrorsCubit>.value(value: getIt<ErrorsCubit>()),
+        BlocProvider<LlmProviderCubit>.value(value: getIt<LlmProviderCubit>()),
+        BlocProvider<SyncStatusCubit>.value(value: getIt<SyncStatusCubit>()),
         // UiFlow internal services
         Provider<cubit_ui_flow.IExceptionKeyMapper>.value(
           value: getIt<cubit_ui_flow.IExceptionKeyMapper>(),

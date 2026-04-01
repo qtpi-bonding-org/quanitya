@@ -768,8 +768,8 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
           await GetIt.instance<DeleteOrchestrator>().deleteAccount();
 
           // Switch back to local mode (UI state — not owned by DeleteOrchestrator)
-          if (GetIt.instance.isRegistered<AppSyncingCubit>()) {
-            await GetIt.instance<AppSyncingCubit>().switchToLocal();
+          if (context.mounted) {
+            await context.read<AppSyncingCubit>().switchToLocal();
           }
 
           if (mounted) {
