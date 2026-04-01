@@ -45,6 +45,7 @@ import '../features/notices/cubits/notices_cubit.dart';
 import '../features/home/cubits/timeline_data_cubit.dart';
 import '../features/schedules/cubits/schedule_list_cubit.dart';
 import '../features/analytics/cubits/analytics_cubit.dart';
+import '../integrations/flutter/health/health_sync_cubit.dart';
 
 class QuanityaApp extends StatefulWidget {
   const QuanityaApp({super.key});
@@ -78,6 +79,7 @@ class _QuanityaAppState extends State<QuanityaApp> {
         BlocProvider<TimelineDataCubit>.value(value: getIt<TimelineDataCubit>()),
         BlocProvider<ScheduleListCubit>.value(value: getIt<ScheduleListCubit>()),
         BlocProvider<AnalyticsCubit>.value(value: getIt<AnalyticsCubit>()),
+        BlocProvider<HealthSyncCubit>.value(value: getIt<HealthSyncCubit>()),
         // UiFlow internal services
         Provider<cubit_ui_flow.IExceptionKeyMapper>.value(
           value: getIt<cubit_ui_flow.IExceptionKeyMapper>(),

@@ -224,68 +224,72 @@ class _TutorialSectionState extends State<_TutorialSection> {
   }
 }
 
-class _HealthConnectSection extends StatelessWidget {
+class _HealthConnectSection extends StatefulWidget {
   const _HealthConnectSection();
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) {
-        final cubit = GetIt.instance<HealthSyncCubit>();
-        cubit.loadEnabled();
-        return cubit;
-      },
-      child: BlocBuilder<HealthSyncCubit, HealthSyncState>(
-        builder: (context, state) {
-          final cubit = context.read<HealthSyncCubit>();
-          final isLoading = state.status == UiFlowStatus.loading;
+  State<_HealthConnectSection> createState() => _HealthConnectSectionState();
+}
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      context.l10n.healthImportData,
-                      style: context.text.bodyMedium,
-                    ),
+class _HealthConnectSectionState extends State<_HealthConnectSection> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<HealthSyncCubit>().loadEnabled();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HealthSyncCubit, HealthSyncState>(
+      builder: (context, state) {
+        final cubit = context.read<HealthSyncCubit>();
+        final isLoading = state.status == UiFlowStatus.loading;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    context.l10n.healthImportData,
+                    style: context.text.bodyMedium,
                   ),
-                  if (isLoading)
-                    SizedBox(
-                      width: AppSizes.iconSmall,
-                      height: AppSizes.iconSmall,
-                      child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
-                    )
-                  else
-                    QuanityaToggle(
-                      value: state.enabled,
-                      onChanged: (enabled) => cubit.toggle(enabled, defaultHealthTypes),
-                    ),
-                ],
+                ),
+                if (isLoading)
+                  SizedBox(
+                    width: AppSizes.iconSmall,
+                    height: AppSizes.iconSmall,
+                    child: CircularProgressIndicator(strokeWidth: AppSizes.borderWidthThick),
+                  )
+                else
+                  QuanityaToggle(
+                    value: state.enabled,
+                    onChanged: (enabled) => cubit.toggle(enabled, defaultHealthTypes),
+                  ),
+              ],
+            ),
+            if (state.lastImportCount > 0) ...[
+              VSpace.x2,
+              Text(
+                context.l10n.healthEntriesImported(state.lastImportCount),
+                style: context.text.bodySmall?.copyWith(
+                  color: context.colors.textSecondary,
+                ),
               ),
-              if (state.lastImportCount > 0) ...[
-                VSpace.x2,
-                Text(
-                  context.l10n.healthEntriesImported(state.lastImportCount),
-                  style: context.text.bodySmall?.copyWith(
-                    color: context.colors.textSecondary,
-                  ),
-                ),
-              ],
-              if (state.status == UiFlowStatus.failure && state.error != null) ...[
-                VSpace.x2,
-                Text(
-                  state.error.toString(),
-                  style: context.text.bodySmall?.copyWith(
-                    color: context.colors.errorColor,
-                  ),
-                ),
-              ],
             ],
-          );
-        },
-      ),
+            if (state.status == UiFlowStatus.failure && state.error != null) ...[
+              VSpace.x2,
+              Text(
+                state.error.toString(),
+                style: context.text.bodySmall?.copyWith(
+                  color: context.colors.errorColor,
+                ),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 }

@@ -1142,7 +1142,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i554.TemplateWithAestheticsRepository>(),
       ),
     );
-    gh.factory<_i611.HealthSyncCubit>(
+    gh.lazySingleton<_i611.HealthSyncCubit>(
       () => _i611.HealthSyncCubit(
         gh<_i746.HealthSyncService>(),
         gh<_i946.PermissionService>(),

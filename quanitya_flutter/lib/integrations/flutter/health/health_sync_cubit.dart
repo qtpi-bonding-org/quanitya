@@ -7,7 +7,7 @@ import '../../../support/extensions/cubit_ui_flow_extension.dart';
 import 'health_sync_service.dart';
 import 'health_sync_state.dart';
 
-@injectable
+@lazySingleton
 class HealthSyncCubit extends QuanityaCubit<HealthSyncState> {
   final HealthSyncService _syncService;
   final PermissionService _permissionService;
