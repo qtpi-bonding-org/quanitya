@@ -45,6 +45,7 @@ import 'package:quanitya_flutter/logic/log_entries/services/log_entry_service.da
 import 'package:quanitya_flutter/logic/schedules/models/schedule.dart';
 import 'package:quanitya_flutter/logic/schedules/services/schedule_service.dart';
 import 'package:quanitya_flutter/logic/templates/models/shared/tracker_template.dart';
+import 'fake_template_data.dart';
 import 'package:quanitya_flutter/features/settings/cubits/data_export/data_export_cubit.dart';
 import 'package:quanitya_flutter/features/settings/cubits/data_export/data_export_state.dart';
 import 'package:quanitya_flutter/features/settings/cubits/recovery_key/recovery_key_cubit.dart';
@@ -178,11 +179,11 @@ class StubTemplateQueryDao implements TemplateQueryDao {
   dynamic noSuchMethod(Invocation invocation) => Future<dynamic>.value();
 }
 
-/// Stub TemplateWithAestheticsRepository — returns empty data.
+/// Stub TemplateWithAestheticsRepository — returns fake template data for screenshots.
 class StubTemplateWithAestheticsRepository implements TemplateWithAestheticsRepository {
   @override
   Stream<List<TemplateWithAesthetics>> watch({bool? isArchived, bool? isHidden}) =>
-      Stream.value([]);
+      Stream.value(fakeTemplates);
 
   @override
   Future<TemplateWithAesthetics?> findById(String id) async => null;
