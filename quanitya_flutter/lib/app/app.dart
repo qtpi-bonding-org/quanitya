@@ -40,6 +40,7 @@ import '../features/purchase/cubits/purchase_cubit.dart';
 import '../features/errors/cubits/errors_cubit.dart';
 import '../features/settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../features/sync_status/cubits/sync_status_cubit.dart';
+import '../features/hidden_visibility/cubits/hidden_visibility_cubit.dart';
 
 class QuanityaApp extends StatefulWidget {
   const QuanityaApp({super.key});
@@ -67,6 +68,8 @@ class _QuanityaAppState extends State<QuanityaApp> {
         BlocProvider<ErrorsCubit>.value(value: getIt<ErrorsCubit>()),
         BlocProvider<LlmProviderCubit>.value(value: getIt<LlmProviderCubit>()),
         BlocProvider<SyncStatusCubit>.value(value: getIt<SyncStatusCubit>()),
+        BlocProvider<HiddenVisibilityCubit>.value(
+            value: getIt<HiddenVisibilityCubit>()),
         // UiFlow internal services
         Provider<cubit_ui_flow.IExceptionKeyMapper>.value(
           value: getIt<cubit_ui_flow.IExceptionKeyMapper>(),

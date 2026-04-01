@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:get_it/get_it.dart';
 
 import 'app/root_navigator_key.dart';
-import 'features/hidden_visibility/cubits/hidden_visibility_cubit.dart';
 import 'features/templates/pages/template_designer_page.dart';
 import 'features/analytics/pages/analysis_builder_page.dart';
 import 'l10n/app_localizations.dart';
@@ -127,10 +126,7 @@ class AppRouter {
       routes: [
       ShellRoute(
         builder: (context, state, child) {
-          return BlocProvider.value(
-            value: GetIt.instance<HiddenVisibilityCubit>(),
-            child: ZenPaperBackground(child: child),
-          );
+          return ZenPaperBackground(child: child);
         },
         routes: [
           GoRoute(
