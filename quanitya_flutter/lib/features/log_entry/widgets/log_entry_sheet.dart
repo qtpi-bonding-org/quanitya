@@ -2,7 +2,7 @@ import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
+import '../../../app/bootstrap.dart' show getIt;
 import 'package:image_picker/image_picker.dart';
 
 import '../../../data/dao/log_entry_query_dao.dart';
@@ -73,11 +73,11 @@ class LogEntrySheet extends StatefulWidget {
     required BuildContext context,
     required String templateId,
   }) async {
-    final repo = GetIt.I<TemplateWithAestheticsRepository>();
+    final repo = context.read<TemplateWithAestheticsRepository>();
     final data = await repo.findById(templateId);
     if (!context.mounted) return;
     if (data == null) {
-      GetIt.I<IFeedbackService>().show(FeedbackMessage(
+      context.read<IFeedbackService>().show(FeedbackMessage(
         message: context.l10n.errorTemplateNotFound,
         type: MessageType.error,
       ));
@@ -191,14 +191,14 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => GetIt.I<DynamicTemplateCubit>()
+          create: (_) => getIt<DynamicTemplateCubit>()
             ..loadTemplate(widget.template!),
         ),
         BlocProvider(
           create: (_) => ImportCubit(
             _sharedOcrService,
             _sharedLlmService,
-            ImportExecutor(GetIt.I()),
+            ImportExecutor(getIt()),
           ),
         ),
       ],
@@ -369,7 +369,7 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
   }
 
   void _showFeedback(String message, MessageType type) {
-    GetIt.I<IFeedbackService>().show(
+    context.read<IFeedbackService>().show(
       FeedbackMessage(message: message, type: type),
     );
   }
@@ -473,7 +473,7 @@ class _LogEntrySheetState extends State<LogEntrySheet> {
     final ewc = widget.entryWithContext!;
 
     return BlocProvider(
-      create: (_) => GetIt.I<EntryDetailCubit>()..initWithEntry(ewc),
+      create: (_) => getIt<EntryDetailCubit>()..initWithEntry(ewc),
       child: BlocConsumer<EntryDetailCubit, EntryDetailState>(
         listener: (context, state) {
           if (state.status == UiFlowStatus.success &&

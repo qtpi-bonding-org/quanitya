@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart' show UiFlowStatus;
-import 'package:get_it/get_it.dart';
 
 import '../../../support/extensions/context_extensions.dart';
 import '../../account/cubits/account_info_cubit.dart';
@@ -42,7 +41,7 @@ class _NotebookShellState extends State<NotebookShell>
   }
 
   Future<void> _maybeShowHomeTour() async {
-    final tourService = GetIt.instance<GuidedTourService>();
+    final tourService = context.read<GuidedTourService>();
     if (!await tourService.shouldShowTour(GuidedTourService.homeKey)) return;
 
     // Wait one frame for IndexedStack children + FolderTabBar to attach keys

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
+import 'package:provider/provider.dart';
+import '../../../../app/bootstrap.dart' show getIt;
 
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
@@ -175,7 +176,7 @@ class _TemplatePreviewState extends State<TemplatePreview> {
   }
 
   void _initializeDefaultValues() {
-    final handler = GetIt.I<DefaultValueHandler>();
+    final handler = getIt<DefaultValueHandler>();
     for (final field in widget.template.fields) {
       if (!_previewValues.containsKey(field.id)) {
         _previewValues[field.id] = handler.resolveDefault(field);
@@ -411,7 +412,7 @@ class _TemplatePreviewState extends State<TemplatePreview> {
     if (!AllowedFont.isAllowed(fontName)) return const TextStyle();
 
     // Use FontPreloaderService for proper bundled font handling
-    final fontService = GetIt.I<FontPreloaderService>();
+    final fontService = context.read<FontPreloaderService>();
     return fontService.getTextStyle(fontName);
   }
 

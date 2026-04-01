@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:get_it/get_it.dart';
+import '../../../../app/bootstrap.dart' show getIt;
 
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
@@ -51,10 +51,16 @@ class _BrowseContent extends StatefulWidget {
 
 class _BrowseContentState extends State<_BrowseContent> {
   final _urlController = TextEditingController();
-  final _importService = GetIt.I<TemplateImportService>();
-  final _staging = GetIt.I<ShareableTemplateStaging>();
+  final _importService = getIt<TemplateImportService>();
+  late final ShareableTemplateStaging _staging;
   bool _isLoadingUrl = false;
   String? _urlError;
+
+  @override
+  void initState() {
+    super.initState();
+    _staging = context.read<ShareableTemplateStaging>();
+  }
 
   @override
   void dispose() {
@@ -135,7 +141,7 @@ class _BrowseContentState extends State<_BrowseContent> {
 
   Widget _buildGallerySection(BuildContext context) {
     return BlocProvider(
-      create: (_) => GetIt.I<TemplateGalleryCubit>()..loadCatalog(),
+      create: (_) => getIt<TemplateGalleryCubit>()..loadCatalog(),
       child: BlocBuilder<TemplateGalleryCubit, TemplateGalleryState>(
         builder: (context, state) {
           if (state.status == UiFlowStatus.loading) {

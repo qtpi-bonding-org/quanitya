@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import '../../../infrastructure/config/debug_log.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
 import '../../../../infrastructure/auth/delete_orchestrator.dart';
@@ -186,7 +185,7 @@ class _TutorialSectionState extends State<_TutorialSection> {
   }
 
   Future<void> _loadState() async {
-    final tourService = GetIt.instance<GuidedTourService>();
+    final tourService = context.read<GuidedTourService>();
     final shouldShow = await tourService.shouldShowTour(GuidedTourService.homeKey);
     if (mounted) setState(() => _showTours = shouldShow);
   }
@@ -205,7 +204,7 @@ class _TutorialSectionState extends State<_TutorialSection> {
           value: _showTours,
           onChanged: (enabled) async {
             try {
-              final tourService = GetIt.instance<GuidedTourService>();
+              final tourService = context.read<GuidedTourService>();
               if (enabled) {
                 await tourService.resetAllTours();
               } else {
@@ -502,7 +501,7 @@ class _WebhooksSectionState extends State<_WebhooksSection> {
 
   Future<void> _loadTemplates() async {
     try {
-      final repo = GetIt.instance<TemplateWithAestheticsRepository>();
+      final repo = context.read<TemplateWithAestheticsRepository>();
       final templates = await repo.find(isArchived: false);
       if (mounted) {
         setState(() {
@@ -769,7 +768,7 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
 
         try {
           // Delete server-side account and clean up all local state
-          await GetIt.instance<DeleteOrchestrator>().deleteAccount();
+          await context.read<DeleteOrchestrator>().deleteAccount();
 
           // Switch back to local mode (UI state — not owned by DeleteOrchestrator)
           if (context.mounted) {
@@ -777,7 +776,7 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
           }
 
           if (mounted) {
-            GetIt.instance<IFeedbackService>().show(FeedbackMessage(
+            context.read<IFeedbackService>().show(FeedbackMessage(
               message: context.l10n.deleteAccountSuccess,
               type: MessageType.info,
             ));
@@ -785,7 +784,7 @@ class _DeleteAccountButtonState extends State<_DeleteAccountButton> {
         } catch (e, stack) {
           await ErrorPrivserver.captureError(e, stack, source: 'SettingsPage.deleteAccount');
           if (mounted) {
-            GetIt.instance<IFeedbackService>().show(FeedbackMessage(
+            context.read<IFeedbackService>().show(FeedbackMessage(
               message: context.l10n.deleteAccountFailed,
               type: MessageType.error,
             ));

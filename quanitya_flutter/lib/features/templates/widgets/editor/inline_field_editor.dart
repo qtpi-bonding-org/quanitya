@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
+import 'package:provider/provider.dart';
+import '../../../../app/bootstrap.dart' show getIt;
 
 import '../../../../logic/templates/enums/field_enum.dart';
 import '../../../../logic/templates/enums/field_enum_extensions.dart';
@@ -76,8 +77,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
   void initState() {
     super.initState();
     
-    final generator = GetIt.I<SymbolicCombinationGenerator>();
-    _defaultHandler = GetIt.I<DefaultValueHandler>();
+    final generator = context.read<SymbolicCombinationGenerator>();
+    _defaultHandler = getIt<DefaultValueHandler>();
     _validWidgets = generator.getValidUiElementsForField(widget.fieldType);
 
     if (widget.isEditing) {

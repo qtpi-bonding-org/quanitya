@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app_router.dart';
-import '../../../app/bootstrap.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
@@ -97,7 +96,7 @@ class _KeyGenerationLoadingViewState extends State<_KeyGenerationLoadingView> {
   }
 
   Future<void> _loadDeviceName() async {
-    final name = await getIt<DeviceInfoService>().getDeviceName();
+    final name = await context.read<DeviceInfoService>().getDeviceName();
     if (mounted) {
       setState(() => _deviceName = name);
     }

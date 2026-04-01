@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_error_privserver/flutter_error_privserver.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:get_it/get_it.dart';
 
 import '../../../app_router.dart';
 import '../../purchase/cubits/entitlement_cubit.dart';
@@ -95,7 +94,7 @@ class _RecoveryForm extends StatelessWidget {
           AppRouter.resetKeyCheck();
 
           // Keep loading visible during post-recovery sync
-          final loadingService = GetIt.instance<IUiFlowService>();
+          final loadingService = context.read<IUiFlowService>();
           loadingService.showLoading();
 
           try {

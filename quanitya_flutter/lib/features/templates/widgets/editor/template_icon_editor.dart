@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_iconpicker/Helpers/icon_pack_manager.dart' as fip;
 import 'package:flutter_iconpicker/Models/icon_pack.dart';
 import 'package:flutter_iconpicker/Models/icon_picker_icon.dart';
-import 'package:get_it/get_it.dart';
 
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
@@ -96,7 +95,7 @@ class TemplateIconEditor extends StatelessWidget {
   TextStyle _getTitleStyle(String? fontName, BuildContext context) {
     final baseStyle = context.text.bodyLarge ?? const TextStyle();
     if (fontName == null || fontName.isEmpty) return baseStyle;
-    final fontPreloader = GetIt.I<FontPreloaderService>();
+    final fontPreloader = context.read<FontPreloaderService>();
     return fontPreloader.getTextStyle(fontName, fontSize: baseStyle.fontSize);
   }
 

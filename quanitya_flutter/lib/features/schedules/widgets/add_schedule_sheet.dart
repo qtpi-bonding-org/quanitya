@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
+import 'package:provider/provider.dart';
 
 import '../../../data/dao/template_query_dao.dart';
 import '../../../design_system/primitives/app_sizes.dart';
@@ -58,7 +58,7 @@ class _AddScheduleSheetState extends State<AddScheduleSheet> {
   }
 
   Future<void> _loadTemplates() async {
-    final dao = GetIt.I<TemplateQueryDao>();
+    final dao = context.read<TemplateQueryDao>();
     final all = await dao.find(isArchived: false);
     final available = all
         .where((t) => !widget.scheduledTemplateIds.contains(t.id))

@@ -15,6 +15,19 @@ import '../design_system/theme/theme_service.dart';
 import '../design_system/primitives/ui_scaler.dart';
 import 'bootstrap.dart';
 
+import '../features/guided_tour/guided_tour_service.dart';
+import '../infrastructure/crypto/crypto_key_repository.dart';
+import '../infrastructure/device/device_info_service.dart';
+import '../infrastructure/auth/auth_repository.dart';
+import '../data/repositories/template_with_aesthetics_repository.dart';
+import '../data/dao/template_query_dao.dart';
+import '../infrastructure/fonts/font_preloader_service.dart';
+import '../logic/templates/services/engine/symbolic_combination_generator.dart';
+import '../logic/templates/services/sharing/shareable_template_staging.dart';
+import '../infrastructure/permissions/permission_service.dart';
+import '../infrastructure/platform/platform_capability_service.dart';
+import '../infrastructure/auth/delete_orchestrator.dart';
+
 import '../features/analytics/cubits/analytics_message_mapper.dart';
 import '../features/app_syncing_mode/cubits/app_syncing_message_mapper.dart';
 import '../features/settings/cubits/data_export/data_export_message_mapper.dart';
@@ -150,6 +163,34 @@ class _QuanityaAppState extends State<QuanityaApp> {
         ),
         Provider<AnalysisBuilderMessageMapper>.value(
           value: getIt<AnalysisBuilderMessageMapper>(),
+        ),
+        // Singleton services (batch 3)
+        Provider<GuidedTourService>.value(value: getIt<GuidedTourService>()),
+        Provider<ICryptoKeyRepository>.value(
+          value: getIt<ICryptoKeyRepository>(),
+        ),
+        Provider<DeviceInfoService>.value(value: getIt<DeviceInfoService>()),
+        Provider<AuthRepository>.value(value: getIt<AuthRepository>()),
+        Provider<TemplateWithAestheticsRepository>.value(
+          value: getIt<TemplateWithAestheticsRepository>(),
+        ),
+        Provider<TemplateQueryDao>.value(value: getIt<TemplateQueryDao>()),
+        Provider<FontPreloaderService>.value(
+          value: getIt<FontPreloaderService>(),
+        ),
+        Provider<SymbolicCombinationGenerator>.value(
+          value: getIt<SymbolicCombinationGenerator>(),
+        ),
+        Provider<ShareableTemplateStaging>.value(
+          value: getIt<ShareableTemplateStaging>(),
+        ),
+        Provider<PermissionService>.value(value: getIt<PermissionService>()),
+        Provider<PlatformCapabilityService>.value(
+          value: getIt<PlatformCapabilityService>(),
+        ),
+        Provider<DeleteOrchestrator>.value(value: getIt<DeleteOrchestrator>()),
+        Provider<cubit_ui_flow.IUiFlowService>.value(
+          value: getIt<cubit_ui_flow.IUiFlowService>(),
         ),
       ],
       child: ListenableBuilder(

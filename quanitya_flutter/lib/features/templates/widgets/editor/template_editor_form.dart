@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:get_it/get_it.dart';
 
 import '../../../../logic/templates/enums/field_enum.dart';
 import '../../../../logic/templates/enums/field_enum_extensions.dart';
@@ -60,7 +59,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
   }
 
   Future<void> _maybeShowDesignerTour() async {
-    final tourService = getIt<GuidedTourService>();
+    final tourService = context.read<GuidedTourService>();
     if (!await tourService.shouldShowTour(GuidedTourService.designerKey)) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -325,10 +324,10 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
       confirmText: context.l10n.actionDelete,
       isDestructive: true,
       onConfirm: () async {
-        final repo = GetIt.I<TemplateWithAestheticsRepository>();
+        final repo = context.read<TemplateWithAestheticsRepository>();
         await repo.archive(templateId);
         if (context.mounted) {
-          GetIt.I<IFeedbackService>().show(FeedbackMessage(
+          context.read<IFeedbackService>().show(FeedbackMessage(
               message: context.l10n.templateDeleted,
               type: MessageType.success));
           AppNavigation.back(context);
@@ -447,11 +446,11 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
 
     final editorCubit = context.read<TemplateEditorCubit>();
 
-    final llmCubit = GetIt.I<LlmProviderCubit>();
+    final llmCubit = context.read<LlmProviderCubit>();
     final config = await llmCubit.buildLlmConfig();
     if (config == null) {
       if (context.mounted) {
-        GetIt.I<IFeedbackService>().show(FeedbackMessage(
+        context.read<IFeedbackService>().show(FeedbackMessage(
             message: context.l10n.llmProviderConfigureLlm,
             type: MessageType.warning));
       }
@@ -461,7 +460,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     setState(() => _isGenerating = true);
 
     try {
-      final generatorCubit = GetIt.I<TemplateGeneratorCubit>();
+      final generatorCubit = getIt<TemplateGeneratorCubit>();
       await generatorCubit.generate(prompt, config);
 
       final preview = generatorCubit.state.preview;
@@ -470,7 +469,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
       }
     } catch (e) {
       if (mounted) {
-        GetIt.I<IFeedbackService>().show(FeedbackMessage(
+        context.read<IFeedbackService>().show(FeedbackMessage(
             message: context.l10n.aiGenerationFailed,
             type: MessageType.error));
       }

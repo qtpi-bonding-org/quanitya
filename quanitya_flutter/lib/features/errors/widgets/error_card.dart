@@ -10,7 +10,7 @@ import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/widgets/quanitya/general/notebook_fold.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:get_it/get_it.dart';
+import 'package:provider/provider.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart' as btn;
 
@@ -189,7 +189,7 @@ class _ErrorDetails extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
-    GetIt.instance<IFeedbackService>().show(FeedbackMessage(
+    context.read<IFeedbackService>().show(FeedbackMessage(
         message: context.l10n.stackTraceCopied,
         type: MessageType.success));
   }

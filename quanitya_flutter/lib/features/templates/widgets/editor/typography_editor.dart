@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
-import 'package:get_it/get_it.dart';
 
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
@@ -107,7 +106,7 @@ class TypographyEditor extends StatelessWidget {
                 .map(
                   (f) => DropdownMenuItem(
                     value: f,
-                    child: Text(f, style: _getGoogleFontStyle(f)),
+                    child: Text(f, style: _getGoogleFontStyle(context, f)),
                   ),
                 )
                 .toList(),
@@ -118,8 +117,8 @@ class TypographyEditor extends StatelessWidget {
   }
 
   /// Get TextStyle with Google Font applied via [FontPreloaderService].
-  TextStyle _getGoogleFontStyle(String fontName) {
-    final fontPreloader = GetIt.I<FontPreloaderService>();
+  TextStyle _getGoogleFontStyle(BuildContext context, String fontName) {
+    final fontPreloader = context.read<FontPreloaderService>();
     return fontPreloader.getTextStyle(fontName);
   }
 }

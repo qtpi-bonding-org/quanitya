@@ -5,7 +5,6 @@ import 'package:flutter_code_editor/flutter_code_editor.dart';
 import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:highlight/languages/javascript.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:get_it/get_it.dart';
 
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/app_spacings.dart';
@@ -304,11 +303,11 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
     final cubit = context.read<AnalysisBuilderCubit>();
     final state = cubit.state;
 
-    final llmCubit = GetIt.I<LlmProviderCubit>();
+    final llmCubit = context.read<LlmProviderCubit>();
     final config = await llmCubit.buildLlmConfig();
     if (config == null) {
       if (context.mounted) {
-        GetIt.I<IFeedbackService>().show(FeedbackMessage(
+        context.read<IFeedbackService>().show(FeedbackMessage(
             message: context.l10n.llmProviderConfigureLlm,
             type: MessageType.warning));
       }

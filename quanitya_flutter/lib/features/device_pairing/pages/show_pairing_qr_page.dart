@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
@@ -54,7 +53,7 @@ class _ShowPairingQrViewState extends State<_ShowPairingQrView> {
   }
 
   Future<void> _loadDeviceName() async {
-    final deviceName = await GetIt.instance<DeviceInfoService>()
+    final deviceName = await context.read<DeviceInfoService>()
         .getDeviceName();
     if (mounted) {
       context.read<PairingQrCubit>().setDeviceLabel(deviceName);
@@ -219,7 +218,7 @@ class _ShowPairingQrViewState extends State<_ShowPairingQrView> {
               ? () {
                   final data = jsonEncode(state.qrData?.toJson());
                   Clipboard.setData(ClipboardData(text: data));
-                  GetIt.instance<IFeedbackService>().show(FeedbackMessage(
+                  context.read<IFeedbackService>().show(FeedbackMessage(
                       message: context.l10n.pairingDataCopied,
                       type: MessageType.success));
                 }

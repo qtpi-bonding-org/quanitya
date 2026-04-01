@@ -7,7 +7,6 @@ import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
-import 'package:get_it/get_it.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_field.dart';
 import '../../account/widgets/account_id_display.dart';
@@ -105,7 +104,7 @@ class _FeedbackTabContentState extends State<FeedbackTabContent> {
     final text = _textController.text.trim();
     if (text.length < 10) {
       final l10n = AppLocalizations.of(context)!;
-      GetIt.instance<IFeedbackService>().show(FeedbackMessage(
+      context.read<IFeedbackService>().show(FeedbackMessage(
           message: l10n.errorFeedbackTooShort,
           type: MessageType.warning));
       return;

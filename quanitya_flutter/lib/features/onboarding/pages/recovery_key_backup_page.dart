@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 
 import '../../../app_router.dart';
 import '../../../design_system/primitives/app_spacings.dart';
@@ -122,7 +121,7 @@ class _BackupMethodsList extends StatelessWidget {
           ),
         ),
         // iCloud Keychain (iOS only)
-        if (GetIt.instance<PlatformCapabilityService>().supportsICloudKeychain)
+        if (context.read<PlatformCapabilityService>().supportsICloudKeychain)
           _BackupMethodTile(
             icon: Icons.cloud_outlined,
             title: context.l10n.exportToICloud,

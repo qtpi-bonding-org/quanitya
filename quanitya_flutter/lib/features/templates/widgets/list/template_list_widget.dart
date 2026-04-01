@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptable_group/flutter_adaptable_group.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
+import '../../../../app/bootstrap.dart' show getIt;
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../../app_router.dart';
@@ -27,12 +27,12 @@ class _TemplateListWidgetState extends State<TemplateListWidget> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => GetIt.I<TemplateListCubit>()..load(),
+      create: (_) => getIt<TemplateListCubit>()..load(),
       child: BlocConsumer<TemplateListCubit, TemplateListState>(
         listener: (context, state) {
           // Show toast feedback for instant log
           if (state.lastOperation == TemplateListOperation.instantLog) {
-            final feedbackService = GetIt.instance<IFeedbackService>();
+            final feedbackService = context.read<IFeedbackService>();
             if (state.isSuccess) {
               feedbackService.show(
                 FeedbackMessage(

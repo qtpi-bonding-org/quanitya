@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
+import '../../../app/bootstrap.dart' show getIt;
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:permission_handler/permission_handler.dart' show openAppSettings;
@@ -33,7 +33,7 @@ class ScanPairingSheet {
       title: context.l10n.addDevice,
       maxHeightFraction: 0.95,
       builder: (sheetContext) => BlocProvider(
-        create: (_) => GetIt.instance<PairingScanCubit>()..startScanning(),
+        create: (_) => getIt<PairingScanCubit>()..startScanning(),
         child: _ScanPairingContent(sheetContext: sheetContext),
       ),
     );
@@ -70,7 +70,7 @@ class _ScanPairingContentState extends State<_ScanPairingContent>
   }
 
   Future<void> _checkPermission() async {
-    final granted = await GetIt.instance<PermissionService>().ensureCamera();
+    final granted = await context.read<PermissionService>().ensureCamera();
     if (mounted) {
       setState(() => _cameraGranted = granted);
     }

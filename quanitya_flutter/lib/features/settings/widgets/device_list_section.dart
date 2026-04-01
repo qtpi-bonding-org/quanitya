@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:anonaccount_client/anonaccount_client.dart' show AccountDevice;
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
-import 'package:get_it/get_it.dart';
 import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 
 import '../../device_pairing/pages/scan_pairing_sheet.dart';
@@ -43,12 +42,12 @@ class _DeviceListSectionState extends State<DeviceListSection> {
   }
 
   Future<void> _loadState() async {
-    final keyRepo = GetIt.instance<ICryptoKeyRepository>();
+    final keyRepo = context.read<ICryptoKeyRepository>();
 
     // Check for device key
     final deviceKeyHex = await keyRepo.getDeviceSigningPublicKeyHex();
     if (mounted && deviceKeyHex != null) {
-      final deviceInfo = GetIt.instance<DeviceInfoService>();
+      final deviceInfo = context.read<DeviceInfoService>();
       final name = await deviceInfo.getDeviceName();
       setState(() {
         _hasDeviceKey = true;
@@ -63,7 +62,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
     }
 
     final registered =
-        await GetIt.instance<AuthRepository>().isRegisteredWithServer;
+        await context.read<AuthRepository>().isRegisteredWithServer;
     if (!mounted) return;
     setState(() => _isRegistered = registered);
     if (registered) {
@@ -79,7 +78,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
       confirmText: context.l10n.actionDelete,
       isDestructive: true,
       onConfirm: () async {
-        final keyRepo = GetIt.instance<ICryptoKeyRepository>();
+        final keyRepo = context.read<ICryptoKeyRepository>();
         await keyRepo.deleteCrossDeviceKey();
         if (mounted) setState(() => _hasCrossDeviceKey = false);
       },
@@ -88,7 +87,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
 
   /// Whether to show the "Enable Cross-Device Sync" button.
   bool _showEnableCrossDeviceButton(DeviceManagementState state) {
-    final keyRepo = GetIt.instance<ICryptoKeyRepository>();
+    final keyRepo = context.read<ICryptoKeyRepository>();
     if (!keyRepo.isCrossDeviceStorageAvailable) return false;
     final label = keyRepo.crossDeviceLabel;
     return !state.activeDevices.any((d) => d.label == label);
@@ -104,7 +103,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
   Widget build(BuildContext context) {
     // If not registered with server, show local-only view with detected keys
     if (!_isRegistered) {
-      final keyRepo = GetIt.instance<ICryptoKeyRepository>();
+      final keyRepo = context.read<ICryptoKeyRepository>();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -166,7 +165,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
         if (state.status == UiFlowStatus.failure &&
             state.error != null &&
             !_isOfflineError(state.error)) {
-          GetIt.instance<IFeedbackService>().show(
+          context.read<IFeedbackService>().show(
             FeedbackMessage(
               message: state.error.toString(),
               type: MessageType.error,
@@ -244,7 +243,7 @@ class _DeviceListSectionState extends State<DeviceListSection> {
                 padding: EdgeInsets.only(bottom: AppSizes.space),
                 child: QuanityaTextButton(
                   text: context.l10n.createPlatformDeviceKey(
-                    GetIt.instance<ICryptoKeyRepository>().crossDeviceLabel,
+                    context.read<ICryptoKeyRepository>().crossDeviceLabel,
                   ),
                   onPressed: () => context
                       .read<DeviceManagementCubit>()
