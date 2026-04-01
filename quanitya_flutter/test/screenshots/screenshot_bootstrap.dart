@@ -53,6 +53,15 @@ import 'package:quanitya_flutter/integrations/flutter/health/health_sync_cubit.d
 import 'package:quanitya_flutter/features/home/cubits/temporal_timeline_cubit.dart';
 import 'package:quanitya_flutter/features/templates/cubits/list/template_list_cubit.dart';
 
+// Factory cubits for route-level providers (NotebookShell tabs)
+import 'package:quanitya_flutter/features/settings/cubits/data_export/data_export_cubit.dart';
+import 'package:quanitya_flutter/features/settings/cubits/recovery_key/recovery_key_cubit.dart';
+import 'package:quanitya_flutter/features/settings/cubits/device_management/device_management_cubit.dart';
+import 'package:quanitya_flutter/features/settings/cubits/webhook/webhook_cubit.dart';
+import 'package:quanitya_flutter/features/user_feedback/cubits/feedback_cubit.dart';
+import 'package:quanitya_flutter/features/results/cubits/results_list_cubit.dart';
+import 'package:quanitya_flutter/features/visualization/cubits/visualization_cubit.dart';
+
 // Message mappers (all 19 from app.dart MultiProvider)
 import 'package:quanitya_flutter/features/analytics/cubits/analytics_message_mapper.dart';
 import 'package:quanitya_flutter/features/app_syncing_mode/cubits/app_syncing_message_mapper.dart';
@@ -135,10 +144,13 @@ Future<void> configureScreenshotDependencies() async {
 
   // Secure storage + preferences stubs
   final stubStorage = StubSecureStorage();
+  // Pre-seed tour flags so guided tours don't try to show
+  await stubStorage.storeSecureData('tour_home_seen', 'true');
+  await stubStorage.storeSecureData('tour_designer_seen', 'true');
   final stubPrefs = SecurePreferences(stubStorage);
   getIt.registerLazySingleton<SecurePreferences>(() => stubPrefs);
 
-  // Guided tour — uses stub prefs (always says "tour seen")
+  // Guided tour — uses stub prefs (tours marked as seen)
   getIt.registerLazySingleton<GuidedTourService>(
     () => GuidedTourService(stubPrefs),
   );
@@ -306,6 +318,17 @@ Future<void> configureScreenshotDependencies() async {
   getIt.registerLazySingleton<SyncStatusCubit>(() => StubSyncStatusCubit());
   getIt.registerLazySingleton<AnalyticsCubit>(() => StubAnalyticsCubit());
   getIt.registerLazySingleton<HealthSyncCubit>(() => StubHealthSyncCubit());
+
+  // Factory cubits for route-level providers (NotebookShell tabs)
+  getIt.registerFactory<DataExportCubit>(() => StubDataExportCubit());
+  getIt.registerFactory<RecoveryKeyCubit>(() => StubRecoveryKeyCubit());
+  getIt.registerFactory<DeviceManagementCubit>(() => StubDeviceManagementCubit());
+  getIt.registerFactory<WebhookCubit>(() => StubWebhookCubit());
+  getIt.registerFactory<FeedbackCubit>(() => StubFeedbackCubit());
+
+  // Sub-widget cubits (created inside IndexedStack pages)
+  getIt.registerFactory<ResultsListCubit>(() => StubResultsListCubit());
+  getIt.registerFactory<VisualizationCubit>(() => StubVisualizationCubit());
 }
 
 /// Build a MaterialApp wrapped in the same MultiProvider as app.dart.
