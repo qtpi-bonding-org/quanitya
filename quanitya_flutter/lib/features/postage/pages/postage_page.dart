@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/widgets/swipeable_page_shell.dart';
@@ -51,9 +50,8 @@ class _PostagePageState extends State<PostagePage> {
           create: (_) => GetIt.instance<AnalyticsCubit>()..load(),
         ),
       ],
-      child: UiFlowStateListener<NoticesCubit, NoticesState>(
-        mapper: GetIt.instance<NoticesMessageMapper>(),
-        uiService: GetIt.instance<IUiFlowService>(),
+      child: UiFlowListener<NoticesCubit, NoticesState>(
+        mapper: context.read<NoticesMessageMapper>(),
         child: UiFlowListener<AnalyticsCubit, AnalyticsState>(
           mapper: context.read<AnalyticsMessageMapper>(),
           child: UiFlowListener<FeedbackCubit, FeedbackState>(

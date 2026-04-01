@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../app_router.dart';
-import '../../../app/bootstrap.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
@@ -12,7 +10,7 @@ import '../../../design_system/structures/column.dart';
 import '../../../design_system/structures/row.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
-import '../../../infrastructure/feedback/base_state_message_mapper.dart';
+import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../infrastructure/platform/platform_capability_service.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../cubits/onboarding_cubit.dart';
@@ -41,12 +39,8 @@ class _RecoveryKeyBackupPageState extends State<RecoveryKeyBackupPage> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
-          child: UiFlowStateListener<OnboardingCubit, OnboardingState>(
-            mapper: BaseStateMessageMapper<OnboardingState>(
-              exceptionMapper: getIt<IExceptionKeyMapper>(),
-              domainMapper: getIt<OnboardingMessageMapper>(),
-            ),
-            uiService: getIt<IUiFlowService>(),
+          child: UiFlowListener<OnboardingCubit, OnboardingState>(
+            mapper: context.read<OnboardingMessageMapper>(),
             child: BlocBuilder<OnboardingCubit, OnboardingState>(
               builder: (context, state) {
                 return SingleChildScrollView(

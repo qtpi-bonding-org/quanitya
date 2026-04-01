@@ -17,7 +17,7 @@ import '../../../design_system/widgets/device_name_display.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
 import '../../../design_system/widgets/quanitya_text_form_field.dart';
-import '../../../infrastructure/feedback/base_state_message_mapper.dart';
+import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../settings/cubits/device_management/device_management_cubit.dart';
 import '../../settings/cubits/device_management/device_management_state.dart';
@@ -93,12 +93,8 @@ class _RecoveryForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return UiFlowStateListener<RecoveryKeyCubit, RecoveryKeyState>(
-      mapper: BaseStateMessageMapper<RecoveryKeyState>(
-        exceptionMapper: getIt<IExceptionKeyMapper>(),
-        domainMapper: getIt<RecoveryKeyMessageMapper>(),
-      ),
-      uiService: getIt<IUiFlowService>(),
+    return UiFlowListener<RecoveryKeyCubit, RecoveryKeyState>(
+      mapper: context.read<RecoveryKeyMessageMapper>(),
       child: BlocListener<RecoveryKeyCubit, RecoveryKeyState>(
         listenWhen: (prev, curr) =>
             prev.status != curr.status &&

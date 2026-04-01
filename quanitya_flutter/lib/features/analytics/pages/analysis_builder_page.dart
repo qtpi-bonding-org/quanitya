@@ -20,7 +20,7 @@ import '../../../design_system/widgets/quanitya/general/pen_circled_chip.dart';
 import '../../../design_system/widgets/quanitya_confirmation_dialog.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_page_wrapper.dart';
 import '../../../design_system/widgets/quanitya/general/quanitya_text_button.dart';
-import '../../../infrastructure/feedback/base_state_message_mapper.dart';
+import '../../../design_system/widgets/ui_flow_listener.dart';
 import '../../settings/cubits/llm_provider/llm_provider_cubit.dart';
 import '../../../logic/analysis/cubits/analysis_builder_cubit.dart';
 import '../../../logic/analysis/cubits/analysis_builder_state.dart';
@@ -75,12 +75,8 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
       create: (context) => getIt<AnalysisBuilderCubit>()
         ..initializeForField(widget.fieldId, widget.timeResolution,
             templateId: widget.templateId),
-      child: UiFlowStateListener<AnalysisBuilderCubit, AnalysisBuilderState>(
-        mapper: BaseStateMessageMapper<AnalysisBuilderState>(
-          exceptionMapper: getIt<IExceptionKeyMapper>(),
-          domainMapper: getIt<AnalysisBuilderMessageMapper>(),
-        ),
-        uiService: getIt<IUiFlowService>(),
+      child: UiFlowListener<AnalysisBuilderCubit, AnalysisBuilderState>(
+        mapper: context.read<AnalysisBuilderMessageMapper>(),
         child: BlocBuilder<AnalysisBuilderCubit, AnalysisBuilderState>(
           builder: (context, state) {
             final cubit = context.read<AnalysisBuilderCubit>();
