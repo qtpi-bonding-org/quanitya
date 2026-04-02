@@ -328,7 +328,7 @@ Future<void> configureScreenshotDependencies() async {
 ///
 /// This replicates the exact provider tree from QuanityaApp so any page
 /// can access all cubits, services, and mappers via context.read/watch.
-Widget buildScreenshotApp({required Widget child}) {
+Widget buildScreenshotApp({required Widget child, Locale? locale}) {
   final themeService = getIt<ThemeService>();
 
   return MultiProvider(
@@ -460,6 +460,7 @@ Widget buildScreenshotApp({required Widget child}) {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
+      locale: locale,
       home: child,
     ),
   );
