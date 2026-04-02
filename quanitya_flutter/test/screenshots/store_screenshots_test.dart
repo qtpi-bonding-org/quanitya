@@ -71,7 +71,7 @@ class DeviceConfig {
 const _devices = [
   DeviceConfig('iphone', Size(1320, 2868), 3.0,   safeTop: 62, safeBottom: 34),  // iPhone 16 Pro Max
   DeviceConfig('ipad', Size(2048, 2732), 2.0,      safeTop: 24, safeBottom: 20),  // iPad Pro 12.9"
-  DeviceConfig('android', Size(1280, 2856), 2.75, safeTop: 28, safeBottom: 48),   // Google Pixel 9 Pro
+  DeviceConfig('android', Size(1280, 2856), 2.75, safeTop: 48, safeBottom: 48),   // Google Pixel 9 Pro
 ];
 
 const _locales = ['en', 'es', 'fr', 'pt'];
