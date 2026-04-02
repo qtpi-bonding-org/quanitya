@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quanitya_flutter/app/bootstrap.dart' show getIt;
+import 'package:quanitya_flutter/data/repositories/template_with_aesthetics_repository.dart';
 import 'package:quanitya_flutter/design_system/widgets/quanitya/general/zen_paper_background.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quanitya_flutter/features/home/cubits/timeline_data_cubit.dart';
@@ -101,14 +102,24 @@ typedef ScreenshotSetup = Future<void> Function(
 
 Map<String, ScreenshotSetup> get _screenshots => {
   'temporal_present': (tester, locale) async {
+    // Use localized template names
+    final repo = getIt<TemplateWithAestheticsRepository>()
+        as StubTemplateWithAestheticsRepository;
+    repo.templates = fakeTemplatesForLocale(locale.languageCode);
+
     await tester.pumpWidget(_buildShell(locale: locale));
     await _pumpFrames(tester);
   },
 
   'temporal_past': (tester, locale) async {
+    final lang = locale.languageCode;
+    final repo = getIt<TemplateWithAestheticsRepository>()
+        as StubTemplateWithAestheticsRepository;
+    repo.templates = fakeTemplatesForLocale(lang);
+
     final timelineCubit =
         getIt<TimelineDataCubit>() as StubTimelineDataCubit;
-    timelineCubit.emitPastData(fakePastTimelineItems);
+    timelineCubit.emitPastData(fakePastTimelineItemsForLocale(lang));
 
     await tester.pumpWidget(_buildShell(locale: locale));
     await _pumpFrames(tester);
@@ -118,9 +129,14 @@ Map<String, ScreenshotSetup> get _screenshots => {
   },
 
   'temporal_future': (tester, locale) async {
+    final lang = locale.languageCode;
+    final repo = getIt<TemplateWithAestheticsRepository>()
+        as StubTemplateWithAestheticsRepository;
+    repo.templates = fakeTemplatesForLocale(lang);
+
     final scheduleCubit =
         getIt<ScheduleListCubit>() as StubScheduleListCubit;
-    scheduleCubit.emitSchedules(fakeSchedules);
+    scheduleCubit.emitSchedules(fakeSchedulesForLocale(lang));
 
     await tester.pumpWidget(_buildShell(locale: locale));
     await _pumpFrames(tester);
@@ -171,11 +187,12 @@ Map<String, ScreenshotSetup> get _screenshots => {
   },
 
   'log_entry_form': (tester, locale) async {
-    final period = fakeTemplates[1];
+    final lang = locale.languageCode;
+    final period = fakeTemplatesForLocale(lang)[1];
     final initialValues = {
       'f-per-1': 3,
       'f-per-2': 1,
-      'f-per-3': 'Feeling okay today',
+      'f-per-3': tr('Feeling okay today', lang),
     };
 
     await tester.pumpWidget(
@@ -212,7 +229,9 @@ Map<String, ScreenshotSetup> get _screenshots => {
 
   'template_designer': (tester, locale) async {
     final editorCubit = StubTemplateEditorCubit();
-    editorCubit.loadFromTemplate(fakeTemplates[0]);
+    editorCubit.loadFromTemplate(
+      fakeTemplatesForLocale(locale.languageCode)[0],
+    );
 
     await tester.pumpWidget(
       buildScreenshotApp(

@@ -40,6 +40,62 @@ const _journalId = '00000000-0000-0000-0000-000000000007';
 const _medicationId = '00000000-0000-0000-0000-000000000008';
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Localized names for templates and fields
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Translation map: english key → {locale: translated}.
+/// Template names and field labels for store screenshots.
+const _t = <String, Map<String, String>>{
+  // Template names
+  'Lifting':    {'es': 'Pesas',       'fr': 'Musculation',  'pt': 'Musculação'},
+  'Period':     {'es': 'Período',     'fr': 'Règles',       'pt': 'Período'},
+  'Water':      {'es': 'Agua',        'fr': 'Eau',          'pt': 'Água'},
+  'Sleep':      {'es': 'Sueño',       'fr': 'Sommeil',      'pt': 'Sono'},
+  'Emotion':    {'es': 'Emoción',     'fr': 'Émotion',      'pt': 'Emoção'},
+  'Cycling':    {'es': 'Ciclismo',    'fr': 'Cyclisme',     'pt': 'Ciclismo'},
+  'Journal':    {'es': 'Diario',      'fr': 'Journal',      'pt': 'Diário'},
+  'Medication': {'es': 'Medicación',  'fr': 'Médicaments',  'pt': 'Medicação'},
+  // Field labels
+  'Exercise':       {'es': 'Ejercicio',          'fr': 'Exercice',           'pt': 'Exercício'},
+  'Weight':         {'es': 'Peso',               'fr': 'Poids',             'pt': 'Peso'},
+  'Reps':           {'es': 'Repeticiones',       'fr': 'Répétitions',       'pt': 'Repetições'},
+  'Flow Intensity': {'es': 'Intensidad',         'fr': 'Intensité',         'pt': 'Intensidade'},
+  'Cramps':         {'es': 'Calambres',          'fr': 'Crampes',           'pt': 'Cólicas'},
+  'Notes':          {'es': 'Notas',              'fr': 'Notes',             'pt': 'Notas'},
+  'Glasses':        {'es': 'Vasos',              'fr': 'Verres',            'pt': 'Copos'},
+  'Hours':          {'es': 'Horas',              'fr': 'Heures',            'pt': 'Horas'},
+  'Quality':        {'es': 'Calidad',            'fr': 'Qualité',           'pt': 'Qualidade'},
+  'Feeling':        {'es': 'Sentimiento',        'fr': 'Sentiment',         'pt': 'Sentimento'},
+  'Intensity':      {'es': 'Intensidad',         'fr': 'Intensité',         'pt': 'Intensidade'},
+  'Distance':       {'es': 'Distancia',          'fr': 'Distance',          'pt': 'Distância'},
+  'Duration':       {'es': 'Duración',           'fr': 'Durée',             'pt': 'Duração'},
+  'Entry':          {'es': 'Entrada',            'fr': 'Entrée',            'pt': 'Entrada'},
+  'Taken':          {'es': 'Tomado',             'fr': 'Pris',              'pt': 'Tomado'},
+  // Enum options
+  'Poor': {'es': 'Mala', 'fr': 'Mauvaise', 'pt': 'Ruim'},
+  'Fair': {'es': 'Regular', 'fr': 'Passable', 'pt': 'Razoável'},
+  'Good': {'es': 'Buena', 'fr': 'Bonne', 'pt': 'Boa'},
+  'Great': {'es': 'Excelente', 'fr': 'Excellente', 'pt': 'Excellente'},
+  'Happy': {'es': 'Feliz', 'fr': 'Heureux', 'pt': 'Feliz'},
+  'Calm': {'es': 'Tranquilo', 'fr': 'Calme', 'pt': 'Calmo'},
+  'Anxious': {'es': 'Ansioso', 'fr': 'Anxieux', 'pt': 'Ansioso'},
+  'Sad': {'es': 'Triste', 'fr': 'Triste', 'pt': 'Triste'},
+  'Angry': {'es': 'Enojado', 'fr': 'En colère', 'pt': 'Irritado'},
+  // Data previews for timeline
+  'Bench Press': {'es': 'Press banca', 'fr': 'Développé couché', 'pt': 'Supino'},
+  'Deadlift':    {'es': 'Peso muerto', 'fr': 'Soulevé de terre', 'pt': 'Levantamento terra'},
+  'Feeling okay today': {'es': 'Me siento bien hoy', 'fr': 'Je me sens bien', 'pt': 'Me sentindo bem'},
+};
+
+/// Translate a string to the given locale. Returns original if no translation.
+String tr(String key, String locale) =>
+    locale == 'en' ? key : (_t[key]?[locale] ?? key);
+
+/// Translate a list of strings.
+List<String> _trList(List<String> keys, String locale) =>
+    keys.map((k) => tr(k, locale)).toList();
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Templates with fields + defaults (enables quick-log button highlighting)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -143,6 +199,29 @@ final List<TemplateWithAesthetics> fakeTemplates = [
   ),
 ];
 
+/// Returns the 8 fake templates with names/labels translated for [locale].
+List<TemplateWithAesthetics> fakeTemplatesForLocale(String locale) {
+  if (locale == 'en') return fakeTemplates;
+  return fakeTemplates.map((twa) {
+    final translatedFields = twa.template.fields.map((f) {
+      return f.copyWith(
+        label: tr(f.label, locale),
+        options: f.options != null ? _trList(f.options!, locale) : null,
+        defaultValue: f.defaultValue is String
+            ? tr(f.defaultValue as String, locale)
+            : f.defaultValue,
+      );
+    }).toList();
+    return TemplateWithAesthetics(
+      template: twa.template.copyWith(
+        name: tr(twa.template.name, locale),
+        fields: translatedFields,
+      ),
+      aesthetics: twa.aesthetics,
+    );
+  }).toList();
+}
+
 /// Templates marked as hidden (for lock/hidden screenshot).
 /// Returns the same 8 templates but with 2 marked as hidden.
 List<TemplateWithAesthetics> get fakeTemplatesWithHidden => [
@@ -168,7 +247,16 @@ List<TemplateWithAesthetics> get fakeTemplatesWithHidden => [
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Pre-built timeline items for the past tab showing realistic log history.
-List<TimelineItem> get fakePastTimelineItems {
+/// Pass [locale] to translate template names and data previews.
+List<TimelineItem> fakePastTimelineItemsForLocale([String locale = 'en']) {
+  final templates = fakeTemplatesForLocale(locale);
+  return _buildPastTimelineItems(templates, locale);
+}
+
+/// English-only shortcut for backwards compatibility.
+List<TimelineItem> get fakePastTimelineItems => fakePastTimelineItemsForLocale();
+
+List<TimelineItem> _buildPastTimelineItems(List<TemplateWithAesthetics> templates, String locale) {
   final today = DateTime(2026, 4, 1);
   final yesterday = DateTime(2026, 3, 31);
   final twoDaysAgo = DateTime(2026, 3, 30);
@@ -177,52 +265,52 @@ List<TimelineItem> get fakePastTimelineItems {
     // Today
     TimelineItem.dateDivider(dateKey: '2026-04-01', isFirst: true, formattedDate: 'Apr 1'),
     _timelineEntry(
-      entryId: 'e-01', template: fakeTemplates[2], // Water
+      entryId: 'e-01', template: templates[2], // Water
       occurredAt: today.add(const Duration(hours: 14, minutes: 30)),
       data: {'Glasses': 2},
-      dataPreview: '2 glasses',
+      dataPreview: '2 ${tr('Glasses', locale).toLowerCase()}',
       timeString: '2:30 PM',
       dateString: 'Apr 1',
       isFirst: true,
     ),
     _timelineEntry(
-      entryId: 'e-02', template: fakeTemplates[3], // Sleep
+      entryId: 'e-02', template: templates[3], // Sleep
       occurredAt: today.add(const Duration(hours: 7, minutes: 15)),
       data: {'Hours': 7.5, 'Quality': 'Great'},
-      dataPreview: '7.5 hours',
+      dataPreview: '7.5 ${tr('Hours', locale).toLowerCase()}',
       timeString: '7:15 AM',
       dateString: 'Apr 1',
     ),
     // Yesterday
     TimelineItem.dateDivider(dateKey: '2026-03-31', isFirst: false, formattedDate: 'Mar 31'),
     _timelineEntry(
-      entryId: 'e-03', template: fakeTemplates[0], // Lifting
+      entryId: 'e-03', template: templates[0], // Lifting
       occurredAt: yesterday.add(const Duration(hours: 18, minutes: 0)),
       data: {'Exercise': 'Deadlift', 'Weight': 100.0, 'Reps': 5},
-      dataPreview: 'Deadlift',
+      dataPreview: tr('Deadlift', locale),
       timeString: '6:00 PM',
       dateString: 'Mar 31',
     ),
     _timelineEntry(
-      entryId: 'e-04', template: fakeTemplates[4], // Emotion
+      entryId: 'e-04', template: templates[4], // Emotion
       occurredAt: yesterday.add(const Duration(hours: 12, minutes: 0)),
       data: {'Feeling': 'Happy', 'Intensity': 8},
-      dataPreview: 'Happy',
+      dataPreview: tr('Happy', locale),
       timeString: '12:00 PM',
       dateString: 'Mar 31',
     ),
     _timelineEntry(
-      entryId: 'e-05', template: fakeTemplates[7], // Medication
+      entryId: 'e-05', template: templates[7], // Medication
       occurredAt: yesterday.add(const Duration(hours: 8, minutes: 0)),
       data: {'Taken': true},
-      dataPreview: 'Taken',
+      dataPreview: tr('Taken', locale),
       timeString: '8:00 AM',
       dateString: 'Mar 31',
     ),
     // Two days ago
     TimelineItem.dateDivider(dateKey: '2026-03-30', isFirst: false, formattedDate: 'Mar 30'),
     _timelineEntry(
-      entryId: 'e-06', template: fakeTemplates[5], // Cycling
+      entryId: 'e-06', template: templates[5], // Cycling
       occurredAt: twoDaysAgo.add(const Duration(hours: 17, minutes: 30)),
       data: {'Distance': 15.2, 'Duration': 42},
       dataPreview: '15.2 km',
@@ -230,10 +318,10 @@ List<TimelineItem> get fakePastTimelineItems {
       dateString: 'Mar 30',
     ),
     _timelineEntry(
-      entryId: 'e-07', template: fakeTemplates[2], // Water
+      entryId: 'e-07', template: templates[2], // Water
       occurredAt: twoDaysAgo.add(const Duration(hours: 10, minutes: 0)),
       data: {'Glasses': 3},
-      dataPreview: '3 glasses',
+      dataPreview: '3 ${tr('Glasses', locale).toLowerCase()}',
       timeString: '10:00 AM',
       dateString: 'Mar 30',
       isLast: true,
@@ -245,8 +333,16 @@ List<TimelineItem> get fakePastTimelineItems {
 // Fake future schedules (for temporal future screenshot)
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Pre-built schedule list for the future tab showing upcoming reminders.
-List<ScheduleWithContext> get fakeSchedules {
+/// Pre-built schedule list, localized.
+List<ScheduleWithContext> fakeSchedulesForLocale([String locale = 'en']) {
+  final templates = fakeTemplatesForLocale(locale);
+  return _buildSchedules(templates);
+}
+
+/// English-only shortcut.
+List<ScheduleWithContext> get fakeSchedules => fakeSchedulesForLocale();
+
+List<ScheduleWithContext> _buildSchedules(List<TemplateWithAesthetics> templates) {
   final now = DateTime(2026, 4, 1);
   return [
     ScheduleWithContext(
@@ -259,8 +355,8 @@ List<ScheduleWithContext> get fakeSchedules {
         lastGeneratedAt: now,
         updatedAt: now,
       ),
-      template: fakeTemplates[2].template,
-      aesthetics: fakeTemplates[2].aesthetics,
+      template: templates[2].template,
+      aesthetics: templates[2].aesthetics,
     ),
     ScheduleWithContext(
       schedule: ScheduleModel(
@@ -272,8 +368,8 @@ List<ScheduleWithContext> get fakeSchedules {
         lastGeneratedAt: now,
         updatedAt: now,
       ),
-      template: fakeTemplates[7].template,
-      aesthetics: fakeTemplates[7].aesthetics,
+      template: templates[7].template,
+      aesthetics: templates[7].aesthetics,
     ),
     ScheduleWithContext(
       schedule: ScheduleModel(
@@ -285,8 +381,8 @@ List<ScheduleWithContext> get fakeSchedules {
         lastGeneratedAt: now,
         updatedAt: now,
       ),
-      template: fakeTemplates[0].template,
-      aesthetics: fakeTemplates[0].aesthetics,
+      template: templates[0].template,
+      aesthetics: templates[0].aesthetics,
     ),
     ScheduleWithContext(
       schedule: ScheduleModel(
@@ -298,8 +394,8 @@ List<ScheduleWithContext> get fakeSchedules {
         lastGeneratedAt: now,
         updatedAt: now,
       ),
-      template: fakeTemplates[3].template,
-      aesthetics: fakeTemplates[3].aesthetics,
+      template: templates[3].template,
+      aesthetics: templates[3].aesthetics,
     ),
   ];
 }
