@@ -5,6 +5,7 @@ import '../../primitives/quanitya_date_format.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../../design_system/primitives/app_sizes.dart';
 import '../../../design_system/primitives/app_spacings.dart';
+import 'chart_defaults.dart';
 
 /// A data series for the multi-series chart.
 class ChartSeries {
@@ -138,8 +139,8 @@ class MultiSeriesChart extends StatelessWidget {
               ),
             ],
             axes: [
-              Defaults.horizontalAxis,
-              Defaults.verticalAxis,
+              ChartDefaults.horizontalAxis,
+              ChartDefaults.verticalAxis,
             ],
             selections: {
               'touchMove': PointSelection(

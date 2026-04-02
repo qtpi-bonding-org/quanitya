@@ -4,6 +4,7 @@ import 'package:graphic/graphic.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../primitives/app_sizes.dart';
 import '../../primitives/app_spacings.dart';
+import 'chart_defaults.dart';
 
 /// A data series for the indexed multi-series chart.
 class IndexedChartSeries {
@@ -145,8 +146,8 @@ class IndexedMultiSeriesChart extends StatelessWidget {
               ),
             ],
             axes: [
-              Defaults.horizontalAxis,
-              Defaults.verticalAxis,
+              ChartDefaults.horizontalAxis,
+              ChartDefaults.verticalAxis,
             ],
             selections: {
               'touchMove': PointSelection(

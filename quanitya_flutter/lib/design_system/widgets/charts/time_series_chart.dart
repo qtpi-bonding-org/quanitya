@@ -4,6 +4,7 @@ import 'package:graphic/graphic.dart';
 import '../../primitives/quanitya_date_format.dart';
 import '../../../support/extensions/context_extensions.dart';
 import '../../primitives/quanitya_palette.dart';
+import 'chart_defaults.dart';
 
 /// A simple time series line chart widget.
 /// 
@@ -92,8 +93,8 @@ class TimeSeriesChart extends StatelessWidget {
           ),
         ],
         axes: [
-          Defaults.horizontalAxis,
-          Defaults.verticalAxis,
+          ChartDefaults.horizontalAxis,
+          ChartDefaults.verticalAxis,
         ],
         selections: {
           'touchMove': PointSelection(

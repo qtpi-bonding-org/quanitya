@@ -122,7 +122,7 @@ class _CategoricalScatterPainter extends CustomPainter {
       ..color = gridColor.withValues(alpha: 0.3)
       ..strokeWidth = 1;
 
-    final textStyle = TextStyle(color: textColor, fontSize: _chartAxisFontSize);
+    final textStyle = TextStyle(color: textColor, fontSize: _chartAxisFontSize, fontFamily: 'Noto Sans Mono');
     
     for (var i = 0; i < categories.length; i++) {
       final y = chartTop + (i + 0.5) * (chartHeight / categories.length);
