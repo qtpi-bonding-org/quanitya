@@ -67,6 +67,8 @@ import 'package:quanitya_flutter/features/schedules/cubits/schedule_list_cubit.d
 import 'package:quanitya_flutter/features/schedules/cubits/schedule_list_state.dart';
 import 'package:quanitya_flutter/features/templates/cubits/editor/template_editor_cubit.dart';
 import 'package:quanitya_flutter/features/templates/cubits/editor/template_editor_state.dart';
+import 'package:quanitya_flutter/logic/analysis/cubits/analysis_builder_cubit.dart';
+import 'package:quanitya_flutter/logic/analysis/cubits/analysis_builder_state.dart';
 import 'package:quanitya_flutter/features/visualization/cubits/visualization_cubit.dart';
 import 'package:quanitya_flutter/features/visualization/cubits/visualization_state.dart';
 import 'package:quanitya_flutter/data/repositories/data_retrieval_service.dart';
@@ -531,6 +533,15 @@ class StubScheduleListCubit extends Cubit<ScheduleListState>
       schedules: schedules,
     ));
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => Future<dynamic>.value();
+}
+
+/// Stub AnalysisBuilderCubit — pre-populated with JS snippet and results.
+class StubAnalysisBuilderCubit extends Cubit<AnalysisBuilderState>
+    implements AnalysisBuilderCubit {
+  StubAnalysisBuilderCubit(AnalysisBuilderState initial) : super(initial);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => Future<dynamic>.value();

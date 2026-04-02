@@ -21,8 +21,14 @@ import 'package:quanitya_flutter/features/templates/cubits/editor/template_edito
 import 'package:quanitya_flutter/features/templates/pages/template_designer_page.dart';
 import 'package:quanitya_flutter/features/templates/widgets/shared/template_preview.dart';
 import 'package:quanitya_flutter/features/user_feedback/cubits/feedback_cubit.dart';
+import 'package:quanitya_flutter/features/analytics/pages/analysis_builder_page.dart';
 import 'package:quanitya_flutter/features/guided_tour/guided_tour_service.dart';
 import 'package:quanitya_flutter/features/visualization/cubits/visualization_cubit.dart';
+import 'package:quanitya_flutter/logic/analysis/cubits/analysis_builder_cubit.dart';
+import 'package:quanitya_flutter/logic/analysis/cubits/analysis_builder_state.dart';
+import 'package:quanitya_flutter/logic/analysis/cubits/analysis_builder_message_mapper.dart';
+import 'package:quanitya_flutter/logic/analysis/enums/analysis_output_mode.dart';
+import 'package:quanitya_flutter/logic/analysis/models/analysis_output.dart';
 import 'package:quanitya_flutter/logic/templates/services/shared/template_editor_message_mapper.dart';
 
 import 'screenshot_bootstrap.dart';
@@ -332,32 +338,64 @@ void main() {
     });
 
     // ─────────────────────────────────────────────────────────────────────
-    // 8. Lock/Hidden Templates — showing hidden templates unlocked
+    // 8. Analysis Builder — JS code editor with results
     // ─────────────────────────────────────────────────────────────────────
 
-    testWidgets('8 — lock hidden templates', (tester) async {
+    testWidgets('8 — analysis builder', (tester) async {
       _setIPhoneProMaxSize(tester);
       addTearDown(() {
         tester.view.resetPhysicalSize();
         tester.view.resetDevicePixelRatio();
       });
 
-      // Use templates with 2 hidden ones (Journal, Medication)
-      final repo = getIt<TemplateWithAestheticsRepository>()
-          as StubTemplateWithAestheticsRepository;
-      repo.templates = fakeTemplatesWithHidden;
+      // Pre-populate with a JS snippet and scalar results
+      const snippet = '''
+const values = data.values;
+const mean = ss.mean(values);
+const max = Math.max(...values);
+const min = Math.min(...values);
+const trend = ss.linearRegression(
+  values.map((v, i) => [i, v])
+);
 
-      // Toggle hidden visibility ON so hidden templates are shown
-      final hiddenCubit =
-          getIt<HiddenVisibilityCubit>() as StubHiddenVisibilityCubit;
-      hiddenCubit.setShowingHidden(true);
+return [
+  { label: "Mean", value: mean, unit: "kg" },
+  { label: "Max", value: max, unit: "kg" },
+  { label: "Min", value: min, unit: "kg" },
+  { label: "Trend", value: trend.m,
+    unit: "kg/session" },
+];''';
 
-      await tester.pumpWidget(_buildShell());
+      final builderCubit = StubAnalysisBuilderCubit(
+        AnalysisBuilderState(
+          snippet: snippet,
+          outputMode: AnalysisOutputMode.scalar,
+          entryCount: 10,
+          reasoning: 'Computes basic statistics and linear trend for weight progression.',
+          previewResult: AnalysisOutput.scalar([
+            AnalysisScalar(label: 'Mean', value: 62.0, unit: 'kg'),
+            AnalysisScalar(label: 'Max', value: 70.0, unit: 'kg'),
+            AnalysisScalar(label: 'Min', value: 55.0, unit: 'kg'),
+            AnalysisScalar(label: 'Trend', value: 1.5, unit: 'kg/session'),
+          ]),
+        ),
+      );
+
+      await tester.pumpWidget(
+        buildScreenshotApp(
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<AnalysisBuilderCubit>.value(value: builderCubit),
+            ],
+            child: const AnalysisBuilderPage(),
+          ),
+        ),
+      );
       await _pumpFrames(tester);
 
       await expectLater(
         find.byType(MaterialApp),
-        matchesGoldenFile('goldens/en/lock_hidden.png'),
+        matchesGoldenFile('goldens/en/analysis_builder.png'),
       );
     });
   });
