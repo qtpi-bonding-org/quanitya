@@ -6,6 +6,7 @@ import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:highlight/languages/javascript.dart';
 import 'package:cubit_ui_flow/cubit_ui_flow.dart';
 
+import '../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/app_sizes.dart';
@@ -46,7 +47,7 @@ class AnalysisBuilderPage extends StatefulWidget {
 }
 
 class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
-  static const _codeEditorFontFamily = 'monospace';
+  static const _codeEditorFontFamily = QuanityaFonts.bodyFamily;
   static const _codeEditorLineHeight = 1.6;
 
   bool _isGenerating = false;
