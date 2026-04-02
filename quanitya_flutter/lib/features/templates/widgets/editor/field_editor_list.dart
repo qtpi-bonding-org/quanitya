@@ -335,7 +335,7 @@ class _FieldEditorListState extends State<FieldEditorList> {
     Widget? trailing,
   }) {
     final parts = <String>[
-      field.type.displayName,
+      field.type.displayName(context),
       if (field.unit != null) field.unit!.displayName,
       if (field.uiElement != null)
         field.uiElement!.displayName(context),
@@ -431,7 +431,7 @@ class _FieldEditorListState extends State<FieldEditorList> {
     final cubit = context.read<TemplateEditorCubit>();
     LooseInsertSheet.show(
       context: context,
-      title: context.l10n.editFieldType(field.type.displayName),
+      title: context.l10n.editFieldType(field.type.displayName(context)),
       builder: (sheetContext) => SingleChildScrollView(
         child: InlineFieldEditor(
           fieldType: field.type,

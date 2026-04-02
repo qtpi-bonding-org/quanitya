@@ -784,5 +784,19 @@
   "analysisEntriesCount": "Entrées ({count})",
   "catalogTemplatesImported": "Modèles importés",
   "syncReconnected": "Synchronisation rétablie",
-  "validationFixErrors": "Veuillez corriger les champs en surbrillance."
+  "validationFixErrors": "Veuillez corriger les champs en surbrillance.",
+  "fieldTypeNumber": "Nombre",
+  "fieldTypeDecimal": "Décimal",
+  "fieldTypeText": "Texte",
+  "fieldTypeToggle": "Bascule",
+  "fieldTypeDate": "Date",
+  "fieldTypeChoice": "Choix",
+  "fieldTypeMeasurement": "Mesure",
+  "fieldTypeReference": "Référence",
+  "fieldTypeLocation": "Localisation",
+  "fieldTypeGroup": "Groupe",
+  "fieldTypeMultiSelect": "Sélection multiple",
+  "outputModeScalar": "Scalaire",
+  "outputModeVector": "Vecteur",
+  "outputModeMatrix": "Matrice"
 }

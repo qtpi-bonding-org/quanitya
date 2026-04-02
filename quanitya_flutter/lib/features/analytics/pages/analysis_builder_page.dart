@@ -135,7 +135,7 @@ class _AnalysisBuilderPageState extends State<AnalysisBuilderPage> {
             child: LayoutGroup.row(
               minChildWidth: 10,
               children: AnalysisOutputMode.values.map((mode) => PenCircledChip(
-                    label: mode.name,
+                    label: mode.displayName(context),
                     isSelected: state.outputMode == mode,
                     onTap: () => cubit.setOutputMode(mode),
                   )).toList(),

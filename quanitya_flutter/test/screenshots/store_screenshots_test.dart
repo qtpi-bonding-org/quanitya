@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quanitya_flutter/app/bootstrap.dart' show getIt;
+import 'package:quanitya_flutter/dev/widgets/dev_fab.dart';
 import 'package:quanitya_flutter/data/repositories/template_with_aesthetics_repository.dart';
 import 'package:quanitya_flutter/design_system/widgets/quanitya/general/zen_paper_background.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,6 +30,7 @@ import 'package:quanitya_flutter/logic/analysis/cubits/analysis_builder_state.da
 import 'package:quanitya_flutter/logic/analysis/enums/analysis_output_mode.dart';
 import 'package:quanitya_flutter/logic/analysis/models/analysis_output.dart';
 import 'package:quanitya_flutter/logic/templates/services/shared/template_editor_message_mapper.dart';
+import 'package:quanitya_flutter/support/extensions/context_extensions.dart';
 
 import 'screenshot_bootstrap.dart';
 import 'stubs/fake_template_data.dart';
@@ -202,22 +204,25 @@ Map<String, ScreenshotSetup> get _screenshots => {
           child: Scaffold(
             backgroundColor: Colors.transparent,
             body: SafeArea(
-              child: TemplatePreview(
-                template: period.template,
-                aesthetics: period.aesthetics,
-                initialValues: initialValues,
-                actions: [
-                  TemplatePreviewAction.secondary(
-                    label: 'Discard',
-                    icon: Icons.close,
-                    onPressed: () {},
-                  ),
-                  TemplatePreviewAction.primary(
-                    label: 'Save',
-                    icon: Icons.save,
-                    onPressed: () {},
-                  ),
-                ],
+              // Use Builder to access context.l10n for real button labels
+              child: Builder(
+                builder: (context) => TemplatePreview(
+                  template: period.template,
+                  aesthetics: period.aesthetics,
+                  initialValues: initialValues,
+                  actions: [
+                    TemplatePreviewAction.secondary(
+                      label: context.l10n.templatePreviewDiscard,
+                      icon: Icons.close,
+                      onPressed: () {},
+                    ),
+                    TemplatePreviewAction.primary(
+                      label: context.l10n.actionSave,
+                      icon: Icons.save,
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -305,6 +310,7 @@ void main() {
     for (final lang in _locales) {
       group('${device.name}/$lang', () {
         setUp(() async {
+          DevFab.hideForScreenshots = true;
           await configureScreenshotDependencies();
         });
 
@@ -312,6 +318,7 @@ void main() {
           StubVisualizationCubit.fakeDataByTemplate = {};
           StubVisualizationCubit.fakeAnalysisByTemplate = {};
           StubResultsListCubit.defaultTemplates = null;
+          DevFab.hideForScreenshots = false;
           await getIt.reset();
         });
 

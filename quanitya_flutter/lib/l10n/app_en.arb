@@ -1134,5 +1134,19 @@
   },
   "catalogTemplatesImported": "Templates imported",
   "syncReconnected": "Sync reconnected",
-  "validationFixErrors": "Please fix the highlighted fields."
+  "validationFixErrors": "Please fix the highlighted fields.",
+  "fieldTypeNumber": "Number",
+  "fieldTypeDecimal": "Decimal",
+  "fieldTypeText": "Text",
+  "fieldTypeToggle": "Toggle",
+  "fieldTypeDate": "Date",
+  "fieldTypeChoice": "Choice",
+  "fieldTypeMeasurement": "Measurement",
+  "fieldTypeReference": "Reference",
+  "fieldTypeLocation": "Location",
+  "fieldTypeGroup": "Group",
+  "fieldTypeMultiSelect": "Multi-Select",
+  "outputModeScalar": "Scalar",
+  "outputModeVector": "Vector",
+  "outputModeMatrix": "Matrix"
 }

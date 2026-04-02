@@ -6,6 +6,7 @@
 library;
 
 import 'package:quanitya_flutter/data/dao/log_entry_query_dao.dart';
+import 'package:quanitya_flutter/design_system/primitives/quanitya_date_format.dart';
 import 'package:quanitya_flutter/data/repositories/template_with_aesthetics_repository.dart'
     show TemplateWithAesthetics;
 import 'package:quanitya_flutter/logic/log_entries/models/log_entry.dart';
@@ -85,6 +86,12 @@ const _t = <String, Map<String, String>>{
   'Bench Press': {'es': 'Press banca', 'fr': 'Développé couché', 'pt': 'Supino'},
   'Deadlift':    {'es': 'Peso muerto', 'fr': 'Soulevé de terre', 'pt': 'Levantamento terra'},
   'Feeling okay today': {'es': 'Me siento bien hoy', 'fr': 'Je me sens bien', 'pt': 'Me sentindo bem'},
+  // Analysis reasoning
+  'Computes basic statistics and linear trend for weight progression.': {
+    'es': 'Calcula estadísticas básicas y tendencia lineal para progresión de peso.',
+    'fr': 'Calcule les statistiques de base et la tendance linéaire de progression du poids.',
+    'pt': 'Calcula estatísticas básicas e tendência linear para progressão de peso.',
+  },
 };
 
 /// Translate a string to the given locale. Returns original if no translation.
@@ -261,70 +268,63 @@ List<TimelineItem> _buildPastTimelineItems(List<TemplateWithAesthetics> template
   final yesterday = DateTime(2026, 3, 31);
   final twoDaysAgo = DateTime(2026, 3, 30);
 
+  // Use app date formatter with locale
+  String date(DateTime d) => QuanityaDateFormat.monthDayCompact(d, locale);
+  String time(DateTime d) => QuanityaDateFormat.time(d, locale);
+
+  final t1 = today.add(const Duration(hours: 14, minutes: 30));
+  final t2 = today.add(const Duration(hours: 7, minutes: 15));
+  final t3 = yesterday.add(const Duration(hours: 18));
+  final t4 = yesterday.add(const Duration(hours: 12));
+  final t5 = yesterday.add(const Duration(hours: 8));
+  final t6 = twoDaysAgo.add(const Duration(hours: 17, minutes: 30));
+  final t7 = twoDaysAgo.add(const Duration(hours: 10));
+
   return [
-    // Today
-    TimelineItem.dateDivider(dateKey: '2026-04-01', isFirst: true, formattedDate: 'Apr 1'),
+    TimelineItem.dateDivider(dateKey: '2026-04-01', isFirst: true, formattedDate: date(today)),
     _timelineEntry(
-      entryId: 'e-01', template: templates[2], // Water
-      occurredAt: today.add(const Duration(hours: 14, minutes: 30)),
-      data: {'Glasses': 2},
+      entryId: 'e-01', template: templates[2],
+      occurredAt: t1, data: {'Glasses': 2},
       dataPreview: '2 ${tr('Glasses', locale).toLowerCase()}',
-      timeString: '2:30 PM',
-      dateString: 'Apr 1',
-      isFirst: true,
+      timeString: time(t1), dateString: date(today), isFirst: true,
     ),
     _timelineEntry(
-      entryId: 'e-02', template: templates[3], // Sleep
-      occurredAt: today.add(const Duration(hours: 7, minutes: 15)),
-      data: {'Hours': 7.5, 'Quality': 'Great'},
+      entryId: 'e-02', template: templates[3],
+      occurredAt: t2, data: {'Hours': 7.5, 'Quality': 'Great'},
       dataPreview: '7.5 ${tr('Hours', locale).toLowerCase()}',
-      timeString: '7:15 AM',
-      dateString: 'Apr 1',
+      timeString: time(t2), dateString: date(today),
     ),
-    // Yesterday
-    TimelineItem.dateDivider(dateKey: '2026-03-31', isFirst: false, formattedDate: 'Mar 31'),
+    TimelineItem.dateDivider(dateKey: '2026-03-31', isFirst: false, formattedDate: date(yesterday)),
     _timelineEntry(
-      entryId: 'e-03', template: templates[0], // Lifting
-      occurredAt: yesterday.add(const Duration(hours: 18, minutes: 0)),
-      data: {'Exercise': 'Deadlift', 'Weight': 100.0, 'Reps': 5},
+      entryId: 'e-03', template: templates[0],
+      occurredAt: t3, data: {'Exercise': 'Deadlift', 'Weight': 100.0, 'Reps': 5},
       dataPreview: tr('Deadlift', locale),
-      timeString: '6:00 PM',
-      dateString: 'Mar 31',
+      timeString: time(t3), dateString: date(yesterday),
     ),
     _timelineEntry(
-      entryId: 'e-04', template: templates[4], // Emotion
-      occurredAt: yesterday.add(const Duration(hours: 12, minutes: 0)),
-      data: {'Feeling': 'Happy', 'Intensity': 8},
+      entryId: 'e-04', template: templates[4],
+      occurredAt: t4, data: {'Feeling': 'Happy', 'Intensity': 8},
       dataPreview: tr('Happy', locale),
-      timeString: '12:00 PM',
-      dateString: 'Mar 31',
+      timeString: time(t4), dateString: date(yesterday),
     ),
     _timelineEntry(
-      entryId: 'e-05', template: templates[7], // Medication
-      occurredAt: yesterday.add(const Duration(hours: 8, minutes: 0)),
-      data: {'Taken': true},
+      entryId: 'e-05', template: templates[7],
+      occurredAt: t5, data: {'Taken': true},
       dataPreview: tr('Taken', locale),
-      timeString: '8:00 AM',
-      dateString: 'Mar 31',
+      timeString: time(t5), dateString: date(yesterday),
     ),
-    // Two days ago
-    TimelineItem.dateDivider(dateKey: '2026-03-30', isFirst: false, formattedDate: 'Mar 30'),
+    TimelineItem.dateDivider(dateKey: '2026-03-30', isFirst: false, formattedDate: date(twoDaysAgo)),
     _timelineEntry(
-      entryId: 'e-06', template: templates[5], // Cycling
-      occurredAt: twoDaysAgo.add(const Duration(hours: 17, minutes: 30)),
-      data: {'Distance': 15.2, 'Duration': 42},
+      entryId: 'e-06', template: templates[5],
+      occurredAt: t6, data: {'Distance': 15.2, 'Duration': 42},
       dataPreview: '15.2 km',
-      timeString: '5:30 PM',
-      dateString: 'Mar 30',
+      timeString: time(t6), dateString: date(twoDaysAgo),
     ),
     _timelineEntry(
-      entryId: 'e-07', template: templates[2], // Water
-      occurredAt: twoDaysAgo.add(const Duration(hours: 10, minutes: 0)),
-      data: {'Glasses': 3},
+      entryId: 'e-07', template: templates[2],
+      occurredAt: t7, data: {'Glasses': 3},
       dataPreview: '3 ${tr('Glasses', locale).toLowerCase()}',
-      timeString: '10:00 AM',
-      dateString: 'Mar 30',
-      isLast: true,
+      timeString: time(t7), dateString: date(twoDaysAgo), isLast: true,
     ),
   ];
 }

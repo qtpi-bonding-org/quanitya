@@ -784,5 +784,19 @@
   "analysisEntriesCount": "Entradas ({count})",
   "catalogTemplatesImported": "Plantillas importadas",
   "syncReconnected": "Sincronización reconectada",
-  "validationFixErrors": "Por favor corrige los campos marcados."
+  "validationFixErrors": "Por favor corrige los campos marcados.",
+  "fieldTypeNumber": "Número",
+  "fieldTypeDecimal": "Decimal",
+  "fieldTypeText": "Texto",
+  "fieldTypeToggle": "Interruptor",
+  "fieldTypeDate": "Fecha",
+  "fieldTypeChoice": "Opción",
+  "fieldTypeMeasurement": "Medida",
+  "fieldTypeReference": "Referencia",
+  "fieldTypeLocation": "Ubicación",
+  "fieldTypeGroup": "Grupo",
+  "fieldTypeMultiSelect": "Selección múltiple",
+  "outputModeScalar": "Escalar",
+  "outputModeVector": "Vector",
+  "outputModeMatrix": "Matriz"
 }

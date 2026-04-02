@@ -6,20 +6,20 @@ import '../../../support/extensions/context_extensions.dart';
 
 /// Extension to provide user-friendly display names and icons for field types
 extension FieldEnumDisplayName on FieldEnum {
-  /// Returns a user-friendly display name for the field type
-  String get displayName {
+  /// Returns a localized display name for the field type
+  String displayName(BuildContext context) {
     return switch (this) {
-      FieldEnum.integer => 'Number',
-      FieldEnum.float => 'Decimal',
-      FieldEnum.text => 'Text',
-      FieldEnum.boolean => 'Toggle',
-      FieldEnum.datetime => 'Date',
-      FieldEnum.enumerated => 'Choice',
-      FieldEnum.dimension => 'Measurement',
-      FieldEnum.reference => 'Reference',
-      FieldEnum.location => 'Location',
-      FieldEnum.group => 'Group',
-      FieldEnum.multiEnum => 'Multi-Select',
+      FieldEnum.integer => context.l10n.fieldTypeNumber,
+      FieldEnum.float => context.l10n.fieldTypeDecimal,
+      FieldEnum.text => context.l10n.fieldTypeText,
+      FieldEnum.boolean => context.l10n.fieldTypeToggle,
+      FieldEnum.datetime => context.l10n.fieldTypeDate,
+      FieldEnum.enumerated => context.l10n.fieldTypeChoice,
+      FieldEnum.dimension => context.l10n.fieldTypeMeasurement,
+      FieldEnum.reference => context.l10n.fieldTypeReference,
+      FieldEnum.location => context.l10n.fieldTypeLocation,
+      FieldEnum.group => context.l10n.fieldTypeGroup,
+      FieldEnum.multiEnum => context.l10n.fieldTypeMultiSelect,
     };
   }
 

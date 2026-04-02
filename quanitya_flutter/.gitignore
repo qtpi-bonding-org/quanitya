@@ -1,3 +1,6 @@
+# Golden test failure diffs
+test/screenshots/failures/
+
 # Miscellaneous
 *.class
 *.log

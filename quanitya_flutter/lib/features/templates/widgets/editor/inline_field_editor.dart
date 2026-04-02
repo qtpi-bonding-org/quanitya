@@ -273,8 +273,8 @@ class _InlineFieldEditorState extends State<InlineFieldEditor> {
       ),
       middle: Text(
         widget.isEditing
-            ? context.l10n.editFieldType(widget.fieldType.displayName)
-            : context.l10n.addFieldType(widget.fieldType.displayName),
+            ? context.l10n.editFieldType(widget.fieldType.displayName(context))
+            : context.l10n.addFieldType(widget.fieldType.displayName(context)),
         style: context.text.titleSmall?.copyWith(
           color: draftColor,
         ),

@@ -784,5 +784,19 @@
   "analysisEntriesCount": "Registros ({count})",
   "catalogTemplatesImported": "Templates importados",
   "syncReconnected": "Sincronização reconectada",
-  "validationFixErrors": "Por favor, corrija os campos destacados."
+  "validationFixErrors": "Por favor, corrija os campos destacados.",
+  "fieldTypeNumber": "Número",
+  "fieldTypeDecimal": "Decimal",
+  "fieldTypeText": "Texto",
+  "fieldTypeToggle": "Alternador",
+  "fieldTypeDate": "Data",
+  "fieldTypeChoice": "Opção",
+  "fieldTypeMeasurement": "Medida",
+  "fieldTypeReference": "Referência",
+  "fieldTypeLocation": "Localização",
+  "fieldTypeGroup": "Grupo",
+  "fieldTypeMultiSelect": "Seleção múltipla",
+  "outputModeScalar": "Escalar",
+  "outputModeVector": "Vetor",
+  "outputModeMatrix": "Matriz"
 }

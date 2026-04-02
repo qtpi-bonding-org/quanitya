@@ -9,12 +9,14 @@ import 'dev_tools_sheet.dart';
 /// Provides quick access to dev tools like data seeding,
 /// clearing data, and navigation shortcuts.
 class DevFab extends StatelessWidget {
+  /// Set to true during golden screenshot tests to hide the FAB.
+  static bool hideForScreenshots = false;
+
   const DevFab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Only show in debug mode
-    if (!kDebugMode) return const SizedBox.shrink();
+    if (!kDebugMode || hideForScreenshots) return const SizedBox.shrink();
 
     final palette = QuanityaPalette.primary;
     

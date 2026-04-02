@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_test_goldens/flutter_test_goldens.dart';
 
 /// Loads static font files for golden tests.
@@ -42,6 +43,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   TestWidgetsFlutterBinding.ensureInitialized();
   await _loadStaticFonts();
   await loadMaterialIconsFont();
+  await initializeDateFormatting();
 
   // Allow small pixel diffs (< 0.5%) — the home screen clock causes
   // time-dependent rendering that shifts a few pixels between runs.

@@ -384,7 +384,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                   height: AppSizes.borderWidth,
                   color: context.colors.textSecondary.withValues(alpha: 0.1)),
             _buildAddFieldOption(
-                context, types[i].displayName, types[i].icon, types[i]),
+                context, types[i].displayName(context), types[i].icon, types[i]),
           ],
         ],
       ),
