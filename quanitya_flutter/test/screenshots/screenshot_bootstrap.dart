@@ -89,6 +89,7 @@ import 'package:quanitya_flutter/infrastructure/device/device_info_service.dart'
 import 'package:quanitya_flutter/infrastructure/auth/auth_repository.dart';
 import 'package:quanitya_flutter/infrastructure/fonts/font_preloader_service.dart';
 import 'package:quanitya_flutter/logic/templates/services/engine/symbolic_combination_generator.dart';
+import 'package:quanitya_flutter/logic/templates/services/shared/default_value_handler.dart';
 import 'package:quanitya_flutter/logic/templates/services/sharing/shareable_template_staging.dart';
 import 'package:quanitya_flutter/infrastructure/permissions/permission_service.dart';
 import 'package:quanitya_flutter/infrastructure/auth/delete_orchestrator.dart';
@@ -186,11 +187,12 @@ Future<void> configureScreenshotDependencies() async {
 
   // Services with no deps or simple deps
   getIt.registerLazySingleton<FontPreloaderService>(
-    () => FontPreloaderService(),
+    () => StubFontPreloaderService(),
   );
   getIt.registerLazySingleton<SymbolicCombinationGenerator>(
     () => SymbolicCombinationGenerator(),
   );
+  getIt.registerFactory<DefaultValueHandler>(() => DefaultValueHandler());
   getIt.registerLazySingleton<ShareableTemplateStaging>(
     () => ShareableTemplateStaging(),
   );
@@ -285,26 +287,17 @@ Future<void> configureScreenshotDependencies() async {
 
   // ── Singleton cubits (all 13 from app.dart MultiProvider) ──────────────
 
+  // TimelineData and ScheduleList use stub cubits (not real ones with repos)
+  // so we can emit pre-built state for different screenshots.
   getIt.registerLazySingleton<TimelineDataCubit>(
-    () => TimelineDataCubit(
-      getIt<ILogEntryRepository>(),
-      getIt<TemplateQueryDao>(),
-    ),
+    () => StubTimelineDataCubit(),
   );
-
   getIt.registerLazySingleton<ScheduleListCubit>(
-    () => ScheduleListCubit(
-      getIt<ScheduleRepository>(),
-      getIt<TemplateWithAestheticsRepository>(),
-      getIt<ScheduleService>(),
-    ),
+    () => StubScheduleListCubit(),
   );
 
   getIt.registerLazySingleton<HiddenVisibilityCubit>(
-    () => HiddenVisibilityCubit(
-      getIt<PlatformLocalAuth>(),
-      getIt<cubit_ui_flow.ILocalizationService>(),
-    ),
+    () => StubHiddenVisibilityCubit(),
   );
 
   // Shell-level cubits (stubs that emit idle/empty state)

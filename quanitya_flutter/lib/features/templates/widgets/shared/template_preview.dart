@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../app/bootstrap.dart' show getIt;
 
+import '../../../../design_system/primitives/quanitya_fonts.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
 import '../../../../design_system/primitives/quanitya_palette.dart';
@@ -407,9 +408,11 @@ class _TemplatePreviewState extends State<TemplatePreview> {
   // Font helpers
   TextStyle _getGoogleFontStyle(String? fontName) {
     if (fontName == null || fontName.isEmpty || fontName == 'system') {
-      return const TextStyle();
+      return const TextStyle(fontFamily: QuanityaFonts.bodyFamily);
     }
-    if (!AllowedFont.isAllowed(fontName)) return const TextStyle();
+    if (!AllowedFont.isAllowed(fontName)) {
+      return const TextStyle(fontFamily: QuanityaFonts.bodyFamily);
+    }
 
     // Use FontPreloaderService for proper bundled font handling
     final fontService = context.read<FontPreloaderService>();

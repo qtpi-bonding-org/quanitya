@@ -56,10 +56,21 @@ import 'package:quanitya_flutter/features/settings/cubits/webhook/webhook_cubit.
 import 'package:quanitya_flutter/features/settings/cubits/webhook/webhook_state.dart';
 import 'package:quanitya_flutter/features/user_feedback/cubits/feedback_cubit.dart';
 import 'package:quanitya_flutter/features/user_feedback/cubits/feedback_state.dart';
+import 'package:flutter/material.dart';
+import 'package:quanitya_flutter/features/hidden_visibility/cubits/hidden_visibility_cubit.dart';
+import 'package:quanitya_flutter/features/hidden_visibility/cubits/hidden_visibility_state.dart';
+import 'package:quanitya_flutter/features/home/cubits/timeline_data_cubit.dart';
+import 'package:quanitya_flutter/features/home/cubits/timeline_data_state.dart';
 import 'package:quanitya_flutter/features/results/cubits/results_list_cubit.dart';
 import 'package:quanitya_flutter/features/results/cubits/results_list_state.dart';
+import 'package:quanitya_flutter/features/schedules/cubits/schedule_list_cubit.dart';
+import 'package:quanitya_flutter/features/schedules/cubits/schedule_list_state.dart';
+import 'package:quanitya_flutter/features/templates/cubits/editor/template_editor_cubit.dart';
+import 'package:quanitya_flutter/features/templates/cubits/editor/template_editor_state.dart';
 import 'package:quanitya_flutter/features/visualization/cubits/visualization_cubit.dart';
 import 'package:quanitya_flutter/features/visualization/cubits/visualization_state.dart';
+import 'package:quanitya_flutter/data/repositories/data_retrieval_service.dart';
+import 'package:quanitya_flutter/infrastructure/fonts/font_preloader_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Safe noSuchMethod base — returns Future.value() for async calls
@@ -180,10 +191,13 @@ class StubTemplateQueryDao implements TemplateQueryDao {
 }
 
 /// Stub TemplateWithAestheticsRepository — returns fake template data for screenshots.
+/// Set [templates] before pumping to customise which templates appear.
 class StubTemplateWithAestheticsRepository implements TemplateWithAestheticsRepository {
+  List<TemplateWithAesthetics> templates = fakeTemplates;
+
   @override
   Stream<List<TemplateWithAesthetics>> watch({bool? isArchived, bool? isHidden}) =>
-      Stream.value(fakeTemplates);
+      Stream.value(templates);
 
   @override
   Future<TemplateWithAesthetics?> findById(String id) async => null;
@@ -250,6 +264,26 @@ class StubPermissionService extends Mock implements PermissionService {
   StubPermissionService() {
     when(() => ensureCamera()).thenAnswer((_) async => true);
   }
+}
+
+/// Stub FontPreloaderService — returns plain TextStyle without calling GoogleFonts.
+class StubFontPreloaderService extends FontPreloaderService {
+  @override
+  TextStyle getTextStyle(String fontName, {
+    double? fontSize,
+    FontWeight? fontWeight,
+    Color? color,
+  }) {
+    return TextStyle(
+      fontFamily: fontName,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+    );
+  }
+
+  @override
+  Future<void> preloadAllFonts() async {}
 }
 
 class StubDeleteOrchestrator extends Mock implements DeleteOrchestrator {
@@ -375,14 +409,65 @@ class StubFeedbackCubit extends Cubit<FeedbackState>
 
 class StubResultsListCubit extends Cubit<ResultsListState>
     implements ResultsListCubit {
-  StubResultsListCubit() : super(const ResultsListState());
+  /// Static default templates — set before pumping widget.
+  /// Each factory instance auto-populates from this.
+  static List<ResultsTemplateItem>? defaultTemplates;
+
+  StubResultsListCubit()
+      : super(const ResultsListState()) {
+    if (defaultTemplates != null) {
+      emit(state.copyWith(
+        status: cubit_ui_flow.UiFlowStatus.success,
+        templates: defaultTemplates!,
+      ));
+    }
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => Future<dynamic>.value();
 }
 
 class StubVisualizationCubit extends Cubit<VisualizationState>
     implements VisualizationCubit {
+  /// Static data map — each factory instance checks this on loadForTemplate.
+  static Map<String, TemplateAggregatedData> fakeDataByTemplate = {};
+  static Map<String, Map<String, ScriptResult>> fakeAnalysisByTemplate = {};
+  static double fakeConsistencyRate = 0.85;
+
   StubVisualizationCubit() : super(const VisualizationState());
+
+  @override
+  Future<void> loadForTemplate(String templateId, {int days = 30}) async {
+    final data = fakeDataByTemplate[templateId];
+    if (data != null) {
+      emit(state.copyWith(
+        status: cubit_ui_flow.UiFlowStatus.success,
+        data: data,
+        consistencyRate: fakeConsistencyRate,
+        analysisResults: fakeAnalysisByTemplate[templateId] ?? {},
+      ));
+    }
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => Future<dynamic>.value();
+}
+
+/// Stub TemplateEditorCubit — pre-populated with template data.
+class StubTemplateEditorCubit extends Cubit<TemplateEditorState>
+    implements TemplateEditorCubit {
+  StubTemplateEditorCubit() : super(const TemplateEditorState());
+
+  /// Populate editor with template data (stays in "edit" mode).
+  void loadFromTemplate(TemplateWithAesthetics twa) {
+    emit(state.copyWith(
+      template: twa.template,
+      aesthetics: twa.aesthetics,
+      templateName: twa.template.name,
+      fields: List.from(twa.template.fields),
+    ));
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => Future<dynamic>.value();
 }
@@ -394,6 +479,58 @@ class StubNoticesCubit extends Cubit<NoticesState>
 
   @override
   void loadNotifications() {} // No-op
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => Future<dynamic>.value();
+}
+
+/// Stub HiddenVisibilityCubit — controllable hidden state.
+/// Call [setShowingHidden] to toggle between showing/hiding hidden templates.
+class StubHiddenVisibilityCubit extends Cubit<HiddenVisibilityState>
+    implements HiddenVisibilityCubit {
+  StubHiddenVisibilityCubit() : super(const HiddenVisibilityState());
+
+  /// Set whether hidden templates are visible.
+  void setShowingHidden(bool showing) {
+    emit(state.copyWith(showingHidden: showing));
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => Future<dynamic>.value();
+}
+
+/// Stub TimelineDataCubit — emits pre-built timeline state.
+/// Call [emitPastData] before pumping widget to populate the past tab.
+class StubTimelineDataCubit extends Cubit<TimelineDataState>
+    implements TimelineDataCubit {
+  StubTimelineDataCubit() : super(const TimelineDataState());
+
+  /// Emit state with pre-built past timeline items.
+  void emitPastData(List<TimelineItem> items) {
+    emit(state.copyWith(
+      status: cubit_ui_flow.UiFlowStatus.success,
+      pastItems: items,
+      totalPastCount: items.whereType<TimelineEntryItem>().length,
+    ));
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => Future<dynamic>.value();
+}
+
+/// Stub ScheduleListCubit — emits pre-built schedule state.
+/// Call [emitSchedules] before pumping widget to populate the future tab.
+class StubScheduleListCubit extends Cubit<ScheduleListState>
+    implements ScheduleListCubit {
+  StubScheduleListCubit() : super(const ScheduleListState());
+
+  /// Emit state with pre-built schedules.
+  void emitSchedules(List<ScheduleWithContext> schedules) {
+    emit(state.copyWith(
+      status: cubit_ui_flow.UiFlowStatus.success,
+      schedules: schedules,
+    ));
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => Future<dynamic>.value();
