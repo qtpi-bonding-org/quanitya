@@ -51,6 +51,9 @@ class QuanityaPalette {
       // Destructive color (for delete icons/text)
       'destructive': const Color(0xFFBC4B41), // Dark red
 
+      // Code editor base text color (matches vs2015 theme root)
+      'codeText': const Color(0xFFDCDCDC),  // Light grey on dark background
+
       // State colors (for toggles/switches)
       'stateOn': const Color(0xFF6B8F71),   // Sage green - active/enabled
       'stateOff': const Color(0xFFA0978B),  // Warm stone grey - inactive/disabled
