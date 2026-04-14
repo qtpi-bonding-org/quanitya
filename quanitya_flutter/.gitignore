@@ -1,6 +1,9 @@
 # Golden test failure diffs
 test/screenshots/failures/
 
+# ML model weights
+*.gguf
+
 # Miscellaneous
 *.class
 *.log

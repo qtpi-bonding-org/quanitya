@@ -127,7 +127,15 @@ build_platform() {
                 print_success "Android APK built successfully"
                 print_status "Output: build/app/outputs/flutter-apk/app-$mode.apk"
             else
-                print_error "Android build failed"
+                print_error "Android APK build failed"
+                return 1
+            fi
+            flutter build appbundle --$mode
+            if [[ $? -eq 0 ]]; then
+                print_success "Android AAB built successfully"
+                print_status "Output: build/app/outputs/bundle/$mode/app-$mode.aab"
+            else
+                print_error "Android AAB build failed"
                 return 1
             fi
             ;;
