@@ -50,6 +50,9 @@ abstract class TemplateEditorState
     // Preview values (temporary, used by preview sheet)
     @Default({}) Map<String, dynamic> previewValues,
     
+    // Privacy — used during creation before template exists in DB
+    @Default(false) bool isHiddenPending,
+
     // Schedule/Reminder settings
     @Default(ScheduleFrequency.off) ScheduleFrequency scheduleFrequency,
     @Default(null) int? scheduleHour,

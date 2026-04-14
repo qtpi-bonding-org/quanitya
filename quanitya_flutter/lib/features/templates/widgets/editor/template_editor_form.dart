@@ -87,6 +87,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
           p.template != c.template ||
           p.canSave != c.canSave ||
           p.fields.length != c.fields.length ||
+          p.isHiddenPending != c.isHiddenPending ||
           p.scheduleFrequency != c.scheduleFrequency ||
           p.scheduleHour != c.scheduleHour ||
           p.scheduleMinute != c.scheduleMinute ||
@@ -205,8 +206,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
                     ),
 
                     // Privacy toggle
-                    if (isEditing)
-                      _buildPrivateToggle(context, state),
+                    _buildPrivateToggle(context, state),
 
                     // Extra space at bottom so content isn't hidden behind sticky bar
                     VSpace.x4,
@@ -340,7 +340,7 @@ class _TemplateEditorFormState extends State<TemplateEditorForm> {
     BuildContext context,
     TemplateEditorState state,
   ) {
-    final isHidden = state.template?.isHidden ?? false;
+    final isHidden = state.template?.isHidden ?? state.isHiddenPending;
     return Padding(
       padding: AppPadding.verticalSingle,
       child: Row(

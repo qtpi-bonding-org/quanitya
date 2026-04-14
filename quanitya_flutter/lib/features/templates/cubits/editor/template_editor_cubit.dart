@@ -480,6 +480,11 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
       }
       await _saveOrDeleteSchedule(completeTemplate.template.id);
 
+      // Apply pending hidden state for newly created templates
+      if (state.template == null && state.isHiddenPending) {
+        await _repository.hide(completeTemplate.template.id);
+      }
+
       return state.copyWith(
         status: UiFlowStatus.success,
         lastOperation: TemplateEditorOperation.save,
@@ -559,7 +564,12 @@ class TemplateEditorCubit extends QuanityaCubit<TemplateEditorState> {
   /// Hidden templates require biometric auth to view.
   Future<void> toggleHidden() async {
     final templateId = state.template?.id;
-    if (templateId == null) return;
+
+    // Create mode — just flip the pending flag
+    if (templateId == null) {
+      emit(state.copyWith(isHiddenPending: !state.isHiddenPending));
+      return;
+    }
 
     await tryOperation(() async {
       if (state.template!.isHidden) {
