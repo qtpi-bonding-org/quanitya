@@ -30,6 +30,18 @@ Check what already exists. The codebase has ~28 cubits, ~14 DAOs, and a full des
 dart run build_runner build --delete-conflicting-outputs
 ```
 
+## Dependency Injection: GetIt vs Provider vs BlocProvider
+
+One question: **does a widget access it via `context.read`?**
+
+- **No** → register in GetIt only, call `getIt<T>()`. Use for pure stateless utilities (e.g. `Haptics`, pure helpers).
+- **Yes, and it's a cubit** → `BlocProvider` at the appropriate scope (app-level or route-level). Widgets use `context.read<T>()` / `BlocBuilder`.
+- **Yes, and it's not a cubit** → `Provider` (mappers, `cubit_ui_flow` interfaces, some repos). Widgets use `context.read<T>()`.
+
+**Why:** Cubits have stream semantics + scoped lifecycle; `BlocProvider` handles subscription + dispose. `Provider` is plain scoped DI for everything else that needs widget-tree access. GetIt is global/unscoped — good for stateless things, bad for cubits (can't stub per-test, can't scope per-route).
+
+**Historical context:** Widgets used to call `getIt<MyCubit>()` directly in build methods. This broke golden tests (can't inject per-test state) and route scoping (cubits leaked between routes). The `refactor/di` branch moved cubits + mappers + services to MultiProvider/`context.read`. Don't regress to service-locator-in-build-method for stateful things.
+
 ## Cubit Pattern
 
 States implement `IUiFlowState`. Cubits extend `QuanityaCubit`. Use `tryOperation` for all async work.

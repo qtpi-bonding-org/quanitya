@@ -8,6 +8,7 @@ import '../../../../app_router.dart';
 import '../../../log_entry/widgets/log_entry_sheet.dart';
 import '../../../../design_system/primitives/app_sizes.dart';
 import '../../../../design_system/primitives/app_spacings.dart';
+import '../../../../infrastructure/platform/haptics.dart';
 import '../../../../design_system/widgets/quanitya_empty_or.dart';
 import '../../../../support/extensions/context_extensions.dart';
 import '../../../hidden_visibility/cubits/hidden_visibility_cubit.dart';
@@ -92,12 +93,14 @@ class _TemplateListWidgetState extends State<TemplateListWidget> {
                               AppNavigation.toTemplateDesigner(context, item);
                             },
                             onEdit: () {
+                              getIt<Haptics>().medium();
                               LogEntrySheet.showCreate(
                                 context: context,
                                 templateId: item.template.id,
                               );
                             },
                             onQuickAction: () {
+                              getIt<Haptics>().medium();
                               cubit.instantLog(item.template);
                             },
                           );

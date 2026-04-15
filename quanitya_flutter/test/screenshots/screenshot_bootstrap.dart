@@ -22,6 +22,7 @@ import 'package:quanitya_flutter/design_system/theme/theme_service.dart';
 import 'package:quanitya_flutter/l10n/app_localizations.dart';
 import 'package:quanitya_flutter/infrastructure/feedback/localization_service.dart';
 import 'package:quanitya_flutter/infrastructure/platform/app_lifecycle_service.dart';
+import 'package:quanitya_flutter/infrastructure/platform/haptics.dart';
 import 'package:quanitya_flutter/infrastructure/platform/platform_capability_service.dart';
 import 'package:quanitya_flutter/infrastructure/platform/platform_local_auth.dart';
 import 'package:quanitya_flutter/infrastructure/platform/secure_preferences.dart';
@@ -113,6 +114,9 @@ Future<void> configureScreenshotDependencies() async {
   getIt.registerLazySingleton<AppLifecycleService>(() => AppLifecycleService());
   getIt.registerLazySingleton<PlatformCapabilityService>(
     () => PlatformCapabilityService(),
+  );
+  getIt.registerLazySingleton<Haptics>(
+    () => Haptics(getIt<PlatformCapabilityService>()),
   );
 
   // Localization service (real — gets updated when MaterialApp builds)

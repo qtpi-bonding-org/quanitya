@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/bootstrap.dart' show getIt;
 import '../../../design_system/primitives/app_sizes.dart';
+import '../../../infrastructure/platform/haptics.dart';
 import '../../../design_system/primitives/app_spacings.dart';
 import '../../../design_system/primitives/quanitya_palette.dart';
 import '../../../support/extensions/context_extensions.dart';
@@ -64,7 +66,10 @@ class FolderTabBar extends StatelessWidget {
                   selected: isSelected,
                   label: tab.label,
                   child: GestureDetector(
-                    onTap: () => onTabSelected(index),
+                    onTap: () {
+                      getIt<Haptics>().light();
+                      onTabSelected(index);
+                    },
                     behavior: HitTestBehavior.opaque,
                     child: _FolderTabWidget(
                       tab: tab,

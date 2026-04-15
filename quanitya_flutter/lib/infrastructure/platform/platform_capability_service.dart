@@ -195,6 +195,15 @@ class PlatformCapabilityService {
     return 'Unknown';
   }
   
+  /// Whether haptic feedback is supported.
+  ///
+  /// Supported on: iOS, Android
+  /// Not supported on: Web, macOS, Windows, Linux
+  bool get supportsHaptics {
+    if (kIsWeb) return false;
+    return Platform.isIOS || Platform.isAndroid;
+  }
+
   /// Whether this is a mobile platform.
   bool get isMobile {
     if (kIsWeb) return false;

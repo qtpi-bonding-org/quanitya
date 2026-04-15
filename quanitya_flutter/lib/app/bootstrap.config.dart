@@ -264,6 +264,7 @@ import 'package:quanitya_flutter/infrastructure/permissions/permission_service.d
     as _i946;
 import 'package:quanitya_flutter/infrastructure/platform/app_lifecycle_service.dart'
     as _i171;
+import 'package:quanitya_flutter/infrastructure/platform/haptics.dart' as _i874;
 import 'package:quanitya_flutter/infrastructure/platform/platform_capability_service.dart'
     as _i548;
 import 'package:quanitya_flutter/infrastructure/platform/platform_local_auth.dart'
@@ -617,6 +618,9 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i259.SymbolicCombinationGenerator>(),
         gh<_i303.UnifiedSchemaGenerator>(),
       ),
+    );
+    gh.lazySingleton<_i874.Haptics>(
+      () => _i874.Haptics(gh<_i548.PlatformCapabilityService>()),
     );
     gh.factory<_i560.PlatformLocalAuth>(
       () => _i560.PlatformLocalAuth(gh<_i548.PlatformCapabilityService>()),
